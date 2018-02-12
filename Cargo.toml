@@ -1,0 +1,11 @@
+[package]
+name = "wasm-pack"
+description = "pack up the wasm and publish it to npm!"
+version = "0.1.0"
+authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
+
+[dependencies]
+quicli = "0.2"
+serde = "1.0"
+serde_json = "1.0"
+toml = "0.4"
