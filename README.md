@@ -1,4 +1,4 @@
-# wasm-pack
+# 📦✨  wasm-pack
 > pack up the wasm and publish it to npm!
 
 the goal of this project is to create a portable command line tool
@@ -11,19 +11,19 @@ visiting that repo!
 
 [rust-wasm]: https://github.com/rust-lang-nursery/rust-wasm/
 
-## prerequisities
+## 🔮 prerequisities
 
 this project is written in rust. [get rust] to work on this project.
 
 [get rust]: https://www.rustup.rs/
 
-## up and running
+## 🏃‍♀️ up and running
 
 1. fork and clone this repository
 2. `cd wasm-pack`
 3. `cargo run`
 
-## what's it do?
+## ⚙️ what's it do?
 
 right now? not much. here's the plan:
 
