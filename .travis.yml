@@ -1,0 +1,17 @@
+language: rust
+sudo: false
+cache:
+  cargo
+rust:
+  - stable
+  - beta
+  - nightly
+before_install:
+  - bash ./tests/scripts/rustfmt.sh
+
+script:
+  - cargo fmt -- --write-mode diff
+  - cargo test
+matrix:
+  allow_failures:
+    - rust: nightly
