@@ -6,12 +6,11 @@ rust:
   - stable
   - beta
   - nightly
-before_install:
-  - bash ./tests/scripts/rustfmt.sh
 
 script:
-  - cargo fmt -- --write-mode diff
   - cargo test
+  - rustup component add rustfmt-preview
+  - cargo fmt -- --write-mode diff
 matrix:
   allow_failures:
     - rust: nightly
