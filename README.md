@@ -25,14 +25,25 @@ this project is written in rust. [get rust] to work on this project.
 2. `cd wasm-pack`
 3. `cargo run`
 
+## 💃 commands
+
+- `help`: display available commands
+- 🐣  `init`: 
+  - generate a `package.json`
+  - run [wasm-bindgen] [NOT IMPLEMENTED]
+- 🍱  `pack`: create a tarball but don't push to the npm registry [NOT IMPLEMENTED]
+- 🎆  `publish`: create a tarball and publish to the npm registry [NOT IMPLEMENTED]
+
 ## ⚙️ what's it do?
 
 right now? not much. here's the plan:
 
 - [x] read data from `Cargo.toml`
+- [ ] run [wasm-bindgen]
 - [ ] read JS dependency data from your compiled wasm (see [rust-wasm/36])
 - [x] write data to `package.json`
 - [ ] log you in to npm
 - [ ] publish package to npm registry
 
 [rust-wasm/36]: https://github.com/rust-lang-nursery/rust-wasm/issues/36
+[wasm-bindgen]: https://github.com/alexcrichton/wasm-bindgen
