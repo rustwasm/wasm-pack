@@ -1,6 +1,8 @@
 # 📦✨  wasm-pack
 > pack up the wasm and publish it to npm!
 
+[![Build Status](https://travis-ci.org/ashleygwilliams/wasm-pack.svg?branch=master)](https://travis-ci.org/ashleygwilliams/wasm-pack)
+
 the goal of this project is to create a portable command line tool
 for publishing compiled wasm projects to the npm registry for the consumption
 of js devs using the npm CLI, yarn, or any other CLI tool that interfaces
