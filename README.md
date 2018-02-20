@@ -1,6 +1,8 @@
 # 📦✨  wasm-pack
 > pack up the wasm and publish it to npm!
 
+[![Build Status](https://travis-ci.org/ashleygwilliams/wasm-pack.svg?branch=master)](https://travis-ci.org/ashleygwilliams/wasm-pack)
+
 the goal of this project is to create a portable command line tool
 for publishing compiled wasm projects to the npm registry for the consumption
 of js devs using the npm CLI, yarn, or any other CLI tool that interfaces
@@ -23,14 +25,25 @@ this project is written in rust. [get rust] to work on this project.
 2. `cd wasm-pack`
 3. `cargo run`
 
+## 💃 commands
+
+- `help`: display available commands
+- 🐣  `init`: 
+  - generate a `package.json`
+  - run [wasm-bindgen] [NOT IMPLEMENTED]
+- 🍱  `pack`: create a tarball but don't push to the npm registry [NOT IMPLEMENTED]
+- 🎆  `publish`: create a tarball and publish to the npm registry [NOT IMPLEMENTED]
+
 ## ⚙️ what's it do?
 
 right now? not much. here's the plan:
 
 - [x] read data from `Cargo.toml`
+- [ ] run [wasm-bindgen]
 - [ ] read JS dependency data from your compiled wasm (see [rust-wasm/36])
 - [x] write data to `package.json`
 - [ ] log you in to npm
 - [ ] publish package to npm registry
 
 [rust-wasm/36]: https://github.com/rust-lang-nursery/rust-wasm/issues/36
+[wasm-bindgen]: https://github.com/alexcrichton/wasm-bindgen

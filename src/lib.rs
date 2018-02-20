@@ -1,8 +1,8 @@
+extern crate failure;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
 extern crate toml;
-extern crate failure;
 
 use std::fs::File;
 use std::io::prelude::*;
