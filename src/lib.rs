@@ -4,6 +4,7 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate toml;
 
+use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -46,8 +47,14 @@ impl CargoManifest {
     }
 }
 
+fn create_pkg_dir() -> Result<(), Error> {
+    fs::create_dir_all("./pkg")?;
+    Ok(())
+}
+
 pub fn write_package_json() -> Result<(), Error> {
-    let mut pkg_file = File::create("package.json")?;
+    create_pkg_dir()?;
+    let mut pkg_file = File::create("./pkg/package.json")?;
     let crate_data = read_cargo_toml()?;
     let npm_data = crate_data.into_npm();
     let npm_json = serde_json::to_string(&npm_data)?;
