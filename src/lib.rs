@@ -20,6 +20,8 @@ struct CargoPackage {
     name: String,
     description: String,
     version: String,
+    license: String,
+    repository: String,
 }
 
 #[derive(Serialize)]
@@ -27,6 +29,14 @@ struct NpmPackage {
     name: String,
     description: String,
     version: String,
+    license: String,
+    repository: Repository,
+}
+
+#[derive(Serialize)]
+struct Repository {
+    #[serde(rename = "type")] ty: String,
+    url: String,
 }
 
 fn read_cargo_toml() -> Result<CargoManifest, Error> {
@@ -43,6 +53,11 @@ impl CargoManifest {
             name: self.package.name,
             description: self.package.description,
             version: self.package.version,
+            license: self.package.license,
+            repository: Repository {
+                ty: "git".to_string(),
+                url: self.package.repository,
+            },
         }
     }
 }
