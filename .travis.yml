@@ -4,13 +4,8 @@ cache:
   cargo
 rust:
   - stable
-  - beta
-  - nightly
 
 script:
   - cargo test
   - rustup component add rustfmt-preview
   - cargo fmt -- --write-mode diff
-matrix:
-  allow_failures:
-    - rust: nightly
