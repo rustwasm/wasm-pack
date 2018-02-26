@@ -67,6 +67,7 @@ fn create_pkg_dir() -> Result<(), Error> {
     Ok(())
 }
 
+/// Generate a package.json file inside in `./pkg`.
 pub fn write_package_json() -> Result<(), Error> {
     create_pkg_dir()?;
     let mut pkg_file = File::create("./pkg/package.json")?;
