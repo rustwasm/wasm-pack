@@ -33,7 +33,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
         println!("✍️  wrote a package.json!");
     }
     Command::Pack { .. } => {
-        println!("🎒  packed up your pacakge!");
+        println!("🎒  packed up your package!");
     }
     Command::Publish { .. } => {
         println!("💥  published your package!");
