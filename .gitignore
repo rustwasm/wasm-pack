@@ -1,4 +1,4 @@
-
+.npmrc
 /target
 **/*.rs.bk
 /pkg

@@ -1,4 +1,5 @@
 extern crate failure;
+extern crate npmrc;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
@@ -28,6 +29,7 @@ struct CargoPackage {
 struct NpmPackage {
     name: String,
     description: String,
+    author: String,
     version: String,
     license: String,
     repository: Repository,
@@ -52,6 +54,7 @@ impl CargoManifest {
         NpmPackage {
             name: self.package.name,
             description: self.package.description,
+            author: get_npm_author().unwrap_or("".to_string()),
             version: self.package.version,
             license: self.package.license,
             repository: Repository {
@@ -65,6 +68,17 @@ impl CargoManifest {
 fn create_pkg_dir() -> Result<(), Error> {
     fs::create_dir_all("./pkg")?;
     Ok(())
+}
+
+fn get_npm_author() -> Result<String, Error> {
+    let npmrc_data = npmrc::read()?;
+    if npmrc_data.init_author_name.is_empty() && npmrc_data.init_author_email.is_empty() {
+        return Ok("".to_string());
+    }
+    Ok(format!(
+        "{} <{}>",
+        npmrc_data.init_author_name, npmrc_data.init_author_email
+    ).to_string())
 }
 
 /// Generate a package.json file inside in `./pkg`.
