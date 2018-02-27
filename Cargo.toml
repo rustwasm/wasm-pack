@@ -9,6 +9,7 @@ readme = "README.md"
 
 [dependencies]
 failure = "0.1.1"
+npmrc = "0.1.2"
 quicli = "0.2"
 serde = "1.0"
 serde_derive = "1.0"
