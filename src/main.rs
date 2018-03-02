@@ -18,7 +18,7 @@ struct Cli {
 enum Command {
     #[structopt(name = "init")]
     /// 🐣  initialize a package.json based on your compiled wasm
-    Init {},
+    Init { path: Option<String> },
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish!
     Pack {},
@@ -28,8 +28,11 @@ enum Command {
 }
 
 main!(|args: Cli, log_level: verbosity| match args.cmd {
-    Command::Init { .. } => {
-        wasm_pack::write_package_json()?;
+    Command::Init { path } => {
+        match path {
+            Some(p) => wasm_pack::write_package_json(&p)?,
+            None => wasm_pack::write_package_json(".")?,
+        }
         println!("✍️  wrote a package.json!");
     }
     Command::Pack { .. } => {

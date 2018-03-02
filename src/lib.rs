@@ -39,8 +39,8 @@ struct Repository {
     url: String,
 }
 
-fn read_cargo_toml() -> Result<CargoManifest, Error> {
-    let mut cargo_file = File::open("Cargo.toml")?;
+fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
+    let mut cargo_file = File::open(format!("{}/Cargo.toml", path))?;
     let mut cargo_contents = String::new();
     cargo_file.read_to_string(&mut cargo_contents)?;
 
@@ -68,10 +68,10 @@ fn create_pkg_dir() -> Result<(), Error> {
 }
 
 /// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json() -> Result<(), Error> {
+pub fn write_package_json(path: &str) -> Result<(), Error> {
     create_pkg_dir()?;
     let mut pkg_file = File::create("./pkg/package.json")?;
-    let crate_data = read_cargo_toml()?;
+    let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm();
     let npm_json = serde_json::to_string(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
