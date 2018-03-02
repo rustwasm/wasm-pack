@@ -35,7 +35,8 @@ struct NpmPackage {
 
 #[derive(Serialize)]
 struct Repository {
-    #[serde(rename = "type")] ty: String,
+    #[serde(rename = "type")]
+    ty: String,
     url: String,
 }
 
