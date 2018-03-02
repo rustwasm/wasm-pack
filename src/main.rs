@@ -2,6 +2,9 @@
 extern crate quicli;
 extern crate wasm_pack;
 
+mod build;
+mod bindgen;
+
 use quicli::prelude::*;
 
 /// 📦 ✨  pack and publish your wasm!
@@ -29,11 +32,16 @@ enum Command {
 
 main!(|args: Cli, log_level: verbosity| match args.cmd {
     Command::Init { path } => {
-        match path {
-            Some(p) => wasm_pack::write_package_json(&p)?,
-            None => wasm_pack::write_package_json(".")?,
-        }
+        let crate_path = match path {
+            Some(p) => p,
+            None => ".".to_string(),
+        };
+        build::rustup_add_wasm_target();
+        build::cargo_build_wasm(&crate_path);
+        wasm_pack::write_package_json(&crate_path)?;
         println!("✍️  wrote a package.json!");
+        bindgen::cargo_install_wasm_bindgen();
+        bindgen::wasm_bindgen_build(&crate_path);
     }
     Command::Pack { .. } => {
         println!("🎒  packed up your package!");
