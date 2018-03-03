@@ -41,7 +41,9 @@ struct Repository {
 }
 
 fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
-    let mut cargo_file = File::open(format!("{}/Cargo.toml", path))?;
+    let path_to_manifest = format!("{}/Cargo.toml", path);
+    println!("👩‍🍳  reading {}", path_to_manifest);
+    let mut cargo_file = File::open(path_to_manifest)?;
     let mut cargo_contents = String::new();
     cargo_file.read_to_string(&mut cargo_contents)?;
 
