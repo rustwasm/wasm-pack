@@ -26,5 +26,5 @@ fn it_creates_a_package_json_default_path() {
 #[test]
 fn it_creates_a_package_json_provided_path() {
     assert!(wasm_pack::write_package_json("./examples/js-hello-world").is_ok());
-    assert!(fs::metadata("./pkg/package.json").is_ok());
+    assert!(fs::metadata("./examples/js-hello-world/pkg/package.json").is_ok());
 }

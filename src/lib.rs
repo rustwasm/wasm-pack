@@ -65,19 +65,22 @@ impl CargoManifest {
     }
 }
 
-fn create_pkg_dir() -> Result<(), Error> {
-    fs::create_dir_all("./pkg")?;
+fn create_pkg_dir(path: &str) -> Result<(), Error> {
+    let path_to_pkg_dir = format!("{}/pkg", path);
+    fs::create_dir_all(path_to_pkg_dir)?;
     Ok(())
 }
 
 /// Generate a package.json file inside in `./pkg`.
 pub fn write_package_json(path: &str) -> Result<(), Error> {
-    create_pkg_dir()?;
-    let mut pkg_file = File::create("./pkg/package.json")?;
+    create_pkg_dir(path)?;
+    let path_to_pkg_file = format!("{}/pkg/package.json", path);
+    let mut pkg_file = File::create(path_to_pkg_file)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm();
     let npm_json = serde_json::to_string(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
+    println!("✍️  wrote a package.json!");
     Ok(())
 }
 
