@@ -28,25 +28,51 @@ this project is written in rust. [get rust] to work on this project.
 ## 💃 commands
 
 - `help`: display available commands
-- 🐣  `init`: 
-  - generate a `package.json`
-  - `rustup target add wasm32-unknown-unknown`
-  - `cargo build --release --target wasm32-unknown-unknown`
-  - `cargo install --git https://github.com/alexcrichton/wasm-bindgen`
-  - `wasm-bindgen target/wasm32-unknown-unknown/release/<name>.wasm --out-dir .`
+- 🐣  `init`: create necessary files for js interop and npm publishing
 - 🍱  `pack`: create a tarball but don't push to the npm registry [NOT IMPLEMENTED]
 - 🎆  `publish`: create a tarball and publish to the npm registry [NOT IMPLEMENTED]
 
-## ⚙️ what's it do?
+## ⚙️  how to use
 
-right now? not much. here's the plan:
+1. write a crate in Rust.
+2. add `wasm-bindgen` to your `Cargo.toml`:
 
-- [x] read data from `Cargo.toml`
-- [ ] run [wasm-bindgen]
-- [ ] read JS dependency data from your compiled wasm (see [rust-wasm/36])
-- [x] write data to `package.json`
-- [ ] log you in to npm
-- [ ] publish package to npm registry
+  ```toml
+    [lib]
+    crate-type = ["cdylib"]
+
+    [dependencies]
+    wasm-bindgen = { git = 'https://github.com/alexcrichton/wasm-bindgen' }
+  ```
+3. add this to the top of your `src/lib.rs`:
+
+  ```rust
+    #![feature(proc_macro)]
+
+    extern crate wasm_bindgen;
+
+    use wasm_bindgen::prelude::*;
+  ```
+
+4. annotate your public functions with `#[wasm_bindgen]` and  `#[no_mangle]`, for example:
+
+  ```rust
+    #[wasm_bindgen]
+    extern {
+      fn alert(s: &str);
+    }
+
+    #[wasm_bindgen]
+    #[no_mangle]
+    pub extern fn greet(name: &str) {
+        alert(&format!("Hello, {}!", name));
+    }
+  ```
+
+5. install this tool: `cargo install wasm-pack`
+6. run `wasm-pack init`, optionally, pass a path to a dir that contains your `Cargo.toml`
+7. this tool generates files in a `pkg` dir. to publish to npm, `cd pkg` and then `npm publish` 
+  (in the future you'll be able to use this tool to publish)
 
 [rust-wasm/36]: https://github.com/rust-lang-nursery/rust-wasm/issues/36
 [wasm-bindgen]: https://github.com/alexcrichton/wasm-bindgen
