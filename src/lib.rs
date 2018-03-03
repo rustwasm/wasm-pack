@@ -82,5 +82,5 @@ pub fn write_package_json(path: &str) -> Result<(), Error> {
 }
 
 pub fn get_crate_name(path: &str) -> Result<String, Error> {
-  Ok(read_cargo_toml(path)?.package.name)
+    Ok(read_cargo_toml(path)?.package.name)
 }
