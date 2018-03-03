@@ -11,11 +11,11 @@ pub fn rustup_add_wasm_target() {
     if output.status.success() {
         let s = String::from_utf8_lossy(&output.stdout);
 
-        print!("rustup_add_wasm_target succeeded and stdout was:\n{}", s);
+        println!("✅ rustup_add_wasm_target succeeded and stdout was:\n{}", s);
     } else {
         let s = String::from_utf8_lossy(&output.stderr);
 
-        print!("rustup_add_wasm_target failed and stderr was:\n{}", s);
+        print!("⛔  rustup_add_wasm_target failed and stderr was:\n{}", s);
     }
 }
 
@@ -32,10 +32,11 @@ pub fn cargo_build_wasm(path: &str) {
     if output.status.success() {
         let s = String::from_utf8_lossy(&output.stdout);
 
-        print!("cargo_build_wasm succeeded and stdout was:\n{}", s);
+        println!("✅  cargo_build_wasm succeeded and stdout was:\n{}", s);
+        println!("🏎️ 💨  compiled to wasm!");
     } else {
         let s = String::from_utf8_lossy(&output.stderr);
 
-        print!("cargo_build_wasm failed and stderr was:\n{}", s);
+        print!("⛔  cargo_build_wasm failed and stderr was:\n{}", s);
     }
 }

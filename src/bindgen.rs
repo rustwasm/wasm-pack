@@ -11,19 +11,20 @@ pub fn cargo_install_wasm_bindgen() {
     if output.status.success() {
         let s = String::from_utf8_lossy(&output.stdout);
 
-        print!(
-            "cargo_install_wasm_bindgen succeeded and stdout was:\n{}",
+        println!(
+            "✅  cargo_install_wasm_bindgen succeeded and stdout was:\n{}",
             s
         );
     } else {
         let s = String::from_utf8_lossy(&output.stderr);
 
-        print!("cargo_install_wasm_bindgen failed and stderr was:\n{}", s);
+        print!("⛔  cargo_install_wasm_bindgen failed and stderr was:\n{}", s);
     }
 }
 
 pub fn wasm_bindgen_build(path: &str, name: &str) {
-    let path_to_wasm = format!("target/wasm32-unknown-unknown/release/{}.wasm", name);
+    let binary_name = name.replace("-", "_");
+    let path_to_wasm = format!("target/wasm32-unknown-unknown/release/{}.wasm", binary_name);
     let output = Command::new("wasm-bindgen")
         .current_dir(path)
         .arg(&path_to_wasm)
@@ -35,10 +36,11 @@ pub fn wasm_bindgen_build(path: &str, name: &str) {
     if output.status.success() {
         let s = String::from_utf8_lossy(&output.stdout);
 
-        print!("cargo_build_wasm succeeded and stdout was:\n{}", s);
+        println!("✅  wasm_bindgen_build succeeded and stdout was:\n{}", s);
+        println!("🏄<200d>♀️  ready to go!");
     } else {
         let s = String::from_utf8_lossy(&output.stderr);
 
-        print!("cargo_build_wasm failed and stderr was:\n{}", s);
+        print!("⛔  wasm_bindgen_build failed and stderr was:\n{}", s);
     }
 }
