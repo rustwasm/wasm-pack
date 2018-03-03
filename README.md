@@ -29,6 +29,8 @@ this project is written in rust. [get rust] to work on this project.
 
 - `help`: display available commands
 - 🐣  `init`: create necessary files for js interop and npm publishing
+  - optionally pass a path to a dir that contains a `Cargo.toml`, e.g.:
+    `wasm-pack init examples/js-hello-world`
 - 🍱  `pack`: create a tarball but don't push to the npm registry [NOT IMPLEMENTED]
 - 🎆  `publish`: create a tarball and publish to the npm registry [NOT IMPLEMENTED]
 
