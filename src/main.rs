@@ -38,10 +38,13 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
         };
         build::rustup_add_wasm_target();
         build::cargo_build_wasm(&crate_path);
+        println!("🏎️ 💨  compiled to wasm!");
         wasm_pack::write_package_json(&crate_path)?;
         println!("✍️  wrote a package.json!");
         bindgen::cargo_install_wasm_bindgen();
-        bindgen::wasm_bindgen_build(&crate_path);
+        let name = wasm_pack::get_crate_name(&crate_path)?;
+        bindgen::wasm_bindgen_build(&crate_path, &name);
+        println!("🏄‍♀️  ready to go!");
     }
     Command::Pack { .. } => {
         println!("🎒  packed up your package!");

@@ -78,3 +78,7 @@ pub fn write_package_json(path: &str) -> Result<(), Error> {
     pkg_file.write_all(npm_json.as_bytes())?;
     Ok(())
 }
+
+pub fn get_crate_name(path: &str) -> Result<String, Error> {
+  Ok(read_cargo_toml(path)?.package.name)
+}
