@@ -30,7 +30,10 @@ this project is written in rust. [get rust] to work on this project.
 - `help`: display available commands
 - 🐣  `init`: 
   - generate a `package.json`
-  - run [wasm-bindgen] [NOT IMPLEMENTED]
+  - `rustup target add wasm32-unknown-unknown`
+  - `cargo build --release --target wasm32-unknown-unknown`
+  - `cargo install --git https://github.com/alexcrichton/wasm-bindgen`
+  - `wasm-bindgen target/wasm32-unknown-unknown/release/<name>.wasm --out-dir .`
 - 🍱  `pack`: create a tarball but don't push to the npm registry [NOT IMPLEMENTED]
 - 🎆  `publish`: create a tarball and publish to the npm registry [NOT IMPLEMENTED]
 
