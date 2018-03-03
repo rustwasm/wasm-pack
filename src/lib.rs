@@ -31,6 +31,7 @@ struct NpmPackage {
     version: String,
     license: String,
     repository: Repository,
+    files: Vec<String>,
 }
 
 #[derive(Serialize)]
@@ -52,6 +53,9 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 
 impl CargoManifest {
     fn into_npm(self) -> NpmPackage {
+        let filename = self.package.name.replace("-", "_");
+        let js_file = format!("{}.js", filename);
+        let wasm_file = format!("{}_wasm.wasm", filename);
         NpmPackage {
             name: self.package.name,
             description: self.package.description,
@@ -61,6 +65,7 @@ impl CargoManifest {
                 ty: "git".to_string(),
                 url: self.package.repository,
             },
+            files: vec![js_file, wasm_file],
         }
     }
 }
