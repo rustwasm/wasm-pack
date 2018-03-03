@@ -18,7 +18,10 @@ pub fn cargo_install_wasm_bindgen() {
     } else {
         let s = String::from_utf8_lossy(&output.stderr);
 
-        print!("⛔  cargo_install_wasm_bindgen failed and stderr was:\n{}", s);
+        print!(
+            "⛔  cargo_install_wasm_bindgen failed and stderr was:\n{}",
+            s
+        );
     }
 }
 

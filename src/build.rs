@@ -11,7 +11,10 @@ pub fn rustup_add_wasm_target() {
     if output.status.success() {
         let s = String::from_utf8_lossy(&output.stdout);
 
-        println!("✅ rustup_add_wasm_target succeeded and stdout was:\n{}", s);
+        println!(
+            "✅ rustup_add_wasm_target succeeded and stdout was:\n{}",
+            s
+        );
     } else {
         let s = String::from_utf8_lossy(&output.stderr);
 
