@@ -2,6 +2,7 @@
 > pack up the wasm and publish it to npm!
 
 [![Build Status](https://travis-ci.org/ashleygwilliams/wasm-pack.svg?branch=master)](https://travis-ci.org/ashleygwilliams/wasm-pack)
+[![Build status](https://ci.appveyor.com/api/projects/status/7jjuo5wewu9lyyfi?svg=true)](https://ci.appveyor.com/project/ashleygwilliams/wasm-pack)
 
 the goal of this project is to create a portable command line tool
 for publishing compiled wasm projects to the npm registry for the consumption
