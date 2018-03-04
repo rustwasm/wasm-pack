@@ -23,10 +23,10 @@ enum Command {
     /// 🐣  initialize a package.json based on your compiled wasm
     Init { path: Option<String> },
     #[structopt(name = "pack")]
-    /// 🍱  create a tar of your npm package but don't publish!
+    /// 🍱  create a tar of your npm package but don't publish! [NOT IMPLEMENTED]
     Pack {},
     #[structopt(name = "publish")]
-    /// 🎆  pack up your npm package and publish!
+    /// 🎆  pack up your npm package and publish! [NOT IMPLEMENTED]
     Publish {},
 }
 
@@ -44,9 +44,11 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
         bindgen::wasm_bindgen_build(&crate_path, &name);
     }
     Command::Pack { .. } => {
-        println!("🎒  packed up your package!");
+        println!("🙅‍♀️  whoops! this is not implemented yet! sorry!");
+        //println!("🎒  packed up your package!");
     }
     Command::Publish { .. } => {
-        println!("💥  published your package!");
+        println!("🙅‍♀️  whoops! this is not implemented yet! sorry!");
+        //println!("💥  published your package!");
     }
 });
