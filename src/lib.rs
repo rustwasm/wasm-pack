@@ -55,7 +55,7 @@ impl CargoManifest {
     fn into_npm(self) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let js_file = format!("{}.js", filename);
-        let wasm_file = format!("{}_wasm.wasm", filename);
+        let wasm_file = format!("{}_bg.wasm", filename);
         NpmPackage {
             name: self.package.name,
             description: self.package.description,
