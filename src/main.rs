@@ -3,9 +3,7 @@ extern crate failure;
 extern crate quicli;
 extern crate wasm_pack;
 
-mod build;
-mod bindgen;
-mod readme;
+use wasm_pack::{build, bindgen, readme};
 
 use quicli::prelude::*;
 

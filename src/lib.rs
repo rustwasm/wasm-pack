@@ -4,6 +4,10 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate toml;
 
+pub mod build;
+pub mod bindgen;
+pub mod readme;
+
 use std::fs;
 use std::fs::File;
 use std::io::prelude::*;
