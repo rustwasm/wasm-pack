@@ -3,7 +3,7 @@ extern crate failure;
 extern crate quicli;
 extern crate wasm_pack;
 
-use wasm_pack::{build, bindgen, readme};
+use wasm_pack::{bindgen, build, manifest, readme};
 
 use quicli::prelude::*;
 
@@ -38,10 +38,11 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
         };
         build::rustup_add_wasm_target();
         build::cargo_build_wasm(&crate_path);
-        wasm_pack::write_package_json(&crate_path)?;
+        wasm_pack::create_pkg_dir(&crate_path)?;
+        manifest::write_package_json(&crate_path)?;
         readme::copy_from_crate(&crate_path)?;
         bindgen::cargo_install_wasm_bindgen();
-        let name = wasm_pack::get_crate_name(&crate_path)?;
+        let name = manifest::get_crate_name(&crate_path)?;
         bindgen::wasm_bindgen_build(&crate_path, &name);
     }
     Command::Pack { .. } => {
