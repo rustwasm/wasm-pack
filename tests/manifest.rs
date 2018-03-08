@@ -21,12 +21,18 @@ fn it_gets_the_crate_name_provided_path() {
 
 #[test]
 fn it_creates_a_package_json_default_path() {
-    assert!(manifest::write_package_json(".").is_ok());
-    assert!(fs::metadata("./pkg/package.json").is_ok());
+    let path = ".".to_string();
+    wasm_pack::create_pkg_dir(&path).unwrap();
+    assert!(manifest::write_package_json(&path).is_ok());
+    let package_json_path = format!("{}/pkg/package.json", &path);
+    assert!(fs::metadata(package_json_path).is_ok());
 }
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
-    assert!(manifest::write_package_json("./examples/js-hello-world").is_ok());
-    assert!(fs::metadata("./examples/js-hello-world/pkg/package.json").is_ok());
+    let path = "./examples/js-hello-world".to_string();
+    wasm_pack::create_pkg_dir(&path).unwrap();
+    assert!(manifest::write_package_json(&path).is_ok());
+    let package_json_path = format!("{}/pkg/package.json", &path);
+    assert!(fs::metadata(package_json_path).is_ok());
 }
