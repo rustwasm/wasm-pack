@@ -1,5 +1,4 @@
 use std::fs;
-use std::fs::File;
 use failure::Error;
 
 pub fn copy_from_crate(path: &str) -> Result<(), Error> {
