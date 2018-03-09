@@ -10,4 +10,4 @@ repository = "https://github.com/ashleygwilliams/wasm-pack"
 crate-type = ["cdylib"]
 
 [dependencies]
-wasm-bindgen = { git = 'https://github.com/alexcrichton/wasm-bindgen' }
+wasm-bindgen = "0.1.0"
