@@ -27,10 +27,10 @@ pub fn cargo_install_wasm_bindgen() {
 
 pub fn wasm_bindgen_build(path: &str, name: &str) {
     let binary_name = name.replace("-", "_");
-    let path_to_wasm = format!("target/wasm32-unknown-unknown/release/{}.wasm", binary_name);
+    let wasm_path = format!("target/wasm32-unknown-unknown/release/{}.wasm", binary_name);
     let output = Command::new("wasm-bindgen")
         .current_dir(path)
-        .arg(&path_to_wasm)
+        .arg(&wasm_path)
         .arg("--out-dir")
         .arg("./pkg")
         .output()
