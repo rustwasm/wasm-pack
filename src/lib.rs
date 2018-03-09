@@ -14,7 +14,7 @@ use std::fs;
 use failure::Error;
 
 pub fn create_pkg_dir(path: &str) -> Result<(), Error> {
-    let path_to_pkg_dir = format!("{}/pkg", path);
-    fs::create_dir_all(path_to_pkg_dir)?;
+    let pkg_dir_path = format!("{}/pkg", path);
+    fs::create_dir_all(pkg_dir_path)?;
     Ok(())
 }
