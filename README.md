@@ -57,19 +57,18 @@ this project is written in rust. [get rust] to work on this project.
     use wasm_bindgen::prelude::*;
   ```
 
-4. annotate your public functions with `#[wasm_bindgen]` and  `#[no_mangle]`, for example:
+4. annotate your public functions with `#[wasm_bindgen]`, for example:
 
   ```rust
-    #[wasm_bindgen]
-    extern {
+  #[wasm_bindgen]
+  extern {
       fn alert(s: &str);
-    }
+  }
 
-    #[wasm_bindgen]
-    #[no_mangle]
-    pub extern fn greet(name: &str) {
-        alert(&format!("Hello, {}!", name));
-    }
+  #[wasm_bindgen]
+  pub fn greet(name: &str) {
+      alert(&format!("Hello, {}!", name));
+  }
   ```
 
 5. install this tool: `cargo install wasm-pack`
