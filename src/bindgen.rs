@@ -8,21 +8,14 @@ pub fn cargo_install_wasm_bindgen() {
         .output()
         .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
 
-    if output.status.success() {
-        let s = String::from_utf8_lossy(&output.stdout);
+    //if !output.status.success() {
+    //    let s = String::from_utf8_lossy(&output.stderr);
 
-        println!(
-            "✅  cargo_install_wasm_bindgen succeeded and stdout was:\n{}",
-            s
-        );
-    } else {
-        let s = String::from_utf8_lossy(&output.stderr);
-
-        print!(
-            "⛔  cargo_install_wasm_bindgen failed and stderr was:\n{}",
-            s
-        );
-    }
+    //      print!(
+    //         "⛔  cargo_install_wasm_bindgen failed and stderr was:\n{}",
+    //         s
+    //     );
+    // }
 }
 
 pub fn wasm_bindgen_build(path: &str, name: &str) {
@@ -36,12 +29,7 @@ pub fn wasm_bindgen_build(path: &str, name: &str) {
         .output()
         .unwrap_or_else(|e| panic!("failed to execute process: {}", e));
 
-    if output.status.success() {
-        let s = String::from_utf8_lossy(&output.stdout);
-
-        println!("✅  wasm_bindgen_build succeeded and stdout was:\n{}", s);
-        println!("🏄<200d>♀️  ready to go!");
-    } else {
+    if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
 
         print!("⛔  wasm_bindgen_build failed and stderr was:\n{}", s);
