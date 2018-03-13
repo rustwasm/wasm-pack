@@ -1,6 +1,6 @@
 use indicatif::{ProgressBar, ProgressStyle};
 
-pub fn new() -> ProgressBar {
+pub fn new(msg: String) -> ProgressBar {
     let pb = ProgressBar::new_spinner();
     pb.enable_steady_tick(200);
     pb.set_style(
@@ -8,5 +8,6 @@ pub fn new() -> ProgressBar {
             .tick_chars("/|\\- ")
             .template("{spinner:.dim.bold} {wide_msg}"),
     );
+    pb.set_message(&msg);
     pb
 }

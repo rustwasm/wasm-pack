@@ -61,8 +61,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
             style("[1/7]").bold().dim(),
             TARGET
         );
-        let pb1 = progressbar::new();
-        pb1.set_message(&step1);
+        let pb1 = progressbar::new(step1);
         build::rustup_add_wasm_target();
         pb1.finish();
         let step2 = format!(
@@ -70,8 +69,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
             style("[2/7]").bold().dim(),
             CYCLONE
         );
-        let pb2 = progressbar::new();
-        pb2.set_message(&step2);
+        let pb2 = progressbar::new(step2);
         build::cargo_build_wasm(&crate_path);
         pb2.finish();
         let step3 = format!(
@@ -79,8 +77,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
             style("[3/7]").bold().dim(),
             FOLDER
         );
-        let pb3 = progressbar::new();
-        pb3.set_message(&step3);
+        let pb3 = progressbar::new(step3);
         wasm_pack::create_pkg_dir(&crate_path)?;
         pb3.finish();
         let step4 = format!(
@@ -88,8 +85,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
             style("[4/7]").bold().dim(),
             MEMO
         );
-        let pb4 = progressbar::new();
-        pb4.set_message(&step4);
+        let pb4 = progressbar::new(step4);
         manifest::write_package_json(&crate_path)?;
         pb4.finish();
         let step5 = format!(
@@ -97,8 +93,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
             style("[5/7]").bold().dim(),
             DANCERS
         );
-        let pb5 = progressbar::new();
-        pb5.set_message(&step5);
+        let pb5 = progressbar::new(step5);
         readme::copy_from_crate(&crate_path)?;
         pb5.finish();
         let step6 = format!(
@@ -106,8 +101,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
             style("[6/7]").bold().dim(),
             DOWN_ARROW
         );
-        let pb6 = progressbar::new();
-        pb6.set_message(&step6);
+        let pb6 = progressbar::new(step6);
         bindgen::cargo_install_wasm_bindgen();
         pb6.finish();
         let name = manifest::get_crate_name(&crate_path)?;
@@ -116,8 +110,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
             style("[7/7]").bold().dim(),
             RUNNER
         );
-        let pb7 = progressbar::new();
-        pb7.set_message(&step7);
+        let pb7 = progressbar::new(step7);
         bindgen::wasm_bindgen_build(&crate_path, &name);
         pb7.finish();
         println!("{} Done in {}", SPARKLE, HumanDuration(started.elapsed()));
