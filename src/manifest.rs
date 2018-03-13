@@ -38,7 +38,6 @@ struct Repository {
 
 fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
     let manifest_path = format!("{}/Cargo.toml", path);
-    println!("👩<200d>🍳  reading {}", manifest_path);
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
     cargo_file.read_to_string(&mut cargo_contents)?;
@@ -73,7 +72,6 @@ pub fn write_package_json(path: &str) -> Result<(), Error> {
     let npm_data = crate_data.into_npm();
     let npm_json = serde_json::to_string(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
-    println!("✍️  wrote a package.json!");
     Ok(())
 }
 
