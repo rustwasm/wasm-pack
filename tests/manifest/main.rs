@@ -66,5 +66,8 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "@test/scopes-hello-world");
-    assert_eq!(pkg.files, ["scopes_hello_world.js", "scopes_hello_world_bg.wasm"]);
+    assert_eq!(
+        pkg.files,
+        ["scopes_hello_world.js", "scopes_hello_world_bg.wasm"]
+    );
 }

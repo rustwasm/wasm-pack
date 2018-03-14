@@ -27,7 +27,7 @@ enum Command {
     Init {
         path: Option<String>,
         #[structopt(long = "scope", short = "s")]
-        scope: Option<String>
+        scope: Option<String>,
     },
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish! [NOT IMPLEMENTED]
