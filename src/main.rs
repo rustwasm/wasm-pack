@@ -24,7 +24,11 @@ struct Cli {
 enum Command {
     #[structopt(name = "init")]
     /// 🐣  initialize a package.json based on your compiled wasm
-    Init { path: Option<String> },
+    Init {
+        path: Option<String>,
+        #[structopt(long = "scope", short = "s")]
+        scope: Option<String>
+    },
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish! [NOT IMPLEMENTED]
     Pack {},
@@ -34,7 +38,7 @@ enum Command {
 }
 
 main!(|args: Cli, log_level: verbosity| match args.cmd {
-    Command::Init { path } => {
+    Command::Init { path, scope } => {
         let started = Instant::now();
 
         let crate_path = match path {
@@ -45,7 +49,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
         build::rustup_add_wasm_target();
         build::cargo_build_wasm(&crate_path);
         wasm_pack::create_pkg_dir(&crate_path)?;
-        manifest::write_package_json(&crate_path)?;
+        manifest::write_package_json(&crate_path, scope)?;
         readme::copy_from_crate(&crate_path)?;
         bindgen::cargo_install_wasm_bindgen();
         let name = manifest::get_crate_name(&crate_path)?;

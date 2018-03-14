@@ -49,12 +49,21 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 impl CargoManifest {
-    fn into_npm(self) -> NpmPackage {
+    fn into_npm(self, scope: Option<String>) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let js_file = format!("{}.js", filename);
         let wasm_file = format!("{}_bg.wasm", filename);
         NpmPackage {
-            name: self.package.name,
+            name: match scope {
+                Some(s) => {
+                    let mut name = String::from("@");
+                    name.push_str(&s);
+                    name.push('/');
+                    name.push_str(&self.package.name);
+                    name
+                },
+                None => self.package.name,
+            },
             description: self.package.description,
             version: self.package.version,
             license: self.package.license,
@@ -68,7 +77,7 @@ impl CargoManifest {
 }
 
 /// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json(path: &str) -> Result<(), Error> {
+pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error> {
     let step = format!(
         "{} {}Writing a package.json...",
         style("[4/7]").bold().dim(),
@@ -78,7 +87,7 @@ pub fn write_package_json(path: &str) -> Result<(), Error> {
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
-    let npm_data = crate_data.into_npm();
+    let npm_data = crate_data.into_npm(scope);
     let npm_json = serde_json::to_string(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
     pb.finish();
