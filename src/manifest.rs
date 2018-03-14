@@ -1,9 +1,12 @@
 use std::fs::File;
 use std::io::prelude::*;
 
+use console::style;
 use failure::Error;
 use serde_json;
 use toml;
+use emoji;
+use progressbar;
 
 #[derive(Deserialize)]
 struct CargoManifest {
@@ -66,12 +69,19 @@ impl CargoManifest {
 
 /// Generate a package.json file inside in `./pkg`.
 pub fn write_package_json(path: &str) -> Result<(), Error> {
+    let step = format!(
+        "{} {}Writing a package.json...",
+        style("[4/7]").bold().dim(),
+        emoji::MEMO
+    );
+    let pb = progressbar::new(step);
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm();
     let npm_json = serde_json::to_string(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
+    pb.finish();
     Ok(())
 }
 
