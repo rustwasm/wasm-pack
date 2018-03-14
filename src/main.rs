@@ -1,9 +1,8 @@
-extern crate console;
-extern crate failure;
+extern crate wasm_pack;
+
 extern crate indicatif;
 #[macro_use]
 extern crate quicli;
-extern crate wasm_pack;
 
 use std::time::Instant;
 
