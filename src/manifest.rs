@@ -49,21 +49,15 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 impl CargoManifest {
-    fn into_npm(self, scope: Option<String>) -> NpmPackage {
+    fn into_npm(mut self, scope: Option<String>) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let js_file = format!("{}.js", filename);
         let wasm_file = format!("{}_bg.wasm", filename);
+        if let Some(s) = scope {
+            self.package.name = format!("@{}/{}", s, self.package.name);
+        }
         NpmPackage {
-            name: match scope {
-                Some(s) => {
-                    let mut name = String::from("@");
-                    name.push_str(&s);
-                    name.push('/');
-                    name.push_str(&self.package.name);
-                    name
-                },
-                None => self.package.name,
-            },
+            name: self.package.name,
             description: self.package.description,
             version: self.package.version,
             license: self.package.license,
