@@ -1,7 +1,7 @@
 extern crate failure;
 extern crate wasm_pack;
 
-mod readme_utils;
+mod utils;
 
 use std::fs;
 
@@ -14,8 +14,8 @@ fn it_copies_a_readme_default_path() {
     let crate_readme_path = format!("{}/README.md", &path);
     let pkg_readme_path = format!("{}/pkg/README.md", &path);
     assert!(fs::metadata(&pkg_readme_path).is_ok());
-    let crate_readme = readme_utils::read_file(&crate_readme_path).unwrap();
-    let pkg_readme = readme_utils::read_file(&pkg_readme_path).unwrap();
+    let crate_readme = utils::read_file(&crate_readme_path).unwrap();
+    let pkg_readme = utils::read_file(&pkg_readme_path).unwrap();
     assert_eq!(crate_readme, pkg_readme);
 }
 
@@ -26,7 +26,7 @@ fn it_creates_a_package_json_provided_path() {
     let crate_readme_path = format!("{}/README.md", &path);
     let pkg_readme_path = format!("{}/pkg/README.md", &path);
     assert!(fs::metadata(&pkg_readme_path).is_ok());
-    let crate_readme = readme_utils::read_file(&crate_readme_path).unwrap();
-    let pkg_readme = readme_utils::read_file(&pkg_readme_path).unwrap();
+    let crate_readme = utils::read_file(&crate_readme_path).unwrap();
+    let pkg_readme = utils::read_file(&pkg_readme_path).unwrap();
     assert_eq!(crate_readme, pkg_readme);
 }
