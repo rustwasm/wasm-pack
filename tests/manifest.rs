@@ -4,7 +4,7 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate wasm_pack;
 
-mod utils;
+mod manifest_utils;
 
 use std::fs;
 
@@ -32,8 +32,8 @@ fn it_creates_a_package_json_default_path() {
     assert!(manifest::write_package_json(&path).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
-    assert!(utils::read_package_json(&path).is_ok());
-    let pkg = utils::read_package_json(&path).unwrap();
+    assert!(manifest_utils::read_package_json(&path).is_ok());
+    let pkg = manifest_utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "wasm-pack");
     assert_eq!(pkg.repository.ty, "git");
     assert_eq!(
@@ -50,8 +50,8 @@ fn it_creates_a_package_json_provided_path() {
     assert!(manifest::write_package_json(&path).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
-    assert!(utils::read_package_json(&path).is_ok());
-    let pkg = utils::read_package_json(&path).unwrap();
+    assert!(manifest_utils::read_package_json(&path).is_ok());
+    let pkg = manifest_utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
     assert_eq!(pkg.files, ["js_hello_world.js", "js_hello_world_bg.wasm"]);
 }
