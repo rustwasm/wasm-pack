@@ -26,6 +26,6 @@ pub fn copy_from_crate(path: &str) -> Result<(), Error> {
         warn_pb.finish();
     };
     pb.finish();
-    m.join()?;
+    m.join_and_clear()?;
     Ok(())
 }
