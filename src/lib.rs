@@ -1,3 +1,4 @@
+extern crate console;
 extern crate failure;
 extern crate indicatif;
 #[macro_use]
@@ -9,6 +10,7 @@ pub mod build;
 pub mod bindgen;
 pub mod readme;
 pub mod manifest;
+pub mod progressbar;
 
 use std::fs;
 

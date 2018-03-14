@@ -5,7 +5,7 @@ extern crate indicatif;
 extern crate quicli;
 extern crate wasm_pack;
 
-mod progressbar;
+use wasm_pack::progressbar;
 
 use std::time::Instant;
 
@@ -18,7 +18,6 @@ static TARGET: Emoji = Emoji("🎯  ", "");
 static CYCLONE: Emoji = Emoji("🌀  ", "");
 static FOLDER: Emoji = Emoji("📂  ", "");
 static MEMO: Emoji = Emoji("📝  ", "");
-static DANCERS: Emoji = Emoji("👯  ", "");
 static DOWN_ARROW: Emoji = Emoji("⬇️  ", "");
 static RUNNER: Emoji = Emoji("🏃‍♀️  ", "");
 static SPARKLE: Emoji = Emoji("✨ ", ":-)");
@@ -88,14 +87,7 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
         let pb4 = progressbar::new(step4);
         manifest::write_package_json(&crate_path)?;
         pb4.finish();
-        let step5 = format!(
-            "{} {}Copying over your README...",
-            style("[5/7]").bold().dim(),
-            DANCERS
-        );
-        let pb5 = progressbar::new(step5);
         readme::copy_from_crate(&crate_path)?;
-        pb5.finish();
         let step6 = format!(
             "{} {}Installing WASM-bindgen...",
             style("[6/7]").bold().dim(),

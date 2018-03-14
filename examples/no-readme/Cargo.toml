@@ -1,0 +1,13 @@
+[package]
+name = "no-readme"
+description = "an example rust->wasm crate with no readme"
+version = "0.1.0"
+authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
+license = "WTFPL"
+repository = "https://github.com/ashleygwilliams/wasm-pack"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.1.0"
