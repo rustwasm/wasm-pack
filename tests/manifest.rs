@@ -18,9 +18,9 @@ fn it_gets_the_crate_name_default_path() {
 
 #[test]
 fn it_gets_the_crate_name_provided_path() {
-    assert!(manifest::get_crate_name("./examples/js-hello-world").is_ok());
+    assert!(manifest::get_crate_name("tests/fixtures/js-hello-world").is_ok());
     assert_eq!(
-        manifest::get_crate_name("./examples/js-hello-world").unwrap(),
+        manifest::get_crate_name("tests/fixtures/js-hello-world").unwrap(),
         "js-hello-world"
     );
 }
@@ -45,7 +45,7 @@ fn it_creates_a_package_json_default_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
-    let path = "./examples/js-hello-world".to_string();
+    let path = "tests/fixtures/js-hello-world".to_string();
     wasm_pack::create_pkg_dir(&path).unwrap();
     assert!(manifest::write_package_json(&path).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
