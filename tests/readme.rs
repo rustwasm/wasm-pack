@@ -21,7 +21,7 @@ fn it_copies_a_readme_default_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
-    let path = "./examples/js-hello-world".to_string();
+    let path = "tests/fixtures/js-hello-world".to_string();
     assert!(readme::copy_from_crate(&path).is_ok());
     let crate_readme_path = format!("{}/README.md", &path);
     let pkg_readme_path = format!("{}/pkg/README.md", &path);
