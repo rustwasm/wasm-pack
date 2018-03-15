@@ -31,7 +31,16 @@ this project is written in rust. [get rust] to work on this project.
 - `help`: display available commands
 - 🐣  `init`: create necessary files for js interop and npm publishing
   - optionally pass a path to a dir that contains a `Cargo.toml`, e.g.:
-    `wasm-pack init examples/js-hello-world`
+    ```
+    wasm-pack init examples/js-hello-world
+    ```
+  - optionally pass a scope name to generate a `package.json` for a scoped pkg, e.g.:
+    ```
+    wasm-pack init examples/scopes-hello-world --scope test
+    ```
+    generates a `package.json` for an npm package called `@test/scopes-hello-world`
+
+#### to be implemented
 - 🍱  `pack`: create a tarball but don't push to the npm registry [NOT IMPLEMENTED]
 - 🎆  `publish`: create a tarball and publish to the npm registry [NOT IMPLEMENTED]
 
@@ -72,7 +81,7 @@ this project is written in rust. [get rust] to work on this project.
   ```
 
 5. install this tool: `cargo install wasm-pack`
-6. run `wasm-pack init`, optionally, pass a path to a dir that contains your `Cargo.toml`
+6. run `wasm-pack init`, optionally, pass a path to a dir or a scope (see above for details)
 7. this tool generates files in a `pkg` dir. to publish to npm, `cd pkg` and then `npm publish` 
   (in the future you'll be able to use this tool to publish)
 
