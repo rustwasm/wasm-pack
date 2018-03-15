@@ -4,6 +4,7 @@ install:
   - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
   - rustc -V
   - cargo -V
+  - cargo install wasm-bindgen-cli
 
 build: false
 
