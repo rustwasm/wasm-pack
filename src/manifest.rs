@@ -4,6 +4,7 @@ use std::io::prelude::*;
 use console::style;
 use emoji;
 use failure::Error;
+use indicatif::MultiProgress;
 use progressbar;
 use serde_json;
 use toml;
@@ -17,20 +18,20 @@ struct CargoManifest {
 struct CargoPackage {
     name: String,
     authors: Vec<String>,
-    description: String,
+    description: Option<String>,
     version: String,
-    license: String,
-    repository: String,
+    license: Option<String>,
+    repository: Option<String>,
 }
 
 #[derive(Serialize)]
 struct NpmPackage {
     name: String,
     collaborators: Vec<String>,
-    description: String,
+    description: Option<String>,
     version: String,
-    license: String,
-    repository: Repository,
+    license: Option<String>,
+    repository: Option<Repository>,
     files: Vec<String>,
 }
 
@@ -64,10 +65,10 @@ impl CargoManifest {
             description: self.package.description,
             version: self.package.version,
             license: self.package.license,
-            repository: Repository {
+            repository: self.package.repository.map(|repo_url| Repository {
                 ty: "git".to_string(),
-                url: self.package.repository,
-            },
+                url: repo_url,
+            }),
             files: vec![js_file, wasm_file],
         }
     }
@@ -80,14 +81,41 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
         style("[4/7]").bold().dim(),
         emoji::MEMO
     );
-    let pb = progressbar::new(step);
+
+    let warn = |field| {
+        format!(
+            "{} {}: Field {} is missing from Cargo.toml. It is not necessary, but recommended",
+            emoji::WARN,
+            style("[WARN]").bold().dim(),
+            field
+        )
+    };
+
+    let m = MultiProgress::new();
+    let pb = m.add(progressbar::new(step));
+
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm(scope);
+
+    if npm_data.description.is_none() {
+        let warn_pb = m.add(progressbar::new(warn("description")));
+        warn_pb.finish();
+    }
+    if npm_data.repository.is_none() {
+        let warn_pb = m.add(progressbar::new(warn("repository")));
+        warn_pb.finish();
+    }
+    if npm_data.license.is_none() {
+        let warn_pb = m.add(progressbar::new(warn("license")));
+        warn_pb.finish();
+    }
+
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
     pb.finish();
+    m.join_and_clear()?;
     Ok(())
 }
 
