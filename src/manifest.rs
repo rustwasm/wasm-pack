@@ -2,11 +2,11 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use console::style;
+use emoji;
 use failure::Error;
+use progressbar;
 use serde_json;
 use toml;
-use emoji;
-use progressbar;
 
 #[derive(Deserialize)]
 struct CargoManifest {

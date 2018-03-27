@@ -1,10 +1,10 @@
-use std::fs;
-use failure::Error;
 use console::style;
+use failure::Error;
 use indicatif::MultiProgress;
+use std::fs;
 
-use progressbar;
 use emoji;
+use progressbar;
 
 pub fn copy_from_crate(path: &str) -> Result<(), Error> {
     let m = MultiProgress::new();

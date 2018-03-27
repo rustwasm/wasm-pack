@@ -1,7 +1,7 @@
-use std::process::Command;
 use console::style;
 use emoji;
 use progressbar;
+use std::process::Command;
 
 pub fn cargo_install_wasm_bindgen() {
     let step = format!(
