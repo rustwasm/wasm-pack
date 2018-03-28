@@ -2,11 +2,11 @@ use std::fs::File;
 use std::io::prelude::*;
 
 use console::style;
+use emoji;
 use failure::Error;
+use progressbar;
 use serde_json;
 use toml;
-use emoji;
-use progressbar;
 
 #[derive(Deserialize)]
 struct CargoManifest {
@@ -16,6 +16,7 @@ struct CargoManifest {
 #[derive(Deserialize)]
 struct CargoPackage {
     name: String,
+    authors: Vec<String>,
     description: String,
     version: String,
     license: String,
@@ -25,6 +26,7 @@ struct CargoPackage {
 #[derive(Serialize)]
 struct NpmPackage {
     name: String,
+    collaborators: Vec<String>,
     description: String,
     version: String,
     license: String,
@@ -58,6 +60,7 @@ impl CargoManifest {
         }
         NpmPackage {
             name: self.package.name,
+            collaborators: self.package.authors,
             description: self.package.description,
             version: self.package.version,
             license: self.package.license,
@@ -82,7 +85,7 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm(scope);
-    let npm_json = serde_json::to_string(&npm_data)?;
+    let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
     pb.finish();
     Ok(())
