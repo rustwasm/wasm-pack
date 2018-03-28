@@ -16,6 +16,7 @@ struct CargoManifest {
 #[derive(Deserialize)]
 struct CargoPackage {
     name: String,
+    authors: Vec<String>,
     description: String,
     version: String,
     license: String,
@@ -25,6 +26,7 @@ struct CargoPackage {
 #[derive(Serialize)]
 struct NpmPackage {
     name: String,
+    collaborators: Vec<String>,
     description: String,
     version: String,
     license: String,
@@ -58,6 +60,7 @@ impl CargoManifest {
         }
         NpmPackage {
             name: self.package.name,
+            collaborators: self.package.authors,
             description: self.package.description,
             version: self.package.version,
             license: self.package.license,
