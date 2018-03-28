@@ -85,7 +85,7 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm(scope);
-    let npm_json = serde_json::to_string(&npm_data)?;
+    let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
     pb.finish();
     Ok(())
