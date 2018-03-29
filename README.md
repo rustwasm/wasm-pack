@@ -20,9 +20,16 @@ this project is written in rust. [get rust] to work on this project.
 
 [get rust]: https://www.rustup.rs/
 
+if you want to publish packages, you'll also need an account on [npm] and have
+[node/npm] installed.
+
+[npm]: https://www.npmjs.com
+[node/npm]: https://nodejs.org/
+
 ## 🏃‍♀️ up and running
 
 1. fork and clone this repository
+2. install [node/npm]
 2. `cd wasm-pack`
 3. `cargo run`
 
@@ -39,10 +46,8 @@ this project is written in rust. [get rust] to work on this project.
     wasm-pack init examples/scopes-hello-world --scope test
     ```
     generates a `package.json` for an npm package called `@test/scopes-hello-world`
-
-#### to be implemented
-- 🍱  `pack`: create a tarball but don't push to the npm registry [NOT IMPLEMENTED]
-- 🎆  `publish`: create a tarball and publish to the npm registry [NOT IMPLEMENTED]
+- 🍱  `pack`: create a tarball but don't push to the npm registry (see https://docs.npmjs.com/cli/pack)
+- 🎆  `publish`: create a tarball and publish to the npm registry (see https://docs.npmjs.com/cli/publish)
 
 ## ⚙️  how to use
 
@@ -82,8 +87,8 @@ this project is written in rust. [get rust] to work on this project.
 
 5. install this tool: `cargo install wasm-pack`
 6. run `wasm-pack init`, optionally, pass a path to a dir or a scope (see above for details)
-7. this tool generates files in a `pkg` dir. to publish to npm, `cd pkg` and then `npm publish` 
-  (in the future you'll be able to use this tool to publish)
+7. this tool generates files in a `pkg` dir
+8. to publish to npm, run `wasm-pack publish` (making sure you are logged in with npm)
 
 [rust-wasm/36]: https://github.com/rust-lang-nursery/rust-wasm/issues/36
 [wasm-bindgen]: https://github.com/alexcrichton/wasm-bindgen

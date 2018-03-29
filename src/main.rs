@@ -8,7 +8,7 @@ use std::time::Instant;
 
 use indicatif::HumanDuration;
 use quicli::prelude::*;
-use wasm_pack::{bindgen, build, emoji, manifest, readme};
+use wasm_pack::{bindgen, build, emoji, manifest, npm, readme};
 
 /// 📦 ✨  pack and publish your wasm!
 #[derive(Debug, StructOpt)]
@@ -31,10 +31,10 @@ enum Command {
     },
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish! [NOT IMPLEMENTED]
-    Pack {},
+    Pack { path: Option<String> },
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish! [NOT IMPLEMENTED]
-    Publish {},
+    Publish { path: Option<String> },
 }
 
 main!(|args: Cli, log_level: verbosity| match args.cmd {
@@ -65,12 +65,20 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
             &crate_path
         )
     }
-    Command::Pack { .. } => {
-        println!("🙅‍♀️  whoops! this is not implemented yet! sorry!");
-        //println!("🎒  packed up your package!");
+    Command::Pack { path } => {
+        let crate_path = match path {
+            Some(p) => p,
+            None => ".".to_string(),
+        };
+        npm::npm_pack(&crate_path);
+        println!("🎒  packed up your package!");
     }
-    Command::Publish { .. } => {
-        println!("🙅‍♀️  whoops! this is not implemented yet! sorry!");
-        //println!("💥  published your package!");
+    Command::Publish { path } => {
+        let crate_path = match path {
+            Some(p) => p,
+            None => ".".to_string(),
+        };
+        npm::npm_publish(&crate_path);
+        println!("💥  published your package!");
     }
 });

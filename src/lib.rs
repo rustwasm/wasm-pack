@@ -10,6 +10,7 @@ pub mod bindgen;
 pub mod build;
 pub mod emoji;
 pub mod manifest;
+pub mod npm;
 pub mod progressbar;
 pub mod readme;
 
