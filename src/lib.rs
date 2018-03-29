@@ -6,17 +6,17 @@ extern crate serde_derive;
 extern crate serde_json;
 extern crate toml;
 
-pub mod build;
 pub mod bindgen;
-pub mod readme;
+pub mod build;
+pub mod emoji;
 pub mod manifest;
 pub mod progressbar;
-pub mod emoji;
+pub mod readme;
 
 use std::fs;
 
-use failure::Error;
 use console::style;
+use failure::Error;
 
 pub fn create_pkg_dir(path: &str) -> Result<(), Error> {
     let step = format!(

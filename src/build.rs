@@ -1,7 +1,7 @@
-use std::process::Command;
 use console::style;
 use emoji;
 use progressbar;
+use std::process::Command;
 
 pub fn rustup_add_wasm_target() {
     let step = format!(
