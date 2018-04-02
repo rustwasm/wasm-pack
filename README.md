@@ -59,7 +59,7 @@ if you want to publish packages, you'll also need an account on [npm] and have
     crate-type = ["cdylib"]
 
     [dependencies]
-    wasm-bindgen = { git = 'https://github.com/alexcrichton/wasm-bindgen' }
+    wasm-bindgen = "0.1"
   ```
 3. add this to the top of your `src/lib.rs`:
 
