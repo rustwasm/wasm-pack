@@ -12,8 +12,7 @@ pub fn cargo_install_wasm_bindgen() {
     let pb = progressbar::new(step);
     let _output = Command::new("cargo")
         .arg("install")
-        .arg("--git")
-        .arg("https://github.com/alexcrichton/wasm-bindgen")
+        .arg("wasm-bindgen")
         .output()
         .unwrap_or_else(|e| panic!("{} failed to execute process: {}", emoji::ERROR, e));
     pb.finish();
