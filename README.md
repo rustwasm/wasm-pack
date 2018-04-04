@@ -59,12 +59,12 @@ if you want to publish packages, you'll also need an account on [npm] and have
     crate-type = ["cdylib"]
 
     [dependencies]
-    wasm-bindgen = "0.1"
+    wasm-bindgen = "0.2"
   ```
 3. add this to the top of your `src/lib.rs`:
 
   ```rust
-    #![feature(proc_macro)]
+    #![feature(proc_macro, wasm_import_module, wasm_custom_section)]
 
     extern crate wasm_bindgen;
 
