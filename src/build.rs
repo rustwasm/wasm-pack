@@ -1,6 +1,6 @@
+use PBAR;
 use console::style;
 use emoji;
-use progressbar;
 use std::process::Command;
 
 pub fn rustup_add_wasm_target() {
@@ -9,7 +9,7 @@ pub fn rustup_add_wasm_target() {
         style("[1/7]").bold().dim(),
         emoji::TARGET
     );
-    let pb = progressbar::new(step);
+    let pb = PBAR.message(&step);
     let output = Command::new("rustup")
         .arg("target")
         .arg("add")
@@ -34,7 +34,7 @@ pub fn cargo_build_wasm(path: &str) {
         style("[2/7]").bold().dim(),
         emoji::CYCLONE
     );
-    let pb = progressbar::new(step);
+    let pb = PBAR.message(&step);
     let output = Command::new("cargo")
         .current_dir(path)
         .arg("build")

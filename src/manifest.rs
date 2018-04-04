@@ -1,11 +1,10 @@
 use std::fs::File;
 use std::io::prelude::*;
 
+use PBAR;
 use console::style;
 use emoji;
 use failure::Error;
-use indicatif::MultiProgress;
-use progressbar;
 use serde_json;
 use toml;
 
@@ -82,40 +81,32 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
         emoji::MEMO
     );
 
-    let warn = |field| {
+    let warn_fmt = |field| {
         format!(
-            "{} {}: Field {} is missing from Cargo.toml. It is not necessary, but recommended",
-            emoji::WARN,
-            style("[WARN]").bold().dim(),
+            "Field {} is missing from Cargo.toml. It is not necessary, but recommended",
             field
         )
     };
 
-    let m = MultiProgress::new();
-    let pb = m.add(progressbar::new(step));
-
+    let pb = PBAR.message(&step);
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm(scope);
 
     if npm_data.description.is_none() {
-        let warn_pb = m.add(progressbar::new(warn("description")));
-        warn_pb.finish();
+        PBAR.warn(&warn_fmt("description"));
     }
     if npm_data.repository.is_none() {
-        let warn_pb = m.add(progressbar::new(warn("repository")));
-        warn_pb.finish();
+        PBAR.warn(&warn_fmt("repository"));
     }
     if npm_data.license.is_none() {
-        let warn_pb = m.add(progressbar::new(warn("license")));
-        warn_pb.finish();
+        PBAR.warn(&warn_fmt("license"));
     }
 
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
     pb.finish();
-    m.join_and_clear()?;
     Ok(())
 }
 

@@ -8,7 +8,7 @@ use std::time::Instant;
 
 use indicatif::HumanDuration;
 use quicli::prelude::*;
-use wasm_pack::{bindgen, build, emoji, manifest, npm, readme};
+use wasm_pack::{bindgen, build, emoji, manifest, npm, readme, PBAR};
 
 /// 📦 ✨  pack and publish your wasm!
 #[derive(Debug, StructOpt)]
@@ -54,16 +54,17 @@ main!(|args: Cli, log_level: verbosity| match args.cmd {
         bindgen::cargo_install_wasm_bindgen();
         let name = manifest::get_crate_name(&crate_path)?;
         bindgen::wasm_bindgen_build(&crate_path, &name);
-        println!(
+        PBAR.one_off_message(&format!(
             "{} Done in {}",
             emoji::SPARKLE,
             HumanDuration(started.elapsed())
-        );
-        println!(
+        ));
+        PBAR.one_off_message(&format!(
             "{} Your WASM pkg is ready to publish at {}/pkg",
             emoji::PACKAGE,
             &crate_path
-        )
+        ));
+        PBAR.done()?;
     }
     Command::Pack { path } => {
         let crate_path = match path {
