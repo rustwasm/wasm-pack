@@ -1,4 +1,4 @@
-#![feature(proc_macro)]
+#![feature(proc_macro, wasm_import_module, wasm_custom_section)]
 
 extern crate wasm_bindgen;
 
