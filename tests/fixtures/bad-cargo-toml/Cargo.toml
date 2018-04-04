@@ -1,0 +1,7 @@
+[package]
+name = "bad-cargo-toml"
+version = "0.1.0"
+authors = ["Michael Gattozzi <mgattozzi@gmail.com>"]
+
+[dependencies]
+wasm-bindgen = "0.1"
