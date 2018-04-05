@@ -17,13 +17,25 @@ pub mod progressbar;
 pub mod readme;
 
 use std::fs;
+use std::fs::File;
+use std::io::Read;
 
 use console::style;
 use failure::Error;
 use progressbar::ProgressOutput;
 
+fn read_cargo_toml_to_string() -> String {
+    let mut cargo_file = File::open("Cargo.toml").expect("Unable to open Cargo.toml");
+    let mut cargo_contents = String::new();
+    cargo_file.read_to_string(&mut cargo_contents).expect("Failed to read Cargo.toml");
+
+    return cargo_contents;
+}
+
 lazy_static! {
     pub static ref PBAR: ProgressOutput = { ProgressOutput::new() };
+    
+    pub static ref CARGO_TOML: String = read_cargo_toml_to_string();
 }
 
 pub fn create_pkg_dir(path: &str) -> Result<(), Error> {
