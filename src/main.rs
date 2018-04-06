@@ -5,7 +5,8 @@ extern crate indicatif;
 extern crate quicli;
 
 use quicli::prelude::*;
-use wasm_pack::{Cli, Command, init_command, pack_command, publish_command};
+use wasm_pack::Cli;
+use wasm_pack::command::{Command, init_command, pack_command, publish_command};
 
 
 main!(|args: Cli, log_level: verbosity| match args.cmd {
