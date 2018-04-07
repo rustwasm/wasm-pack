@@ -34,4 +34,3 @@ pub struct Cli {
     #[structopt(long = "verbose", short = "v", parse(from_occurrences))]
     pub verbosity: u8,
 }
-

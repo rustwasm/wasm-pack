@@ -1,3 +1,4 @@
+use PBAR;
 use bindgen;
 use build;
 use console::style;
@@ -6,9 +7,8 @@ use failure::Error;
 use indicatif::HumanDuration;
 use manifest;
 use npm;
-use readme;
-use PBAR;
 use quicli::prelude::*;
+use readme;
 use std::fs;
 use std::result;
 use std::time::Instant;
@@ -60,20 +60,20 @@ pub fn init_command(path: Option<String>, scope: Option<String>) -> result::Resu
     let name = manifest::get_crate_name(&crate_path)?;
     bindgen::wasm_bindgen_build(&crate_path, &name);
     PBAR.one_off_message(&format!(
-            "{} Done in {}",
-            emoji::SPARKLE,
-            HumanDuration(started.elapsed())
+        "{} Done in {}",
+        emoji::SPARKLE,
+        HumanDuration(started.elapsed())
     ));
     PBAR.one_off_message(&format!(
-            "{} Your WASM pkg is ready to publish at {}/pkg",
-            emoji::PACKAGE,
-            &crate_path
+        "{} Your WASM pkg is ready to publish at {}/pkg",
+        emoji::PACKAGE,
+        &crate_path
     ));
     PBAR.done()?;
     Ok(())
 }
 
-pub fn pack_command(path: Option<String>) -> result::Result<(),Error> {
+pub fn pack_command(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_pack(&crate_path);
@@ -96,5 +96,4 @@ fn set_crate_path(path: Option<String>) -> String {
     };
 
     crate_path
-
 }
