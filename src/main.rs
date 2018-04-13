@@ -6,16 +6,16 @@ extern crate quicli;
 
 use quicli::prelude::*;
 use wasm_pack::Cli;
-use wasm_pack::command::{init_command, pack_command, publish_command, Command};
+use wasm_pack::command::{init, pack, publish, Command};
 
 main!(|args: Cli, log_level: verbosity| match args.cmd {
     Command::Init { path, scope } => {
-        init_command(path, scope)?;
+        init(path, scope)?;
     }
     Command::Pack { path } => {
-        pack_command(path)?;
+        pack(path)?;
     }
     Command::Publish { path } => {
-        publish_command(path)?;
+        publish(path)?;
     }
 });
