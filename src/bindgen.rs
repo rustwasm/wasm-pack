@@ -3,8 +3,16 @@ use console::style;
 use emoji;
 use std::{env, fs, process::Command};
 
+#[cfg(target_family = "windows")]
+static PATH_SEP: &str = ";";
+
+#[cfg(not(target_family = "windows"))]
+static PATH_SEP: &str = ":";
+
 pub fn cargo_install_wasm_bindgen() {
-    if wasm_bindgen_installed() { return; }
+    if wasm_bindgen_installed() {
+        return;
+    }
     let step = format!(
         "{} {}Installing WASM-bindgen...",
         style("[6/7]").bold().dim(),
@@ -40,13 +48,13 @@ pub fn wasm_bindgen_build(path: &str, name: &str) {
 
 fn wasm_bindgen_installed() -> bool {
     if let Ok(path) = env::var("PATH") {
-        return path.split(":")
+        path.split(PATH_SEP)
             .map(|p: &str| -> bool {
-                let prog_str = format!("{}/{}", p, "wasm-bindgen");
+                let prog_str = format!("{}/wasm-bindgen", p);
                 fs::metadata(prog_str).is_ok()
             })
-            .fold(false, |res, b| res || b);
+            .fold(false, |res, b| res || b)
     } else {
-        return false;
+        false
     }
 }
