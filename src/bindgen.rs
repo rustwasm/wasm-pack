@@ -1,7 +1,7 @@
-use PBAR;
 use console::style;
 use emoji;
 use std::{env, fs, process::Command};
+use PBAR;
 
 #[cfg(target_family = "windows")]
 static PATH_SEP: &str = ";";
