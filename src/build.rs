@@ -1,7 +1,7 @@
-use PBAR;
 use console::style;
 use emoji;
 use std::process::Command;
+use PBAR;
 
 pub fn rustup_add_wasm_target() {
     let step = format!(

@@ -1,9 +1,18 @@
-use PBAR;
 use console::style;
 use emoji;
-use std::process::Command;
+use std::{env, fs, process::Command};
+use PBAR;
+
+#[cfg(target_family = "windows")]
+static PATH_SEP: &str = ";";
+
+#[cfg(not(target_family = "windows"))]
+static PATH_SEP: &str = ":";
 
 pub fn cargo_install_wasm_bindgen() {
+    if wasm_bindgen_installed() {
+        return;
+    }
     let step = format!(
         "{} {}Installing WASM-bindgen...",
         style("[6/7]").bold().dim(),
@@ -35,4 +44,17 @@ pub fn wasm_bindgen_build(path: &str, name: &str) {
         .output()
         .unwrap_or_else(|e| panic!("{} failed to execute process: {}", emoji::ERROR, e));
     pb.finish();
+}
+
+fn wasm_bindgen_installed() -> bool {
+    if let Ok(path) = env::var("PATH") {
+        path.split(PATH_SEP)
+            .map(|p: &str| -> bool {
+                let prog_str = format!("{}/wasm-bindgen", p);
+                fs::metadata(prog_str).is_ok()
+            })
+            .fold(false, |res, b| res || b)
+    } else {
+        false
+    }
 }
