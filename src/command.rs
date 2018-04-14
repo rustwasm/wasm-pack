@@ -1,4 +1,3 @@
-use PBAR;
 use bindgen;
 use build;
 use console::style;
@@ -12,6 +11,7 @@ use readme;
 use std::fs;
 use std::result;
 use std::time::Instant;
+use PBAR;
 
 #[derive(Debug, StructOpt)]
 pub enum Command {
@@ -46,7 +46,7 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
     Ok(())
 }
 
-pub fn init_command(path: Option<String>, scope: Option<String>) -> result::Result<(), Error> {
+pub fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error> {
     let started = Instant::now();
 
     let crate_path = set_crate_path(path);
@@ -73,7 +73,7 @@ pub fn init_command(path: Option<String>, scope: Option<String>) -> result::Resu
     Ok(())
 }
 
-pub fn pack_command(path: Option<String>) -> result::Result<(), Error> {
+pub fn pack(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_pack(&crate_path);
@@ -81,7 +81,7 @@ pub fn pack_command(path: Option<String>) -> result::Result<(), Error> {
     Ok(())
 }
 
-pub fn publish_command(path: Option<String>) -> result::Result<(), Error> {
+pub fn publish(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_publish(&crate_path);

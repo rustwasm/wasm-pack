@@ -1,7 +1,7 @@
-use PBAR;
 use console::style;
 use emoji;
 use std::process::Command;
+use PBAR;
 
 pub fn cargo_install_wasm_bindgen() {
     let step = format!(
