@@ -14,6 +14,8 @@ visiting that repo!
 
 [rust-wasm]: https://github.com/rust-lang-nursery/rust-wasm/
 
+![demo](demo.gif)
+
 ## 🔮 prerequisities
 
 this project is written in rust. [get rust] to work on this project.
