@@ -1,10 +1,25 @@
 # Contributing
 
-This project is currently not ready for code contributions! However, please do
-take a look at the issue tracker. Issues marked "question" are excellent places
-to share feedback.
+## Filing an Issue
+
+If you are trying to use `wasm-pack` and run into an issue- please file an
+issue! We'd love to get you up and running, even if the issue you have might
+not be directly related to the code in `wasm-pack`. This tool seeks to make
+it easy for developers to get going, so there's a good chance we can do 
+something to alleviate the issue by making `wasm-pack` better documented or
+more robust to different developer environments.
+
+When filing an issue, do your best to be as specific as possible. Include
+the version of rust you are using (`rustc --version`) and your operating
+system and version. The faster was can reproduce your issue, the faster we
+can fix it for you!
 
 ## Submitting a PR
+
+If you are considering filing a pull request, make sure that there's an issue
+filed for the work you'd like to do. There might be some discussion required!
+Filing an issue first will help ensure that the work you put into your pull
+request will get merged :)
 
 Before you submit your pull request, check that you have completed all of the
 steps mentioned in the pull request template. Link the issue that your pull
@@ -49,12 +64,8 @@ cargo +nightly fmt
 
 ## Conduct
 
-As mentioned in the readme file, this project is a part of the
-[rust-wasm][rust-wasm] group. As such, contributors should be sure to follow
-the rust-wasm group's [code of conduct][rust-wasm-coc], as well as the Rust
-language [code of conduct][rust-coc].
+As mentioned in the readme file, this project is a part of the [`rust-wasm` working group],
+an official working group of the Rust project. We follow the Rust [Code of Conduct and enforcement policies].
 
-[rust-wasm]: https://github.com/rust-lang-nursery/rust-wasm
-[rust-wasm-coc]:working://github.com/rust-lang-nursery/rust-wasm/blob/master/CODE_OF_CONDUCT.md
-[rust-coc]: https://www.rust-lang.org/en-US/conduct.html
-
+[`rust-wasm` working group]: https://github.com/rust-lang-nursery/rust-wasm
+[Code of Conduct and enforcement policies]: CODE_OF_CONDUCT.md
