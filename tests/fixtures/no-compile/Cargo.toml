@@ -1,0 +1,13 @@
+[package]
+name = "no-compile"
+description = "an example rust->wasm crate that can't compile"
+version = "0.1.0"
+authors = ["Michael Gattozzi <mgattozzi@gmail.com>"]
+license = "WTFPL"
+repository = "https://github.com/ashleygwilliams/wasm-pack"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+wasm-bindgen = "0.2.4"

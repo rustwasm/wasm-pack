@@ -1,4 +1,5 @@
 extern crate console;
+#[macro_use]
 extern crate failure;
 extern crate indicatif;
 #[macro_use]

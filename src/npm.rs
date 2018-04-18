@@ -1,32 +1,33 @@
-use emoji;
+use failure::Error;
 use std::process::Command;
+use PBAR;
 
-pub fn npm_pack(path: &str) {
+pub fn npm_pack(path: &str) -> Result<(), Error> {
     let pkg_file_path = format!("{}/pkg", path);
     let output = Command::new("npm")
         .current_dir(pkg_file_path)
         .arg("pack")
-        .output()
-        .unwrap_or_else(|e| panic!("{} failed to execute process: {}", emoji::ERROR, e));
+        .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        print!("{}  npm_pack failed and stderr was:\n{}", emoji::ERROR, s);
+        PBAR.error("npm_pack failed");
+        bail!(format!("stderr was {}", s));
+    } else {
+        Ok(())
     }
 }
 
-pub fn npm_publish(path: &str) {
+pub fn npm_publish(path: &str) -> Result<(), Error> {
     let pkg_file_path = format!("{}/pkg", path);
     let output = Command::new("npm")
         .current_dir(pkg_file_path)
         .arg("publish")
-        .output()
-        .unwrap_or_else(|e| panic!("{} failed to execute process: {}", emoji::ERROR, e));
+        .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        print!(
-            "{}  npm_publish failed and stderr was:\n{}",
-            emoji::ERROR,
-            s
-        );
+        PBAR.error("npm_publish failed");
+        bail!(format!("stderr was {}", s));
+    } else {
+        Ok(())
     }
 }

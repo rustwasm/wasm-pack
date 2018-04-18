@@ -6,6 +6,7 @@ use failure::Error;
 use indicatif::HumanDuration;
 use manifest;
 use npm;
+#[allow(unused)]
 use quicli::prelude::*;
 use readme;
 use std::fs;
@@ -30,6 +31,24 @@ pub enum Command {
     Publish { path: Option<String> },
 }
 
+pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
+    // Run the correct command based off input and store the result of it so that we can clear
+    // the progress bar then return it
+    let status = match command {
+        Command::Init { path, scope } => init(path, scope),
+        Command::Pack { path } => pack(path),
+        Command::Publish { path } => publish(path),
+    };
+
+    // Make sure we always clear the progress bar before we abort the program otherwise
+    // stderr and stdout output get eaten up and nothing will work. If this part fails
+    // to work and clear the progress bars then you're really having a bad day with your tools.
+    PBAR.done()?;
+
+    // Return the actual status of the program to the main function
+    status
+}
+
 // quicli::prelude::* imports a different result struct which gets
 // precedence over the std::result::Result, so have had to specify
 // the correct type here.
@@ -46,19 +65,19 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
     Ok(())
 }
 
-pub fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error> {
+fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error> {
     let started = Instant::now();
 
     let crate_path = set_crate_path(path);
 
-    build::rustup_add_wasm_target();
-    build::cargo_build_wasm(&crate_path);
+    build::rustup_add_wasm_target()?;
+    build::cargo_build_wasm(&crate_path)?;
     create_pkg_dir(&crate_path)?;
     manifest::write_package_json(&crate_path, scope)?;
     readme::copy_from_crate(&crate_path)?;
-    bindgen::cargo_install_wasm_bindgen();
+    bindgen::cargo_install_wasm_bindgen()?;
     let name = manifest::get_crate_name(&crate_path)?;
-    bindgen::wasm_bindgen_build(&crate_path, &name);
+    bindgen::wasm_bindgen_build(&crate_path, &name)?;
     PBAR.one_off_message(&format!(
         "{} Done in {}",
         emoji::SPARKLE,
@@ -69,23 +88,22 @@ pub fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), E
         emoji::PACKAGE,
         &crate_path
     ));
-    PBAR.done()?;
     Ok(())
 }
 
-pub fn pack(path: Option<String>) -> result::Result<(), Error> {
+fn pack(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
-    npm::npm_pack(&crate_path);
-    println!("🎒  packed up your package!");
+    npm::npm_pack(&crate_path)?;
+    PBAR.one_off_message("🎒  packed up your package!");
     Ok(())
 }
 
-pub fn publish(path: Option<String>) -> result::Result<(), Error> {
+fn publish(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
-    npm::npm_publish(&crate_path);
-    println!("💥  published your package!");
+    npm::npm_publish(&crate_path)?;
+    PBAR.one_off_message("💥  published your package!");
     Ok(())
 }
 
