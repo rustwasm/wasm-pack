@@ -41,6 +41,7 @@ fn it_creates_a_package_json_default_path() {
         "https://github.com/ashleygwilliams/wasm-pack.git"
     );
     assert_eq!(pkg.files, ["wasm_pack.js", "wasm_pack_bg.wasm"]);
+    assert_eq!(pkg.main, "wasm_pack.js");
 }
 
 #[test]

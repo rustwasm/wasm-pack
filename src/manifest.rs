@@ -32,6 +32,7 @@ struct NpmPackage {
     license: Option<String>,
     repository: Option<Repository>,
     files: Vec<String>,
+    main: String,
 }
 
 #[derive(Serialize)]
@@ -68,7 +69,8 @@ impl CargoManifest {
                 ty: "git".to_string(),
                 url: repo_url,
             }),
-            files: vec![js_file, wasm_file],
+            files: vec![js_file.clone(), wasm_file],
+            main: js_file,
         }
     }
 }
