@@ -57,20 +57,20 @@ if you want to publish packages, you'll also need an account on [npm] and have
 2. add `wasm-bindgen` to your `Cargo.toml`:
 
   ```toml
-    [lib]
-    crate-type = ["cdylib"]
+  [lib]
+  crate-type = ["cdylib"]
 
-    [dependencies]
-    wasm-bindgen = "0.2"
+  [dependencies]
+  wasm-bindgen = "0.2"
   ```
 3. add this to the top of your `src/lib.rs`:
 
   ```rust
-    #![feature(proc_macro, wasm_import_module, wasm_custom_section)]
+  #![feature(proc_macro, wasm_import_module, wasm_custom_section)]
 
-    extern crate wasm_bindgen;
+  extern crate wasm_bindgen;
 
-    use wasm_bindgen::prelude::*;
+  use wasm_bindgen::prelude::*;
   ```
 
 4. annotate your public functions with `#[wasm_bindgen]`, for example:
