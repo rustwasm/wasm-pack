@@ -10,8 +10,8 @@ pub fn npm_pack(path: &str) -> Result<(), Error> {
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("npm_pack failed");
-        bail!(format!("stderr was {}", s));
+        PBAR.error("Packaging up your code failed");
+        bail!(format!("Details:\n{}", s));
     } else {
         Ok(())
     }
@@ -25,8 +25,8 @@ pub fn npm_publish(path: &str) -> Result<(), Error> {
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("npm_publish failed");
-        bail!(format!("stderr was {}", s));
+        PBAR.error("Publishing to npm failed");
+        bail!(format!("Details:\n{}", s));
     } else {
         Ok(())
     }

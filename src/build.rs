@@ -19,8 +19,8 @@ pub fn rustup_add_wasm_target() -> Result<(), Error> {
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("rustup_add_wasm_target failed");
-        bail!(format!("stderr was {}", s));
+        PBAR.error("Adding the wasm32-unknown-unknown target failed");
+        bail!(format!("Details:\n{}", s));
     } else {
         Ok(())
     }
@@ -43,8 +43,8 @@ pub fn cargo_build_wasm(path: &str) -> Result<(), Error> {
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("cargo_build_wasm failed");
-        bail!(format!("stderr was {}", s));
+        PBAR.error("Compilation of your program failed");
+        bail!(format!("Details:\n{}", s));
     } else {
         Ok(())
     }

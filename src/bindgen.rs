@@ -18,8 +18,8 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("npm_publish failed");
-        bail!(format!("stderr was {}", s));
+        PBAR.error("Installing wasm-bindgen failed");
+        bail!(format!("Details:\n{}", s));
     } else {
         Ok(())
     }
@@ -43,8 +43,8 @@ pub fn wasm_bindgen_build(path: &str, name: &str) -> Result<(), Error> {
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("npm_publish failed");
-        bail!(format!("stderr was {}", s));
+        PBAR.error("wasm-bindgen failed to execute properly");
+        bail!(format!("Details:\n{}", s));
     } else {
         Ok(())
     }
