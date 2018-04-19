@@ -1,9 +1,10 @@
+use PBAR;
 use console::style;
 use emoji;
+use failure::Error;
 use std::process::Command;
-use PBAR;
 
-pub fn rustup_add_wasm_target() {
+pub fn rustup_add_wasm_target() -> Result<(), Error> {
     let step = format!(
         "{} {}Adding WASM target...",
         style("[1/7]").bold().dim(),
@@ -14,21 +15,18 @@ pub fn rustup_add_wasm_target() {
         .arg("target")
         .arg("add")
         .arg("wasm32-unknown-unknown")
-        .output()
-        .unwrap_or_else(|e| panic!("{} failed to execute process: {}", emoji::ERROR, e));
+        .output()?;
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-
-        print!(
-            "{}  rustup_add_wasm_target failed and stderr was:\n{}",
-            emoji::ERROR,
-            s
-        );
+        PBAR.error("Adding the wasm32-unknown-unknown target failed");
+        bail!(format!("Details:\n{}", s));
+    } else {
+        Ok(())
     }
 }
 
-pub fn cargo_build_wasm(path: &str) {
+pub fn cargo_build_wasm(path: &str) -> Result<(), Error> {
     let step = format!(
         "{} {}Compiling to WASM...",
         style("[2/7]").bold().dim(),
@@ -41,16 +39,13 @@ pub fn cargo_build_wasm(path: &str) {
         .arg("--release")
         .arg("--target")
         .arg("wasm32-unknown-unknown")
-        .output()
-        .unwrap_or_else(|e| panic!("{} failed to execute process: {}", emoji::ERROR, e));
+        .output()?;
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-
-        print!(
-            "{}  cargo_build_wasm failed and stderr was:\n{}",
-            emoji::ERROR,
-            s
-        );
+        PBAR.error("Compilation of your program failed");
+        bail!(format!("Details:\n{}", s));
+    } else {
+        Ok(())
     }
 }

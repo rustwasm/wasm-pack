@@ -2,8 +2,8 @@ use console::style;
 use failure::Error;
 use std::fs;
 
-use emoji;
 use PBAR;
+use emoji;
 
 pub fn copy_from_crate(path: &str) -> Result<(), Error> {
     let step = format!(
