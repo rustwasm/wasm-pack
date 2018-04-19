@@ -1,4 +1,3 @@
-use PBAR;
 use bindgen;
 use build;
 use console::style;
@@ -13,6 +12,7 @@ use readme;
 use std::fs;
 use std::result;
 use std::time::Instant;
+use PBAR;
 
 #[derive(Debug, StructOpt)]
 pub enum Command {

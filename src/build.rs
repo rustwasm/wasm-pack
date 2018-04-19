@@ -1,8 +1,8 @@
-use PBAR;
 use console::style;
 use emoji;
 use failure::Error;
 use std::process::Command;
+use PBAR;
 
 pub fn rustup_add_wasm_target() -> Result<(), Error> {
     let step = format!(
