@@ -1,7 +1,7 @@
-use std::fs;
 use console::style;
 use emoji;
 use failure::Error;
+use std::fs;
 use std::process::Command;
 use PBAR;
 
@@ -20,8 +20,8 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
         if s.contains("already exists") {
-          PBAR.one_off_message("wasm-bindgen already installed");
-          return Ok(());
+            PBAR.one_off_message("wasm-bindgen already installed");
+            return Ok(());
         }
         PBAR.error("Installing wasm-bindgen failed");
         bail!(format!("Details:\n{}", s));
