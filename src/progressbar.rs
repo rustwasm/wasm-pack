@@ -18,16 +18,22 @@ impl ProgressOutput {
         self.bar.add(Self::progressbar(message))
     }
 
-    pub fn one_off_message(&self, message: &str) {
-        let bar = self.bar.add(Self::progressbar(message));
+    pub fn info(&self, message: &str) {
+        let info = format!(
+            "{} {}: {}",
+            emoji::INFO,
+            style("[INFO]").bold().dim(),
+            message
+        );
+        let bar = self.bar.add(Self::progressbar(&info));
         bar.finish();
     }
 
     pub fn warn(&self, message: &str) {
         let warn = format!(
             "{} {}: {}",
-            style("[WARN]").bold().dim(),
             emoji::WARN,
+            style("[WARN]").bold().dim(),
             message
         );
         let bar = self.bar.add(Self::progressbar(&warn));
@@ -37,8 +43,8 @@ impl ProgressOutput {
     pub fn error(&self, message: &str) {
         let err = format!(
             "{} {}: {}",
-            style("[ERR]").bold().dim(),
             emoji::ERROR,
+            style("[ERR]").bold().dim(),
             message
         );
         let bar = self.bar.add(Self::progressbar(&err));

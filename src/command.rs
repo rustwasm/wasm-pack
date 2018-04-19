@@ -78,12 +78,12 @@ fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error
     bindgen::cargo_install_wasm_bindgen()?;
     let name = manifest::get_crate_name(&crate_path)?;
     bindgen::wasm_bindgen_build(&crate_path, &name)?;
-    PBAR.one_off_message(&format!(
+    PBAR.message(&format!(
         "{} Done in {}",
         emoji::SPARKLE,
         HumanDuration(started.elapsed())
     ));
-    PBAR.one_off_message(&format!(
+    PBAR.message(&format!(
         "{} Your WASM pkg is ready to publish at {}/pkg",
         emoji::PACKAGE,
         &crate_path
@@ -95,7 +95,7 @@ fn pack(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_pack(&crate_path)?;
-    PBAR.one_off_message("🎒  packed up your package!");
+    PBAR.message("🎒  packed up your package!");
     Ok(())
 }
 
@@ -103,7 +103,7 @@ fn publish(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_publish(&crate_path)?;
-    PBAR.one_off_message("💥  published your package!");
+    PBAR.message("💥  published your package!");
     Ok(())
 }
 
