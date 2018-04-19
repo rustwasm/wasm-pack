@@ -37,8 +37,8 @@ impl ProgressOutput {
     pub fn error(&self, message: &str) {
         let err = format!(
             "{} {}: {}",
+            style("[ERR]").bold().dim(),
             emoji::ERROR,
-            style("[Error]").bold().dim(),
             message
         );
         let bar = self.bar.add(Self::progressbar(&err));
