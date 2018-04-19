@@ -54,7 +54,6 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 impl CargoManifest {
     fn into_npm(mut self, scope: Option<String>) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
-        let js_file = format!("{}.js", filename);
         let wasm_file = format!("{}_bg.wasm", filename);
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
@@ -69,8 +68,8 @@ impl CargoManifest {
                 ty: "git".to_string(),
                 url: repo_url,
             }),
-            files: vec![js_file.clone(), wasm_file],
-            main: js_file,
+            files: vec![wasm_file],
+            main: "index.js".to_string(),
         }
     }
 }
