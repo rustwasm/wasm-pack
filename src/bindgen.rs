@@ -1,8 +1,8 @@
+use PBAR;
 use console::style;
 use emoji;
 use failure::Error;
 use std::process::Command;
-use PBAR;
 
 pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
     let step = format!(

@@ -1,6 +1,6 @@
+use PBAR;
 use failure::Error;
 use std::process::Command;
-use PBAR;
 
 pub fn npm_pack(path: &str) -> Result<(), Error> {
     let pkg_file_path = format!("{}/pkg", path);
