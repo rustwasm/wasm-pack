@@ -1,3 +1,4 @@
+use std::fs;
 use console::style;
 use emoji;
 use failure::Error;
@@ -18,6 +19,10 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
+        if s.contains("already exists") {
+          PBAR.one_off_message("wasm-bindgen already installed");
+          return Ok(());
+        }
         PBAR.error("Installing wasm-bindgen failed");
         bail!(format!("Details:\n{}", s));
     } else {
@@ -46,6 +51,9 @@ pub fn wasm_bindgen_build(path: &str, name: &str) -> Result<(), Error> {
         PBAR.error("wasm-bindgen failed to execute properly");
         bail!(format!("Details:\n{}", s));
     } else {
+        let js_file = format!("{}/pkg/{}.js", path, binary_name);
+        let index_file = format!("{}/pkg/index.js", path);
+        fs::rename(&js_file, &index_file)?;
         Ok(())
     }
 }
