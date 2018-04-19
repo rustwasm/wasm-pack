@@ -1,12 +1,12 @@
 use std::fs::File;
 use std::io::prelude::*;
 
-use PBAR;
 use console::style;
 use emoji;
 use failure::Error;
 use serde_json;
 use toml;
+use PBAR;
 
 #[derive(Deserialize)]
 struct CargoManifest {
@@ -32,6 +32,7 @@ struct NpmPackage {
     license: Option<String>,
     repository: Option<Repository>,
     files: Vec<String>,
+    main: String,
 }
 
 #[derive(Serialize)]
@@ -53,7 +54,6 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 impl CargoManifest {
     fn into_npm(mut self, scope: Option<String>) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
-        let js_file = format!("{}.js", filename);
         let wasm_file = format!("{}_bg.wasm", filename);
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
@@ -68,7 +68,8 @@ impl CargoManifest {
                 ty: "git".to_string(),
                 url: repo_url,
             }),
-            files: vec![js_file, wasm_file],
+            files: vec![wasm_file],
+            main: "index.js".to_string(),
         }
     }
 }

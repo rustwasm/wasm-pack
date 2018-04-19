@@ -40,7 +40,8 @@ fn it_creates_a_package_json_default_path() {
         pkg.repository.url,
         "https://github.com/ashleygwilliams/wasm-pack.git"
     );
-    assert_eq!(pkg.files, ["wasm_pack.js", "wasm_pack_bg.wasm"]);
+    assert_eq!(pkg.files, ["wasm_pack_bg.wasm"]);
+    assert_eq!(pkg.main, "index.js");
 }
 
 #[test]
@@ -53,7 +54,6 @@ fn it_creates_a_package_json_provided_path() {
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
-    assert_eq!(pkg.files, ["js_hello_world.js", "js_hello_world_bg.wasm"]);
 }
 
 #[test]
@@ -66,8 +66,4 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "@test/scopes-hello-world");
-    assert_eq!(
-        pkg.files,
-        ["scopes_hello_world.js", "scopes_hello_world_bg.wasm"]
-    );
 }

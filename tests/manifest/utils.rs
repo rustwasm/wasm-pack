@@ -12,6 +12,7 @@ pub struct NpmPackage {
     pub license: String,
     pub repository: Repository,
     pub files: Vec<String>,
+    pub main: String,
 }
 
 #[derive(Deserialize)]
