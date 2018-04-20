@@ -50,7 +50,7 @@ pub enum Command {
         always_auth: bool,
 
         #[structopt(long = "auth-type", short = "t")]
-        /// Default: 'legacy'. 
+        /// Default: 'legacy'.
         /// Type: 'legacy', 'sso', 'saml', 'oauth'.
         /// What authentication strategy to use with adduser/login. Some npm registries (for example, npmE) might support alternative auth strategies besides classic username/password entry in legacy npm.
         auth_type: Option<String>,
