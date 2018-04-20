@@ -35,29 +35,24 @@ pub fn npm_adduser(
     always_auth: bool,
     auth_type: Option<String>,
 ) -> Result<(), Error> {
-    let status = Command::new("npm")
-        .arg("adduser")
-        .arg(if let Some(registry) = registry {
-            format!("--registry {}", registry)
-        } else {
-            String::from("")
-        })
-        .arg(if let Some(scope) = scope {
-            format!("--scope {}", scope)
-        } else {
-            String::from("")
-        })
-        .arg(if always_auth == true {
-            String::from("--always_auth")
-        } else {
-            String::from("")
-        })
-        .arg(if let Some(auth_type) = auth_type {
-            format!("--auth_type {}", auth_type)
-        } else {
-            String::from("")
-        })
-        .status()?;
+    let mut args = String::new();
+
+    if let Some(registry) = registry {
+        args.push_str(&format!(" --registry={}", registry))
+    }
+    if let Some(scope) = scope {
+        args.push_str(&format!(" --scope={}", scope))
+    }
+
+    if always_auth == true {
+        args.push_str(" --always_auth")
+    }
+
+    if let Some(auth_type) = auth_type {
+        args.push_str(&format!(" --auth_type={}", auth_type))
+    }
+
+    let status = Command::new("npm").arg("adduser").arg(args).status()?;
 
     if !status.success() {
         bail!("Adding registry user account failed");
