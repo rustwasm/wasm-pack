@@ -29,7 +29,7 @@ pub fn npm_publish(path: &str) -> Result<(), Error> {
     }
 }
 
-pub fn npm_adduser(
+pub fn npm_login(
     registry: Option<String>,
     scope: Option<String>,
     always_auth: bool,
@@ -52,10 +52,10 @@ pub fn npm_adduser(
         args.push_str(&format!(" --auth_type={}", auth_type))
     }
 
-    let status = Command::new("npm").arg("adduser").arg(args).status()?;
+    let status = Command::new("npm").arg("login").arg(args).status()?;
 
     if !status.success() {
-        bail!("Adding registry user account failed");
+        bail!("Registry user account login failed");
     } else {
         Ok(())
     }

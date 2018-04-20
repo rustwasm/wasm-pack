@@ -32,9 +32,9 @@ pub enum Command {
     /// 🎆  pack up your npm package and publish! [NOT IMPLEMENTED]
     Publish { path: Option<String> },
 
-    #[structopt(name = "adduser", alias = "login", alias = "add-user")]
-    /// 👤  Add a registry user account! [NOT IMPLEMENTED]
-    Adduser {
+    #[structopt(name = "login", alias = "adduser", alias = "add-user")]
+    /// 👤  Add a registry user account! (aliases: adduser, add-user) [NOT IMPLEMENTED]
+    Login {
         #[structopt(long = "registry", short = "r")]
         /// Default: 'https://registry.npmjs.org/'.
         /// The base URL of the npm package registry. If scope is also specified, this registry will only be used for packages with that scope. scope defaults to the scope of the project directory you're currently in, if any.
@@ -64,12 +64,12 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
         Command::Init { path, scope } => init(path, scope),
         Command::Pack { path } => pack(path),
         Command::Publish { path } => publish(path),
-        Command::Adduser {
+        Command::Login {
             registry,
             scope,
             always_auth,
             auth_type,
-        } => adduser(registry, scope, always_auth, auth_type),
+        } => login(registry, scope, always_auth, auth_type),
     };
 
     match status {
@@ -146,15 +146,15 @@ fn publish(path: Option<String>) -> result::Result<(), Error> {
     Ok(())
 }
 
-fn adduser(
+fn login(
     registry: Option<String>,
     scope: Option<String>,
     always_auth: bool,
     auth_type: Option<String>,
 ) -> result::Result<(), Error> {
-    npm::npm_adduser(registry, scope, always_auth, auth_type)?;
+    npm::npm_login(registry, scope, always_auth, auth_type)?;
 
-    PBAR.one_off_message("👋  added registry user account!");
+    PBAR.one_off_message("👋  logged you in!");
     Ok(())
 }
 
