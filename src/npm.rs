@@ -28,3 +28,40 @@ pub fn npm_publish(path: &str) -> Result<(), Error> {
         Ok(())
     }
 }
+
+pub fn npm_adduser(
+    registry: Option<String>,
+    scope: Option<String>,
+    always_auth: bool,
+    auth_type: Option<String>,
+) -> Result<(), Error> {
+    let status = Command::new("npm")
+        .arg("adduser")
+        .arg(if let Some(registry) = registry {
+            format!("--registry {}", registry)
+        } else {
+            String::from("")
+        })
+        .arg(if let Some(scope) = scope {
+            format!("--scope {}", scope)
+        } else {
+            String::from("")
+        })
+        .arg(if always_auth == true {
+            String::from("--always_auth")
+        } else {
+            String::from("")
+        })
+        .arg(if let Some(auth_type) = auth_type {
+            format!("--auth_type {}", auth_type)
+        } else {
+            String::from("")
+        })
+        .status()?;
+
+    if !status.success() {
+        bail!("Adding registry user account failed");
+    } else {
+        Ok(())
+    }
+}
