@@ -11,3 +11,4 @@ pub static PACKAGE: Emoji = Emoji("📦  ", ":-)");
 pub static WARN: Emoji = Emoji("⚠️  ", ":-)");
 pub static DANCERS: Emoji = Emoji("👯  ", "");
 pub static ERROR: Emoji = Emoji("⛔  ", "");
+pub static INFO: Emoji = Emoji("ℹ️  ", "");

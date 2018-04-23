@@ -20,7 +20,7 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
         if s.contains("already exists") {
-            PBAR.one_off_message("wasm-bindgen already installed");
+            PBAR.info("wasm-bindgen already installed");
             return Ok(());
         }
         PBAR.error("Installing wasm-bindgen failed");
