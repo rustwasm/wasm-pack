@@ -8,7 +8,7 @@ install:
 build: false
 
 test_script:
-  - cargo test
+  - cargo test --locked
 
 before_deploy:
   - ps: |

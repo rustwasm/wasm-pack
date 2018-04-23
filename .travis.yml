@@ -7,7 +7,7 @@ matrix:
   # tests pass
   - rust: nightly
     script:
-    - cargo test
+    - cargo test --locked
     - rustup component add rustfmt-preview
     - cargo fmt -- --write-mode diff
     env: RUST_BACKTRACE=1
@@ -23,13 +23,13 @@ matrix:
         make -j$(nproc) &&
         make install)
       - export OPENSSL_DIR=$HOME/openssl-musl
-    script: cargo build --release --target $TARGET
+    script: cargo build --release --target $TARGET --locked
 
   # dist OSX binary
   - os: osx
     rust: nightly
     env: MACOSX_DEPLOYMENT_TARGET=10.7 DEPLOY=1 TARGET=x86_64-apple-darwin
-    script: cargo build --release --target $TARGET
+    script: cargo build --release --target $TARGET --locked
     install: true
 
 addons:
