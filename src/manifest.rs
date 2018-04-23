@@ -55,6 +55,7 @@ impl CargoManifest {
     fn into_npm(mut self, scope: Option<String>) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
+        let js_file = format!("{}.js", filename);
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
         }
@@ -69,7 +70,7 @@ impl CargoManifest {
                 url: repo_url,
             }),
             files: vec![wasm_file],
-            main: "index.js".to_string(),
+            main: js_file,
         }
     }
 }

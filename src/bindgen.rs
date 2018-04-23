@@ -1,7 +1,6 @@
 use console::style;
 use emoji;
 use failure::Error;
-use std::fs;
 use std::process::Command;
 use PBAR;
 
@@ -51,9 +50,6 @@ pub fn wasm_bindgen_build(path: &str, name: &str) -> Result<(), Error> {
         PBAR.error("wasm-bindgen failed to execute properly");
         bail!(format!("Details:\n{}", s));
     } else {
-        let js_file = format!("{}/pkg/{}.js", path, binary_name);
-        let index_file = format!("{}/pkg/index.js", path);
-        fs::rename(&js_file, &index_file)?;
         Ok(())
     }
 }
