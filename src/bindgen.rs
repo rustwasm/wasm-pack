@@ -11,7 +11,7 @@ static PATH_SEP: &str = ";";
 static PATH_SEP: &str = ":";
 
 pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
-    if wasm_bindgen_installed() {
+    if wasm_bindgen_installed()? {
         return Ok(());
     }
     let step = format!(
@@ -81,15 +81,13 @@ pub fn wasm_bindgen_build(
     }
 }
 
-fn wasm_bindgen_installed() -> bool {
-    if let Ok(path) = env::var("PATH") {
-        path.split(PATH_SEP)
-            .map(|p: &str| -> bool {
-                let prog_str = format!("{}/wasm-bindgen", p);
-                fs::metadata(prog_str).is_ok()
-            })
-            .fold(false, |res, b| res || b)
-    } else {
-        false
-    }
+fn wasm_bindgen_installed() -> Result<bool, Error> {
+    let path = env::var("PATH")?;
+    let is_installed = path.split(PATH_SEP)
+        .map(|p: &str| -> bool {
+            let prog_str = format!("{}/wasm-bindgen", p);
+            fs::metadata(prog_str).is_ok()
+        })
+        .fold(false, |res, b| res || b);
+    Ok(is_installed)
 }
