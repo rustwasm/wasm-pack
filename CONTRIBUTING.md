@@ -5,7 +5,7 @@
 If you are trying to use `wasm-pack` and run into an issue- please file an
 issue! We'd love to get you up and running, even if the issue you have might
 not be directly related to the code in `wasm-pack`. This tool seeks to make
-it easy for developers to get going, so there's a good chance we can do 
+it easy for developers to get going, so there's a good chance we can do
 something to alleviate the issue by making `wasm-pack` better documented or
 more robust to different developer environments.
 
@@ -35,7 +35,7 @@ before, it is not too difficult.
 If you have not already configured `rustfmt` for the
 nightly toolchain, it can be done using the following steps:
 
-**1. Use Nightly Toolchain**
+#### 1. Use Nightly Toolchain
 
 Use the `rustup override` command to make sure that you are using the nightly
 toolchain. Run this command in the `wasm-pack` directory you cloned.
@@ -44,7 +44,7 @@ toolchain. Run this command in the `wasm-pack` directory you cloned.
 rustup override set nightly
 ```
 
-**2. Add the rustfmt component**
+#### 2. Add the rustfmt component
 
 Install the most recent version of `rustfmt` using this command:
 
@@ -52,7 +52,7 @@ Install the most recent version of `rustfmt` using this command:
 rustup component add rustfmt-preview --toolchain nightly
 ```
 
-**3. Running rustfmt**
+#### 3. Running rustfmt
 
 To run `rustfmt`, use this command:
 
@@ -68,4 +68,4 @@ As mentioned in the readme file, this project is a part of the [`rust-wasm` work
 an official working group of the Rust project. We follow the Rust [Code of Conduct and enforcement policies].
 
 [`rust-wasm` working group]: https://github.com/rust-lang-nursery/rust-wasm
-[Code of Conduct and enforcement policies]: CODE_OF_CONDUCT.md
+[code of conduct and enforcement policies]: CODE_OF_CONDUCT.md

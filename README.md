@@ -1,4 +1,5 @@
-# 📦✨  wasm-pack
+# 📦✨ wasm-pack
+
 > pack up the wasm and publish it to npm!
 
 [![Build Status](https://travis-ci.org/ashleygwilliams/wasm-pack.svg?branch=master)](https://travis-ci.org/ashleygwilliams/wasm-pack)
@@ -32,65 +33,70 @@ if you want to publish packages, you'll also need an account on [npm] and have
 
 1. fork and clone this repository
 2. install [node/npm]
-2. `cd wasm-pack`
-3. `cargo run`
+3. `cd wasm-pack`
+4. `cargo run`
 
 ## 💃 commands
 
-- `help`: display available commands
-- 🐣  `init`: create necessary files for js interop and npm publishing
-  - optionally pass a path to a dir that contains a `Cargo.toml`, e.g.:
-    ```
+* `help`: display available commands
+* 🐣 `init`: create necessary files for js interop and npm publishing
+  * optionally pass a path to a dir that contains a `Cargo.toml`, e.g.:
+    ```sh
     wasm-pack init examples/js-hello-world
     ```
-  - optionally pass a scope name to generate a `package.json` for a scoped pkg, e.g.:
-    ```
+  * optionally pass a scope name to generate a `package.json` for a scoped pkg, e.g.:
+    ```sh
     wasm-pack init examples/scopes-hello-world --scope test
     ```
     generates a `package.json` for an npm package called `@test/scopes-hello-world`
-- 🍱  `pack`: create a tarball but don't push to the npm registry (see https://docs.npmjs.com/cli/pack)
-- 🎆  `publish`: create a tarball and publish to the npm registry (see https://docs.npmjs.com/cli/publish)
+* 🍱 `pack`: create a tarball but don't push to the npm registry (see <https://docs.npmjs.com/cli/pack)>
+* 🎆 `publish`: create a tarball and publish to the npm registry (see <https://docs.npmjs.com/cli/publish)>
 
-## ⚙️  how to use
+## ⚙️ how to use
+
+<!-- markdownlint-disable MD029 -->
 
 1. write a crate in Rust.
 2. add `wasm-bindgen` to your `Cargo.toml`:
 
-  ```toml
-  [lib]
-  crate-type = ["cdylib"]
+```toml
+[lib]
+crate-type = ["cdylib"]
 
-  [dependencies]
-  wasm-bindgen = "0.2"
-  ```
+[dependencies]
+wasm-bindgen = "0.2"
+```
+
 3. add this to the top of your `src/lib.rs`:
 
-  ```rust
-  #![feature(proc_macro, wasm_import_module, wasm_custom_section)]
+```rust
+#![feature(proc_macro, wasm_import_module, wasm_custom_section)]
 
-  extern crate wasm_bindgen;
+extern crate wasm_bindgen;
 
-  use wasm_bindgen::prelude::*;
-  ```
+use wasm_bindgen::prelude::*;
+```
 
 4. annotate your public functions with `#[wasm_bindgen]`, for example:
 
-  ```rust
-  #[wasm_bindgen]
-  extern {
-      fn alert(s: &str);
-  }
+```rust
+#[wasm_bindgen]
+extern {
+    fn alert(s: &str);
+}
 
-  #[wasm_bindgen]
-  pub fn greet(name: &str) {
-      alert(&format!("Hello, {}!", name));
-  }
-  ```
+#[wasm_bindgen]
+pub fn greet(name: &str) {
+    alert(&format!("Hello, {}!", name));
+}
+```
 
 5. install this tool: `cargo install wasm-pack`
 6. run `wasm-pack init`, optionally, pass a path to a dir or a scope (see above for details)
 7. this tool generates files in a `pkg` dir
 8. to publish to npm, run `wasm-pack publish` (making sure you are logged in with npm)
+
+<!-- markdownlint-enable MD029 -->
 
 [rust-wasm/36]: https://github.com/rust-lang-nursery/rust-wasm/issues/36
 [wasm-bindgen]: https://github.com/alexcrichton/wasm-bindgen
