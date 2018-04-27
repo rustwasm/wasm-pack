@@ -154,7 +154,7 @@ fn login(
 ) -> result::Result<(), Error> {
     npm::npm_login(registry, scope, always_auth, auth_type)?;
 
-    PBAR.one_off_message("👋  logged you in!");
+    PBAR.message("👋  logged you in!");
     Ok(())
 }
 
