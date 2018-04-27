@@ -1,5 +1,5 @@
 use error::Error;
-use std::process::Command;
+use std::process::{Command, Stdio};
 
 pub fn npm_pack(path: &str) -> Result<(), Error> {
     let pkg_file_path = format!("{}/pkg", path);
@@ -38,24 +38,30 @@ pub fn npm_login(
     let mut args = String::new();
 
     if let Some(registry) = registry {
-        args.push_str(&format!(" --registry={}", registry))
+        args.push_str(&format!(" --registry={}", registry));
     }
     if let Some(scope) = scope {
-        args.push_str(&format!(" --scope={}", scope))
+        args.push_str(&format!(" --scope={}", scope));
     }
 
     if always_auth == true {
-        args.push_str(" --always_auth")
+        args.push_str(" --always_auth");
     }
 
     if let Some(auth_type) = auth_type {
-        args.push_str(&format!(" --auth_type={}", auth_type))
+        args.push_str(&format!(" --auth_type={}", auth_type));
     }
 
-    let status = Command::new("npm").arg("login").arg(args).status()?;
+    let output = Command::new("npm")
+        .arg("login")
+        .arg(args)
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
+        .output()?;
 
-    if !status.success() {
-        bail!("Registry user account login failed");
+    if !output.status.success() {
+        let s = String::from_utf8_lossy(&output.stderr);
+        Error::cli("Registry user account login failed", s)
     } else {
         Ok(())
     }
