@@ -4,6 +4,7 @@ extern crate failure;
 extern crate indicatif;
 #[macro_use]
 extern crate lazy_static;
+extern crate parity_wasm;
 extern crate quicli;
 #[macro_use]
 extern crate serde_derive;
