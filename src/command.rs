@@ -25,15 +25,15 @@ pub enum Command {
     },
 
     #[structopt(name = "pack")]
-    /// 🍱  create a tar of your npm package but don't publish! [NOT IMPLEMENTED]
+    /// 🍱  create a tar of your npm package but don't publish!
     Pack { path: Option<String> },
 
     #[structopt(name = "publish")]
-    /// 🎆  pack up your npm package and publish! [NOT IMPLEMENTED]
+    /// 🎆  pack up your npm package and publish!
     Publish { path: Option<String> },
 
     #[structopt(name = "login", alias = "adduser", alias = "add-user")]
-    /// 👤  Add a registry user account! (aliases: adduser, add-user) [NOT IMPLEMENTED]
+    /// 👤  Add a registry user account! (aliases: adduser, add-user)
     Login {
         #[structopt(long = "registry", short = "r")]
         /// Default: 'https://registry.npmjs.org/'.
