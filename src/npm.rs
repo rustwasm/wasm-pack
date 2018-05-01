@@ -1,6 +1,5 @@
-use failure::Error;
+use error::Error;
 use std::process::Command;
-use PBAR;
 
 pub fn npm_pack(path: &str) -> Result<(), Error> {
     let pkg_file_path = format!("{}/pkg", path);
@@ -10,8 +9,7 @@ pub fn npm_pack(path: &str) -> Result<(), Error> {
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("Packaging up your code failed");
-        bail!(format!("Details:\n{}", s));
+        Error::cli("Packaging up your code failed", s)
     } else {
         Ok(())
     }
@@ -25,8 +23,7 @@ pub fn npm_publish(path: &str) -> Result<(), Error> {
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("Publishing to npm failed");
-        bail!(format!("Details:\n{}", s));
+        Error::cli("Publishing to npm failed", s)
     } else {
         Ok(())
     }

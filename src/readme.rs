@@ -1,5 +1,5 @@
 use console::style;
-use failure::Error;
+use error::Error;
 use std::fs;
 
 use emoji;

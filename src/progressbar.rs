@@ -1,6 +1,6 @@
 use console::style;
 use emoji;
-use failure::Error;
+use error::Error;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
 
 pub struct ProgressOutput {
@@ -40,7 +40,7 @@ impl ProgressOutput {
         bar.finish();
     }
 
-    pub fn error(&self, message: &str) {
+    pub fn error(&self, message: String) {
         let err = format!(
             "{} {}: {}",
             emoji::ERROR,

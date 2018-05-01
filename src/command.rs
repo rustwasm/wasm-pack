@@ -2,7 +2,7 @@ use bindgen;
 use build;
 use console::style;
 use emoji;
-use failure::Error;
+use error::Error;
 use indicatif::HumanDuration;
 use manifest;
 use npm;
@@ -39,6 +39,13 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
         Command::Pack { path } => pack(path),
         Command::Publish { path } => publish(path),
     };
+
+    match status {
+        Ok(_) => {}
+        Err(ref e) => {
+            PBAR.error(e.error_type());
+        }
+    }
 
     // Make sure we always clear the progress bar before we abort the program otherwise
     // stderr and stdout output get eaten up and nothing will work. If this part fails

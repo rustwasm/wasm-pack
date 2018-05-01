@@ -1,6 +1,6 @@
 use console::style;
 use emoji;
-use failure::Error;
+use error::Error;
 use std::process::Command;
 use PBAR;
 
@@ -22,8 +22,7 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
             PBAR.info("wasm-bindgen already installed");
             return Ok(());
         }
-        PBAR.error("Installing wasm-bindgen failed");
-        bail!(format!("Details:\n{}", s));
+        Error::cli("Installing wasm-bindgen failed", s)
     } else {
         Ok(())
     }
@@ -47,8 +46,7 @@ pub fn wasm_bindgen_build(path: &str, name: &str) -> Result<(), Error> {
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        PBAR.error("wasm-bindgen failed to execute properly");
-        bail!(format!("Details:\n{}", s));
+        Error::cli("wasm-bindgen failed to execute properly", s)
     } else {
         Ok(())
     }
