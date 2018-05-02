@@ -3,7 +3,7 @@ use std::io::prelude::*;
 
 use console::style;
 use emoji;
-use failure::Error;
+use error::Error;
 use serde_json;
 use toml;
 use PBAR;
