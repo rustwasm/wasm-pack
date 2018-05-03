@@ -14,6 +14,7 @@ use std::result;
 use std::time::Instant;
 use PBAR;
 
+
 #[derive(Debug, StructOpt)]
 pub enum Command {
     #[structopt(name = "init")]
@@ -83,7 +84,7 @@ fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error
     manifest::write_package_json(&crate_path, scope)?;
     readme::copy_from_crate(&crate_path)?;
     bindgen::cargo_install_wasm_bindgen()?;
-    let name = manifest::get_crate_name(&crate_path)?;
+    let name = manifest::get_crate_name()?;
     bindgen::wasm_bindgen_build(&crate_path, &name)?;
     PBAR.message(&format!(
         "{} Done in {}",

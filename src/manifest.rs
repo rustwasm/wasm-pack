@@ -4,6 +4,7 @@ use std::io::prelude::*;
 use console::style;
 use emoji;
 use error::Error;
+use lazy_static;
 use serde_json;
 use toml;
 use PBAR;
@@ -42,6 +43,10 @@ struct Repository {
     url: String,
 }
 
+lazy_static! {
+    static ref CARGO_TOML: CargoManifest = read_cargo_toml(".").unwrap();
+}
+
 fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
     let manifest_path = format!("{}/Cargo.toml", path);
     let mut cargo_file = File::open(manifest_path)?;
@@ -52,6 +57,10 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 impl CargoManifest {
+    fn get_name(&self) -> String {
+        self.package.name.clone()
+    }
+
     fn into_npm(mut self, scope: Option<String>) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
@@ -93,8 +102,7 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
     let pb = PBAR.message(&step);
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
-    let crate_data = read_cargo_toml(path)?;
-    let npm_data = crate_data.into_npm(scope);
+    let npm_data = CARGO_TOML.into_npm(scope);
 
     if npm_data.description.is_none() {
         PBAR.warn(&warn_fmt("description"));
@@ -112,6 +120,6 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
     Ok(())
 }
 
-pub fn get_crate_name(path: &str) -> Result<String, Error> {
-    Ok(read_cargo_toml(path)?.package.name)
+pub fn get_crate_name() -> Result<String, Error> {
+    Ok(CARGO_TOML.get_name())
 }
