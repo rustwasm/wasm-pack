@@ -4,7 +4,6 @@ use std::io::prelude::*;
 use console::style;
 use emoji;
 use error::Error;
-use lazy_static;
 use serde_json;
 use toml;
 use PBAR;
@@ -56,31 +55,43 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
     Ok(toml::from_str(&cargo_contents)?)
 }
 
-impl CargoManifest {
-    fn get_name(&self) -> String {
-        self.package.name.clone()
-    }
-
-    fn into_npm(mut self, scope: Option<String>) -> NpmPackage {
-        let filename = self.package.name.replace("-", "_");
-        let wasm_file = format!("{}_bg.wasm", filename);
-        let js_file = format!("{}.js", filename);
-        if let Some(s) = scope {
-            self.package.name = format!("@{}/{}", s, self.package.name);
-        }
+impl NpmPackage {
+    fn from_manifest(cargo: &CargoManifest) -> NpmPackage {
+        let (name, description) = NpmPackage::get_package_name_and_desc(cargo);
+        let (js_file, wasm_file) = NpmPackage::get_js_and_wasm_filenames(cargo);
+        let repository = NpmPackage::get_repo(cargo);
         NpmPackage {
-            name: self.package.name,
-            collaborators: self.package.authors,
-            description: self.package.description,
-            version: self.package.version,
-            license: self.package.license,
-            repository: self.package.repository.map(|repo_url| Repository {
-                ty: "git".to_string(),
-                url: repo_url,
-            }),
+            name,
+            collaborators: cargo.package.authors.clone(),
+            description,
+            version: cargo.package.version.clone(),
+            license: cargo.package.license.clone(),
+            repository,
             files: vec![wasm_file],
             main: js_file,
         }
+    }
+
+    fn get_package_name_and_desc(cargo: &CargoManifest) -> (String, Option<String>) {
+        let package_name = cargo.package.name.clone();
+        let description = cargo.package.description.clone();
+        (package_name, description)
+    }
+
+    fn get_repo(cargo: &CargoManifest) -> Option<Repository> {
+        cargo.package.repository
+            .clone()
+            .map(|repo_url| Repository {
+                ty: "git".to_string(),
+                url: repo_url,
+            })
+    }
+
+    fn get_js_and_wasm_filenames(cargo: &CargoManifest) -> (String, String) {
+        let filename = cargo.package.name.clone().replace("-", "_");
+        let js_file = format!("{}.js", filename);
+        let wasm_file = format!("{}_bg.wasm", filename);
+        (js_file, wasm_file)
     }
 }
 
@@ -102,7 +113,7 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
     let pb = PBAR.message(&step);
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
-    let npm_data = CARGO_TOML.into_npm(scope);
+    let npm_data = NpmPackage::from_manifest(&CARGO_TOML);
 
     if npm_data.description.is_none() {
         PBAR.warn(&warn_fmt("description"));
@@ -121,5 +132,5 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
 }
 
 pub fn get_crate_name() -> Result<String, Error> {
-    Ok(CARGO_TOML.get_name())
+    Ok(CARGO_TOML.package.name.clone())
 }
