@@ -8,9 +8,19 @@ use serde_json;
 use toml;
 use PBAR;
 
+lazy_static! {
+    pub static ref CARGO_TOML: CargoManifest = read_cargo_toml(".").unwrap();
+}
+
 #[derive(Deserialize)]
 pub struct CargoManifest {
     package: CargoPackage,
+}
+
+impl CargoManifest {
+    pub fn get_crate_name(&self) -> String {
+        self.package.name.clone()
+    }
 }
 
 #[derive(Deserialize)]
@@ -35,33 +45,8 @@ struct NpmPackage {
     main: String,
 }
 
-#[derive(Serialize)]
-struct Repository {
-    #[serde(rename = "type")]
-    ty: String,
-    url: String,
-}
-
-lazy_static! {
-    pub static ref CARGO_TOML: CargoManifest = read_cargo_toml(".").unwrap();
-}
-
-pub fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
-    let manifest_path = format!("{}/Cargo.toml", path);
-    let mut cargo_file = File::open(manifest_path)?;
-    let mut cargo_contents = String::new();
-    cargo_file.read_to_string(&mut cargo_contents)?;
-
-    Ok(toml::from_str(&cargo_contents)?)
-}
-
-impl CargoManifest {
-    pub fn get_crate_name(&self) -> String {
-        self.package.name.clone()
-    }
-}
-
 impl NpmPackage {
+    /// Create an NpmPackage from a borrowed `CargoManifest` object.
     pub fn from_manifest(cargo: &CargoManifest) -> NpmPackage {
         let (name, description) = NpmPackage::get_package_name_and_desc(cargo);
         let (js_file, wasm_file) = NpmPackage::get_js_and_wasm_filenames(cargo);
@@ -99,6 +84,23 @@ impl NpmPackage {
         let wasm_file = format!("{}_bg.wasm", filename);
         (js_file, wasm_file)
     }
+}
+
+#[derive(Serialize)]
+struct Repository {
+    #[serde(rename = "type")]
+    ty: String,
+    url: String,
+}
+
+/// Try to read the `Cargo.toml` file in the given directory.
+pub fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
+    let manifest_path = format!("{}/Cargo.toml", path);
+    let mut cargo_file = File::open(manifest_path)?;
+    let mut cargo_contents = String::new();
+    cargo_file.read_to_string(&mut cargo_contents)?;
+
+    Ok(toml::from_str(&cargo_contents)?)
 }
 
 /// Generate a package.json file inside in `./pkg`.
