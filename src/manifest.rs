@@ -8,10 +8,6 @@ use serde_json;
 use toml;
 use PBAR;
 
-lazy_static! {
-    pub static ref CARGO_TOML: CargoManifest = read_cargo_toml(".").unwrap();
-}
-
 #[derive(Deserialize)]
 pub struct CargoManifest {
     package: CargoPackage,
@@ -75,13 +71,17 @@ impl NpmPackage {
         }
     }
 
+    pub fn add_scope(&mut self, scope: &Option<String>) {
+        if let Some(s) = scope {
+            self.name = format!("@{}/{}", s, self.name);
+        }
+    }
+
     fn get_repo(cargo: &CargoManifest) -> Option<Repository> {
-        cargo.package.repository
-            .clone()
-            .map(|repo_url| Repository {
-                ty: "git".to_string(),
-                url: repo_url,
-            })
+        cargo.package.repository.clone().map(|repo_url| Repository {
+            ty: "git".to_string(),
+            url: repo_url,
+        })
     }
 
     fn get_filenames(cargo: &CargoManifest) -> PackageFiles {
@@ -106,7 +106,7 @@ pub fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 /// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error> {
+pub fn write_package_json(path: &str, scope: &Option<String>) -> Result<(), Error> {
     let step = format!(
         "{} {}Writing a package.json...",
         style("[4/7]").bold().dim(),
@@ -123,7 +123,9 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
     let pb = PBAR.message(&step);
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
-    let npm_data = NpmPackage::from_manifest(&CARGO_TOML);
+    let manifest = read_cargo_toml(path)?;
+    let mut npm_data = NpmPackage::from_manifest(&manifest);
+    npm_data.add_scope(scope);
 
     if npm_data.description.is_none() {
         PBAR.warn(&warn_fmt("description"));
@@ -141,6 +143,6 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
     Ok(())
 }
 
-pub fn get_crate_name() -> Result<String, Error> {
-    Ok(CARGO_TOML.package.name.clone())
+pub fn get_crate_name(path: &str) -> Result<String, Error> {
+    Ok(read_cargo_toml(path)?.package.name.clone())
 }

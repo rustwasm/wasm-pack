@@ -12,8 +12,8 @@ use readme;
 use std::fs;
 use std::result;
 use std::time::Instant;
-use PBAR;
 use Cli;
+use PBAR;
 
 #[derive(Debug, StructOpt)]
 pub enum Command {
@@ -32,33 +32,6 @@ pub enum Command {
     Publish { path: Option<String> },
 }
 
-pub fn run_wasm_pack(args: Cli) -> result::Result<(), Error> {
-    // Run the correct command based off input and store the result of it so that we can clear
-    // the progress bar then return it
-    let command: Command = args.cmd;
-
-    let status = match command {
-        Command::Init { path, scope } => init(path, scope),
-        Command::Pack { path } => pack(path),
-        Command::Publish { path } => publish(path),
-    };
-
-    match status {
-        Ok(_) => {}
-        Err(ref e) => {
-            PBAR.error(e.error_type());
-        }
-    }
-
-    // Make sure we always clear the progress bar before we abort the program otherwise
-    // stderr and stdout output get eaten up and nothing will work. If this part fails
-    // to work and clear the progress bars then you're really having a bad day with your tools.
-    PBAR.done()?;
-
-    // Return the actual status of the program to the main function
-    status
-}
-
 // quicli::prelude::* imports a different result struct which gets
 // precedence over the std::result::Result, so have had to specify
 // the correct type here.
@@ -75,7 +48,7 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
     Ok(())
 }
 
-fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error> {
+pub fn init(path: &Option<String>, scope: &Option<String>) -> result::Result<(), Error> {
     let started = Instant::now();
 
     let crate_path = set_crate_path(path);
@@ -86,7 +59,7 @@ fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error
     manifest::write_package_json(&crate_path, scope)?;
     readme::copy_from_crate(&crate_path)?;
     bindgen::cargo_install_wasm_bindgen()?;
-    let name = manifest::get_crate_name()?;
+    let name = manifest::get_crate_name(&crate_path)?;
     bindgen::wasm_bindgen_build(&crate_path, &name)?;
     PBAR.message(&format!(
         "{} Done in {}",
@@ -101,7 +74,7 @@ fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error
     Ok(())
 }
 
-fn pack(path: Option<String>) -> result::Result<(), Error> {
+pub fn pack(path: &Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_pack(&crate_path)?;
@@ -109,7 +82,7 @@ fn pack(path: Option<String>) -> result::Result<(), Error> {
     Ok(())
 }
 
-fn publish(path: Option<String>) -> result::Result<(), Error> {
+pub fn publish(path: &Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_publish(&crate_path)?;
@@ -117,11 +90,9 @@ fn publish(path: Option<String>) -> result::Result<(), Error> {
     Ok(())
 }
 
-fn set_crate_path(path: Option<String>) -> String {
-    let crate_path = match path {
-        Some(p) => p,
+fn set_crate_path(path: &Option<String>) -> String {
+    match path {
+        Some(p) => p.clone(),
         None => ".".to_string(),
-    };
-
-    crate_path
+    }
 }
