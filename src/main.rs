@@ -12,5 +12,5 @@ use wasm_pack::Cli;
 
 main!(|args: Cli, log_level: verbosity| {
     setup_panic!();
-    run_wasm_pack(args.cmd)?;
+    run_wasm_pack(args)?;
 });

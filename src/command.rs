@@ -13,7 +13,7 @@ use std::fs;
 use std::result;
 use std::time::Instant;
 use PBAR;
-
+use Cli;
 
 #[derive(Debug, StructOpt)]
 pub enum Command {
@@ -32,9 +32,11 @@ pub enum Command {
     Publish { path: Option<String> },
 }
 
-pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
+pub fn run_wasm_pack(args: Cli) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
+    let command: Command = args.cmd;
+
     let status = match command {
         Command::Init { path, scope } => init(path, scope),
         Command::Pack { path } => pack(path),
