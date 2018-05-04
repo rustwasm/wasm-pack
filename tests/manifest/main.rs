@@ -12,15 +12,17 @@ use wasm_pack::manifest;
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
-    assert!(manifest::get_crate_name(".").is_ok());
-    assert_eq!(manifest::get_crate_name(".").unwrap(), "wasm-pack");
+    let cargo_manifest = manifest::read_cargo_toml(".");
+    assert!(cargo_manifest.is_ok());
+    assert_eq!(cargo_manifest.unwrap().get_crate_name(), "wasm-pack");
 }
 
 #[test]
 fn it_gets_the_crate_name_provided_path() {
-    assert!(manifest::get_crate_name("tests/fixtures/js-hello-world").is_ok());
+    let cargo_manifest = manifest::read_cargo_toml("tests/fixtures/js-hello-world");
+    assert!(cargo_manifest.is_ok());
     assert_eq!(
-        manifest::get_crate_name("tests/fixtures/js-hello-world").unwrap(),
+        cargo_manifest.unwrap().get_crate_name(),
         "js-hello-world"
     );
 }

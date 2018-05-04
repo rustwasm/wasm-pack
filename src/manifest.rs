@@ -9,12 +9,12 @@ use toml;
 use PBAR;
 
 #[derive(Deserialize)]
-struct CargoManifest {
+pub struct CargoManifest {
     package: CargoPackage,
 }
 
 #[derive(Deserialize)]
-struct CargoPackage {
+pub struct CargoPackage {
     name: String,
     authors: Vec<String>,
     description: Option<String>,
@@ -46,7 +46,7 @@ lazy_static! {
     static ref CARGO_TOML: CargoManifest = read_cargo_toml(".").unwrap();
 }
 
-fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
+pub fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
     let manifest_path = format!("{}/Cargo.toml", path);
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
@@ -55,8 +55,14 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
     Ok(toml::from_str(&cargo_contents)?)
 }
 
+impl CargoManifest {
+    pub fn get_crate_name(&self) -> String {
+        self.package.name.clone()
+    }
+}
+
 impl NpmPackage {
-    fn from_manifest(cargo: &CargoManifest) -> NpmPackage {
+    pub fn from_manifest(cargo: &CargoManifest) -> NpmPackage {
         let (name, description) = NpmPackage::get_package_name_and_desc(cargo);
         let (js_file, wasm_file) = NpmPackage::get_js_and_wasm_filenames(cargo);
         let repository = NpmPackage::get_repo(cargo);
