@@ -45,28 +45,34 @@ struct NpmPackage {
     main: String,
 }
 
+#[derive(Serialize)]
+struct Repository {
+    #[serde(rename = "type")]
+    ty: String,
+    url: String,
+}
+
+#[derive(Serialize)]
+struct PackageFiles {
+    main: String,
+    files: Vec<String>,
+}
+
 impl NpmPackage {
     /// Create an NpmPackage from a borrowed `CargoManifest` object.
     pub fn from_manifest(cargo: &CargoManifest) -> NpmPackage {
-        let (name, description) = NpmPackage::get_package_name_and_desc(cargo);
-        let (js_file, wasm_file) = NpmPackage::get_js_and_wasm_filenames(cargo);
         let repository = NpmPackage::get_repo(cargo);
+        let PackageFiles { files, main } = NpmPackage::get_filenames(cargo);
         NpmPackage {
-            name,
+            name: cargo.package.name.clone(),
             collaborators: cargo.package.authors.clone(),
-            description,
+            description: cargo.package.description.clone(),
             version: cargo.package.version.clone(),
             license: cargo.package.license.clone(),
             repository,
-            files: vec![wasm_file],
-            main: js_file,
+            files,
+            main,
         }
-    }
-
-    fn get_package_name_and_desc(cargo: &CargoManifest) -> (String, Option<String>) {
-        let package_name = cargo.package.name.clone();
-        let description = cargo.package.description.clone();
-        (package_name, description)
     }
 
     fn get_repo(cargo: &CargoManifest) -> Option<Repository> {
@@ -78,19 +84,15 @@ impl NpmPackage {
             })
     }
 
-    fn get_js_and_wasm_filenames(cargo: &CargoManifest) -> (String, String) {
+    fn get_filenames(cargo: &CargoManifest) -> PackageFiles {
         let filename = cargo.package.name.clone().replace("-", "_");
         let js_file = format!("{}.js", filename);
         let wasm_file = format!("{}_bg.wasm", filename);
-        (js_file, wasm_file)
+        PackageFiles {
+            main: js_file,
+            files: vec![wasm_file],
+        }
     }
-}
-
-#[derive(Serialize)]
-struct Repository {
-    #[serde(rename = "type")]
-    ty: String,
-    url: String,
 }
 
 /// Try to read the `Cargo.toml` file in the given directory.
