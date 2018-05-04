@@ -43,7 +43,7 @@ struct Repository {
 }
 
 lazy_static! {
-    static ref CARGO_TOML: CargoManifest = read_cargo_toml(".").unwrap();
+    pub static ref CARGO_TOML: CargoManifest = read_cargo_toml(".").unwrap();
 }
 
 pub fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
