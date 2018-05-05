@@ -30,9 +30,9 @@ impl Context {
     /// Run the command in the current context.
     pub fn run(&mut self) -> Result<(), Error> {
         let status = match self.action {
-            Action::Init => init(&self.path, &self.scope),
-            Action::Pack => pack(&self.path),
-            Action::Publish => publish(&self.path),
+            Action::Init => self.init(),
+            Action::Pack => self.pack(),
+            Action::Publish => self.publish(),
         };
 
         match status {
@@ -78,4 +78,15 @@ impl Context {
 
     // Command Wrappers:
     // ------------------------------------------------------------------------
+    fn init(&mut self) -> Result<(), Error> {
+        init(&self.path, &self.scope)
+    }
+
+    fn pack(&mut self) -> Result<(), Error> {
+        pack(&self.path)
+    }
+
+    fn publish(&mut self) -> Result<(), Error> {
+        publish(&self.path)
+    }
 }
