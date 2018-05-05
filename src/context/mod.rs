@@ -10,13 +10,13 @@ use toml;
 mod from_cmd;
 
 pub enum Action {
+    // FIXUP: Not sure how to feel about this enum?
     Init,
     Pack,
     Publish,
 }
 
-// FIXUP: Cannot derive 'Debug' trait because 'ProgressOutput' does not derive.
-
+// FIXUP: Cannot derive 'Debug' trait here because 'ProgressOutput' does not derive.
 pub struct Context {
     action: Action,
     manifest: Option<CargoManifest>,
@@ -27,6 +27,7 @@ pub struct Context {
 }
 
 impl Context {
+    /// Run the command in the current context.
     pub fn run(&mut self) -> Result<(), Error> {
         let status = match self.action {
             Action::Init => init(&self.path, &self.scope),
@@ -50,6 +51,9 @@ impl Context {
         status
     }
 
+    // Lazy `Cargo.toml` manifest reading.
+    // ------------------------------------------------------------------------
+
     /// Return a borrow of the crate manifest. If the manifest has not been
     /// read yet, then read the contents and place them in self.manifest.
     pub fn manifest(&mut self) -> &CargoManifest {
@@ -71,4 +75,7 @@ impl Context {
         self.manifest = toml::from_str(&cargo_contents)?;
         Ok(())
     }
+
+    // Command Wrappers:
+    // ------------------------------------------------------------------------
 }
