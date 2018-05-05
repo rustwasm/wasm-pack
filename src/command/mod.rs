@@ -1,19 +1,21 @@
 use bindgen;
-use build;
 use console::style;
 use emoji;
 use error::Error;
-use indicatif::HumanDuration;
-use manifest;
 use npm;
 #[allow(unused)]
 use quicli::prelude::*;
 use readme;
 use std::fs;
 use std::result;
-use std::time::Instant;
 use Cli;
 use PBAR;
+
+mod build;
+mod init;
+
+pub use self::build::{cargo_build_wasm, rustup_add_wasm_target};
+pub use self::init::init;
 
 #[derive(Debug, StructOpt)]
 pub enum Command {
@@ -45,30 +47,6 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
     let pkg_dir_path = format!("{}/pkg", path);
     fs::create_dir_all(pkg_dir_path)?;
     pb.finish();
-    Ok(())
-}
-
-pub fn init(crate_path: &str, scope: Option<String>) -> result::Result<(), Error> {
-    let started = Instant::now();
-
-    build::rustup_add_wasm_target()?;
-    build::cargo_build_wasm(&crate_path)?;
-    create_pkg_dir(&crate_path)?;
-    manifest::write_package_json(&crate_path, scope)?;
-    readme::copy_from_crate(&crate_path)?;
-    bindgen::cargo_install_wasm_bindgen()?;
-    let name = manifest::get_crate_name(&crate_path)?;
-    bindgen::wasm_bindgen_build(&crate_path, &name)?;
-    PBAR.message(&format!(
-        "{} Done in {}",
-        emoji::SPARKLE,
-        HumanDuration(started.elapsed())
-    ));
-    PBAR.message(&format!(
-        "{} Your WASM pkg is ready to publish at {}/pkg",
-        emoji::PACKAGE,
-        &crate_path
-    ));
     Ok(())
 }
 
