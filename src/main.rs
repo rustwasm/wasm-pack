@@ -13,5 +13,5 @@ use wasm_pack::Cli;
 main!(|args: Cli, log_level: verbosity| {
     setup_panic!();
     let mut context = Context::new();
-    context.run(args)?;
+    context.run(args.cmd)?;
 });

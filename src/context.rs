@@ -19,8 +19,8 @@ impl Context {
         }
     }
 
-    pub fn run(&mut self, args: Cli) -> Result<(), Error> {
-        let status = match args.cmd {
+    pub fn run(&mut self, cmd: Command) -> Result<(), Error> {
+        let status = match cmd {
             Command::Init { path, scope } => init(path, scope),
             Command::Pack { path } => pack(path),
             Command::Publish { path } => publish(path),
