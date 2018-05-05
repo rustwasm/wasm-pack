@@ -1,7 +1,7 @@
 use std::fs::File;
 use std::io::prelude::*;
 
-use command::{init, pack, publish, Command};
+use command::{init, pack, publish};
 use error::Error;
 use manifest::CargoManifest;
 use progressbar::ProgressOutput;

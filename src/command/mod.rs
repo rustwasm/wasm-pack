@@ -1,14 +1,11 @@
-use bindgen;
 use console::style;
 use emoji;
 use error::Error;
 use npm;
 #[allow(unused)]
 use quicli::prelude::*;
-use readme;
 use std::fs;
 use std::result;
-use Cli;
 use PBAR;
 
 mod build;
