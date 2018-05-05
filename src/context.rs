@@ -22,10 +22,12 @@ impl Context {
     }
 
     pub fn run(&mut self, cmd: Command) -> Result<(), Error> {
+        let crate_path = Context::get_crate_path(&cmd);
+
         let status = match cmd {
-            Command::Init { path, scope } => init(path, scope),
-            Command::Pack { path } => pack(path),
-            Command::Publish { path } => publish(path),
+            Command::Init { scope, .. } => init(crate_path, scope),
+            Command::Pack { .. } => pack(crate_path),
+            Command::Publish { .. } => publish(crate_path),
         };
 
         match status {
@@ -50,5 +52,14 @@ impl Context {
 
     fn read_manifest(path: &str) -> Result<CargoManifest, Error> {
         unimplemented!();
+    }
+
+    fn get_crate_path(cmd: &Command) -> String {
+        let path = match cmd {
+            Command::Init { path, .. } => path.clone(),
+            Command::Pack { path } => path.clone(),
+            Command::Publish { path } => path.clone(),
+        };
+        path.unwrap_or(".".to_string())
     }
 }

@@ -48,10 +48,8 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
     Ok(())
 }
 
-pub fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error> {
+pub fn init(crate_path: String, scope: Option<String>) -> result::Result<(), Error> {
     let started = Instant::now();
-
-    let crate_path = set_crate_path(path);
 
     build::rustup_add_wasm_target()?;
     build::cargo_build_wasm(&crate_path)?;
@@ -74,25 +72,14 @@ pub fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), E
     Ok(())
 }
 
-pub fn pack(path: Option<String>) -> result::Result<(), Error> {
-    let crate_path = set_crate_path(path);
-
+pub fn pack(crate_path: String) -> result::Result<(), Error> {
     npm::npm_pack(&crate_path)?;
     PBAR.message("🎒  packed up your package!");
     Ok(())
 }
 
-pub fn publish(path: Option<String>) -> result::Result<(), Error> {
-    let crate_path = set_crate_path(path);
-
+pub fn publish(crate_path: String) -> result::Result<(), Error> {
     npm::npm_publish(&crate_path)?;
     PBAR.message("💥  published your package!");
     Ok(())
-}
-
-fn set_crate_path(path: Option<String>) -> String {
-    match path {
-        Some(p) => p.clone(),
-        None => ".".to_string(),
-    }
 }
