@@ -56,11 +56,12 @@ struct PackageFiles {
 
 impl NpmPackage {
     /// Create an NpmPackage from a borrowed `CargoManifest` object.
-    pub fn from_manifest(cargo: &CargoManifest) -> NpmPackage {
+    pub fn new(cargo: &CargoManifest, scope: Option<String>) -> NpmPackage {
+        let name = NpmPackage::scoped_name(&cargo.package.name, scope);
         let repository = NpmPackage::get_repo(cargo);
         let PackageFiles { files, main } = NpmPackage::get_filenames(cargo);
         NpmPackage {
-            name: cargo.package.name.clone(),
+            name,
             collaborators: cargo.package.authors.clone(),
             description: cargo.package.description.clone(),
             version: cargo.package.version.clone(),
@@ -71,9 +72,10 @@ impl NpmPackage {
         }
     }
 
-    pub fn add_scope(&mut self, scope: &Option<String>) {
-        if let Some(s) = scope {
-            self.name = format!("@{}/{}", s, self.name);
+    fn scoped_name(name: &str, scope: Option<String>) -> String {
+        match scope {
+            Some(s) => format!("@{}/{}", s, name),
+            None => name.to_string(),
         }
     }
 
@@ -132,7 +134,7 @@ pub fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 /// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json(path: &str, scope: &Option<String>) -> Result<(), Error> {
+pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error> {
     let step = format!(
         "{} {}Writing a package.json...",
         style("[4/7]").bold().dim(),
@@ -150,8 +152,7 @@ pub fn write_package_json(path: &str, scope: &Option<String>) -> Result<(), Erro
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let manifest = read_cargo_toml(path)?;
-    let mut npm_data = NpmPackage::from_manifest(&manifest);
-    npm_data.add_scope(scope);
+    let npm_data = NpmPackage::new(&manifest, scope);
 
     if npm_data.description.is_none() {
         PBAR.warn(&warn_fmt("description"));

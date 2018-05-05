@@ -4,7 +4,7 @@ use std::io::prelude::*;
 use failure::Error;
 use serde_json;
 
-use wasm_pack::manifest::{NpmPackage, Repository};
+use wasm_pack::manifest::NpmPackage;
 
 pub fn read_package_json(path: &str) -> Result<NpmPackage, Error> {
     let manifest_path = format!("{}/pkg/package.json", path);

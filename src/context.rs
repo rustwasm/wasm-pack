@@ -7,24 +7,20 @@ use Cli;
 // FIXUP: Cannot derive 'Debug' trait because 'ProgressOutput' does not derive.
 
 pub struct Context {
-    cmd: Command,
-    log_level: u8,
     manifest: Option<CargoManifest>,
     pbar: ProgressOutput,
 }
 
 impl Context {
-    pub fn new(args: Cli) -> Context {
+    pub fn new() -> Context {
         Context {
-            cmd: args.cmd,
-            log_level: args.verbosity,
             manifest: None,
             pbar: ProgressOutput::new(),
         }
     }
 
-    pub fn run(&mut self) -> Result<(), Error> {
-        let status = match &self.cmd {
+    pub fn run(&mut self, args: Cli) -> Result<(), Error> {
+        let status = match args.cmd {
             Command::Init { path, scope } => init(path, scope),
             Command::Pack { path } => pack(path),
             Command::Publish { path } => publish(path),
@@ -44,5 +40,13 @@ impl Context {
 
         // Return the actual status of the program to the main function
         status
+    }
+
+    pub fn manifest(&mut self) -> &CargoManifest {
+        unimplemented!();
+    }
+
+    fn read_manifest(path: &str) -> Result<CargoManifest, Error> {
+        unimplemented!();
     }
 }

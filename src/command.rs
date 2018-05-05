@@ -48,7 +48,7 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
     Ok(())
 }
 
-pub fn init(path: &Option<String>, scope: &Option<String>) -> result::Result<(), Error> {
+pub fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error> {
     let started = Instant::now();
 
     let crate_path = set_crate_path(path);
@@ -74,7 +74,7 @@ pub fn init(path: &Option<String>, scope: &Option<String>) -> result::Result<(),
     Ok(())
 }
 
-pub fn pack(path: &Option<String>) -> result::Result<(), Error> {
+pub fn pack(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_pack(&crate_path)?;
@@ -82,7 +82,7 @@ pub fn pack(path: &Option<String>) -> result::Result<(), Error> {
     Ok(())
 }
 
-pub fn publish(path: &Option<String>) -> result::Result<(), Error> {
+pub fn publish(path: Option<String>) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     npm::npm_publish(&crate_path)?;
@@ -90,7 +90,7 @@ pub fn publish(path: &Option<String>) -> result::Result<(), Error> {
     Ok(())
 }
 
-fn set_crate_path(path: &Option<String>) -> String {
+fn set_crate_path(path: Option<String>) -> String {
     match path {
         Some(p) => p.clone(),
         None => ".".to_string(),
