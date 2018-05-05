@@ -25,7 +25,7 @@ pub fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 /// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error> {
+pub fn write_package_json(path: &str, scope: &Option<String>) -> Result<(), Error> {
     let step = format!(
         "{} {}Writing a package.json...",
         style("[4/7]").bold().dim(),

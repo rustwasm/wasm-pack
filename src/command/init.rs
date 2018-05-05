@@ -13,7 +13,7 @@ use PBAR;
 use super::build::{cargo_build_wasm, rustup_add_wasm_target};
 use super::create_pkg_dir;
 
-pub fn init(crate_path: &str, scope: Option<String>) -> result::Result<(), Error> {
+pub fn init(crate_path: &str, scope: &Option<String>) -> result::Result<(), Error> {
     let started = Instant::now();
 
     rustup_add_wasm_target()?;
