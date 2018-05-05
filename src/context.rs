@@ -9,13 +9,15 @@ use Cli;
 pub struct Context {
     manifest: Option<CargoManifest>,
     pbar: ProgressOutput,
+    verbosity: u8,
 }
 
 impl Context {
-    pub fn new() -> Context {
+    pub fn new(verbosity: u8) -> Context {
         Context {
             manifest: None,
             pbar: ProgressOutput::new(),
+            verbosity,
         }
     }
 
