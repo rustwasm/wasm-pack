@@ -48,7 +48,7 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
     Ok(())
 }
 
-pub fn init(crate_path: String, scope: Option<String>) -> result::Result<(), Error> {
+pub fn init(crate_path: &str, scope: Option<String>) -> result::Result<(), Error> {
     let started = Instant::now();
 
     build::rustup_add_wasm_target()?;
@@ -72,13 +72,13 @@ pub fn init(crate_path: String, scope: Option<String>) -> result::Result<(), Err
     Ok(())
 }
 
-pub fn pack(crate_path: String) -> result::Result<(), Error> {
+pub fn pack(crate_path: &str) -> result::Result<(), Error> {
     npm::npm_pack(&crate_path)?;
     PBAR.message("🎒  packed up your package!");
     Ok(())
 }
 
-pub fn publish(crate_path: String) -> result::Result<(), Error> {
+pub fn publish(crate_path: &str) -> result::Result<(), Error> {
     npm::npm_publish(&crate_path)?;
     PBAR.message("💥  published your package!");
     Ok(())

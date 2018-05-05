@@ -25,9 +25,9 @@ impl Context {
         let crate_path = Context::get_crate_path(&cmd);
 
         let status = match cmd {
-            Command::Init { scope, .. } => init(crate_path, scope),
-            Command::Pack { .. } => pack(crate_path),
-            Command::Publish { .. } => publish(crate_path),
+            Command::Init { scope, .. } => init(&crate_path, scope),
+            Command::Pack { .. } => pack(&crate_path),
+            Command::Publish { .. } => publish(&crate_path),
         };
 
         match status {
