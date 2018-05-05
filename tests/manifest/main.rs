@@ -36,14 +36,14 @@ fn it_creates_a_package_json_default_path() {
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
-    assert_eq!(pkg.name, "wasm-pack");
-    assert_eq!(pkg.repository.ty, "git");
+    assert_eq!(pkg.name(), "wasm-pack".to_string());
+    assert_eq!(pkg.repository_type(), Some("git".to_string()));
     assert_eq!(
-        pkg.repository.url,
-        "https://github.com/ashleygwilliams/wasm-pack.git"
+        pkg.repository_url(),
+        Some("https://github.com/ashleygwilliams/wasm-pack.git".to_string()),
     );
-    assert_eq!(pkg.files, ["wasm_pack_bg.wasm"]);
-    assert_eq!(pkg.main, "wasm_pack.js");
+    assert_eq!(pkg.files(), ["wasm_pack_bg.wasm"]);
+    assert_eq!(pkg.main(), "wasm_pack.js");
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn it_creates_a_package_json_provided_path() {
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
-    assert_eq!(pkg.name, "js-hello-world");
+    assert_eq!(pkg.name(), "js-hello-world".to_string());
 }
 
 #[test]
@@ -67,5 +67,5 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
-    assert_eq!(pkg.name, "@test/scopes-hello-world");
+    assert_eq!(pkg.name(), "@test/scopes-hello-world".to_string());
 }

@@ -29,8 +29,8 @@ pub struct CargoPackage {
     repository: Option<String>,
 }
 
-#[derive(Serialize)]
-struct NpmPackage {
+#[derive(Deserialize, Serialize)]
+pub struct NpmPackage {
     name: String,
     collaborators: Vec<String>,
     description: Option<String>,
@@ -41,8 +41,8 @@ struct NpmPackage {
     main: String,
 }
 
-#[derive(Serialize)]
-struct Repository {
+#[derive(Deserialize, Serialize)]
+pub struct Repository {
     #[serde(rename = "type")]
     ty: String,
     url: String,
@@ -75,6 +75,32 @@ impl NpmPackage {
         if let Some(s) = scope {
             self.name = format!("@{}/{}", s, self.name);
         }
+    }
+
+    pub fn name(&self) -> String {
+        self.name.clone()
+    }
+
+    pub fn repository_url(&self) -> Option<String> {
+        match &self.repository {
+            Some(repo) => Some(repo.url.clone()),
+            None => None,
+        }
+    }
+
+    pub fn repository_type(&self) -> Option<String> {
+        match &self.repository {
+            Some(repo) => Some(repo.ty.clone()),
+            None => None,
+        }
+    }
+
+    pub fn main(&self) -> String {
+        self.main.clone()
+    }
+
+    pub fn files(&self) -> Vec<String> {
+        self.files.clone()
     }
 
     fn get_repo(cargo: &CargoManifest) -> Option<Repository> {

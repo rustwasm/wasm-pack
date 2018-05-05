@@ -4,23 +4,7 @@ use std::io::prelude::*;
 use failure::Error;
 use serde_json;
 
-#[derive(Deserialize)]
-pub struct NpmPackage {
-    pub name: String,
-    pub description: String,
-    pub version: String,
-    pub license: String,
-    pub repository: Repository,
-    pub files: Vec<String>,
-    pub main: String,
-}
-
-#[derive(Deserialize)]
-pub struct Repository {
-    #[serde(rename = "type")]
-    pub ty: String,
-    pub url: String,
-}
+use wasm_pack::manifest::{NpmPackage, Repository};
 
 pub fn read_package_json(path: &str) -> Result<NpmPackage, Error> {
     let manifest_path = format!("{}/pkg/package.json", path);
