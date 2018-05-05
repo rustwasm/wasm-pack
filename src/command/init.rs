@@ -1,6 +1,6 @@
-use std::time::Instant;
-use std::result;
 use indicatif::HumanDuration;
+use std::result;
+use std::time::Instant;
 
 use error::Error;
 
@@ -10,8 +10,8 @@ use manifest;
 use readme;
 use PBAR;
 
-use super::create_pkg_dir;
 use super::build::{cargo_build_wasm, rustup_add_wasm_target};
+use super::create_pkg_dir;
 
 pub fn init(crate_path: &str, scope: Option<String>) -> result::Result<(), Error> {
     let started = Instant::now();
