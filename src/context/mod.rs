@@ -16,7 +16,9 @@ use toml;
 
 mod from_cli;
 mod init;
+mod pack;
 mod progressbar;
+mod publish;
 
 use self::progressbar::ProgressOutput;
 
@@ -89,21 +91,5 @@ impl Context {
         cargo_file.read_to_string(&mut cargo_contents)?;
         self.manifest = toml::from_str(&cargo_contents)?;
         Ok(())
-    }
-
-    // Command Wrappers:
-    // ------------------------------------------------------------------------
-    // These commands are responsible for wrapping the command functions,
-    // printing informational messages to the progress bar, and returning a
-    // Result object representing whether or not the operation was successful.
-    // ------------------------------------------------------------------------
-    // ------------------------------------------------------------------------
-
-    fn pack(&mut self) -> Result<(), Error> {
-        pack(&self.path)
-    }
-
-    fn publish(&mut self) -> Result<(), Error> {
-        publish(&self.path)
     }
 }
