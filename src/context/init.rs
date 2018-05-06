@@ -17,24 +17,17 @@ use toml;
 use super::Context;
 
 impl Context {
-    // TODO:
-    // 1. Add the wasm target. (install::rustup_add_wasm_target)
-    // 2. Compile the crate, targeting wasm (build::cargo_build_wasm)
-    // 3. Create the npm package directory. (command::create_pkg_dir)
-    // 4. Write the package json. (manifest::write_package_json)
-    // 5. Copy the crate readme into the package directory. (readme::copy_from_crate)
-    // 6. Install wasm-bindgen-cli (install::cargo_install_wasm_bindgen) // FIXUP: Move this up in the process?
-    // 7. Run wasm-bindgen, generate bindings. (bindgen::wasm_bindgen_build)
+    /// Run the `init` command for the context.
     pub fn init(&mut self) -> Result<(), Error> {
         let started = Instant::now();
 
-        self.install()?; // 1.
-        self.build()?; // 2.
-        self.create_pkg_dir()?; // 3.
-        self.write_package_json()?; // 4.
-        self.copy_readme_from_crate()?; // 5.
-        self.install_bindgen()?; // 6.
-        self.bind()?; // 7.
+        self.add_wasm32_target()?;
+        self.compile_to_wasm()?;
+        self.create_pkg_dir()?;
+        self.write_package_json()?;
+        self.copy_readme_from_crate()?;
+        self.install_bindgen()?;
+        self.bind()?;
 
         self.pbar.message(&format!(
             "{} Done in {}",
@@ -49,11 +42,11 @@ impl Context {
         Ok(())
     }
 
-    // Initialization helper functions: (FIXUP: This could be moved into a different file maybe?)
+    // `wasm-pack init` helper functions:
+    // ------------------------------------------------------------------------
 
-    /// Install requires dependencies including wasm-bindgen, and add the
-    /// wasm32-unknown-unknown target to rustc using rustup.
-    fn install(&self) -> Result<(), Error> {
+    /// Add the wasm32-unknown-unknown target using rustup.
+    fn add_wasm32_target(&self) -> Result<(), Error> {
         let step = format!(
             "{} {}Adding WASM target...",
             style("[1/7]").bold().dim(),
@@ -65,7 +58,8 @@ impl Context {
         Ok(())
     }
 
-    fn build(&mut self) -> Result<(), Error> {
+    /// Compile the crate using rustc, targeting wasm32-unknown-unknown.
+    fn compile_to_wasm(&mut self) -> Result<(), Error> {
         let step = format!(
             "{} {}Compiling to WASM...",
             style("[2/7]").bold().dim(),
@@ -77,6 +71,7 @@ impl Context {
         build_res
     }
 
+    /// Create a `pkg` directory.
     fn create_pkg_dir(&self) -> Result<(), Error> {
         let step = format!(
             "{} {}Creating a pkg directory...",
@@ -90,6 +85,7 @@ impl Context {
         Ok(())
     }
 
+    /// Write the contents of the `package.json`.
     fn write_package_json(&self) -> Result<(), Error> {
         let step = format!(
             "{} {}Writing a package.json...",
@@ -126,6 +122,7 @@ impl Context {
         Ok(())
     }
 
+    /// Copy the `README` from the crate into the `pkg` directory.
     fn copy_readme_from_crate(&self) -> Result<(), Error> {
         let step = format!(
             "{} {}Copying over your README...",
@@ -142,6 +139,7 @@ impl Context {
         Ok(())
     }
 
+    /// Install `wasm-bindgen-cli`.
     fn install_bindgen(&self) -> Result<(), Error> {
         let step = format!(
             "{} {}Installing WASM-bindgen...",
@@ -154,6 +152,7 @@ impl Context {
         res
     }
 
+    /// Run `wasm-bindgen-cli`.
     fn bind(&mut self) -> Result<(), Error> {
         let step = format!(
             "{} {}Running WASM-bindgen...",
@@ -162,7 +161,8 @@ impl Context {
         );
         let pb = self.pbar.message(&step);
 
-        // FIXUP: Not entirely a fan of this cloning, but it avoids mutability/borrowing problems? There might be a better way around this.
+        // FIXUP: Not entirely a fan of this cloning, but it avoids
+        // borrowing problems? There might be a better way around this.
         let crate_path = &self.path.clone();
         let crate_name = &self.manifest().package.name.clone();
         let bind_result = bindgen::wasm_bindgen_build(crate_path, crate_name);
