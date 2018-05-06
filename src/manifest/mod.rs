@@ -19,7 +19,3 @@ pub fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 
     Ok(toml::from_str(&cargo_contents)?)
 }
-
-pub fn get_crate_name(path: &str) -> Result<String, Error> {
-    Ok(read_cargo_toml(path)?.package.name.clone())
-}
