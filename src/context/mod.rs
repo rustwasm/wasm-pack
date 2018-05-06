@@ -3,7 +3,9 @@ use std::io::prelude::*;
 use std::time::Instant;
 
 use bindgen;
-use command::{pack, publish, cargo_build_wasm, cargo_install_wasm_bindgen, rustup_add_wasm_target};
+use command::{
+    cargo_build_wasm, cargo_install_wasm_bindgen, pack, publish, rustup_add_wasm_target,
+};
 use console::style;
 use emoji;
 use error::Error;
