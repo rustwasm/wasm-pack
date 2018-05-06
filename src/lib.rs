@@ -15,7 +15,10 @@ pub mod command;
 pub mod context;
 pub mod emoji;
 pub mod error;
+pub mod init;
 pub mod manifest;
+pub mod pack;
+pub mod publish;
 
 use quicli::prelude::*;
 

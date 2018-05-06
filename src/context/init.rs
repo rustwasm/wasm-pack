@@ -2,13 +2,12 @@ use std::fs::{copy, create_dir_all, File};
 use std::io::prelude::*;
 use std::time::Instant;
 
-use command::{
-    cargo_build_wasm, cargo_install_wasm_bindgen, rustup_add_wasm_target, wasm_bindgen_build,
-};
+use command::wasm_bindgen_build;
 use console::style;
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
+use init::{rustup_add_wasm_target, cargo_install_wasm_bindgen, cargo_build_wasm};
 use manifest::{read_cargo_toml, NpmPackage};
 use serde_json;
 
