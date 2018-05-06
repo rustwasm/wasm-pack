@@ -1,5 +1,3 @@
-use console::style;
-use emoji;
 use error::Error;
 use std::process::Command;
 

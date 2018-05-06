@@ -1,10 +1,7 @@
 use std::fs::File;
 use std::io::prelude::*;
 
-use console::style;
-use emoji;
 use error::Error;
-use serde_json;
 use toml;
 
 mod cargo;

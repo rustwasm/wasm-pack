@@ -1,23 +1,16 @@
-use std::fs::{copy, create_dir_all, File};
-use std::io::prelude::*;
-use std::time::Instant;
-
-use bindgen;
-use command::{
-    cargo_build_wasm, cargo_install_wasm_bindgen, pack, publish, rustup_add_wasm_target,
-};
-use console::style;
-use emoji;
 use error::Error;
-use indicatif::HumanDuration;
-use manifest::{read_cargo_toml, CargoManifest, NpmPackage};
-use serde_json;
-use toml;
+use npm::npm_pack;
 
 use super::Context;
 
+// This file contains the implementation of the `pack` subcommand.
+
 impl Context {
     pub fn pack(&mut self) -> Result<(), Error> {
-        pack(&self.path)
+        let pack_res = npm_pack(&self.path);
+        if pack_res.is_ok() {
+            self.pbar.message("🎒  packed up your package!");
+        }
+        pack_res
     }
 }
