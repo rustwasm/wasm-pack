@@ -31,8 +31,8 @@ impl Context {
         self.create_pkg_dir()?;
         self.write_package_json()?;
         self.copy_readme_from_crate()?;
-        self.install_bindgen()?;
-        self.bind()?;
+        self.install_wasm_bindgen()?;
+        self.run_wasm_bindgen()?;
 
         self.pbar.message(&format!(
             "{} Done in {}",
@@ -142,7 +142,7 @@ impl Context {
     }
 
     /// Install `wasm-bindgen-cli`.
-    fn install_bindgen(&self) -> Result<(), Error> {
+    fn install_wasm_bindgen(&self) -> Result<(), Error> {
         let step = format!(
             "{} {}Installing WASM-bindgen...",
             style("[6/7]").bold().dim(),
@@ -155,7 +155,7 @@ impl Context {
     }
 
     /// Run `wasm-bindgen-cli`.
-    fn bind(&mut self) -> Result<(), Error> {
+    fn run_wasm_bindgen(&mut self) -> Result<(), Error> {
         let step = format!(
             "{} {}Running WASM-bindgen...",
             style("[7/7]").bold().dim(),
