@@ -1,8 +1,11 @@
 use std::fs::File;
 use std::io::prelude::*;
+use std::time::Instant;
 
 use command::{init, pack, publish};
+use emoji;
 use error::Error;
+use indicatif::HumanDuration;
 use manifest::CargoManifest;
 use progressbar::ProgressOutput;
 use toml;
@@ -78,8 +81,27 @@ impl Context {
 
     // Command Wrappers:
     // ------------------------------------------------------------------------
+    // These commands are responsible for wrapping the command functions,
+    // printing informational messages to the progress bar, and returning a
+    // Result object representing whether or not the operation was successful.
+    // ------------------------------------------------------------------------
+
     fn init(&mut self) -> Result<(), Error> {
-        init(&self.path, &self.scope)
+        let started = Instant::now();
+
+        init(&self.path, &self.scope)?;
+
+        self.pbar.message(&format!(
+            "{} Done in {}",
+            emoji::SPARKLE,
+            HumanDuration(started.elapsed())
+        ));
+        self.pbar.message(&format!(
+            "{} Your WASM pkg is ready to publish at {}/pkg",
+            emoji::PACKAGE,
+            &self.path,
+        ));
+        Ok(())
     }
 
     fn pack(&mut self) -> Result<(), Error> {
