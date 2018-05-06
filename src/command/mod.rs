@@ -6,13 +6,14 @@ use npm;
 use quicli::prelude::*;
 use std::fs;
 use std::result;
-use PBAR;
 
 mod build;
 mod init;
+mod install;
 
-pub use self::build::{cargo_build_wasm, rustup_add_wasm_target};
-pub use self::init::init;
+pub use self::build::cargo_build_wasm;
+// pub use self::init::init;
+pub use self::install::{cargo_install_wasm_bindgen, rustup_add_wasm_target};
 
 #[derive(Debug, StructOpt)]
 pub enum Command {
@@ -31,30 +32,18 @@ pub enum Command {
     Publish { path: Option<String> },
 }
 
-// quicli::prelude::* imports a different result struct which gets
-// precedence over the std::result::Result, so have had to specify
-// the correct type here.
-pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
-    let step = format!(
-        "{} {}Creating a pkg directory...",
-        style("[3/7]").bold().dim(),
-        emoji::FOLDER
-    );
-    let pb = PBAR.message(&step);
-    let pkg_dir_path = format!("{}/pkg", path);
-    fs::create_dir_all(pkg_dir_path)?;
-    pb.finish();
-    Ok(())
-}
+// FIXUP: Both of these functions can be moved perhaps in their entirety
+// into the Context wrapper methods. The npm module is doing the heavy lifting
+// here. (Context is ideally for these PBAR messages anyhow!)
 
 pub fn pack(crate_path: &str) -> result::Result<(), Error> {
     npm::npm_pack(&crate_path)?;
-    PBAR.message("🎒  packed up your package!");
+    // PBAR.message("🎒  packed up your package!"); // FIXUP
     Ok(())
 }
 
 pub fn publish(crate_path: &str) -> result::Result<(), Error> {
     npm::npm_publish(&crate_path)?;
-    PBAR.message("💥  published your package!");
+    // PBAR.message("💥  published your package!"); // FIXUP
     Ok(())
 }

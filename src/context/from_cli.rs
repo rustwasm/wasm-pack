@@ -10,10 +10,7 @@ use Cli;
 impl From<Cli> for Context {
     fn from(args: Cli) -> Context {
         let pbar = ProgressOutput::new();
-        let Cli {
-            cmd,
-            verbosity,
-        } = args;
+        let Cli { cmd, verbosity } = args;
         match cmd {
             Command::Init { path, scope } => Context {
                 action: Action::Init,
@@ -38,7 +35,7 @@ impl From<Cli> for Context {
                 pbar,
                 scope: None,
                 verbosity,
-            }
+            },
         }
     }
 }

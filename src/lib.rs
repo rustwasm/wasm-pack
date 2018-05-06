@@ -23,10 +23,6 @@ pub mod readme;
 use progressbar::ProgressOutput;
 use quicli::prelude::*;
 
-lazy_static! {
-    pub static ref PBAR: ProgressOutput = { ProgressOutput::new() };
-}
-
 /// 📦 ✨  pack and publish your wasm!
 #[derive(Debug, StructOpt)]
 pub struct Cli {
