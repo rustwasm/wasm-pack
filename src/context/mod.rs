@@ -67,7 +67,7 @@ impl Context {
             }
         }
 
-        self.manifest.as_ref().unwrap() // FIXUP: This seems wonky?
+        self.manifest.as_ref().unwrap()
     }
 
     /// Read the contents of `Cargo.toml`, place them into self.manifest.
