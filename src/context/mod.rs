@@ -20,6 +20,7 @@ mod progressbar;
 
 use self::progressbar::ProgressOutput;
 
+#[derive(Debug)]
 pub enum Action {
     Init,
     Pack,
