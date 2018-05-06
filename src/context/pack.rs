@@ -1,5 +1,5 @@
-use error::Error;
 use command::npm_pack;
+use error::Error;
 
 use super::Context;
 
