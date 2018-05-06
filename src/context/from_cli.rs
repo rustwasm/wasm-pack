@@ -16,7 +16,7 @@ impl From<Cli> for Context {
                 path: crate_path(path),
                 pbar,
                 scope: scope.clone(),
-                verbosity,
+                _verbosity: verbosity,
             },
             Command::Pack { path } => Context {
                 action: Action::Pack,
@@ -24,7 +24,7 @@ impl From<Cli> for Context {
                 path: crate_path(path),
                 pbar,
                 scope: None,
-                verbosity,
+                _verbosity: verbosity,
             },
             Command::Publish { path } => Context {
                 action: Action::Publish,
@@ -32,7 +32,7 @@ impl From<Cli> for Context {
                 path: crate_path(path),
                 pbar,
                 scope: None,
-                verbosity,
+                _verbosity: verbosity,
             },
         }
     }

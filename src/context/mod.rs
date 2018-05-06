@@ -28,7 +28,7 @@ pub struct Context {
     path: String,
     pbar: ProgressOutput,
     scope: Option<String>,
-    verbosity: u8,
+    _verbosity: u8,
 }
 
 impl Context {

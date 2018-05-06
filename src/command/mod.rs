@@ -1,8 +1,5 @@
-use error::Error;
-use npm;
 #[allow(unused)]
 use quicli::prelude::*;
-use std::result;
 
 mod build;
 mod install;
