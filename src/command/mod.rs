@@ -8,7 +8,6 @@ use std::fs;
 use std::result;
 
 mod build;
-mod init;
 mod install;
 
 pub use self::build::cargo_build_wasm;
