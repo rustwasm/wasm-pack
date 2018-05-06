@@ -34,7 +34,6 @@ pub struct Context {
 impl Context {
     /// Run the command in the current context.
     pub fn run(&mut self) -> Result<(), Error> {
-
         // Run the command, and place the result of the operation in `status`.
         let status = match self.action {
             Action::Init => self.init(),

@@ -1,5 +1,5 @@
 use error::Error;
-use npm::npm_publish;
+use command::npm_publish;
 
 use super::Context;
 

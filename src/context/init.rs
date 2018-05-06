@@ -2,9 +2,8 @@ use std::fs::{copy, create_dir_all, File};
 use std::io::prelude::*;
 use std::time::Instant;
 
-use bindgen;
 use command::{
-    cargo_build_wasm, cargo_install_wasm_bindgen, rustup_add_wasm_target,
+    cargo_build_wasm, cargo_install_wasm_bindgen, rustup_add_wasm_target, wasm_bindgen_build,
 };
 use console::style;
 use emoji;
@@ -166,10 +165,9 @@ impl Context {
         // borrowing problems? There might be a better way around this.
         let crate_path = &self.path.clone();
         let crate_name = &self.manifest().package.name.clone();
-        let bind_result = bindgen::wasm_bindgen_build(crate_path, crate_name);
+        let bind_result = wasm_bindgen_build(crate_path, crate_name);
 
         pb.finish();
         bind_result
     }
-
 }

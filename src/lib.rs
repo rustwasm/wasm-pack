@@ -11,13 +11,11 @@ extern crate toml;
 // #[macro_use]
 // extern crate lazy_static; // FIXUP: lazy_static is not needed now?
 
-pub mod bindgen;
 pub mod command;
 pub mod context;
 pub mod emoji;
 pub mod error;
 pub mod manifest;
-pub mod npm;
 
 use quicli::prelude::*;
 
