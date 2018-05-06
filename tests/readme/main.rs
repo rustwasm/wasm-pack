@@ -5,8 +5,6 @@ mod utils;
 
 use std::fs;
 
-use wasm_pack::readme;
-
 #[test]
 fn it_copies_a_readme_default_path() {
     let path = ".".to_string();
