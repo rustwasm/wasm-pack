@@ -7,7 +7,7 @@ use manifest::CargoManifest;
 use progressbar::ProgressOutput;
 use toml;
 
-mod from_cmd;
+mod from_cli;
 
 pub enum Action {
     // FIXUP: Not sure how to feel about this enum?
@@ -23,7 +23,7 @@ pub struct Context {
     path: String,
     pbar: ProgressOutput,
     scope: Option<String>,
-    // verbosity: u8,   // FIXUP: Once logging is added, this might make sense?
+    verbosity: u8,
 }
 
 impl Context {
