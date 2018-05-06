@@ -7,6 +7,10 @@ use super::Context;
 
 impl Context {
     pub fn publish(&mut self) -> Result<(), Error> {
-        npm_publish(&self.path)
+        let publish_res = npm_publish(&self.path);
+        if publish_res.is_ok() {
+            self.pbar.message("💥  published your package!");
+        }
+        publish_res
     }
 }
