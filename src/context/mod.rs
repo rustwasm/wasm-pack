@@ -3,18 +3,19 @@ use std::io::prelude::*;
 use std::time::Instant;
 
 use bindgen;
-use command::{cargo_build_wasm, cargo_install_wasm_bindgen, rustup_add_wasm_target};
-use command::{pack, publish};
+use command::{pack, publish, cargo_build_wasm, cargo_install_wasm_bindgen, rustup_add_wasm_target};
 use console::style;
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
 use manifest::{read_cargo_toml, CargoManifest, NpmPackage};
-use progressbar::ProgressOutput;
 use serde_json;
 use toml;
 
 mod from_cli;
+mod progressbar;
+
+use self::progressbar::ProgressOutput;
 
 pub enum Action {
     // FIXUP: Not sure how to feel about this enum?

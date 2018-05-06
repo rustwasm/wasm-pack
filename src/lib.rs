@@ -17,10 +17,7 @@ pub mod emoji;
 pub mod error;
 pub mod manifest;
 pub mod npm;
-pub mod progressbar;
-pub mod readme;
 
-use progressbar::ProgressOutput;
 use quicli::prelude::*;
 
 /// 📦 ✨  pack and publish your wasm!

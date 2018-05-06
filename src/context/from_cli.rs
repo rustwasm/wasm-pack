@@ -2,10 +2,8 @@ use std::convert::From;
 
 use super::{Action, Context};
 use command::Command;
-use progressbar::ProgressOutput;
+use context::progressbar::ProgressOutput;
 use Cli;
-
-// FIXUP: Would using TryFrom here make sense?
 
 impl From<Cli> for Context {
     fn from(args: Cli) -> Context {
@@ -15,7 +13,7 @@ impl From<Cli> for Context {
             Command::Init { path, scope } => Context {
                 action: Action::Init,
                 manifest: None,
-                path: path.clone().unwrap_or(".".to_string()),
+                path: crate_path(path),
                 pbar,
                 scope: scope.clone(),
                 verbosity,
@@ -23,7 +21,7 @@ impl From<Cli> for Context {
             Command::Pack { path } => Context {
                 action: Action::Pack,
                 manifest: None,
-                path: path.clone().unwrap_or(".".to_string()),
+                path: crate_path(path),
                 pbar,
                 scope: None,
                 verbosity,
@@ -31,11 +29,15 @@ impl From<Cli> for Context {
             Command::Publish { path } => Context {
                 action: Action::Publish,
                 manifest: None,
-                path: path.clone().unwrap_or(".".to_string()),
+                path: crate_path(path),
                 pbar,
                 scope: None,
                 verbosity,
             },
         }
     }
+}
+
+fn crate_path(path_arg: Option<String>) -> String {
+    path_arg.unwrap_or(".".to_string())
 }
