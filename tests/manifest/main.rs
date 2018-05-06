@@ -10,9 +10,6 @@ use std::fs;
 
 use wasm_pack::manifest;
 
-// FIXUP: Borrowed Options seems ugly, refactor this.
-// FIXUP: Adjust test cases so that the context is created/used instead.
-
 #[test]
 fn it_gets_the_crate_name_default_path() {
     let cargo_manifest = manifest::read_cargo_toml(".");
