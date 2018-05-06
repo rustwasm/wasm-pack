@@ -16,6 +16,11 @@ use toml;
 
 use super::Context;
 
+// This file contains the implementation of the `init` subcommand. This will
+// add the wasm32-unknown-unknown target using rustup, compile the crate to
+// wasm, create and prepare a `pkg` directory, install wasm-bindgen-cli, and
+// then run `wasm-bindgen`.
+
 impl Context {
     /// Run the `init` command for the context.
     pub fn init(&mut self) -> Result<(), Error> {
@@ -41,9 +46,6 @@ impl Context {
         ));
         Ok(())
     }
-
-    // `wasm-pack init` helper functions:
-    // ------------------------------------------------------------------------
 
     /// Add the wasm32-unknown-unknown target using rustup.
     fn add_wasm32_target(&self) -> Result<(), Error> {

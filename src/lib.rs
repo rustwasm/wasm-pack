@@ -2,13 +2,14 @@ extern crate console;
 #[macro_use]
 extern crate failure;
 extern crate indicatif;
-#[macro_use]
-extern crate lazy_static;
 extern crate quicli;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
 extern crate toml;
+
+// #[macro_use]
+// extern crate lazy_static; // FIXUP: lazy_static is not needed now?
 
 pub mod bindgen;
 pub mod command;

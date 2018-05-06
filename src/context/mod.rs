@@ -21,13 +21,13 @@ mod progressbar;
 use self::progressbar::ProgressOutput;
 
 pub enum Action {
-    // FIXUP: Not sure how to feel about this enum?
     Init,
     Pack,
     Publish,
 }
 
-// FIXUP: Cannot derive 'Debug' trait here because 'ProgressOutput' does not derive.
+// FIXUP: Cannot derive 'Debug' trait here because 'ProgressOutput' doesn't ):
+
 pub struct Context {
     action: Action,
     manifest: Option<CargoManifest>,
@@ -40,14 +40,15 @@ pub struct Context {
 impl Context {
     /// Run the command in the current context.
     pub fn run(&mut self) -> Result<(), Error> {
+
+        // Run the command, and place the result of the operation in `status`.
         let status = match self.action {
             Action::Init => self.init(),
             Action::Pack => self.pack(),
             Action::Publish => self.publish(),
         };
 
-        // FIXUP: A `self.pbar.finish()` might be needed here?
-
+        // If the command failed, print the error that occurred.
         match status {
             Ok(_) => {}
             Err(ref e) => {
