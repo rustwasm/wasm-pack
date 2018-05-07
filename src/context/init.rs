@@ -1,5 +1,3 @@
-use std::fs::{create_dir_all, File};
-use std::io::prelude::*;
 use std::time::Instant;
 
 use console::style;
@@ -10,8 +8,6 @@ use init::{
     cargo_build_wasm, cargo_install_wasm_bindgen, copy_readme_from_crate, create_pkg_dir,
     rustup_add_wasm_target, wasm_bindgen_build, write_package_json,
 };
-use manifest::NpmPackage;
-use serde_json;
 
 use super::Context;
 
