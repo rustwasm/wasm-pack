@@ -1,6 +1,10 @@
-use error::Error;
-use std::fs::copy;
+use std::fs::{copy, create_dir_all, File};
+use std::io::prelude::*;
 use std::process::Command;
+
+use error::Error;
+use manifest::{CargoManifest, NpmPackage};
+use serde_json;
 
 // This file contains helper functions for steps to run `wasm-pack init`.
 // These functions do not interact with the progress bar, and will return
@@ -37,6 +41,44 @@ pub fn cargo_build_wasm(path: &str) -> Result<(), Error> {
     } else {
         Ok(())
     }
+}
+
+/// Step 3: Create a `pkg` directory.
+pub fn create_pkg_dir(path: &str) -> Result<(), Error> {
+    let pkg_dir_path = format!("{}/pkg", path);
+    match create_dir_all(pkg_dir_path) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(Error::Io(e)),
+    }
+}
+
+/// Step 4: Write the contents of the `package.json`.
+pub fn write_package_json(path: &str, scope: Option<String>, manifest: &CargoManifest) -> Result<(), Error> {
+        let pkg_file_path = format!("{}/pkg/package.json", path);
+        let mut pkg_file = File::create(pkg_file_path)?;
+        let npm_data = NpmPackage::new(manifest, scope);
+
+        let npm_json = serde_json::to_string_pretty(&npm_data)?;
+        pkg_file.write_all(npm_json.as_bytes())?;
+
+        Ok(())
+
+        // FIXUP : THIS SHOULD BE REFACTORED.
+        // let warn_fmt = |field| {
+        //     format!(
+        //         "Field {} is missing from Cargo.toml. It is not necessary, but recommended",
+        //         field
+        //     )
+        // };
+        // if npm_data.description.is_none() {
+        //     self.pbar.warn(&warn_fmt("description"));
+        // }
+        // if npm_data.repository.is_none() {
+        //     self.pbar.warn(&warn_fmt("repository"));
+        // }
+        // if npm_data.license.is_none() {
+        //     self.pbar.warn(&warn_fmt("license"));
+        // }
 }
 
 // Step 5: Copy the `README` from the crate into the `pkg` directory.

@@ -8,7 +8,7 @@ use error::Error;
 use indicatif::HumanDuration;
 use init::{
     cargo_build_wasm, cargo_install_wasm_bindgen, copy_readme_from_crate, rustup_add_wasm_target,
-    wasm_bindgen_build,
+    wasm_bindgen_build, create_pkg_dir, write_package_json,
 };
 use manifest::NpmPackage;
 use serde_json;
@@ -80,10 +80,9 @@ impl Context {
             emoji::FOLDER
         );
         let pb = self.pbar.message(&step);
-        let pkg_dir_path = format!("{}/pkg", self.path);
-        create_dir_all(pkg_dir_path)?;
+        let create_dir_res = create_pkg_dir(&self.path);
         pb.finish();
-        Ok(())
+        create_dir_res
     }
 
     /// Write the contents of the `package.json`.
@@ -94,33 +93,39 @@ impl Context {
             emoji::MEMO
         );
 
-        let warn_fmt = |field| {
-            format!(
-                "Field {} is missing from Cargo.toml. It is not necessary, but recommended",
-                field
-            )
-        };
+        // ------------------------------------------------------------------------------------
+        // let warn_fmt = |field| {
+        //     format!(
+        //         "Field {} is missing from Cargo.toml. It is not necessary, but recommended",
+        //         field
+        //     )
+        // };
 
         let pb = self.pbar.message(&step);
-        let pkg_file_path = format!("{}/pkg/package.json", &self.path);
-        let mut pkg_file = File::create(pkg_file_path)?;
+        // let pkg_file_path = format!("{}/pkg/package.json", &self.path);
+        // let mut pkg_file = File::create(pkg_file_path)?;
+        // let scope = self.scope.clone();
+        // let npm_data = NpmPackage::new(self.manifest(), scope);
+
+        // if npm_data.description.is_none() {
+        //     self.pbar.warn(&warn_fmt("description"));
+        // }
+        // if npm_data.repository.is_none() {
+        //     self.pbar.warn(&warn_fmt("repository"));
+        // }
+        // if npm_data.license.is_none() {
+        //     self.pbar.warn(&warn_fmt("license"));
+        // }
+
+        // let npm_json = serde_json::to_string_pretty(&npm_data)?;
+        // pkg_file.write_all(npm_json.as_bytes())?;
+        // ------------------------------------------------------------------------------------
+        let path = self.path.clone();
         let scope = self.scope.clone();
-        let npm_data = NpmPackage::new(self.manifest(), scope);
-
-        if npm_data.description.is_none() {
-            self.pbar.warn(&warn_fmt("description"));
-        }
-        if npm_data.repository.is_none() {
-            self.pbar.warn(&warn_fmt("repository"));
-        }
-        if npm_data.license.is_none() {
-            self.pbar.warn(&warn_fmt("license"));
-        }
-
-        let npm_json = serde_json::to_string_pretty(&npm_data)?;
-        pkg_file.write_all(npm_json.as_bytes())?;
+        let res = write_package_json(&path, scope, self.manifest());
+        // ------------------------------------------------------------------------------------
         pb.finish();
-        Ok(())
+        res
     }
 
     /// Copy the `README` from the crate into the `pkg` directory.
