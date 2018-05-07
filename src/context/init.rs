@@ -7,8 +7,10 @@ use console::style;
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
-use init::{rustup_add_wasm_target, cargo_install_wasm_bindgen, cargo_build_wasm};
-use manifest::{read_cargo_toml, NpmPackage};
+use init::{
+    cargo_build_wasm, cargo_install_wasm_bindgen, copy_readme_from_crate, rustup_add_wasm_target,
+};
+use manifest::NpmPackage;
 use serde_json;
 
 use super::Context;
@@ -85,7 +87,7 @@ impl Context {
     }
 
     /// Write the contents of the `package.json`.
-    fn write_package_json(&self) -> Result<(), Error> {
+    fn write_package_json(&mut self) -> Result<(), Error> {
         let step = format!(
             "{} {}Writing a package.json...",
             style("[4/7]").bold().dim(),
@@ -102,8 +104,8 @@ impl Context {
         let pb = self.pbar.message(&step);
         let pkg_file_path = format!("{}/pkg/package.json", &self.path);
         let mut pkg_file = File::create(pkg_file_path)?;
-        let manifest = read_cargo_toml(&self.path)?;
-        let npm_data = NpmPackage::new(&manifest, &self.scope);
+        let scope = self.scope.clone();
+        let npm_data = NpmPackage::new(self.manifest(), scope);
 
         if npm_data.description.is_none() {
             self.pbar.warn(&warn_fmt("description"));
@@ -129,9 +131,7 @@ impl Context {
             emoji::DANCERS
         );
         let pb = self.pbar.message(&step);
-        let crate_readme_path = format!("{}/README.md", self.path);
-        let new_readme_path = format!("{}/pkg/README.md", self.path);
-        if let Err(_) = copy(&crate_readme_path, &new_readme_path) {
+        if let Err(_) = copy_readme_from_crate(&self.path) {
             self.pbar.warn("origin crate has no README");
         };
         pb.finish();

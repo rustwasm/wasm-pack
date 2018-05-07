@@ -1,7 +1,8 @@
 use error::Error;
+use std::fs::copy;
 use std::process::Command;
 
-// This file contains the implementations of the steps to run `wasm-pack init`.
+// This file contains helper functions for steps to run `wasm-pack init`.
 // These functions do not interact with the progress bar, and will return
 // a result object, representing whether or not the operation completed
 // successfully or failed.
@@ -38,9 +39,12 @@ pub fn cargo_build_wasm(path: &str) -> Result<(), Error> {
     }
 }
 
-// Step 3: Create a `pkg` directory.
-// Step 4: Write the contents of the `package.json`.
 // Step 5: Copy the `README` from the crate into the `pkg` directory.
+pub fn copy_readme_from_crate(path: &str) -> ::std::io::Result<u64> {
+    let crate_readme_path = format!("{}/README.md", path);
+    let new_readme_path = format!("{}/pkg/README.md", path);
+    copy(&crate_readme_path, &new_readme_path)
+}
 
 /// Step 6: Install `wasm-bindgen-cli` using `cargo`.
 pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
@@ -59,5 +63,3 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
         Ok(())
     }
 }
-
-// Step 7: Run `wasm-bindgen-cli`.

@@ -27,7 +27,7 @@ struct PackageFiles {
 
 impl NpmPackage {
     /// Create an NpmPackage from a borrowed `CargoManifest` object.
-    pub fn new(cargo: &CargoManifest, scope: &Option<String>) -> NpmPackage {
+    pub fn new(cargo: &CargoManifest, scope: Option<String>) -> NpmPackage {
         let name = NpmPackage::scoped_name(&cargo.package.name, scope);
         let repository = NpmPackage::get_repo(cargo);
         let PackageFiles { files, main } = NpmPackage::get_filenames(cargo);
@@ -43,7 +43,7 @@ impl NpmPackage {
         }
     }
 
-    fn scoped_name(name: &str, scope: &Option<String>) -> String {
+    fn scoped_name(name: &str, scope: Option<String>) -> String {
         match scope {
             Some(s) => format!("@{}/{}", s, name),
             None => name.to_string(),
