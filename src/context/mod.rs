@@ -16,6 +16,7 @@ use self::progressbar::ProgressOutput;
 #[derive(Debug)]
 pub enum Action {
     Init,
+    NoOp, // Do nothing. This is mostly useful for testing the Context struct.
     Pack,
     Publish,
 }
@@ -39,6 +40,7 @@ impl Context {
             Action::Init => self.init(),
             Action::Pack => self.pack(),
             Action::Publish => self.publish(),
+            _ => Ok(()),
         };
 
         // If the command failed, print the error that occurred.
