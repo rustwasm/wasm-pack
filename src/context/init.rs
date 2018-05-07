@@ -87,11 +87,21 @@ impl Context {
 
     /// Write the contents of the `package.json`.
     fn write_package_json(&mut self) -> Result<(), Error> {
+        // FIXUP: This should probably be divided into a 'create_npm_data',
+        // 'check_npm_data', and 'write_package_json' file, if this idea is
+        // pursued. This would require changes to the test bench, which I would
+        // be happy to do if that made sense.
         let step = format!(
             "{} {}Writing a package.json...",
             style("[4/7]").bold().dim(),
             emoji::MEMO
         );
+        let pb = self.pbar.message(&step);
+        let path = self.path.clone();
+        let scope = self.scope.clone();
+        let res = write_package_json(&path, scope, self.manifest());
+        pb.finish();
+        res
 
         // ------------------------------------------------------------------------------------
         // let warn_fmt = |field| {
@@ -100,13 +110,10 @@ impl Context {
         //         field
         //     )
         // };
-
-        let pb = self.pbar.message(&step);
         // let pkg_file_path = format!("{}/pkg/package.json", &self.path);
         // let mut pkg_file = File::create(pkg_file_path)?;
         // let scope = self.scope.clone();
         // let npm_data = NpmPackage::new(self.manifest(), scope);
-
         // if npm_data.description.is_none() {
         //     self.pbar.warn(&warn_fmt("description"));
         // }
@@ -116,16 +123,9 @@ impl Context {
         // if npm_data.license.is_none() {
         //     self.pbar.warn(&warn_fmt("license"));
         // }
-
         // let npm_json = serde_json::to_string_pretty(&npm_data)?;
         // pkg_file.write_all(npm_json.as_bytes())?;
         // ------------------------------------------------------------------------------------
-        let path = self.path.clone();
-        let scope = self.scope.clone();
-        let res = write_package_json(&path, scope, self.manifest());
-        // ------------------------------------------------------------------------------------
-        pb.finish();
-        res
     }
 
     /// Copy the `README` from the crate into the `pkg` directory.
