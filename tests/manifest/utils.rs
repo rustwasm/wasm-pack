@@ -5,11 +5,11 @@ use failure::Error;
 use serde_json;
 use toml;
 
-use wasm_pack::Cli;
 use wasm_pack::command::Command;
-use wasm_pack::context::{Action, Context};
 use wasm_pack::context::progressbar::ProgressOutput;
+use wasm_pack::context::{Action, Context};
 use wasm_pack::manifest::{CargoManifest, NpmPackage};
+use wasm_pack::Cli;
 
 pub fn read_package_json(path: &str) -> Result<NpmPackage, Error> {
     let manifest_path = format!("{}/pkg/package.json", path);

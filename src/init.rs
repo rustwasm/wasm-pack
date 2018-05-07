@@ -53,32 +53,36 @@ pub fn create_pkg_dir(path: &str) -> Result<(), Error> {
 }
 
 /// Step 4: Write the contents of the `package.json`.
-pub fn write_package_json(path: &str, scope: Option<String>, manifest: &CargoManifest) -> Result<(), Error> {
-        let pkg_file_path = format!("{}/pkg/package.json", path);
-        let mut pkg_file = File::create(pkg_file_path)?;
-        let npm_data = NpmPackage::new(manifest, scope);
+pub fn write_package_json(
+    path: &str,
+    scope: Option<String>,
+    manifest: &CargoManifest,
+) -> Result<(), Error> {
+    let pkg_file_path = format!("{}/pkg/package.json", path);
+    let mut pkg_file = File::create(pkg_file_path)?;
+    let npm_data = NpmPackage::new(manifest, scope);
 
-        let npm_json = serde_json::to_string_pretty(&npm_data)?;
-        pkg_file.write_all(npm_json.as_bytes())?;
+    let npm_json = serde_json::to_string_pretty(&npm_data)?;
+    pkg_file.write_all(npm_json.as_bytes())?;
 
-        Ok(())
+    Ok(())
 
-        // FIXUP : THIS SHOULD BE REFACTORED.
-        // let warn_fmt = |field| {
-        //     format!(
-        //         "Field {} is missing from Cargo.toml. It is not necessary, but recommended",
-        //         field
-        //     )
-        // };
-        // if npm_data.description.is_none() {
-        //     self.pbar.warn(&warn_fmt("description"));
-        // }
-        // if npm_data.repository.is_none() {
-        //     self.pbar.warn(&warn_fmt("repository"));
-        // }
-        // if npm_data.license.is_none() {
-        //     self.pbar.warn(&warn_fmt("license"));
-        // }
+    // FIXUP : THIS SHOULD BE REFACTORED.
+    // let warn_fmt = |field| {
+    //     format!(
+    //         "Field {} is missing from Cargo.toml. It is not necessary, but recommended",
+    //         field
+    //     )
+    // };
+    // if npm_data.description.is_none() {
+    //     self.pbar.warn(&warn_fmt("description"));
+    // }
+    // if npm_data.repository.is_none() {
+    //     self.pbar.warn(&warn_fmt("repository"));
+    // }
+    // if npm_data.license.is_none() {
+    //     self.pbar.warn(&warn_fmt("license"));
+    // }
 }
 
 // Step 5: Copy the `README` from the crate into the `pkg` directory.

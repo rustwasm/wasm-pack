@@ -7,8 +7,8 @@ use emoji;
 use error::Error;
 use indicatif::HumanDuration;
 use init::{
-    cargo_build_wasm, cargo_install_wasm_bindgen, copy_readme_from_crate, rustup_add_wasm_target,
-    wasm_bindgen_build, create_pkg_dir, write_package_json,
+    cargo_build_wasm, cargo_install_wasm_bindgen, copy_readme_from_crate, create_pkg_dir,
+    rustup_add_wasm_target, wasm_bindgen_build, write_package_json,
 };
 use manifest::NpmPackage;
 use serde_json;

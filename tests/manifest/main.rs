@@ -9,8 +9,8 @@ mod utils;
 
 use std::fs;
 
-use wasm_pack::manifest;
 use wasm_pack::init::{create_pkg_dir, write_package_json};
+use wasm_pack::manifest;
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
