@@ -1,4 +1,4 @@
-use std::fs::{copy, create_dir_all, File};
+use std::fs::{create_dir_all, File};
 use std::io::prelude::*;
 use std::time::Instant;
 
@@ -159,13 +159,9 @@ impl Context {
             emoji::RUNNER
         );
         let pb = self.pbar.message(&step);
-
-        // FIXUP: Not entirely a fan of this cloning, but it avoids
-        // borrowing problems? There might be a better way around this.
         let crate_path = &self.path.clone();
         let crate_name = &self.manifest().package.name.clone();
         let bind_result = wasm_bindgen_build(crate_path, crate_name);
-
         pb.finish();
         bind_result
     }

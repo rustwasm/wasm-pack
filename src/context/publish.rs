@@ -1,5 +1,5 @@
-use command::npm_publish;
 use error::Error;
+use publish::npm_publish;
 
 use super::Context;
 

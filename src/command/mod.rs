@@ -1,11 +1,9 @@
 #[allow(unused)]
 use quicli::prelude::*;
 
-mod bindgen;
 mod npm;
 
 pub use self::bindgen::wasm_bindgen_build;
-pub use self::npm::{npm_pack, npm_publish};
 
 #[derive(Debug, StructOpt)]
 pub enum Command {
