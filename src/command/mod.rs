@@ -1,10 +1,6 @@
 #[allow(unused)]
 use quicli::prelude::*;
 
-mod npm;
-
-pub use self::bindgen::wasm_bindgen_build;
-
 #[derive(Debug, StructOpt)]
 pub enum Command {
     #[structopt(name = "init")]
