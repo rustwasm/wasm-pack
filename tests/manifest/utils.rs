@@ -3,6 +3,7 @@ use std::io::prelude::*;
 
 use failure::Error;
 use serde_json;
+use toml;
 
 use wasm_pack::Cli;
 use wasm_pack::command::Command;
@@ -19,31 +20,16 @@ pub fn read_package_json(path: &str) -> Result<NpmPackage, Error> {
     Ok(serde_json::from_str(&pkg_contents)?)
 }
 
-// FIXUP: These do not need to receive options.
-
-pub fn get_crate_manifest(path: Option<String>) -> CargoManifest {
-    let mut context = create_init_context(path); // FIXUP scope?
-    *context.manifest().clone()
-}
-
-pub fn get_crate_name(path: Option<String>) -> String {
-    let mut context = create_init_context(path); // FIXUP scope?
-    let manifest = context.manifest();
+pub fn get_crate_name(path: &str) -> String {
+    let manifest = get_crate_manifest(&path);
     manifest.package.name.clone()
 }
 
-fn crate_path(path_arg: Option<String>) -> String {
-    path_arg.unwrap_or(".".to_string())
-}
-
-// FIXUP: Not a giant fan of this.
-fn create_init_context(path: Option<String>) -> Context {
-    let cli = Cli {
-        cmd: Command::Init {
-            path,
-            scope: None,
-        },
-        verbosity: 0,
-    };
-    Context::from(cli)
+pub fn get_crate_manifest(path: &str) -> CargoManifest {
+    // FIXUP: Not a big fan of this function. How to expose in the Context struct?
+    let manifest_path = format!("{}/Cargo.toml", path);
+    let mut cargo_file = File::open(manifest_path).unwrap();
+    let mut cargo_contents = String::new();
+    cargo_file.read_to_string(&mut cargo_contents).unwrap();
+    toml::from_str(&cargo_contents).unwrap()
 }

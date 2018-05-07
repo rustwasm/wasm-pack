@@ -2,6 +2,7 @@ extern crate failure;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate toml;
 extern crate wasm_pack;
 
 mod utils;
@@ -13,21 +14,21 @@ use wasm_pack::init::{create_pkg_dir, write_package_json};
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
-    let path = Some(".".to_string());
-    assert_eq!(utils::get_crate_name(path), "wasm-pack");
+    let path = ".";
+    assert_eq!(utils::get_crate_name(&path), "wasm-pack");
 }
 
 #[test]
 fn it_gets_the_crate_name_provided_path() {
-    let path = Some("tests/fixtures/js-hello-world".to_string());
-    assert_eq!(utils::get_crate_name(path), "js-hello-world");
+    let path = "tests/fixtures/js-hello-world";
+    assert_eq!(utils::get_crate_name(&path), "js-hello-world");
 }
 
 #[test]
 fn it_creates_a_package_json_default_path() {
-    let path = ".".to_string();
+    let path = ".";
     create_pkg_dir(&path).unwrap();
-    let manifest = utils::get_crate_manifest(Some(path.clone()));
+    let manifest = utils::get_crate_manifest(&path);
     assert!(write_package_json(&path, None, &manifest).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
@@ -45,9 +46,9 @@ fn it_creates_a_package_json_default_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
-    let path = "tests/fixtures/js-hello-world".to_string();
+    let path = "tests/fixtures/js-hello-world";
     create_pkg_dir(&path).unwrap();
-    let manifest = utils::get_crate_manifest(Some(path.clone()));
+    let manifest = utils::get_crate_manifest(&path);
     assert!(write_package_json(&path, None, &manifest).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
@@ -58,9 +59,9 @@ fn it_creates_a_package_json_provided_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path_with_scope() {
-    let path = "tests/fixtures/scopes".to_string();
+    let path = "tests/fixtures/scopes";
     create_pkg_dir(&path).unwrap();
-    let manifest = utils::get_crate_manifest(Some(path.clone()));
+    let manifest = utils::get_crate_manifest(&path);
     assert!(write_package_json(&path, Some("test".to_string()), &manifest).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
