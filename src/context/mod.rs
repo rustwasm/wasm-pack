@@ -8,7 +8,7 @@ use toml;
 mod from_cli;
 mod init;
 mod pack;
-mod progressbar;
+pub mod progressbar;
 mod publish;
 
 use self::progressbar::ProgressOutput;
