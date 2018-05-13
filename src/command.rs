@@ -156,7 +156,7 @@ fn login(
 
     npm::npm_login(&registry, &scope, always_auth, &auth_type)?;
 
-    PBAR.message(&format!("👋  logged you in to {}!", registry));
+    PBAR.message(&format!("👋  logged you in!"));
     Ok(())
 }
 
