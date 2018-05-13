@@ -152,9 +152,11 @@ fn login(
     always_auth: bool,
     auth_type: Option<String>,
 ) -> result::Result<(), Error> {
-    npm::npm_login(registry, scope, always_auth, auth_type)?;
+    let registry = registry.unwrap_or(npm::DEFAULT_NPM_REGISTRY.to_string());
 
-    PBAR.message("👋  logged you in!");
+    npm::npm_login(&registry, &scope, always_auth, &auth_type)?;
+
+    PBAR.message(&format!("👋  logged you in to {}!", registry));
     Ok(())
 }
 

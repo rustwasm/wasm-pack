@@ -1,6 +1,8 @@
 use error::Error;
 use std::process::{Command, Stdio};
 
+pub const DEFAULT_NPM_REGISTRY: &'static str = "https://registry.npmjs.org/";
+
 pub fn npm_pack(path: &str) -> Result<(), Error> {
     let pkg_file_path = format!("{}/pkg", path);
     let output = Command::new("npm")
@@ -30,16 +32,15 @@ pub fn npm_publish(path: &str) -> Result<(), Error> {
 }
 
 pub fn npm_login(
-    registry: Option<String>,
-    scope: Option<String>,
+    registry: &String,
+    scope: &Option<String>,
     always_auth: bool,
-    auth_type: Option<String>,
+    auth_type: &Option<String>,
 ) -> Result<(), Error> {
     let mut args = String::new();
 
-    if let Some(registry) = registry {
-        args.push_str(&format!(" --registry={}", registry));
-    }
+    args.push_str(&format!("--registry={}", registry));
+
     if let Some(scope) = scope {
         args.push_str(&format!(" --scope={}", scope));
     }
@@ -61,7 +62,7 @@ pub fn npm_login(
 
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Registry user account login failed", s)
+        Error::cli(&format!("Login to registry {} failed", registry), s)
     } else {
         Ok(())
     }
