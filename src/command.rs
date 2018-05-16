@@ -17,7 +17,7 @@ use PBAR;
 #[derive(Debug, StructOpt)]
 pub enum Command {
     #[structopt(name = "init")]
-    /// 🐣  initialize a package.json based on your compiled wasm
+    /// 🐣  initialize a package.json based on your compiled wasm!
     Init {
         path: Option<String>,
         #[structopt(long = "scope", short = "s")]
