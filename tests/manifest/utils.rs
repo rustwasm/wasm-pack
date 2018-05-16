@@ -13,6 +13,7 @@ pub struct NpmPackage {
     pub repository: Repository,
     pub files: Vec<String>,
     pub main: String,
+    pub types: Option<String>,
 }
 
 #[derive(Deserialize)]

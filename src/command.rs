@@ -22,6 +22,8 @@ pub enum Command {
         path: Option<String>,
         #[structopt(long = "scope", short = "s")]
         scope: Option<String>,
+        #[structopt(long = "no-typescript")]
+        disable_dts: bool,
     },
 
     #[structopt(name = "pack")]
@@ -61,7 +63,11 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
     let status = match command {
-        Command::Init { path, scope } => init(path, scope),
+        Command::Init {
+            path,
+            scope,
+            disable_dts,
+        } => init(path, scope, disable_dts),
         Command::Pack { path } => pack(path),
         Command::Publish { path } => publish(path),
         Command::Login {
@@ -104,7 +110,11 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
     Ok(())
 }
 
-fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error> {
+fn init(
+    path: Option<String>,
+    scope: Option<String>,
+    disable_dts: bool,
+) -> result::Result<(), Error> {
     let started = Instant::now();
 
     let crate_path = set_crate_path(path);
@@ -112,11 +122,11 @@ fn init(path: Option<String>, scope: Option<String>) -> result::Result<(), Error
     build::rustup_add_wasm_target()?;
     build::cargo_build_wasm(&crate_path)?;
     create_pkg_dir(&crate_path)?;
-    manifest::write_package_json(&crate_path, scope)?;
+    manifest::write_package_json(&crate_path, scope, disable_dts)?;
     readme::copy_from_crate(&crate_path)?;
     bindgen::cargo_install_wasm_bindgen()?;
     let name = manifest::get_crate_name(&crate_path)?;
-    bindgen::wasm_bindgen_build(&crate_path, &name)?;
+    bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts)?;
     PBAR.message(&format!(
         "{} Done in {}",
         emoji::SPARKLE,

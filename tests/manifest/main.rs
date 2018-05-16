@@ -29,7 +29,7 @@ fn it_gets_the_crate_name_provided_path() {
 fn it_creates_a_package_json_default_path() {
     let path = ".".to_string();
     wasm_pack::command::create_pkg_dir(&path).unwrap();
-    assert!(manifest::write_package_json(&path, None).is_ok());
+    assert!(manifest::write_package_json(&path, None, false).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::read_package_json(&path).is_ok());
@@ -42,13 +42,15 @@ fn it_creates_a_package_json_default_path() {
     );
     assert_eq!(pkg.files, ["wasm_pack_bg.wasm"]);
     assert_eq!(pkg.main, "wasm_pack.js");
+    let types = pkg.types.unwrap_or_default();
+    assert_eq!(types, "wasm_pack.d.ts");
 }
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
     let path = "tests/fixtures/js-hello-world".to_string();
     wasm_pack::command::create_pkg_dir(&path).unwrap();
-    assert!(manifest::write_package_json(&path, None).is_ok());
+    assert!(manifest::write_package_json(&path, None, false).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::read_package_json(&path).is_ok());
@@ -60,7 +62,7 @@ fn it_creates_a_package_json_provided_path() {
 fn it_creates_a_package_json_provided_path_with_scope() {
     let path = "tests/fixtures/scopes".to_string();
     wasm_pack::command::create_pkg_dir(&path).unwrap();
-    assert!(manifest::write_package_json(&path, Some("test".to_string())).is_ok());
+    assert!(manifest::write_package_json(&path, Some("test".to_string()), false).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::read_package_json(&path).is_ok());

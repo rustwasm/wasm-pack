@@ -33,6 +33,7 @@ struct NpmPackage {
     repository: Option<Repository>,
     files: Vec<String>,
     main: String,
+    types: Option<String>,
 }
 
 #[derive(Serialize)]
@@ -52,10 +53,16 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 impl CargoManifest {
-    fn into_npm(mut self, scope: Option<String>) -> NpmPackage {
+    fn into_npm(mut self, scope: Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
+        let dts_file = if disable_dts == true {
+            None
+        } else {
+            Some(format!("{}.d.ts", filename))
+        };
+
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
         }
@@ -71,12 +78,17 @@ impl CargoManifest {
             }),
             files: vec![wasm_file],
             main: js_file,
+            types: dts_file,
         }
     }
 }
 
 /// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error> {
+pub fn write_package_json(
+    path: &str,
+    scope: Option<String>,
+    disable_dts: bool,
+) -> Result<(), Error> {
     let step = format!(
         "{} {}Writing a package.json...",
         style("[4/7]").bold().dim(),
@@ -94,7 +106,7 @@ pub fn write_package_json(path: &str, scope: Option<String>) -> Result<(), Error
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
-    let npm_data = crate_data.into_npm(scope);
+    let npm_data = crate_data.into_npm(scope, disable_dts);
 
     if npm_data.description.is_none() {
         PBAR.warn(&warn_fmt("description"));
