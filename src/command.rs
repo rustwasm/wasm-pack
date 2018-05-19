@@ -20,10 +20,20 @@ pub enum Command {
     /// 🐣  initialize a package.json based on your compiled wasm!
     Init {
         path: Option<String>,
+
         #[structopt(long = "scope", short = "s")]
         scope: Option<String>,
+
         #[structopt(long = "no-typescript")]
+        /// By default a *.d.ts file is generated for the generated JS file, but
+        /// this flag will disable generating this TypeScript file.
         disable_dts: bool,
+
+        #[structopt(long = "nodejs")]
+        /// This flag will tailor output for Node instead of browsers, allowing
+        /// for native usage of require of the generated JS and internally using
+        /// require instead of ES modules. 
+        nodejs: bool,
     },
 
     #[structopt(name = "pack")]
@@ -39,22 +49,30 @@ pub enum Command {
     Login {
         #[structopt(long = "registry", short = "r")]
         /// Default: 'https://registry.npmjs.org/'.
-        /// The base URL of the npm package registry. If scope is also specified, this registry will only be used for packages with that scope. scope defaults to the scope of the project directory you're currently in, if any.
+        /// The base URL of the npm package registry. If scope is also
+        /// specified, this registry will only be used for packages with that
+        /// scope. scope defaults to the scope of the project directory you're
+        /// currently in, if any.
         registry: Option<String>,
 
         #[structopt(long = "scope", short = "s")]
         /// Default: none.
-        /// If specified, the user and login credentials given will be associated with the specified scope.
+        /// If specified, the user and login credentials given will be
+        /// associated with the specified scope.
         scope: Option<String>,
 
         #[structopt(long = "always-auth", short = "a")]
-        /// If specified, save configuration indicating that all requests to the given registry should include authorization information. Useful for private registries. Can be used with --registry and / or --scope
+        /// If specified, save configuration indicating that all requests to the
+        /// given registry should include authorization information. Useful for
+        /// private registries. Can be used with --registry and / or --scope
         always_auth: bool,
 
         #[structopt(long = "auth-type", short = "t")]
         /// Default: 'legacy'.
         /// Type: 'legacy', 'sso', 'saml', 'oauth'.
-        /// What authentication strategy to use with adduser/login. Some npm registries (for example, npmE) might support alternative auth strategies besides classic username/password entry in legacy npm.
+        /// What authentication strategy to use with adduser/login. Some npm
+        /// registries (for example, npmE) might support alternative auth
+        /// strategies besides classic username/password entry in legacy npm.
         auth_type: Option<String>,
     },
 }
@@ -67,7 +85,8 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
             path,
             scope,
             disable_dts,
-        } => init(path, scope, disable_dts),
+            nodejs,
+        } => init(path, scope, disable_dts, nodejs),
         Command::Pack { path } => pack(path),
         Command::Publish { path } => publish(path),
         Command::Login {
@@ -114,6 +133,7 @@ fn init(
     path: Option<String>,
     scope: Option<String>,
     disable_dts: bool,
+    nodejs: bool,
 ) -> result::Result<(), Error> {
     let started = Instant::now();
 
@@ -126,7 +146,7 @@ fn init(
     readme::copy_from_crate(&crate_path)?;
     bindgen::cargo_install_wasm_bindgen()?;
     let name = manifest::get_crate_name(&crate_path)?;
-    bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts)?;
+    bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts, nodejs)?;
     PBAR.message(&format!(
         "{} Done in {}",
         emoji::SPARKLE,
