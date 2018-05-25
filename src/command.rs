@@ -32,6 +32,10 @@ pub enum Command {
         #[structopt(long = "target", short = "t", default_value = "browser")]
         /// Sets the target environment. [possible values: browser, nodejs]
         target: String,
+
+        #[structopt(long = "debug")]
+        /// Build without --release.
+        debug: bool,
     },
 
     #[structopt(name = "pack")]
@@ -84,17 +88,19 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
             scope,
             disable_dts,
             target,
+            debug,
         } => {
             info!(&log, "Running init command...");
             info!(
                 &log,
-                "Path: {:?}, Scope: {:?}, Disable Dts: {}, Target: {}",
+                "Path: {:?}, Scope: {:?}, Disable Dts: {}, Target: {}, Debug: {}",
                 &path,
                 &scope,
                 &disable_dts,
-                &target
+                &target,
+                debug
             );
-            init(path, scope, disable_dts, target, &log)
+            init(path, scope, disable_dts, target, &log, debug)
         }
         Command::Pack { path } => {
             info!(&log, "Running pack command...");
@@ -164,6 +170,7 @@ fn init(
     disable_dts: bool,
     target: String,
     log: &Logger,
+    debug: bool,
 ) -> result::Result<(), Error> {
     let started = Instant::now();
 
@@ -174,7 +181,7 @@ fn init(
     info!(&log, "Adding wasm-target was successful.");
 
     info!(&log, "Building wasm...");
-    build::cargo_build_wasm(&crate_path)?;
+    build::cargo_build_wasm(&crate_path, debug)?;
 
     #[cfg(not(target_os = "windows"))]
     info!(
@@ -229,7 +236,7 @@ fn init(
     );
 
     info!(&log, "Building the wasm bindings...");
-    bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts, target)?;
+    bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts, target, debug)?;
     #[cfg(not(target_os = "windows"))]
     info!(&log, "wasm bindings were built at {}/pkg.", &crate_path);
     #[cfg(target_os = "windows")]
