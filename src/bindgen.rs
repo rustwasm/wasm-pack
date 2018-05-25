@@ -32,7 +32,7 @@ pub fn wasm_bindgen_build(
     path: &str,
     name: &str,
     disable_dts: bool,
-    nodejs: bool,
+    target: String,
 ) -> Result<(), Error> {
     let step = format!(
         "{} {}Running WASM-bindgen...",
@@ -49,7 +49,10 @@ pub fn wasm_bindgen_build(
         "--no-typescript"
     };
 
-    let nodejs_arg = if nodejs { "--nodejs" } else { "" };
+    let target_arg = match target.as_str() {
+        "nodejs" => "--nodejs",
+        _ => "--browser",
+    };
 
     let output = Command::new("wasm-bindgen")
         .current_dir(path)
@@ -57,7 +60,7 @@ pub fn wasm_bindgen_build(
         .arg("--out-dir")
         .arg("./pkg")
         .arg(dts_arg)
-        .arg(nodejs_arg)
+        .arg(target_arg)
         .output()?;
     pb.finish();
     if !output.status.success() {

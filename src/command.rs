@@ -29,11 +29,9 @@ pub enum Command {
         /// this flag will disable generating this TypeScript file.
         disable_dts: bool,
 
-        #[structopt(long = "nodejs")]
-        /// This flag will tailor output for Node instead of browsers, allowing
-        /// for native usage of require of the generated JS and internally using
-        /// require instead of ES modules. 
-        nodejs: bool,
+        #[structopt(long = "target", short = "t", default_value = "browser")]
+        /// Sets the target environment. [possible values: browser, nodejs]
+        target: String,
     },
 
     #[structopt(name = "pack")]
@@ -85,8 +83,8 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
             path,
             scope,
             disable_dts,
-            nodejs,
-        } => init(path, scope, disable_dts, nodejs),
+            target,
+        } => init(path, scope, disable_dts, target),
         Command::Pack { path } => pack(path),
         Command::Publish { path } => publish(path),
         Command::Login {
@@ -133,7 +131,7 @@ fn init(
     path: Option<String>,
     scope: Option<String>,
     disable_dts: bool,
-    nodejs: bool,
+    target: String,
 ) -> result::Result<(), Error> {
     let started = Instant::now();
 
@@ -146,7 +144,7 @@ fn init(
     readme::copy_from_crate(&crate_path)?;
     bindgen::cargo_install_wasm_bindgen()?;
     let name = manifest::get_crate_name(&crate_path)?;
-    bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts, nodejs)?;
+    bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts, target)?;
     PBAR.message(&format!(
         "{} Done in {}",
         emoji::SPARKLE,
