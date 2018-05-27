@@ -9,7 +9,7 @@ matrix:
     script:
     - cargo test --locked
     - rustup component add rustfmt-preview
-    - cargo fmt -- --write-mode diff
+    - cargo fmt --all -- --check
     env: RUST_BACKTRACE=1
 
   # dist linux binary
