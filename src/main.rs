@@ -1,15 +1,12 @@
 extern crate failure;
 #[macro_use]
 extern crate human_panic;
-extern crate indicatif;
 extern crate structopt;
 extern crate wasm_pack;
 
 use failure::Fail;
 use structopt::StructOpt;
-use wasm_pack::command::run_wasm_pack;
-use wasm_pack::error::Error;
-use wasm_pack::Cli;
+use wasm_pack::{command::run_wasm_pack, error::Error, logger, Cli};
 
 fn main() {
     setup_panic!();
@@ -24,6 +21,7 @@ fn main() {
 
 fn run() -> Result<(), Error> {
     let args = Cli::from_args();
-    run_wasm_pack(args.cmd)?;
+    let log = logger::new(&args.cmd, args.verbosity)?;
+    run_wasm_pack(args.cmd, &log)?;
     Ok(())
 }

@@ -36,7 +36,6 @@ if you want to publish packages, you'll also need an account on [npm] and have
 3. `cargo run`
 
 ## 💃 commands
-
 - `help`: display available commands
 - 🐣  `init`: create necessary files for js interop and npm publishing
   - optionally pass a path to a dir that contains a `Cargo.toml`, e.g.:
@@ -50,6 +49,18 @@ if you want to publish packages, you'll also need an account on [npm] and have
     generates a `package.json` for an npm package called `@test/scopes-hello-world`
 - 🍱  `pack`: create a tarball but don't push to the npm registry (see https://docs.npmjs.com/cli/pack)
 - 🎆  `publish`: create a tarball and publish to the npm registry (see https://docs.npmjs.com/cli/publish)
+
+### logging
+
+We generate a `wasm-pack.log` file if `wasm-pack` errors on you, and you can
+customize the log verbosity using the verbosity flag.
+
+| Verbosity     | Result                                              |
+| ------------- |-----------------------------------------------------|
+| -v            | All Info, Warn, and Errors are logged               |
+| -vv           | All Debug, Info, Warn, and Errors are logged        |
+| -vvv          | All Trace, Debug, Info, Warn, and Errors are logged |
+
 
 ## ⚙️  how to use
 

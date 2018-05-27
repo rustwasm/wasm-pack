@@ -8,6 +8,7 @@ use manifest;
 use npm;
 #[allow(unused)]
 use readme;
+use slog::Logger;
 use std::fs;
 use std::result;
 use std::time::Instant;
@@ -74,7 +75,7 @@ pub enum Command {
     },
 }
 
-pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
+pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
     let status = match command {
@@ -83,20 +84,51 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
             scope,
             disable_dts,
             target,
-        } => init(path, scope, disable_dts, target),
-        Command::Pack { path } => pack(path),
-        Command::Publish { path } => publish(path),
+        } => {
+            info!(&log, "Running init command...");
+            info!(
+                &log,
+                "Path: {:?}, Scope: {:?}, Disable Dts: {}, Target: {}",
+                &path,
+                &scope,
+                &disable_dts,
+                &target
+            );
+            init(path, scope, disable_dts, target, &log)
+        }
+        Command::Pack { path } => {
+            info!(&log, "Running pack command...");
+            info!(&log, "Path: {:?}", &path);
+            pack(path, &log)
+        }
+        Command::Publish { path } => {
+            info!(&log, "Running publish command...");
+            info!(&log, "Path: {:?}", &path);
+            publish(path, &log)
+        }
         Command::Login {
             registry,
             scope,
             always_auth,
             auth_type,
-        } => login(registry, scope, always_auth, auth_type),
+        } => {
+            info!(&log, "Running login command...");
+            info!(
+                &log,
+                "Registry: {:?}, Scope: {:?}, Always Auth: {}, Auth Type: {:?}",
+                &registry,
+                &scope,
+                &always_auth,
+                &auth_type
+            );
+            login(registry, scope, always_auth, auth_type, &log)
+        }
     };
 
     match status {
         Ok(_) => {}
         Err(ref e) => {
+            error!(&log, "{}", e);
             PBAR.error(e.error_type());
         }
     }
@@ -131,44 +163,117 @@ fn init(
     scope: Option<String>,
     disable_dts: bool,
     target: String,
+    log: &Logger,
 ) -> result::Result<(), Error> {
     let started = Instant::now();
 
     let crate_path = set_crate_path(path);
 
+    info!(&log, "Adding wasm-target...");
     build::rustup_add_wasm_target()?;
+    info!(&log, "Adding wasm-target was successful.");
+
+    info!(&log, "Building wasm...");
     build::cargo_build_wasm(&crate_path)?;
+
+    #[cfg(not(target_os = "windows"))]
+    info!(
+        &log,
+        "wasm built at {}/target/wasm32-unknown-unknown/release.", &crate_path
+    );
+    #[cfg(target_os = "windows")]
+    info!(
+        &log,
+        "wasm built at {}\\target\\wasm32-unknown-unknown\\release.", &crate_path
+    );
+
+    info!(&log, "Creating a pkg directory...");
     create_pkg_dir(&crate_path)?;
+    info!(&log, "Created a pkg directory at {}.", &crate_path);
+
+    info!(&log, "Writing a package.json...");
     manifest::write_package_json(&crate_path, scope, disable_dts)?;
+    #[cfg(not(target_os = "windows"))]
+    info!(
+        &log,
+        "Wrote a package.json at {}/pkg/package.json.", &crate_path
+    );
+    #[cfg(target_os = "windows")]
+    info!(
+        &log,
+        "Wrote a package.json at {}\\pkg\\package.json.", &crate_path
+    );
+
+    info!(&log, "Copying readme from crate...");
     readme::copy_from_crate(&crate_path)?;
+    #[cfg(not(target_os = "windows"))]
+    info!(&log, "Copied readme from crate to {}/pkg.", &crate_path);
+    #[cfg(target_os = "windows")]
+    info!(&log, "Copied readme from crate to {}\\pkg.", &crate_path);
+
+    info!(&log, "Installing wasm-bindgen-cli...");
     bindgen::cargo_install_wasm_bindgen()?;
+    info!(&log, "Installing wasm-bindgen-cli was successful.");
+
+    info!(&log, "Getting the crate name from the manifest...");
     let name = manifest::get_crate_name(&crate_path)?;
+    #[cfg(not(target_os = "windows"))]
+    info!(
+        &log,
+        "Got crate name {} from the manifest at {}/Cargo.toml.", &name, &crate_path
+    );
+    #[cfg(target_os = "windows")]
+    info!(
+        &log,
+        "Got crate name {} from the manifest at {}\\Cargo.toml.", &name, &crate_path
+    );
+
+    info!(&log, "Building the wasm bindings...");
     bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts, target)?;
+    #[cfg(not(target_os = "windows"))]
+    info!(&log, "wasm bindings were built at {}/pkg.", &crate_path);
+    #[cfg(target_os = "windows")]
+    info!(&log, "wasm bindings were built at {}\\pkg.", &crate_path);
+
+    let duration = HumanDuration(started.elapsed());
+    info!(&log, "Done in {}.", &duration);
+    info!(
+        &log,
+        "Your WASM pkg is ready to publish at {}/pkg.", &crate_path
+    );
+
+    PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
+
     PBAR.message(&format!(
-        "{} Done in {}",
-        emoji::SPARKLE,
-        HumanDuration(started.elapsed())
-    ));
-    PBAR.message(&format!(
-        "{} Your WASM pkg is ready to publish at {}/pkg",
+        "{} Your WASM pkg is ready to publish at {}/pkg.",
         emoji::PACKAGE,
         &crate_path
     ));
     Ok(())
 }
 
-fn pack(path: Option<String>) -> result::Result<(), Error> {
+fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
+    info!(&log, "Packing up the npm package...");
     npm::npm_pack(&crate_path)?;
+    #[cfg(not(target_os = "windows"))]
+    info!(&log, "Your package is located at {}/pkg", &crate_path);
+    #[cfg(target_os = "windows")]
+    info!(&log, "Your package is located at {}\\pkg", &crate_path);
+
     PBAR.message("🎒  packed up your package!");
     Ok(())
 }
 
-fn publish(path: Option<String>) -> result::Result<(), Error> {
+fn publish(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
+    info!(&log, "Publishing the npm package...");
+    info!(&log, "npm info located in the npm debug log");
     npm::npm_publish(&crate_path)?;
+    info!(&log, "Published your package!");
+
     PBAR.message("💥  published your package!");
     Ok(())
 }
@@ -178,10 +283,22 @@ fn login(
     scope: Option<String>,
     always_auth: bool,
     auth_type: Option<String>,
+    log: &Logger,
 ) -> result::Result<(), Error> {
     let registry = registry.unwrap_or(npm::DEFAULT_NPM_REGISTRY.to_string());
 
+    info!(&log, "Logging in to npm...");
+    info!(
+        &log,
+        "Scope: {:?} Registry: {}, Always Auth: {}, Auth Type: {:?}.",
+        &scope,
+        &registry,
+        always_auth,
+        &auth_type
+    );
+    info!(&log, "npm info located in the npm debug log");
     npm::npm_login(&registry, &scope, always_auth, &auth_type)?;
+    info!(&log, "Logged you in!");
 
     PBAR.message(&format!("👋  logged you in!"));
     Ok(())
