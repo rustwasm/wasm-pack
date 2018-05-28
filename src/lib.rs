@@ -4,10 +4,11 @@ extern crate failure;
 extern crate indicatif;
 #[macro_use]
 extern crate lazy_static;
-extern crate quicli;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+#[macro_use]
+extern crate structopt;
 extern crate toml;
 
 pub mod bindgen;
@@ -21,7 +22,6 @@ pub mod progressbar;
 pub mod readme;
 
 use progressbar::ProgressOutput;
-use quicli::prelude::*;
 
 lazy_static! {
     pub static ref PBAR: ProgressOutput = { ProgressOutput::new() };
