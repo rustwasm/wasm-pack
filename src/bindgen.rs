@@ -14,6 +14,7 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
     let output = Command::new("cargo")
         .arg("install")
         .arg("wasm-bindgen-cli")
+        .arg("--force")
         .output()?;
     pb.finish();
     if !output.status.success() {
