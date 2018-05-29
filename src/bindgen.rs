@@ -28,7 +28,12 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
     }
 }
 
-pub fn wasm_bindgen_build(path: &str, name: &str, disable_dts: bool) -> Result<(), Error> {
+pub fn wasm_bindgen_build(
+    path: &str,
+    name: &str,
+    disable_dts: bool,
+    target: String,
+) -> Result<(), Error> {
     let step = format!(
         "{} {}Running WASM-bindgen...",
         style("[7/7]").bold().dim(),
@@ -37,10 +42,16 @@ pub fn wasm_bindgen_build(path: &str, name: &str, disable_dts: bool) -> Result<(
     let pb = PBAR.message(&step);
     let binary_name = name.replace("-", "_");
     let wasm_path = format!("target/wasm32-unknown-unknown/release/{}.wasm", binary_name);
+
     let dts_arg = if disable_dts == false {
         "--typescript"
     } else {
         "--no-typescript"
+    };
+
+    let target_arg = match target.as_str() {
+        "nodejs" => "--nodejs",
+        _ => "--browser",
     };
 
     let output = Command::new("wasm-bindgen")
@@ -49,6 +60,7 @@ pub fn wasm_bindgen_build(path: &str, name: &str, disable_dts: bool) -> Result<(
         .arg("--out-dir")
         .arg("./pkg")
         .arg(dts_arg)
+        .arg(target_arg)
         .output()?;
     pb.finish();
     if !output.status.success() {

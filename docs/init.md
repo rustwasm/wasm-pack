@@ -16,6 +16,22 @@ wasm-pack init examples/js-hello-world
 This path should point to a directory that contains a `Cargo.toml` file. If no
 path is given, the `init` command will run in the current directory.
 
+## Target
+
+The init command accepts a `--target` argument. This will customize the output files
+to align with a particular type of JS module. This allows wasm-pack to generate either
+ES6 modules or CommonJS modules for use in browser and in NodeJS. Defaults to `browser`.
+The options are:
+
+```
+wasm-pack init --target nodejs
+```
+
+| Option    | Description                                                                                                     |
+|-----------|-----------------------------------------------------------------------------------------------------------------|
+| `nodejs`  | Outputs JS that uses CommonJS modules, for use with a `require` statement.                                      |
+| `browser` | Outputs JS that uses ES6 modules, primarily for use with `import` statements and/or bundlers such as `webpack`. |
+
 ## Scope
 
 The init command also accepts an optional `--scope` argument. This will scope
