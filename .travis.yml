@@ -52,6 +52,8 @@ deploy:
     secure: fx0rR5Ii1KcsydexE6QpkDbqItNdj3Lt6L5yFZaKKB/ejw9M555NkXA+0GZqV0sLZ54qfR8zTaXAf6eBFKgcG9etaCl7vTXqsvDrlssth82oki1zufP39uuoOy4WgFq8OfACOtUq7opDAgYmpaGzlFiny+c5j7asGwDtAU1Fc3JeJsvAnxHKg9+0spXFD6kBQd5CWpqDXv2rLFK0b8IM2fHAzd0PiJZQWqz//2Cj/r9rTiewtIzqigctAfOgFwYoQvfdM+0mKb4pefG+zXEGfxxQr4r5hqZ6UMO7hto3Jnm9LRjNR8dNaDQCqQ0bkdLTAMTC3nV/gZPM679yQU3KHueVjg9pleNzuKnuBgYmH9+BrlG1dW68kqA+6Xh+wIJYrLuagWhJDlCtiU6PM5QAbFg3mabPIBG3M2IHTrOVATme+iW5vpROARhgjbQEF235DyvZaT+Tml3+PY+PfcRax2DVUhvGQViv4tzppbT0PjjBlEbGct49cFLGdqZIJBiVrYW24I2QkENTnUgZsFIBuJlVCBHZwZlLo9ldVvu4XTMKw65z42zoTzobjtbC1QPEZPiaJXSxC7W569fqL/ORXwGToFk6rQjXwEqDP2okGiusR75LXrZD6qFibNpqeypRFtqOzntsOfTUGrlaN1yTt/6dz0V0j9uI7a9/CHVcblI=
   file_glob: true
   file: wasm-pack-$TRAVIS_TAG-$TARGET.tar.gz
+  skip_cleanup: true
   on:
+    branch: master
     condition: $DEPLOY = 1
     tags: true
