@@ -66,6 +66,15 @@ impl CargoManifest {
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
         }
+        let mut files = vec![wasm_file];
+
+        match dts_file {
+            Some(ref dts_file) => {
+                files.push(dts_file.to_string());
+            }
+            None => {}
+        }
+
         NpmPackage {
             name: self.package.name,
             collaborators: self.package.authors,
@@ -76,7 +85,7 @@ impl CargoManifest {
                 ty: "git".to_string(),
                 url: repo_url,
             }),
-            files: vec![wasm_file],
+            files: files,
             main: js_file,
             types: dts_file,
         }

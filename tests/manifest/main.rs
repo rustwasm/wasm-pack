@@ -40,7 +40,7 @@ fn it_creates_a_package_json_default_path() {
         pkg.repository.url,
         "https://github.com/ashleygwilliams/wasm-pack.git"
     );
-    assert_eq!(pkg.files, ["wasm_pack_bg.wasm"]);
+    assert_eq!(pkg.files, ["wasm_pack_bg.wasm", "wasm_pack.d.ts"]);
     assert_eq!(pkg.main, "wasm_pack.js");
     let types = pkg.types.unwrap_or_default();
     assert_eq!(types, "wasm_pack.d.ts");
