@@ -11,6 +11,7 @@ use PBAR;
 #[derive(Deserialize)]
 struct CargoManifest {
     package: CargoPackage,
+    lib: Option<CargoLib>,
 }
 
 #[derive(Deserialize)]
@@ -21,6 +22,11 @@ struct CargoPackage {
     version: String,
     license: Option<String>,
     repository: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct CargoLib {
+    crate_type: Option<Vec<String>>,
 }
 
 #[derive(Serialize)]
@@ -49,7 +55,9 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
     let mut cargo_contents = String::new();
     cargo_file.read_to_string(&mut cargo_contents)?;
 
-    Ok(toml::from_str(&cargo_contents)?)
+    Ok(toml::from_str(
+        &cargo_contents.replace("crate-type", "crate_type"),
+    )?)
 }
 
 impl CargoManifest {
@@ -135,4 +143,22 @@ pub fn write_package_json(
 
 pub fn get_crate_name(path: &str) -> Result<String, Error> {
     Ok(read_cargo_toml(path)?.package.name)
+}
+
+fn has_cdylib(path: &str) -> bool {
+    match read_cargo_toml(path).unwrap().lib {
+        Some(lib) => match lib.crate_type {
+            Some(types) => types.iter().any(|s| s == "cdylib"),
+            _ => false,
+        },
+        _ => false,
+    }
+}
+
+pub fn check_crate_type(path: &str) -> Result<(), Error> {
+    if !has_cdylib(path) {
+        Error::config("crate-type must include cdylib to compile to wasm32-unknown-unknown")
+    } else {
+        Ok(())
+    }
 }

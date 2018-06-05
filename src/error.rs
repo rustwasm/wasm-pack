@@ -15,6 +15,8 @@ pub enum Error {
     SerdeToml(#[cause] toml::de::Error),
     #[fail(display = "{}. stderr:\n\n{}", message, stderr)]
     Cli { message: String, stderr: String },
+    #[fail(display = "{}", message)]
+    Config { message: String },
 }
 
 impl Error {
@@ -22,6 +24,12 @@ impl Error {
         Err(Error::Cli {
             message: message.to_string(),
             stderr: stderr.to_string(),
+        })
+    }
+
+    pub fn config(message: &str) -> Result<(), Self> {
+        Err(Error::Config {
+            message: message.to_string(),
         })
     }
 
@@ -34,6 +42,7 @@ impl Error {
                 message: _,
                 stderr: _,
             } => "There was an error while calling another CLI tool. Details:\n\n",
+            Error::Config { message: _ } => "There was a configuration error. Details:\n\n",
         }.to_string()
     }
 }
