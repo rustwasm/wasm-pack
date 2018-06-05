@@ -49,10 +49,14 @@ fn log_file_path(cmd: &Command) -> PathBuf {
             path_buf.push("wasm-pack.log");
             path_buf
         } else {
-            this_dir()
+            let mut path_buf = this_dir();
+            path_buf.push("wasm-pack.log");
+            path_buf
         }
     } else {
-        this_dir()
+        let mut path_buf = this_dir();
+        path_buf.push("wasm-pack.log");
+        path_buf
     }
 }
 
