@@ -1,16 +1,12 @@
-use console::style;
 use emoji;
 use error::Error;
+use progressbar::Step;
 use std::process::Command;
 use PBAR;
 
-pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
-    let step = format!(
-        "{} {}Installing WASM-bindgen...",
-        style("[6/7]").bold().dim(),
-        emoji::DOWN_ARROW
-    );
-    let pb = PBAR.message(&step);
+pub fn cargo_install_wasm_bindgen(step: &Step) -> Result<(), Error> {
+    let msg = format!("{}Installing WASM-bindgen...", emoji::DOWN_ARROW);
+    let pb = PBAR.step(step, &msg);
     let output = Command::new("cargo")
         .arg("install")
         .arg("wasm-bindgen-cli")
@@ -33,15 +29,12 @@ pub fn wasm_bindgen_build(
     path: &str,
     name: &str,
     disable_dts: bool,
-    target: String,
+    target: &str,
     debug: bool,
+    step: &Step,
 ) -> Result<(), Error> {
-    let step = format!(
-        "{} {}Running WASM-bindgen...",
-        style("[7/7]").bold().dim(),
-        emoji::RUNNER
-    );
-    let pb = PBAR.message(&step);
+    let msg = format!("{}Running WASM-bindgen...", emoji::RUNNER);
+    let pb = PBAR.step(step, &msg);
     let binary_name = name.replace("-", "_");
     let release_or_debug = if debug { "debug" } else { "release" };
     let wasm_path = format!(
@@ -54,7 +47,7 @@ pub fn wasm_bindgen_build(
         "--no-typescript"
     };
 
-    let target_arg = match target.as_str() {
+    let target_arg = match target {
         "nodejs" => "--nodejs",
         _ => "--browser",
     };

@@ -2,6 +2,7 @@ use console::style;
 use emoji;
 use error::Error;
 use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use std::fmt;
 
 pub struct ProgressOutput {
     bar: MultiProgress,
@@ -12,6 +13,11 @@ impl ProgressOutput {
         Self {
             bar: MultiProgress::new(),
         }
+    }
+
+    pub fn step(&self, step: &Step, message: &str) -> ProgressBar {
+        let msg = format!("{} {}", style(step).bold().dim(), message);
+        self.bar.add(Self::progressbar(&msg))
     }
 
     pub fn message(&self, message: &str) -> ProgressBar {
@@ -65,5 +71,25 @@ impl ProgressOutput {
 
     pub fn done(&self) -> Result<(), Error> {
         self.bar.join_and_clear().map_err(|e| Error::from(e))
+    }
+}
+
+pub struct Step {
+    current: usize,
+    total: usize,
+}
+
+impl Step {
+    pub fn new(total: usize) -> Step {
+        Step { current: 1, total }
+    }
+    pub fn inc(&mut self) {
+        self.current += 1;
+    }
+}
+
+impl fmt::Display for Step {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "[{}/{}]", self.current, self.total)
     }
 }

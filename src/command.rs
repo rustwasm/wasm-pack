@@ -1,11 +1,11 @@
 use bindgen;
 use build;
-use console::style;
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
 use manifest;
 use npm;
+use progressbar::Step;
 #[allow(unused)]
 use readme;
 use slog::Logger;
@@ -23,6 +23,10 @@ pub enum Command {
 
         #[structopt(long = "scope", short = "s")]
         scope: Option<String>,
+
+        #[structopt(long = "--skip-build")]
+        /// Do not build, only update metadata
+        skip_build: bool,
 
         #[structopt(long = "no-typescript")]
         /// By default a *.d.ts file is generated for the generated JS file, but
@@ -86,6 +90,7 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
         Command::Init {
             path,
             scope,
+            skip_build,
             disable_dts,
             target,
             debug,
@@ -93,14 +98,20 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
             info!(&log, "Running init command...");
             info!(
                 &log,
-                "Path: {:?}, Scope: {:?}, Disable Dts: {}, Target: {}, Debug: {}",
+                "Path: {:?}, Scope: {:?}, Skip build: {}, Disable Dts: {}, Target: {}, Debug: {}",
                 &path,
                 &scope,
+                &skip_build,
                 &disable_dts,
                 &target,
                 debug
             );
-            init(path, scope, disable_dts, target, &log, debug)
+            let mode = if skip_build {
+                InitMode::Nobuild
+            } else {
+                InitMode::Normal
+            };
+            Init::new(path, scope, disable_dts, target, debug).process(&log, mode)
         }
         Command::Pack { path } => {
             info!(&log, "Running pack command...");
@@ -151,129 +162,235 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
 // quicli::prelude::* imports a different result struct which gets
 // precedence over the std::result::Result, so have had to specify
 // the correct type here.
-pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
-    let step = format!(
-        "{} {}Creating a pkg directory...",
-        style("[3/7]").bold().dim(),
-        emoji::FOLDER
-    );
-    let pb = PBAR.message(&step);
+pub fn create_pkg_dir(path: &str, step: &Step) -> result::Result<(), Error> {
+    let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
+    let pb = PBAR.step(step, &msg);
     let pkg_dir_path = format!("{}/pkg", path);
     fs::create_dir_all(pkg_dir_path)?;
     pb.finish();
     Ok(())
 }
 
-fn init(
-    path: Option<String>,
+enum InitMode {
+    Normal,
+    Nobuild,
+}
+
+struct Init {
+    crate_path: String,
     scope: Option<String>,
     disable_dts: bool,
     target: String,
-    log: &Logger,
     debug: bool,
-) -> result::Result<(), Error> {
-    let started = Instant::now();
+    crate_name: Option<String>,
+}
 
-    let crate_path = set_crate_path(path);
+impl Init {
+    pub fn new(
+        path: Option<String>,
+        scope: Option<String>,
+        disable_dts: bool,
+        target: String,
+        debug: bool,
+    ) -> Init {
+        Init {
+            crate_path: set_crate_path(path),
+            scope,
+            disable_dts,
+            target,
+            debug,
+            crate_name: None,
+        }
+    }
 
-    info!(&log, "Checking wasm-bindgen dependency...");
-    manifest::check_wasm_bindgen(&crate_path)?;
-    info!(&log, "wasm-bindgen dependency is correctly declared.");
+    pub fn process(&mut self, log: &Logger, mode: InitMode) -> result::Result<(), Error> {
+        let process_steps: Vec<fn(&mut Init, &Step, &Logger) -> result::Result<(), Error>> =
+            match mode {
+                InitMode::Normal => vec![
+                    Init::step_check_dependency,
+                    Init::step_add_wasm_target,
+                    Init::step_build_wasm,
+                    Init::step_create_dir,
+                    Init::step_create_json,
+                    Init::step_copy_readme,
+                    Init::step_check_create_type,
+                    Init::step_install_wasm_bindgen,
+                    Init::step_running_wasm_bindgen,
+                ],
+                InitMode::Nobuild => vec![
+                    Init::step_check_dependency,
+                    Init::step_create_dir,
+                    Init::step_create_json,
+                    Init::step_copy_readme,
+                ],
+            };
+        let mut step_counter = Step::new(process_steps.len());
 
-    info!(&log, "Adding wasm-target...");
-    build::rustup_add_wasm_target()?;
-    info!(&log, "Adding wasm-target was successful.");
+        let started = Instant::now();
 
-    info!(&log, "Building wasm...");
-    build::cargo_build_wasm(&crate_path, debug)?;
+        for process_step in process_steps {
+            process_step(self, &step_counter, log)?;
+            step_counter.inc();
+        }
 
-    #[cfg(not(target_os = "windows"))]
-    info!(
-        &log,
-        "wasm built at {}/target/wasm32-unknown-unknown/release.", &crate_path
-    );
-    #[cfg(target_os = "windows")]
-    info!(
-        &log,
-        "wasm built at {}\\target\\wasm32-unknown-unknown\\release.", &crate_path
-    );
+        let duration = HumanDuration(started.elapsed());
+        info!(&log, "Done in {}.", &duration);
+        info!(
+            &log,
+            "Your WASM pkg is ready to publish at {}/pkg.", &self.crate_path
+        );
 
-    info!(&log, "Creating a pkg directory...");
-    create_pkg_dir(&crate_path)?;
-    info!(&log, "Created a pkg directory at {}.", &crate_path);
+        PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
 
-    info!(&log, "Writing a package.json...");
-    manifest::write_package_json(&crate_path, scope, disable_dts)?;
-    #[cfg(not(target_os = "windows"))]
-    info!(
-        &log,
-        "Wrote a package.json at {}/pkg/package.json.", &crate_path
-    );
-    #[cfg(target_os = "windows")]
-    info!(
-        &log,
-        "Wrote a package.json at {}\\pkg\\package.json.", &crate_path
-    );
+        PBAR.message(&format!(
+            "{} Your WASM pkg is ready to publish at {}/pkg.",
+            emoji::PACKAGE,
+            &self.crate_path
+        ));
+        Ok(())
+    }
 
-    info!(&log, "Copying readme from crate...");
-    readme::copy_from_crate(&crate_path)?;
-    #[cfg(not(target_os = "windows"))]
-    info!(&log, "Copied readme from crate to {}/pkg.", &crate_path);
-    #[cfg(target_os = "windows")]
-    info!(&log, "Copied readme from crate to {}\\pkg.", &crate_path);
+    fn step_check_dependency(&mut self, _step: &Step, log: &Logger) -> result::Result<(), Error> {
+        info!(&log, "Checking wasm-bindgen dependency...");
+        manifest::check_wasm_bindgen(&self.crate_path)?;
+        info!(&log, "wasm-bindgen dependency is correctly declared.");
+        Ok(())
+    }
 
-    info!(&log, "Checking the crate type from the manifest...");
-    manifest::check_crate_type(&crate_path)?;
-    #[cfg(not(target_os = "windows"))]
-    info!(
-        &log,
-        "Checked crate type from the manifest at {}/Cargo.toml.", &crate_path
-    );
-    #[cfg(target_os = "windows")]
-    info!(
-        &log,
-        "Checked crate type from the manifest at {}\\Cargo.toml.", &crate_path
-    );
+    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+        info!(&log, "Adding wasm-target...");
+        build::rustup_add_wasm_target(step)?;
+        info!(&log, "Adding wasm-target was successful.");
+        Ok(())
+    }
 
-    info!(&log, "Installing wasm-bindgen-cli...");
-    bindgen::cargo_install_wasm_bindgen()?;
-    info!(&log, "Installing wasm-bindgen-cli was successful.");
+    fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+        info!(&log, "Building wasm...");
+        build::cargo_build_wasm(&self.crate_path, self.debug, step)?;
 
-    info!(&log, "Getting the crate name from the manifest...");
-    let name = manifest::get_crate_name(&crate_path)?;
-    #[cfg(not(target_os = "windows"))]
-    info!(
-        &log,
-        "Got crate name {} from the manifest at {}/Cargo.toml.", &name, &crate_path
-    );
-    #[cfg(target_os = "windows")]
-    info!(
-        &log,
-        "Got crate name {} from the manifest at {}\\Cargo.toml.", &name, &crate_path
-    );
+        #[cfg(not(target_os = "windows"))]
+        info!(
+            &log,
+            "wasm built at {}/target/wasm32-unknown-unknown/release.", &self.crate_path
+        );
+        #[cfg(target_os = "windows")]
+        info!(
+            &log,
+            "wasm built at {}\\target\\wasm32-unknown-unknown\\release.", &self.crate_path
+        );
+        Ok(())
+    }
 
-    info!(&log, "Building the wasm bindings...");
-    bindgen::wasm_bindgen_build(&crate_path, &name, disable_dts, target, debug)?;
-    #[cfg(not(target_os = "windows"))]
-    info!(&log, "wasm bindings were built at {}/pkg.", &crate_path);
-    #[cfg(target_os = "windows")]
-    info!(&log, "wasm bindings were built at {}\\pkg.", &crate_path);
+    fn step_create_dir(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+        info!(&log, "Creating a pkg directory...");
+        create_pkg_dir(&self.crate_path, step)?;
+        info!(&log, "Created a pkg directory at {}.", &self.crate_path);
+        Ok(())
+    }
 
-    let duration = HumanDuration(started.elapsed());
-    info!(&log, "Done in {}.", &duration);
-    info!(
-        &log,
-        "Your WASM pkg is ready to publish at {}/pkg.", &crate_path
-    );
+    fn step_create_json(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+        info!(&log, "Writing a package.json...");
+        manifest::write_package_json(&self.crate_path, &self.scope, self.disable_dts, step)?;
+        #[cfg(not(target_os = "windows"))]
+        info!(
+            &log,
+            "Wrote a package.json at {}/pkg/package.json.", &self.crate_path
+        );
+        #[cfg(target_os = "windows")]
+        info!(
+            &log,
+            "Wrote a package.json at {}\\pkg\\package.json.", &self.crate_path
+        );
+        Ok(())
+    }
 
-    PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
+    fn step_copy_readme(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+        info!(&log, "Copying readme from crate...");
+        readme::copy_from_crate(&self.crate_path, step)?;
+        #[cfg(not(target_os = "windows"))]
+        info!(
+            &log,
+            "Copied readme from crate to {}/pkg.", &self.crate_path
+        );
+        #[cfg(target_os = "windows")]
+        info!(
+            &log,
+            "Copied readme from crate to {}\\pkg.", &self.crate_path
+        );
+        Ok(())
+    }
 
-    PBAR.message(&format!(
-        "{} Your WASM pkg is ready to publish at {}/pkg.",
-        emoji::PACKAGE,
-        &crate_path
-    ));
-    Ok(())
+    fn step_check_create_type(&mut self, _step: &Step, log: &Logger) -> result::Result<(), Error> {
+        info!(&log, "Checking the crate type from the manifest...");
+        manifest::check_crate_type(&self.crate_path)?;
+        #[cfg(not(target_os = "windows"))]
+        info!(
+            &log,
+            "Checked crate type from the manifest at {}/Cargo.toml.", &self.crate_path
+        );
+        #[cfg(target_os = "windows")]
+        info!(
+            &log,
+            "Checked crate type from the manifest at {}\\Cargo.toml.", &self.crate_path
+        );
+
+        Ok(())
+    }
+
+    fn step_install_wasm_bindgen(
+        &mut self,
+        step: &Step,
+        log: &Logger,
+    ) -> result::Result<(), Error> {
+        info!(&log, "Installing wasm-bindgen-cli...");
+        bindgen::cargo_install_wasm_bindgen(step)?;
+        info!(&log, "Installing wasm-bindgen-cli was successful.");
+
+        info!(&log, "Getting the crate name from the manifest...");
+        self.crate_name = Some(manifest::get_crate_name(&self.crate_path)?);
+        #[cfg(not(target_os = "windows"))]
+        info!(
+            &log,
+            "Got crate name {} from the manifest at {}/Cargo.toml.",
+            &self.crate_name.as_ref().unwrap(),
+            &self.crate_path
+        );
+        #[cfg(target_os = "windows")]
+        info!(
+            &log,
+            "Got crate name {} from the manifest at {}\\Cargo.toml.",
+            &self.crate_name.as_ref().unwrap(),
+            &self.crate_path
+        );
+        Ok(())
+    }
+
+    fn step_running_wasm_bindgen(
+        &mut self,
+        step: &Step,
+        log: &Logger,
+    ) -> result::Result<(), Error> {
+        info!(&log, "Building the wasm bindings...");
+        bindgen::wasm_bindgen_build(
+            &self.crate_path,
+            &self.crate_name.as_ref().unwrap(),
+            self.disable_dts,
+            &self.target,
+            self.debug,
+            step,
+        )?;
+        #[cfg(not(target_os = "windows"))]
+        info!(
+            &log,
+            "wasm bindings were built at {}/pkg.", &self.crate_path
+        );
+        #[cfg(target_os = "windows")]
+        info!(
+            &log,
+            "wasm bindings were built at {}\\pkg.", &self.crate_path
+        );
+        Ok(())
+    }
 }
 
 fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
