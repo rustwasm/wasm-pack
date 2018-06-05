@@ -1,5 +1,32 @@
 # Changelog
 
+## 🌠 0.3.1
+
+Babby's first point release! Are we a real project now?
+
+### 🤕 Fixes 
+
+- **fixed `init` `Is a Directory` error - [ashleygwilliams], [pull/139]**
+
+  Our new logging feature accidentally introduced a regression into 0.3.0. When
+  calling `wasm-pack init`, if a directory was not passed, a user would receive
+  a "Is a Directory" Error. Sorry about that! Thanks to [jbolila] for filing 
+  [issue/136]!
+
+[pull/139]: https://github.com/ashleygwilliams/wasm-pack/pull/139
+[issue/136]: https://github.com/ashleygwilliams/wasm-pack/issues/136
+[jbolila]: https://github.com/jbolila
+
+- **typescript files were not included in published package - [danreeves], [pull/138]**
+
+  Generating Typescript type files by default was a pretty rad feature in
+  0.3.0 but we accidentally forgot to ensure they were included in the 
+  published package. Thanks so much to [danreeves] for catching this issue 
+  and fixing it for us!
+
+[danreeves]: https://github.com/danreeves
+[pull/138]: https://github.com/ashleygwilliams/wasm-pack/pull/138
+
 ## 💫 0.3.0
 
 ### ✨ Features
