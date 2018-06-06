@@ -16,7 +16,7 @@ pub enum Error {
     #[fail(display = "{}. stderr:\n\n{}", message, stderr)]
     Cli { message: String, stderr: String },
     #[fail(display = "{}", message)]
-    Config { message: String },
+    CrateConfig { message: String },
 }
 
 impl Error {
@@ -27,8 +27,8 @@ impl Error {
         })
     }
 
-    pub fn config(message: &str) -> Result<(), Self> {
-        Err(Error::Config {
+    pub fn crate_config(message: &str) -> Result<(), Self> {
+        Err(Error::CrateConfig {
             message: message.to_string(),
         })
     }
@@ -42,7 +42,9 @@ impl Error {
                 message: _,
                 stderr: _,
             } => "There was an error while calling another CLI tool. Details:\n\n",
-            Error::Config { message: _ } => "There was a configuration error. Details:\n\n",
+            Error::CrateConfig { message: _ } => {
+                "There was a crate configuration error. Details:\n\n"
+            }
         }.to_string()
     }
 }

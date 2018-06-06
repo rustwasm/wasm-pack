@@ -153,7 +153,9 @@ fn has_cdylib(path: &str) -> Result<bool, Error> {
 
 pub fn check_crate_type(path: &str) -> Result<(), Error> {
     if !has_cdylib(path)? {
-        Error::config("crate-type must include cdylib to compile to wasm32-unknown-unknown")
+        Error::crate_config(
+            "crate-type must include cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:\n\n[lib]\ncrate-type = [\"cdylib\"]"
+        )
     } else {
         Ok(())
     }
