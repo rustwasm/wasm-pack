@@ -69,3 +69,13 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     let pkg = utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "@test/scopes-hello-world");
 }
+
+#[test]
+fn it_errors_when_wasm_bindgen_is_not_declared() {
+    assert!(manifest::check_wasm_bindgen("tests/fixtures/bad-cargo-toml").is_err());
+}
+
+#[test]
+fn it_does_not_error_when_wasm_bindgen_is_declared() {
+    assert!(manifest::check_wasm_bindgen("tests/fixtures/js-hello-world").is_ok());
+}
