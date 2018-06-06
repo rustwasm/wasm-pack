@@ -54,5 +54,7 @@ output package using cargo's
 this way is faster but applies few optimizations to the output, and enables
 debug assertions and other runtime correctness checks.
 
+The exact meaning of this flag may evolve as the platform matures.
+
 [npm-scope-documentation]: https://docs.npmjs.com/misc/scope
 [cargo-profile-sections-documentation]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-profile-sections
