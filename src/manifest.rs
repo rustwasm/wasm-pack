@@ -26,6 +26,7 @@ struct CargoPackage {
 
 #[derive(Deserialize)]
 struct CargoLib {
+    #[serde(rename = "crate-type")]
     crate_type: Option<Vec<String>>,
 }
 
@@ -55,9 +56,7 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
     let mut cargo_contents = String::new();
     cargo_file.read_to_string(&mut cargo_contents)?;
 
-    Ok(toml::from_str(
-        &cargo_contents.replace("crate-type", "crate_type"),
-    )?)
+    Ok(toml::from_str(&cargo_contents)?)
 }
 
 impl CargoManifest {
@@ -145,18 +144,15 @@ pub fn get_crate_name(path: &str) -> Result<String, Error> {
     Ok(read_cargo_toml(path)?.package.name)
 }
 
-fn has_cdylib(path: &str) -> bool {
-    match read_cargo_toml(path).unwrap().lib {
-        Some(lib) => match lib.crate_type {
-            Some(types) => types.iter().any(|s| s == "cdylib"),
-            _ => false,
-        },
-        _ => false,
-    }
+fn has_cdylib(path: &str) -> Result<bool, Error> {
+    Ok(read_cargo_toml(path)?.lib.map_or(false, |lib| {
+        lib.crate_type
+            .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
+    }))
 }
 
 pub fn check_crate_type(path: &str) -> Result<(), Error> {
-    if !has_cdylib(path) {
+    if !has_cdylib(path)? {
         Error::config("crate-type must include cdylib to compile to wasm32-unknown-unknown")
     } else {
         Ok(())
