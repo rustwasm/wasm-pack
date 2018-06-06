@@ -1,56 +1,39 @@
 # 📦✨  wasm-pack
-> pack up the wasm and publish it to npm!
+> Your favorite rust -> wasm workflow tool!
 
 [![Build Status](https://travis-ci.org/ashleygwilliams/wasm-pack.svg?branch=master)](https://travis-ci.org/ashleygwilliams/wasm-pack)
 [![Build status](https://ci.appveyor.com/api/projects/status/7jjuo5wewu9lyyfi?svg=true)](https://ci.appveyor.com/project/ashleygwilliams/wasm-pack)
 
-the goal of this project is to create a portable command line tool
-for publishing compiled wasm projects to the npm registry for the consumption
-of js devs using the npm CLI, yarn, or any other CLI tool that interfaces
-with the npm registry.
+This tool seeks to be a one-stop shop for building and working with rust-
+generated WebAssembly that you would like to interop with JavaScript, in the
+browser or with Node.js. `wasm-pack` helps you build and publish rust-generated
+WebAssembly to the npm registry to be used alongside any other javascript
+package in workflows that you already use, such as a bundler like 
+[webpack] or [greenkeeper].
 
-this project is a part of the [rust-wasm] group. you can find more info by
+[bundler-support]: https://github.com/rustwasm/team/blob/master/goals/bundler-integration.md#details
+[webpack]: https://webpack.js.org/
+[greenkeeper]: https://greenkeeper.io/ 
+
+This project is a part of the [rust-wasm] group. You can find more info by
 visiting that repo!
 
 [rust-wasm]: https://github.com/rust-lang-nursery/rust-wasm/
 
 ![demo](demo.gif)
 
-## 🔮 prerequisities
+## 🔮 Prerequisities
 
-this project is written in rust. [get rust] to work on this project.
+- [Development Environment](docs/prerequisites.md)
+- [Installation and Getting Started](docs/setup.md)
 
-[get rust]: https://www.rustup.rs/
+## 🎙️ Commands
 
-if you want to publish packages, you'll also need an account on [npm] and have
-[node/npm] installed.
+- [`init`](docs/init.md): Generate an npm wasm pkg from a rustwasm crate
+- [`pack`](docs/pack.md): Create a tarball of your rustwasm pkg
+- [`publish`](docs/publish.md): Publish your rustwasm pkg to a registry
 
-[npm]: https://www.npmjs.com
-[node/npm]: https://nodejs.org/
-
-## 🏃‍♀️ up and running
-
-1. fork and clone this repository
-2. install [node/npm]
-2. `cd wasm-pack`
-3. `cargo run`
-
-## 💃 commands
-- `help`: display available commands
-- 🐣  `init`: create necessary files for js interop and npm publishing
-  - optionally pass a path to a dir that contains a `Cargo.toml`, e.g.:
-    ```
-    wasm-pack init examples/js-hello-world
-    ```
-  - optionally pass a scope name to generate a `package.json` for a scoped pkg, e.g.:
-    ```
-    wasm-pack init examples/scopes-hello-world --scope test
-    ```
-    generates a `package.json` for an npm package called `@test/scopes-hello-world`
-- 🍱  `pack`: create a tarball but don't push to the npm registry (see https://docs.npmjs.com/cli/pack)
-- 🎆  `publish`: create a tarball and publish to the npm registry (see https://docs.npmjs.com/cli/publish)
-
-### logging
+## 📝 Logging
 
 We generate a `wasm-pack.log` file if `wasm-pack` errors on you, and you can
 customize the log verbosity using the verbosity flag.
@@ -61,11 +44,18 @@ customize the log verbosity using the verbosity flag.
 | -vv           | All Debug, Info, Warn, and Errors are logged        |
 | -vvv          | All Trace, Debug, Info, Warn, and Errors are logged |
 
+## 👯 Contributing
 
-## ⚙️  how to use
+Read our [guide] on getting up and running for developing `wasm-pack`, and
+check out our [contribution policy].
 
-1. write a crate in Rust.
-2. add `wasm-bindgen` to your `Cargo.toml`:
+[guide]: doc/contributing.md
+[contribution policy]: CONTRIBUTING.md
+
+## ⚡ Quickstart Guide
+
+1. Write a crate in Rust.
+2. Add `wasm-bindgen` to your `Cargo.toml`:
 
   ```toml
   [lib]
@@ -74,7 +64,7 @@ customize the log verbosity using the verbosity flag.
   [dependencies]
   wasm-bindgen = "0.2"
   ```
-3. add this to the top of your `src/lib.rs`:
+3. Add this to the top of your `src/lib.rs`:
 
   ```rust
   #![feature(proc_macro, wasm_import_module, wasm_custom_section)]
@@ -84,7 +74,7 @@ customize the log verbosity using the verbosity flag.
   use wasm_bindgen::prelude::*;
   ```
 
-4. annotate your public functions with `#[wasm_bindgen]`, for example:
+4. Annotate your public functions with `#[wasm_bindgen]`, for example:
 
   ```rust
   #[wasm_bindgen]
@@ -98,10 +88,11 @@ customize the log verbosity using the verbosity flag.
   }
   ```
 
-5. install this tool: `cargo install wasm-pack`
-6. run `wasm-pack init`, optionally, pass a path to a dir or a scope (see above for details)
-7. this tool generates files in a `pkg` dir
-8. to publish to npm, run `wasm-pack publish` (making sure you are logged in with npm)
+5. Install this tool: `cargo install wasm-pack`
+6. Run `wasm-pack init`, optionally, pass a path to a dir or a scope (see above for details)
+7. This tool generates files in a `pkg` dir
+8. To publish to npm, run `wasm-pack publish`. You may need to login to the
+  registry you want to publish to. You can login using `wasm-pack login`.`
 
 [rust-wasm/36]: https://github.com/rust-lang-nursery/rust-wasm/issues/36
 [wasm-bindgen]: https://github.com/alexcrichton/wasm-bindgen
