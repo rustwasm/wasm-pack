@@ -31,5 +31,5 @@ deploy:
   autho_token:
     secure: iHsRUqwGf/Zh7OuYpHOWQL8buaOL+c8/6kXLRly8V2j0LCUo7CcDs0NxQ0vl2bhZ
   on:
-    branch: appveyor
+    branch: master
     appveyor_repo_tag: true
