@@ -1,7 +1,7 @@
 use console::style;
 use emoji;
-use std::sync::RwLock;
 use indicatif::{ProgressBar, ProgressStyle};
+use std::sync::RwLock;
 
 pub struct ProgressOutput {
     spinner: RwLock<ProgressBar>,
