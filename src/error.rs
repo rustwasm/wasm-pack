@@ -1,13 +1,14 @@
 //! Code related to error handling for wasm-pack
 use curl;
 use serde_json;
+use failure;
 use parity_wasm;
+use serde_json;
 use std::borrow::Cow;
 use std::io;
 use std::process::ExitStatus;
 use toml;
 use zip;
-use failure;
 
 /// Errors that can potentially occur in `wasm-pack`.
 #[derive(Debug, Fail)]
@@ -232,4 +233,3 @@ impl From<failure::Error> for Error {
         }
     }
 }
-

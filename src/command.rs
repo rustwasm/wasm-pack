@@ -14,8 +14,8 @@ use slog::Logger;
 use std::fs;
 use std::result;
 use std::time::Instant;
-use PBAR;
 use wasm_snip;
+use PBAR;
 
 #[derive(Debug, StructOpt)]
 pub enum Command {
@@ -84,16 +84,16 @@ pub enum Command {
 
 #[derive(Clone, Debug, StructOpt)]
 pub struct SnipOpitons {
-        input: String,
-        #[structopt(long = "output", short = "o")]
-        pub(crate) output: Option<String>,
-        functions: Vec<String>,
-        #[structopt(long = "pattern", short = "p")]
-        patterns: Vec<String>,
-        #[structopt(long = "snip_rust_fmt_code")]
-        snip_rust_fmt_code: bool,
-        #[structopt(long = "snip_rust_panicking_code")]
-        snip_rust_panicking_code: bool,
+    input: String,
+    #[structopt(long = "output", short = "o")]
+    pub(crate) output: Option<String>,
+    functions: Vec<String>,
+    #[structopt(long = "pattern", short = "p")]
+    patterns: Vec<String>,
+    #[structopt(long = "snip_rust_fmt_code")]
+    snip_rust_fmt_code: bool,
+    #[structopt(long = "snip_rust_panicking_code")]
+    snip_rust_panicking_code: bool,
 }
 
 impl Into<wasm_snip::Options> for SnipOpitons {
@@ -158,10 +158,9 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
         }
 
         Command::Snip(opts) => {
-            info!(&log,  "Running snip command...");
+            info!(&log, "Running snip command...");
             snip(opts)
         }
-
     };
 
     match status {
@@ -354,7 +353,7 @@ fn set_crate_path(path: Option<String>) -> String {
 
 fn snip(opts: SnipOpitons) -> Result<(), Error> {
     let opt = opts.clone();
-     let module = wasm_snip::snip(opts.into())?;
+    let module = wasm_snip::snip(opts.into())?;
 
     if let Some(output) = opt.output {
         elements::serialize_to_file(output, module)?;
