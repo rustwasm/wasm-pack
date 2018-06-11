@@ -25,6 +25,7 @@ extern crate tar;
 extern crate toml;
 extern crate which;
 extern crate zip;
+extern crate wasm_snip;
 
 pub mod binaries;
 pub mod bindgen;
