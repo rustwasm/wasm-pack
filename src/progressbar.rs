@@ -1,60 +1,90 @@
 use console::style;
 use emoji;
 use error::Error;
-use indicatif::{MultiProgress, ProgressBar, ProgressStyle};
+use indicatif::{ProgressBar, ProgressStyle};
 use std::fmt;
+use std::sync::RwLock;
 
 pub struct ProgressOutput {
-    bar: MultiProgress,
+    spinner: RwLock<ProgressBar>,
+    messages: RwLock<String>,
 }
 
 impl ProgressOutput {
     pub fn new() -> Self {
         Self {
-            bar: MultiProgress::new(),
+            spinner: RwLock::new(ProgressBar::new_spinner()),
+            messages: RwLock::new(String::from("")),
         }
     }
 
-    pub fn step(&self, step: &Step, message: &str) -> ProgressBar {
+    pub fn step(&self, step: &Step, message: &str) -> Result<(), Error> {
         let msg = format!("{} {}", style(step).bold().dim(), message);
-        self.bar.add(Self::progressbar(&msg))
+        self.message(&msg)
     }
 
-    pub fn message(&self, message: &str) -> ProgressBar {
-        self.bar.add(Self::progressbar(message))
+    fn finish(&self) -> Result<(), Error> {
+        let spinner = self.spinner.read()?;
+        spinner.finish();
+
+        let mut message = self.messages.write()?;
+        print!("{}", message);
+        message.clear();
+
+        Ok(())
     }
 
-    pub fn info(&self, message: &str) {
+    pub fn message(&self, message: &str) -> Result<(), Error> {
+        self.finish()?;
+
+        let mut spinner = self.spinner.write()?;
+        *spinner = Self::progressbar(message);
+        Ok(())
+    }
+
+    fn add_message(&self, msg: &str) -> Result<(), Error> {
+        let mut message = self.messages.write()?;
+        message.push_str("  ");
+        message.push_str(msg);
+        message.push('\n');
+
+        Ok(())
+    }
+
+    pub fn info(&self, message: &str) -> Result<(), Error> {
         let info = format!(
             "{} {}: {}",
             emoji::INFO,
             style("[INFO]").bold().dim(),
             message
         );
-        let bar = self.bar.add(Self::progressbar(&info));
-        bar.finish();
+        self.add_message(&info)?;
+
+        Ok(())
     }
 
-    pub fn warn(&self, message: &str) {
+    pub fn warn(&self, message: &str) -> Result<(), Error> {
         let warn = format!(
             "{} {}: {}",
             emoji::WARN,
             style("[WARN]").bold().dim(),
             message
         );
-        let bar = self.bar.add(Self::progressbar(&warn));
-        bar.finish();
+        self.add_message(&warn)?;
+
+        Ok(())
     }
 
-    pub fn error(&self, message: String) {
+    pub fn error(&self, message: String) -> Result<(), Error> {
         let err = format!(
             "{} {}: {}",
             emoji::ERROR,
             style("[ERR]").bold().dim(),
             message
         );
-        let bar = self.bar.add(Self::progressbar(&err));
-        bar.finish();
+        self.add_message(&err)?;
+
+        Ok(())
     }
 
     fn progressbar(msg: &str) -> ProgressBar {
@@ -70,7 +100,8 @@ impl ProgressOutput {
     }
 
     pub fn done(&self) -> Result<(), Error> {
-        self.bar.join_and_clear().map_err(|e| Error::from(e))
+        self.finish()?;
+        Ok(())
     }
 }
 
@@ -91,5 +122,11 @@ impl Step {
 impl fmt::Display for Step {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         write!(f, "[{}/{}]", self.current, self.total)
+    }
+}
+
+impl Drop for ProgressOutput {
+    fn drop(&mut self) {
+        self.done().unwrap();
     }
 }
