@@ -1,3 +1,5 @@
+use parity_wasm::elements::{self, Serialize};
+
 use bindgen;
 use build;
 use console::style;
@@ -82,9 +84,9 @@ pub enum Command {
 
 #[derive(Clone, Debug, StructOpt)]
 pub struct SnipOpitons {
-        input: Option<String>,
+        input: String,
         #[structopt(long = "output", short = "o")]
-        output: Option<String>,
+        pub(crate) output: Option<String>,
         functions: Vec<String>,
         #[structopt(long = "pattern", short = "p")]
         patterns: Vec<String>,
@@ -94,15 +96,14 @@ pub struct SnipOpitons {
         snip_rust_panicking_code: bool,
 }
 
-impl From<wasm_snip::Options> for SnipOpitons {
-    fn from(opts: wasm_snip::Options) -> Self {
-        SnipOpitons {
-            input: opts.input.to_str().map(::std::borrow::ToOwned::to_owned),
-            output: Default::default(),
-            functions: opts.functions,
-            patterns: opts.patterns,
-            snip_rust_fmt_code: opts.snip_rust_fmt_code,
-            snip_rust_panicking_code: opts.snip_rust_panicking_code,
+impl Into<wasm_snip::Options> for SnipOpitons {
+    fn into(self) -> wasm_snip::Options {
+        wasm_snip::Options {
+            input: ::std::path::PathBuf::from(self.input),
+            functions: self.functions,
+            patterns: self.patterns,
+            snip_rust_fmt_code: self.snip_rust_fmt_code,
+            snip_rust_panicking_code: self.snip_rust_panicking_code,
         }
     }
 }
@@ -156,9 +157,11 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
             login(registry, scope, always_auth, auth_type, &log)
         }
 
-        Command::Snip(_opts) => {
-            unimplemented!()
+        Command::Snip(opts) => {
+            info!(&log,  "Running snip command...");
+            snip(opts)
         }
+
     };
 
     match status {
@@ -347,4 +350,18 @@ fn set_crate_path(path: Option<String>) -> String {
     };
 
     crate_path
+}
+
+fn snip(opts: SnipOpitons) -> Result<(), Error> {
+    let opt = opts.clone();
+     let module = wasm_snip::snip(opts.into())?;
+
+    if let Some(output) = opt.output {
+        elements::serialize_to_file(output, module)?;
+    } else {
+        let stdout = ::std::io::stdout();
+        let mut stdout = stdout.lock();
+        module.serialize(&mut stdout)?;
+    }
+    Ok(())
 }

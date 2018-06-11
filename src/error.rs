@@ -1,11 +1,13 @@
 //! Code related to error handling for wasm-pack
 use curl;
 use serde_json;
+use parity_wasm;
 use std::borrow::Cow;
 use std::io;
 use std::process::ExitStatus;
 use toml;
 use zip;
+use failure;
 
 /// Errors that can potentially occur in `wasm-pack`.
 #[derive(Debug, Fail)]
@@ -212,3 +214,22 @@ impl From<toml::de::Error> for Error {
         Error::SerdeToml(e)
     }
 }
+
+impl From<parity_wasm::elements::Error> for Error {
+    fn from(error: parity_wasm::elements::Error) -> Self {
+        Error::Cli {
+            message: format!("{}", "There was an output Error"),
+            stderr: format!("{}", error),
+        }
+    }
+}
+
+impl From<failure::Error> for Error {
+    fn from(error: failure::Error) -> Self {
+        Error::Cli {
+            message: format!("{}", "There was an wasm-snip Error"),
+            stderr: format!("{}", error),
+        }
+    }
+}
+
