@@ -41,6 +41,7 @@ fn log_file_path(cmd: &Command) -> PathBuf {
         Command::Publish { path, access: _ } => path,
         Command::Test(test_opts) => &test_opts.path,
         Command::Login { .. } => &None,
+        Command::Snip(_)  => &None,
     };
 
     // If the path exists attempt to use it, if not default to the current directory
