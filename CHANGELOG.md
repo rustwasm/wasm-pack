@@ -1,5 +1,169 @@
 # Changelog
 
+## 🌟 0.4.0
+
+This release has a ton of awesome things in it, but the best thing is that
+almost all of this awesome work is brought to you by a **new** contributor
+to `wasm-pack`. Welcome ya'll! We're so glad to have you!
+
+### ✨ Features
+
+- #### 🎏 New Flags
+
+  - **`--mode` flag for skipping steps when calling `init` - [ashleygwilliams], [pull/186]** 
+
+      After teaching and working with `wasm-pack` for some time, it's clear that people would
+      like the flexibility to run some of the steps included in the `init` command and not others.
+      This release introduces a `--mode` flag that you can pass to `init`. The two modes currently
+      available are `skip-build` and `no-installs` and they are explained below. In the future, 
+      we are looking to change the `init` interface, and potentially to split it into two commands.
+      If you have thoughts or opinions on this, please weigh in on [issue/188]!
+
+      [issue/188]: https://github.com/ashleygwilliams/wasm-pack/issues/188
+      [pull/186]: https://github.com/ashleygwilliams/wasm-pack/pull/186
+
+    - **`skip-build` mode - [kohensu], [pull/151]**
+
+      ```
+      wasm-pack init --mode skip-build
+      ```
+
+      Sometimes you want to run some of the shorter meta-data steps that
+      `wasm-pack init` does for you without all the longer build steps. Now
+      you can! Additionally, this PR was a fantastic refactor that allows even
+      more custom build configurations will be simple to implement!
+
+      [kohensu]: https://github.com/kohensu
+      [pull/151]: https://github.com/ashleygwilliams/wasm-pack/pull/151
+
+    - **`no-installs` mode - [ashleygwilliams], [pull/186]**
+
+      ```
+      wasm-pack init --mode no-installs
+      ```
+
+      Sometimes you want to run `wasm-pack` and not have it modify your global
+      env by installing stuff! Or maybe you are just in a hurry and trust your
+      env is set up correctly- now the `--mode no-install` option allows you to
+      do this.
+
+  - **`--debug`  - [clanehin], [pull/127]**
+
+    ```
+    wasm-pack init --debug
+    ```
+
+    Find yourself needing to compile your Rust in `development` mode? You can now
+    pass the `--debug` flag to do so! Thanks so much to [clanehin] for filing 
+    [issue/126] for this feature... and then implementing it!
+
+    [pull/127]: https://github.com/ashleygwilliams/wasm-pack/pull/127
+    [issue/126]: https://github.com/ashleygwilliams/wasm-pack/issues/126
+    [clanehin]: https://github.com/clanehin
+
+- #### ✅ New Checks
+
+  - **ensure you have `cdylib` crate type - [kendromelon], [pull/150]**
+
+    One of the biggest mistakes we've seen beginners make is forgetting to declare
+    the `cdylib` crate type in their `Cargo.toml` before running `wasm-pack init`.
+    This PR fixes that, and comes from someone who ran into this exact issue learning
+    about `wasm-pack` at [JSConfEU]! Love when it works out like this.
+
+    [JSConfEU]: https://2018.jsconf.eu/
+    [kendromelon]: https://github.com/kedromelon
+    [pull/150]: https://github.com/ashleygwilliams/wasm-pack/pull/150
+
+  - **ensure you have declared wasm-bindgen as a dep - [robertohuertasm], [pull/162]**
+
+    Another easy mistake to make is to forget to declare `wasm-bindgen` as a
+    dependency in your `Cargo.toml`. Now `wasm-pack` will check and make sure you
+    have it set before doing a bunch of long build steps :)
+
+    [robertohuertasm]: https://github.com/robertohuertasm
+    [pull/162]: https://github.com/ashleygwilliams/wasm-pack/pull/162
+
+  - **ensure you are running `nightly` - [FreeMasen], [pull/172]**
+
+    `wasm-pack` currently requires that you run it with `nightly` Rust. Now, `wasm-pack`
+    will make sure you have `nightly` installed and will ensure that `cargo build` is run
+    with `nightly`. Thanks so much to [FreeMasen] for filing [issue/171] and fixing it!
+
+    [FreeMasen]: https://github.com/FreeMasen
+    [issue/171]: https://github.com/ashleygwilliams/wasm-pack/issues/171
+    [pull/172]: https://github.com/ashleygwilliams/wasm-pack/pull/172
+
+### 🤕 Fixes
+
+- **fixed broken progress bar spinner - [migerh], [pull/164]**
+
+  Oh no! We broke the progress bar spinner in version 0.3.0. Thankfully, it's
+  fixed now- with a thoughtful refactor that also makes the underlying code
+  sounder overall.
+
+[migerh]: https://github.com/migerh
+[pull/164]: https://github.com/ashleygwilliams/wasm-pack/pull/164
+
+### 🛠️ Maintenance
+
+- **WIP bot - [ashleygwilliams] & [mgattozzi], [issue/170]**
+
+  We've got a lot of work happening on `wasm-pack` so it's good to have a bit
+  of protection from accidentally merging a Work In Progress. As a result, we
+  now have the [WIP Github App] set up on `wasm-pack`. Great suggestion [mgattozzi]!
+
+  [WIP Github App]: https://github.com/wip/app
+  [issue/170]: https://github.com/ashleygwilliams/wasm-pack/issues/170
+
+- **modularize `command.rs` - [ashleygwilliams], [pull/182]**
+
+  Thanks to the growth of `wasm-pack`, `command.rs` was getting pretty long.
+  We've broken it out into per command modules now, to help make it easier to
+  read and maintain!
+
+  [pull/182]: https://github.com/ashleygwilliams/wasm-pack/pull/182
+
+- **improve PoisonError conversion - [migerh], [pull/187]**
+
+  As part of the awesome progress bar spinner fix in [pull/164], [migerh] introduced
+  a small concern with an `unwrap` due to an outstanding need to convert `PoisonError`
+  into `wasm-pack`'s custom `Error`. Though not a critical concern, [migerh] mitigated
+  this right away by replacing `std::sync::RwLock` with the [`parking_lot` crate]!
+  This cleaned up the code even more than the previous patch!
+
+  [`parking_lot` crate]: https://github.com/Amanieu/parking_lot
+  [pull/187]: https://github.com/ashleygwilliams/wasm-pack/pull/187
+
+- **wasm category for crates.io discovery- [TomasHubelbauer], [pull/149]**
+
+  [crates.io] has [categories] to help folks discover crates, be we weren't
+  leveraging it! Now- if you explore the [`wasm` category] on [crates.io]
+  you'll see `wasm-pack`!
+
+[crates.io]: https://crates.io/
+[categories]: https://crates.io/categories
+[`wasm` category]: https://crates.io/categories/wasm
+[TomasHubelbauer]: https://github.com/TomasHubelbauer
+[pull/149]: https://github.com/ashleygwilliams/wasm-pack/pull/149
+
+- **human panic is now 1.0.0 - [spacekookie], [pull/156]**
+
+  Congrats friends! We like what you do.
+
+[pull/156]: https://github.com/ashleygwilliams/wasm-pack/pull/156
+[spacekookie]: https://github.com/spacekookie
+
+### 📖 Documentation
+
+- **cleaned up the README - [ashleygwilliams], [pull/155]**
+
+  Our `README` was struggling with a common problem- doing too much at once.
+  More specifically, it wasn't clear who the audience was, contributers or 
+  end users? We've cleaned up our README and created a document specifically
+  to help contributors get up and running.
+
+[pull/155]: https://github.com/ashleygwilliams/wasm-pack/pull/155
+
 ## 🌠 0.3.1
 
 Babby's first point release! Are we a real project now?
