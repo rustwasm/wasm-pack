@@ -146,14 +146,9 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
         Ok(_) => {}
         Err(ref e) => {
             error!(&log, "{}", e);
-            PBAR.error(e.error_type());
+            PBAR.error(e.error_type())?;
         }
     }
-
-    // Make sure we always clear the progress bar before we abort the program otherwise
-    // stderr and stdout output get eaten up and nothing will work. If this part fails
-    // to work and clear the progress bars then you're really having a bad day with your tools.
-    PBAR.done()?;
 
     // Return the actual status of the program to the main function
     status
@@ -164,10 +159,9 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
 // the correct type here.
 pub fn create_pkg_dir(path: &str, step: &Step) -> result::Result<(), Error> {
     let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
-    let pb = PBAR.step(step, &msg);
+    PBAR.step(step, &msg)?;
     let pkg_dir_path = format!("{}/pkg", path);
     fs::create_dir_all(pkg_dir_path)?;
-    pb.finish();
     Ok(())
 }
 
@@ -257,13 +251,13 @@ impl Init {
             "Your WASM pkg is ready to publish at {}/pkg.", &self.crate_path
         );
 
-        PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
+        PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration))?;
 
         PBAR.message(&format!(
             "{} Your WASM pkg is ready to publish at {}/pkg.",
             emoji::PACKAGE,
             &self.crate_path
-        ));
+        ))?;
         Ok(())
     }
 
@@ -420,7 +414,7 @@ fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     #[cfg(target_os = "windows")]
     info!(&log, "Your package is located at {}\\pkg", &crate_path);
 
-    PBAR.message("🎒  packed up your package!");
+    PBAR.message("🎒  packed up your package!")?;
     Ok(())
 }
 
@@ -432,7 +426,7 @@ fn publish(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     npm::npm_publish(&crate_path)?;
     info!(&log, "Published your package!");
 
-    PBAR.message("💥  published your package!");
+    PBAR.message("💥  published your package!")?;
     Ok(())
 }
 
@@ -458,7 +452,7 @@ fn login(
     npm::npm_login(&registry, &scope, always_auth, &auth_type)?;
     info!(&log, "Logged you in!");
 
-    PBAR.message(&format!("👋  logged you in!"));
+    PBAR.message(&format!("👋  logged you in!"))?;
     Ok(())
 }
 

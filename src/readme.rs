@@ -7,12 +7,11 @@ use PBAR;
 
 pub fn copy_from_crate(path: &str, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Copying over your README...", emoji::DANCERS);
-    let pb = PBAR.step(step, &msg);
+    PBAR.step(step, &msg)?;
     let crate_readme_path = format!("{}/README.md", path);
     let new_readme_path = format!("{}/pkg/README.md", path);
     if let Err(_) = fs::copy(&crate_readme_path, &new_readme_path) {
-        PBAR.warn("origin crate has no README");
+        PBAR.warn("origin crate has no README")?;
     };
-    pb.finish();
     Ok(())
 }
