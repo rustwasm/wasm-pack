@@ -111,7 +111,7 @@ pub fn write_package_json(
         )
     };
 
-    let pb = PBAR.message(&step);
+    PBAR.message(&step);
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
@@ -129,7 +129,6 @@ pub fn write_package_json(
 
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
-    pb.finish();
     Ok(())
 }
 

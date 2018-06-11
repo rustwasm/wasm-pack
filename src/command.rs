@@ -133,11 +133,6 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
         }
     }
 
-    // Make sure we always clear the progress bar before we abort the program otherwise
-    // stderr and stdout output get eaten up and nothing will work. If this part fails
-    // to work and clear the progress bars then you're really having a bad day with your tools.
-    PBAR.done()?;
-
     // Return the actual status of the program to the main function
     status
 }
@@ -151,10 +146,9 @@ pub fn create_pkg_dir(path: &str) -> result::Result<(), Error> {
         style("[3/7]").bold().dim(),
         emoji::FOLDER
     );
-    let pb = PBAR.message(&step);
+    PBAR.message(&step);
     let pkg_dir_path = format!("{}/pkg", path);
     fs::create_dir_all(pkg_dir_path)?;
-    pb.finish();
     Ok(())
 }
 
