@@ -1,6 +1,7 @@
 //! Code related to error handling for wasm-pack
 use serde_json;
 use std::borrow::Cow;
+use std::env;
 use std::io;
 use toml;
 
@@ -13,6 +14,8 @@ pub enum Error {
     SerdeJson(#[cause] serde_json::Error),
     #[fail(display = "{}", _0)]
     SerdeToml(#[cause] toml::de::Error),
+    #[fail(display = "{}", _0)]
+    VarError(#[cause] env::VarError),
     #[fail(display = "{}. stderr:\n\n{}", message, stderr)]
     Cli { message: String, stderr: String },
 }
@@ -30,6 +33,7 @@ impl Error {
             Error::Io(_) => "There was an I/O error. Details:\n\n",
             Error::SerdeJson(_) => "There was an JSON error. Details:\n\n",
             Error::SerdeToml(_) => "There was an TOML error. Details:\n\n",
+            Error::VarError(_) => "There was an error finding an environment variable. Details:\n\n",
             Error::Cli {
                 message: _,
                 stderr: _,
@@ -53,5 +57,11 @@ impl From<serde_json::Error> for Error {
 impl From<toml::de::Error> for Error {
     fn from(e: toml::de::Error) -> Self {
         Error::SerdeToml(e)
+    }
+}
+
+impl From<env::VarError> for Error {
+    fn from(e: env::VarError) -> Self {
+        Error::VarError(e)
     }
 }
