@@ -25,20 +25,22 @@ pub fn rustup_add_wasm_target() -> Result<(), Error> {
     }
 }
 
-pub fn cargo_build_wasm(path: &str) -> Result<(), Error> {
+pub fn cargo_build_wasm(path: &str, debug: bool) -> Result<(), Error> {
     let step = format!(
         "{} {}Compiling to WASM...",
         style("[2/7]").bold().dim(),
         emoji::CYCLONE
     );
     let pb = PBAR.message(&step);
-    let output = Command::new("cargo")
-        .current_dir(path)
-        .arg("build")
-        .arg("--release")
-        .arg("--target")
-        .arg("wasm32-unknown-unknown")
-        .output()?;
+    let output = {
+        let mut cmd = Command::new("cargo");
+        cmd.current_dir(path).arg("build");
+        if !debug {
+            cmd.arg("--release");
+        }
+        cmd.arg("--target").arg("wasm32-unknown-unknown");
+        cmd.output()?
+    };
     pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
