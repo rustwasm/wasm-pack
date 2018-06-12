@@ -11,6 +11,8 @@ use PBAR;
 #[derive(Deserialize)]
 struct CargoManifest {
     package: CargoPackage,
+    dependencies: Option<CargoDependencies>,
+    lib: Option<CargoLib>,
 }
 
 #[derive(Deserialize)]
@@ -21,6 +23,18 @@ struct CargoPackage {
     version: String,
     license: Option<String>,
     repository: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct CargoDependencies {
+    #[serde(rename = "wasm-bindgen")]
+    wasm_bindgen: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct CargoLib {
+    #[serde(rename = "crate-type")]
+    crate_type: Option<Vec<String>>,
 }
 
 #[derive(Serialize)]
@@ -134,4 +148,33 @@ pub fn write_package_json(
 
 pub fn get_crate_name(path: &str) -> Result<String, Error> {
     Ok(read_cargo_toml(path)?.package.name)
+}
+
+pub fn check_wasm_bindgen(path: &str) -> Result<(), Error> {
+    if read_cargo_toml(path)?.dependencies.map_or(false, |x| {
+        !x.wasm_bindgen.unwrap_or("".to_string()).is_empty()
+    }) {
+        return Ok(());
+    }
+    Error::crate_config(&format!(
+        "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n[dependencies]\nwasm-bindgen = \"0.2\"",
+        style("wasm-bindgen").bold().dim()
+    ))
+}
+
+fn has_cdylib(path: &str) -> Result<bool, Error> {
+    Ok(read_cargo_toml(path)?.lib.map_or(false, |lib| {
+        lib.crate_type
+            .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
+    }))
+}
+
+pub fn check_crate_type(path: &str) -> Result<(), Error> {
+    if !has_cdylib(path)? {
+        Error::crate_config(
+            "crate-type must include cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:\n\n[lib]\ncrate-type = [\"cdylib\"]"
+        )
+    } else {
+        Ok(())
+    }
 }
