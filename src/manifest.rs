@@ -11,6 +11,7 @@ use PBAR;
 #[derive(Deserialize)]
 struct CargoManifest {
     package: CargoPackage,
+    dependencies: Option<CargoDependencies>,
     lib: Option<CargoLib>,
 }
 
@@ -22,6 +23,12 @@ struct CargoPackage {
     version: String,
     license: Option<String>,
     repository: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct CargoDependencies {
+    #[serde(rename = "wasm-bindgen")]
+    wasm_bindgen: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -142,6 +149,18 @@ pub fn write_package_json(
 
 pub fn get_crate_name(path: &str) -> Result<String, Error> {
     Ok(read_cargo_toml(path)?.package.name)
+}
+
+pub fn check_wasm_bindgen(path: &str) -> Result<(), Error> {
+    if read_cargo_toml(path)?.dependencies.map_or(false, |x| {
+        !x.wasm_bindgen.unwrap_or("".to_string()).is_empty()
+    }) {
+        return Ok(());
+    }
+    Error::crate_config(&format!(
+        "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n[dependencies]\nwasm-bindgen = \"0.2\"",
+        style("wasm-bindgen").bold().dim()
+    ))
 }
 
 fn has_cdylib(path: &str) -> Result<bool, Error> {

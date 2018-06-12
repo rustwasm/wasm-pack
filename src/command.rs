@@ -176,6 +176,10 @@ fn init(
 
     let crate_path = set_crate_path(path);
 
+    info!(&log, "Checking wasm-bindgen dependency...");
+    manifest::check_wasm_bindgen(&crate_path)?;
+    info!(&log, "wasm-bindgen dependency is correctly declared.");
+
     info!(&log, "Adding wasm-target...");
     build::rustup_add_wasm_target()?;
     info!(&log, "Adding wasm-target was successful.");
