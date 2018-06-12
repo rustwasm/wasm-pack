@@ -26,10 +26,7 @@ deploy:
   artifact: /.*\.tar.gz/
   description: 'Appveyor Automated Release'
   provider: GitHub
-  draft: false
-  prerelease: false
   autho_token:
     secure: iHsRUqwGf/Zh7OuYpHOWQL8buaOL+c8/6kXLRly8V2j0LCUo7CcDs0NxQ0vl2bhZ
   on:
-    branch: master
     appveyor_repo_tag: true
