@@ -10,7 +10,7 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
         style("[6/7]").bold().dim(),
         emoji::DOWN_ARROW
     );
-    PBAR.message(&step);
+    PBAR.message(&step)?;
     let output = Command::new("cargo")
         .arg("install")
         .arg("wasm-bindgen-cli")
@@ -19,7 +19,7 @@ pub fn cargo_install_wasm_bindgen() -> Result<(), Error> {
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
         if s.contains("already exists") {
-            PBAR.info("wasm-bindgen already installed");
+            PBAR.info("wasm-bindgen already installed")?;
             return Ok(());
         }
         Error::cli("Installing wasm-bindgen failed", s)
@@ -39,7 +39,7 @@ pub fn wasm_bindgen_build(
         style("[7/7]").bold().dim(),
         emoji::RUNNER
     );
-    PBAR.message(&step);
+    PBAR.message(&step)?;
     let binary_name = name.replace("-", "_");
     let wasm_path = format!("target/wasm32-unknown-unknown/release/{}.wasm", binary_name);
 

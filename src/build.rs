@@ -10,7 +10,7 @@ pub fn rustup_add_wasm_target() -> Result<(), Error> {
         style("[1/7]").bold().dim(),
         emoji::TARGET
     );
-    PBAR.message(&step);
+    PBAR.message(&step)?;
     let output = Command::new("rustup")
         .arg("target")
         .arg("add")
@@ -30,7 +30,7 @@ pub fn cargo_build_wasm(path: &str) -> Result<(), Error> {
         style("[2/7]").bold().dim(),
         emoji::CYCLONE
     );
-    PBAR.message(&step);
+    PBAR.message(&step)?;
     let output = Command::new("cargo")
         .current_dir(path)
         .arg("build")

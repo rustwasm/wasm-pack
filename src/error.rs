@@ -2,6 +2,7 @@
 use serde_json;
 use std::borrow::Cow;
 use std::io;
+use std::sync::PoisonError;
 use toml;
 
 #[derive(Debug, Fail)]
@@ -13,6 +14,8 @@ pub enum Error {
     SerdeJson(#[cause] serde_json::Error),
     #[fail(display = "{}", _0)]
     SerdeToml(#[cause] toml::de::Error),
+    #[fail(display = "Acquiring lock failed")]
+    PoisonedLockError,
     #[fail(display = "{}. stderr:\n\n{}", message, stderr)]
     Cli { message: String, stderr: String },
 }
@@ -30,6 +33,7 @@ impl Error {
             Error::Io(_) => "There was an I/O error. Details:\n\n",
             Error::SerdeJson(_) => "There was an JSON error. Details:\n\n",
             Error::SerdeToml(_) => "There was an TOML error. Details:\n\n",
+            Error::PoisonedLockError => "There was an RwLock error. Details: \n\n",
             Error::Cli {
                 message: _,
                 stderr: _,
@@ -53,5 +57,11 @@ impl From<serde_json::Error> for Error {
 impl From<toml::de::Error> for Error {
     fn from(e: toml::de::Error) -> Self {
         Error::SerdeToml(e)
+    }
+}
+
+impl<T> From<PoisonError<T>> for Error {
+    fn from(_: PoisonError<T>) -> Self {
+        Error::PoisonedLockError
     }
 }
