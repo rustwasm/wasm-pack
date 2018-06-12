@@ -3,4 +3,7 @@ name = "bad-cargo-toml"
 version = "0.1.0"
 authors = ["Michael Gattozzi <mgattozzi@gmail.com>"]
 
+[lib]
+crate-type = ["foo"]
+
 [dependencies]

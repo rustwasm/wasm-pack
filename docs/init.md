@@ -46,4 +46,15 @@ This command would create a `package.json` file for a package called
 `@test/js-hello-world`. For more information about scoping, you can refer to
 the npm documentation [here][npm-scope-documentation].
 
+## Debug
+
+The init command accepts an optional `--debug` argument. This will build the
+output package using cargo's
+[default non-release profile][cargo-profile-sections-documentation]. Building
+this way is faster but applies few optimizations to the output, and enables
+debug assertions and other runtime correctness checks.
+
+The exact meaning of this flag may evolve as the platform matures.
+
 [npm-scope-documentation]: https://docs.npmjs.com/misc/scope
+[cargo-profile-sections-documentation]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-profile-sections

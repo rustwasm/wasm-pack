@@ -26,6 +26,21 @@ fn it_gets_the_crate_name_provided_path() {
 }
 
 #[test]
+fn it_checks_has_cdylib_default_path() {
+    assert!(manifest::check_crate_type(".").is_err());
+}
+
+#[test]
+fn it_checks_has_cdylib_provided_path() {
+    assert!(manifest::check_crate_type("tests/fixtures/js-hello-world").is_ok());
+}
+
+#[test]
+fn it_checks_has_cdylib_wrong_crate_type() {
+    assert!(manifest::check_crate_type("tests/fixtures/bad-cargo-toml").is_err());
+}
+
+#[test]
 fn it_creates_a_package_json_default_path() {
     let path = ".".to_string();
     wasm_pack::command::create_pkg_dir(&path).unwrap();

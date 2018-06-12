@@ -34,6 +34,7 @@ pub fn wasm_bindgen_build(
     name: &str,
     disable_dts: bool,
     target: String,
+    debug: bool,
 ) -> Result<(), Error> {
     let step = format!(
         "{} {}Running WASM-bindgen...",
@@ -42,8 +43,11 @@ pub fn wasm_bindgen_build(
     );
     let pb = PBAR.message(&step);
     let binary_name = name.replace("-", "_");
-    let wasm_path = format!("target/wasm32-unknown-unknown/release/{}.wasm", binary_name);
-
+    let release_or_debug = if debug { "debug" } else { "release" };
+    let wasm_path = format!(
+        "target/wasm32-unknown-unknown/{}/{}.wasm",
+        release_or_debug, binary_name
+    );
     let dts_arg = if disable_dts == false {
         "--typescript"
     } else {
