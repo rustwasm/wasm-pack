@@ -218,6 +218,19 @@ fn init(
     #[cfg(target_os = "windows")]
     info!(&log, "Copied readme from crate to {}\\pkg.", &crate_path);
 
+    info!(&log, "Checking the crate type from the manifest...");
+    manifest::check_crate_type(&crate_path)?;
+    #[cfg(not(target_os = "windows"))]
+    info!(
+        &log,
+        "Checked crate type from the manifest at {}/Cargo.toml.", &crate_path
+    );
+    #[cfg(target_os = "windows")]
+    info!(
+        &log,
+        "Checked crate type from the manifest at {}\\Cargo.toml.", &crate_path
+    );
+
     info!(&log, "Installing wasm-bindgen-cli...");
     bindgen::cargo_install_wasm_bindgen()?;
     info!(&log, "Installing wasm-bindgen-cli was successful.");
