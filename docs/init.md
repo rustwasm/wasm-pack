@@ -58,3 +58,15 @@ The exact meaning of this flag may evolve as the platform matures.
 
 [npm-scope-documentation]: https://docs.npmjs.com/misc/scope
 [cargo-profile-sections-documentation]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-profile-sections
+
+## Skipping build
+
+The init command accepts an optional `--skip-build` argument.
+
+This will deactivate those steps:
+- installing wasm target (via cargo)
+- compiling the code to wasm
+- installing wasm-bindgen (via rustup)
+- running wasm-bindgen on the built wasm
+
+Basically it will remains only the steps that update the metadata of `package.json`.

@@ -4,6 +4,7 @@ use std::io::prelude::*;
 use console::style;
 use emoji;
 use error::Error;
+use progressbar::Step;
 use serde_json;
 use toml;
 use PBAR;
@@ -67,7 +68,7 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 impl CargoManifest {
-    fn into_npm(mut self, scope: Option<String>, disable_dts: bool) -> NpmPackage {
+    fn into_npm(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
@@ -109,14 +110,11 @@ impl CargoManifest {
 /// Generate a package.json file inside in `./pkg`.
 pub fn write_package_json(
     path: &str,
-    scope: Option<String>,
+    scope: &Option<String>,
     disable_dts: bool,
+    step: &Step,
 ) -> Result<(), Error> {
-    let step = format!(
-        "{} {}Writing a package.json...",
-        style("[4/7]").bold().dim(),
-        emoji::MEMO
-    );
+    let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
     let warn_fmt = |field| {
         format!(
@@ -125,7 +123,7 @@ pub fn write_package_json(
         )
     };
 
-    let pb = PBAR.message(&step);
+    let pb = PBAR.step(step, &msg);
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;

@@ -1,16 +1,12 @@
-use console::style;
 use emoji;
 use error::Error;
+use progressbar::Step;
 use std::process::Command;
 use PBAR;
 
-pub fn rustup_add_wasm_target() -> Result<(), Error> {
-    let step = format!(
-        "{} {}Adding WASM target...",
-        style("[1/7]").bold().dim(),
-        emoji::TARGET
-    );
-    let pb = PBAR.message(&step);
+pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
+    let msg = format!("{}Adding WASM target...", emoji::TARGET);
+    let pb = PBAR.step(step, &msg);
     let output = Command::new("rustup")
         .arg("target")
         .arg("add")
@@ -25,13 +21,9 @@ pub fn rustup_add_wasm_target() -> Result<(), Error> {
     }
 }
 
-pub fn cargo_build_wasm(path: &str, debug: bool) -> Result<(), Error> {
-    let step = format!(
-        "{} {}Compiling to WASM...",
-        style("[2/7]").bold().dim(),
-        emoji::CYCLONE
-    );
-    let pb = PBAR.message(&step);
+pub fn cargo_build_wasm(path: &str, debug: bool, step: &Step) -> Result<(), Error> {
+    let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
+    let pb = PBAR.step(step, &msg);
     let output = {
         let mut cmd = Command::new("cargo");
         cmd.current_dir(path).arg("build");
