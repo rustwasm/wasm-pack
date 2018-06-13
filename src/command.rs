@@ -185,6 +185,8 @@ struct Init {
     crate_name: Option<String>,
 }
 
+type InitStep = fn(&mut Init, &Step, &Logger) -> result::Result<(), Error>;
+
 impl Init {
     pub fn new(
         path: Option<String>,
@@ -203,32 +205,47 @@ impl Init {
         }
     }
 
-    pub fn process(&mut self, log: &Logger, mode: InitMode) -> result::Result<(), Error> {
-        let process_steps: Vec<fn(&mut Init, &Step, &Logger) -> result::Result<(), Error>> =
-            match mode {
-                InitMode::Normal => vec![
-                    Init::step_check_dependency,
-                    Init::step_add_wasm_target,
-                    Init::step_build_wasm,
-                    Init::step_create_dir,
-                    Init::step_create_json,
-                    Init::step_copy_readme,
-                    Init::step_check_create_type,
-                    Init::step_install_wasm_bindgen,
-                    Init::step_running_wasm_bindgen,
-                ],
-                InitMode::Nobuild => vec![
-                    Init::step_check_dependency,
-                    Init::step_create_dir,
-                    Init::step_create_json,
-                    Init::step_copy_readme,
-                ],
+    fn get_process_steps(mode: InitMode) -> Vec<(&'static str, InitStep)> {
+        macro_rules! steps {
+            ($($name:ident),+) => {
+                {
+                    let mut steps: Vec<(&'static str, InitStep)> = Vec::new();
+                    $(steps.push((stringify!($name), Init::$name));)*
+                    steps
+                }
             };
+            ($($name:ident,)*) => (steps![$($name),*])
+        }
+
+        match mode {
+            InitMode::Normal => steps![
+                step_check_dependency,
+                step_add_wasm_target,
+                step_build_wasm,
+                step_create_dir,
+                step_create_json,
+                step_copy_readme,
+                step_check_create_type,
+                step_install_wasm_bindgen,
+                step_running_wasm_bindgen,
+            ],
+            InitMode::Nobuild => steps![
+                step_check_dependency,
+                step_create_dir,
+                step_create_json,
+                step_copy_readme,
+            ],
+        }
+    }
+
+    pub fn process(&mut self, log: &Logger, mode: InitMode) -> result::Result<(), Error> {
+        let process_steps = Init::get_process_steps(mode);
+
         let mut step_counter = Step::new(process_steps.len());
 
         let started = Instant::now();
 
-        for process_step in process_steps {
+        for (_, process_step) in process_steps {
             process_step(self, &step_counter, log)?;
             step_counter.inc();
         }
@@ -452,4 +469,48 @@ fn set_crate_path(path: Option<String>) -> String {
     };
 
     crate_path
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn init_normal_build() {
+        let steps: Vec<&str> = Init::get_process_steps(InitMode::Normal)
+            .into_iter()
+            .map(|(n, _)| n)
+            .collect();
+        assert_eq!(
+            steps,
+            [
+                "step_check_dependency",
+                "step_add_wasm_target",
+                "step_build_wasm",
+                "step_create_dir",
+                "step_create_json",
+                "step_copy_readme",
+                "step_check_create_type",
+                "step_install_wasm_bindgen",
+                "step_running_wasm_bindgen"
+            ]
+        );
+    }
+
+    #[test]
+    fn init_skip_build() {
+        let steps: Vec<&str> = Init::get_process_steps(InitMode::Nobuild)
+            .into_iter()
+            .map(|(n, _)| n)
+            .collect();
+        assert_eq!(
+            steps,
+            [
+                "step_check_dependency",
+                "step_create_dir",
+                "step_create_json",
+                "step_copy_readme"
+            ]
+        );
+    }
 }
