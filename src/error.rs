@@ -216,19 +216,21 @@ impl From<toml::de::Error> for Error {
     }
 }
 
+/// wasm-snip occurs error when trying to print out the result.
 impl From<parity_wasm::elements::Error> for Error {
     fn from(error: parity_wasm::elements::Error) -> Self {
         Error::Cli {
-            message: format!("{}", "There was an output Error"),
+            message: "There was an wasm-snip output Error".to_owned(),
             stderr: format!("{}", error),
         }
     }
 }
 
+/// wasm-snip occurs error when working with inputs.
 impl From<failure::Error> for Error {
     fn from(error: failure::Error) -> Self {
         Error::Cli {
-            message: format!("{}", "There was an wasm-snip Error"),
+            message: "There was an wasm-snip Error".to_owned(),
             stderr: format!("{}", error),
         }
     }

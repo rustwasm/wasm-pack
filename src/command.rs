@@ -352,10 +352,9 @@ fn set_crate_path(path: Option<String>) -> String {
 }
 
 fn snip(opts: SnipOpitons) -> Result<(), Error> {
-    let opt = opts.clone();
-    let module = wasm_snip::snip(opts.into())?;
+    let module = wasm_snip::snip(opts.clone().into())?;
 
-    if let Some(output) = opt.output {
+    if let Some(output) = opts.output {
         elements::serialize_to_file(output, module)?;
     } else {
         let stdout = ::std::io::stdout();
