@@ -101,6 +101,6 @@ impl ProgressOutput {
 
 impl Drop for ProgressOutput {
     fn drop(&mut self) {
-        self.done().ok();
+        self.done().unwrap();
     }
 }
