@@ -219,7 +219,7 @@ impl Init {
                 step_create_dir,
                 step_create_json,
                 step_copy_readme,
-                step_check_create_type,
+                step_check_crate_type,
                 step_install_wasm_bindgen,
                 step_running_wasm_bindgen,
             ],
@@ -331,7 +331,7 @@ impl Init {
         Ok(())
     }
 
-    fn step_check_create_type(&mut self, _step: &Step, log: &Logger) -> result::Result<(), Error> {
+    fn step_check_crate_type(&mut self, _step: &Step, log: &Logger) -> result::Result<(), Error> {
         info!(&log, "Checking the crate type from the manifest...");
         manifest::check_crate_type(&self.crate_path)?;
         #[cfg(not(target_os = "windows"))]
@@ -484,7 +484,7 @@ mod test {
                 "step_create_dir",
                 "step_create_json",
                 "step_copy_readme",
-                "step_check_create_type",
+                "step_check_crate_type",
                 "step_install_wasm_bindgen",
                 "step_running_wasm_bindgen"
             ]
