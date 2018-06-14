@@ -6,7 +6,7 @@ use PBAR;
 
 pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     let msg = format!("{}Adding WASM target...", emoji::TARGET);
-    let pb = PBAR.step(step, &msg);
+    PBAR.step(step, &msg)?;
     ensure_nightly()?;
     let output = Command::new("rustup")
         .arg("target")
@@ -15,7 +15,6 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
         .arg("--toolchain")
         .arg("nightly")
         .output()?;
-    pb.finish();
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
         Error::cli("Adding the wasm32-unknown-unknown target failed", s)
@@ -42,7 +41,7 @@ fn ensure_nightly() -> Result<(), Error> {
 
 pub fn cargo_build_wasm(path: &str, debug: bool, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
-    let pb = PBAR.step(step, &msg);
+    PBAR.step(step, &msg)?;
     let output = {
         let mut cmd = Command::new("cargo");
         cmd.current_dir(path).arg("+nightly").arg("build");
@@ -52,7 +51,7 @@ pub fn cargo_build_wasm(path: &str, debug: bool, step: &Step) -> Result<(), Erro
         cmd.arg("--target").arg("wasm32-unknown-unknown");
         cmd.output()?
     };
-    pb.finish();
+
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
         Error::cli("Compilation of your program failed", s)
