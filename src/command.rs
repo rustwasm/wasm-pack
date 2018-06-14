@@ -224,7 +224,6 @@ impl Init {
                 step_running_wasm_bindgen,
             ],
             InitMode::Nobuild => steps![
-                step_check_dependency,
                 step_create_dir,
                 step_create_json,
                 step_copy_readme,
