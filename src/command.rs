@@ -213,13 +213,12 @@ impl Init {
 
         match mode {
             InitMode::Normal => steps![
-                step_check_dependency,
+                step_check_crate_config,
                 step_add_wasm_target,
                 step_build_wasm,
                 step_create_dir,
                 step_create_json,
                 step_copy_readme,
-                step_check_crate_type,
                 step_install_wasm_bindgen,
                 step_running_wasm_bindgen,
             ],
@@ -260,10 +259,10 @@ impl Init {
         Ok(())
     }
 
-    fn step_check_dependency(&mut self, _step: &Step, log: &Logger) -> result::Result<(), Error> {
-        info!(&log, "Checking wasm-bindgen dependency...");
-        manifest::check_wasm_bindgen(&self.crate_path)?;
-        info!(&log, "wasm-bindgen dependency is correctly declared.");
+    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+        info!(&log, "Checking crate configuration...");
+        manifest::check_crate_config(&self.crate_path, step)?;
+        info!(&log, "Crate is correctly configured.");
         Ok(())
     }
 
@@ -327,23 +326,6 @@ impl Init {
             &log,
             "Copied readme from crate to {}\\pkg.", &self.crate_path
         );
-        Ok(())
-    }
-
-    fn step_check_crate_type(&mut self, _step: &Step, log: &Logger) -> result::Result<(), Error> {
-        info!(&log, "Checking the crate type from the manifest...");
-        manifest::check_crate_type(&self.crate_path)?;
-        #[cfg(not(target_os = "windows"))]
-        info!(
-            &log,
-            "Checked crate type from the manifest at {}/Cargo.toml.", &self.crate_path
-        );
-        #[cfg(target_os = "windows")]
-        info!(
-            &log,
-            "Checked crate type from the manifest at {}\\Cargo.toml.", &self.crate_path
-        );
-
         Ok(())
     }
 
@@ -477,13 +459,12 @@ mod test {
         assert_eq!(
             steps,
             [
-                "step_check_dependency",
+                "step_check_crate_config",
                 "step_add_wasm_target",
                 "step_build_wasm",
                 "step_create_dir",
                 "step_create_json",
                 "step_copy_readme",
-                "step_check_crate_type",
                 "step_install_wasm_bindgen",
                 "step_running_wasm_bindgen"
             ]
@@ -499,7 +480,6 @@ mod test {
         assert_eq!(
             steps,
             [
-                "step_check_dependency",
                 "step_create_dir",
                 "step_create_json",
                 "step_copy_readme"
