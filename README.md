@@ -49,7 +49,7 @@ customize the log verbosity using the verbosity flag.
 Read our [guide] on getting up and running for developing `wasm-pack`, and
 check out our [contribution policy].
 
-[guide]: doc/contributing.md
+[guide]: docs/contributing.md
 [contribution policy]: CONTRIBUTING.md
 
 ## ⚡ Quickstart Guide
