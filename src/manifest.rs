@@ -160,19 +160,14 @@ pub fn check_wasm_bindgen(path: &str) -> Result<(), Error> {
     ))
 }
 
-fn has_cdylib(path: &str) -> Result<bool, Error> {
-    Ok(read_cargo_toml(path)?.lib.map_or(false, |lib| {
+pub fn check_crate_type(path: &str) -> Result<(), Error> {
+    if read_cargo_toml(path)?.lib.map_or(false, |lib| {
         lib.crate_type
             .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
-    }))
-}
-
-pub fn check_crate_type(path: &str) -> Result<(), Error> {
-    if !has_cdylib(path)? {
-        Error::crate_config(
-            "crate-type must include cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:\n\n[lib]\ncrate-type = [\"cdylib\"]"
-        )
-    } else {
-        Ok(())
+    }) {
+        return Ok(());
     }
+    Error::crate_config(
+      "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:\n\n[lib]\ncrate-type = [\"cdylib\"]"
+    )
 }
