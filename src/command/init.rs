@@ -1,158 +1,16 @@
 use bindgen;
 use build;
+use command::utils::set_crate_path;
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
 use manifest;
-use npm;
 use progressbar::Step;
-#[allow(unused)]
 use readme;
 use slog::Logger;
-use std::fs;
-use std::result;
 use std::time::Instant;
+use std::{fs, result};
 use PBAR;
-
-#[derive(Debug, StructOpt)]
-pub enum Command {
-    #[structopt(name = "init")]
-    /// 🐣  initialize a package.json based on your compiled wasm!
-    Init {
-        path: Option<String>,
-
-        #[structopt(long = "scope", short = "s")]
-        scope: Option<String>,
-
-        #[structopt(long = "--skip-build")]
-        /// Do not build, only update metadata
-        skip_build: bool,
-
-        #[structopt(long = "no-typescript")]
-        /// By default a *.d.ts file is generated for the generated JS file, but
-        /// this flag will disable generating this TypeScript file.
-        disable_dts: bool,
-
-        #[structopt(long = "target", short = "t", default_value = "browser")]
-        /// Sets the target environment. [possible values: browser, nodejs]
-        target: String,
-
-        #[structopt(long = "debug")]
-        /// Build without --release.
-        debug: bool,
-    },
-
-    #[structopt(name = "pack")]
-    /// 🍱  create a tar of your npm package but don't publish!
-    Pack { path: Option<String> },
-
-    #[structopt(name = "publish")]
-    /// 🎆  pack up your npm package and publish!
-    Publish { path: Option<String> },
-
-    #[structopt(name = "login", alias = "adduser", alias = "add-user")]
-    /// 👤  Add a registry user account! (aliases: adduser, add-user)
-    Login {
-        #[structopt(long = "registry", short = "r")]
-        /// Default: 'https://registry.npmjs.org/'.
-        /// The base URL of the npm package registry. If scope is also
-        /// specified, this registry will only be used for packages with that
-        /// scope. scope defaults to the scope of the project directory you're
-        /// currently in, if any.
-        registry: Option<String>,
-
-        #[structopt(long = "scope", short = "s")]
-        /// Default: none.
-        /// If specified, the user and login credentials given will be
-        /// associated with the specified scope.
-        scope: Option<String>,
-
-        #[structopt(long = "always-auth", short = "a")]
-        /// If specified, save configuration indicating that all requests to the
-        /// given registry should include authorization information. Useful for
-        /// private registries. Can be used with --registry and / or --scope
-        always_auth: bool,
-
-        #[structopt(long = "auth-type", short = "t")]
-        /// Default: 'legacy'.
-        /// Type: 'legacy', 'sso', 'saml', 'oauth'.
-        /// What authentication strategy to use with adduser/login. Some npm
-        /// registries (for example, npmE) might support alternative auth
-        /// strategies besides classic username/password entry in legacy npm.
-        auth_type: Option<String>,
-    },
-}
-
-pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
-    // Run the correct command based off input and store the result of it so that we can clear
-    // the progress bar then return it
-    let status = match command {
-        Command::Init {
-            path,
-            scope,
-            skip_build,
-            disable_dts,
-            target,
-            debug,
-        } => {
-            info!(&log, "Running init command...");
-            info!(
-                &log,
-                "Path: {:?}, Scope: {:?}, Skip build: {}, Disable Dts: {}, Target: {}, Debug: {}",
-                &path,
-                &scope,
-                &skip_build,
-                &disable_dts,
-                &target,
-                debug
-            );
-            let mode = if skip_build {
-                InitMode::Nobuild
-            } else {
-                InitMode::Normal
-            };
-            Init::new(path, scope, disable_dts, target, debug).process(&log, mode)
-        }
-        Command::Pack { path } => {
-            info!(&log, "Running pack command...");
-            info!(&log, "Path: {:?}", &path);
-            pack(path, &log)
-        }
-        Command::Publish { path } => {
-            info!(&log, "Running publish command...");
-            info!(&log, "Path: {:?}", &path);
-            publish(path, &log)
-        }
-        Command::Login {
-            registry,
-            scope,
-            always_auth,
-            auth_type,
-        } => {
-            info!(&log, "Running login command...");
-            info!(
-                &log,
-                "Registry: {:?}, Scope: {:?}, Always Auth: {}, Auth Type: {:?}",
-                &registry,
-                &scope,
-                &always_auth,
-                &auth_type
-            );
-            login(registry, scope, always_auth, auth_type, &log)
-        }
-    };
-
-    match status {
-        Ok(_) => {}
-        Err(ref e) => {
-            error!(&log, "{}", e);
-            PBAR.error(e.error_type())?;
-        }
-    }
-
-    // Return the actual status of the program to the main function
-    status
-}
 
 // quicli::prelude::* imports a different result struct which gets
 // precedence over the std::result::Result, so have had to specify
@@ -165,12 +23,12 @@ pub fn create_pkg_dir(path: &str, step: &Step) -> result::Result<(), Error> {
     Ok(())
 }
 
-enum InitMode {
+pub enum InitMode {
     Normal,
     Nobuild,
 }
 
-struct Init {
+pub struct Init {
     crate_path: String,
     scope: Option<String>,
     disable_dts: bool,
@@ -222,11 +80,7 @@ impl Init {
                 step_install_wasm_bindgen,
                 step_running_wasm_bindgen,
             ],
-            InitMode::Nobuild => steps![
-                step_create_dir,
-                step_create_json,
-                step_copy_readme,
-            ],
+            InitMode::Nobuild => steps![step_create_dir, step_create_json, step_copy_readme,],
         }
     }
 
@@ -385,67 +239,6 @@ impl Init {
     }
 }
 
-fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
-    let crate_path = set_crate_path(path);
-
-    info!(&log, "Packing up the npm package...");
-    npm::npm_pack(&crate_path)?;
-    #[cfg(not(target_os = "windows"))]
-    info!(&log, "Your package is located at {}/pkg", &crate_path);
-    #[cfg(target_os = "windows")]
-    info!(&log, "Your package is located at {}\\pkg", &crate_path);
-
-    PBAR.message("🎒  packed up your package!")?;
-    Ok(())
-}
-
-fn publish(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
-    let crate_path = set_crate_path(path);
-
-    info!(&log, "Publishing the npm package...");
-    info!(&log, "npm info located in the npm debug log");
-    npm::npm_publish(&crate_path)?;
-    info!(&log, "Published your package!");
-
-    PBAR.message("💥  published your package!")?;
-    Ok(())
-}
-
-fn login(
-    registry: Option<String>,
-    scope: Option<String>,
-    always_auth: bool,
-    auth_type: Option<String>,
-    log: &Logger,
-) -> result::Result<(), Error> {
-    let registry = registry.unwrap_or(npm::DEFAULT_NPM_REGISTRY.to_string());
-
-    info!(&log, "Logging in to npm...");
-    info!(
-        &log,
-        "Scope: {:?} Registry: {}, Always Auth: {}, Auth Type: {:?}.",
-        &scope,
-        &registry,
-        always_auth,
-        &auth_type
-    );
-    info!(&log, "npm info located in the npm debug log");
-    npm::npm_login(&registry, &scope, always_auth, &auth_type)?;
-    info!(&log, "Logged you in!");
-
-    PBAR.message(&format!("👋  logged you in!"))?;
-    Ok(())
-}
-
-fn set_crate_path(path: Option<String>) -> String {
-    let crate_path = match path {
-        Some(p) => p,
-        None => ".".to_string(),
-    };
-
-    crate_path
-}
-
 #[cfg(test)]
 mod test {
     use super::*;
@@ -479,11 +272,7 @@ mod test {
             .collect();
         assert_eq!(
             steps,
-            [
-                "step_create_dir",
-                "step_create_json",
-                "step_copy_readme"
-            ]
+            ["step_create_dir", "step_create_json", "step_copy_readme"]
         );
     }
 }

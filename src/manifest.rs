@@ -149,11 +149,11 @@ pub fn get_crate_name(path: &str) -> Result<String, Error> {
 }
 
 pub fn check_crate_config(path: &str, step: &Step) -> Result<(), Error> {
-  let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
-  PBAR.step(&step, &msg)?;
-  check_wasm_bindgen(path)?;
-  check_crate_type(path)?;
-  Ok(())
+    let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
+    PBAR.step(&step, &msg)?;
+    check_wasm_bindgen(path)?;
+    check_crate_type(path)?;
+    Ok(())
 }
 
 fn check_wasm_bindgen(path: &str) -> Result<(), Error> {
