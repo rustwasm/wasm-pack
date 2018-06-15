@@ -27,24 +27,27 @@ fn it_gets_the_crate_name_provided_path() {
 
 #[test]
 fn it_checks_has_cdylib_default_path() {
-    assert!(manifest::check_crate_type(".").is_err());
+    let step = wasm_pack::progressbar::Step::new(1);
+    assert!(manifest::check_crate_config(".", &step).is_err());
 }
 
 #[test]
 fn it_checks_has_cdylib_provided_path() {
-    assert!(manifest::check_crate_type("tests/fixtures/js-hello-world").is_ok());
+    let step = wasm_pack::progressbar::Step::new(1);
+    assert!(manifest::check_crate_config("tests/fixtures/js-hello-world", &step).is_ok());
 }
 
 #[test]
 fn it_checks_has_cdylib_wrong_crate_type() {
-    assert!(manifest::check_crate_type("tests/fixtures/bad-cargo-toml").is_err());
+    let step = wasm_pack::progressbar::Step::new(1);
+    assert!(manifest::check_crate_config("tests/fixtures/bad-cargo-toml", &step).is_err());
 }
 
 #[test]
 fn it_creates_a_package_json_default_path() {
     let step = wasm_pack::progressbar::Step::new(1);
     let path = ".".to_string();
-    wasm_pack::command::create_pkg_dir(&path, &step).unwrap();
+    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
     assert!(manifest::write_package_json(&path, &None, false, &step).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
@@ -66,7 +69,7 @@ fn it_creates_a_package_json_default_path() {
 fn it_creates_a_package_json_provided_path() {
     let step = wasm_pack::progressbar::Step::new(1);
     let path = "tests/fixtures/js-hello-world".to_string();
-    wasm_pack::command::create_pkg_dir(&path, &step).unwrap();
+    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
     assert!(manifest::write_package_json(&path, &None, false, &step).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
@@ -79,7 +82,7 @@ fn it_creates_a_package_json_provided_path() {
 fn it_creates_a_package_json_provided_path_with_scope() {
     let step = wasm_pack::progressbar::Step::new(1);
     let path = "tests/fixtures/scopes".to_string();
-    wasm_pack::command::create_pkg_dir(&path, &step).unwrap();
+    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
     assert!(manifest::write_package_json(&path, &Some("test".to_string()), false, &step).is_ok());
     let package_json_path = format!("{}/pkg/package.json", &path);
     assert!(fs::metadata(package_json_path).is_ok());
@@ -90,10 +93,12 @@ fn it_creates_a_package_json_provided_path_with_scope() {
 
 #[test]
 fn it_errors_when_wasm_bindgen_is_not_declared() {
-    assert!(manifest::check_wasm_bindgen("tests/fixtures/bad-cargo-toml").is_err());
+    let step = wasm_pack::progressbar::Step::new(1);
+    assert!(manifest::check_crate_config("tests/fixtures/bad-cargo-toml", &step).is_err());
 }
 
 #[test]
 fn it_does_not_error_when_wasm_bindgen_is_declared() {
-    assert!(manifest::check_wasm_bindgen("tests/fixtures/js-hello-world").is_ok());
+    let step = wasm_pack::progressbar::Step::new(1);
+    assert!(manifest::check_crate_config("tests/fixtures/js-hello-world", &step).is_ok());
 }
