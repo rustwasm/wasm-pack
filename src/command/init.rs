@@ -26,6 +26,7 @@ pub fn create_pkg_dir(path: &str, step: &Step) -> result::Result<(), Error> {
 pub enum InitMode {
     Normal,
     Nobuild,
+    Noinstall,
 }
 
 pub struct Init {
@@ -78,9 +79,17 @@ impl Init {
                 step_create_json,
                 step_copy_readme,
                 step_install_wasm_bindgen,
-                step_running_wasm_bindgen,
+                step_run_wasm_bindgen,
             ],
             InitMode::Nobuild => steps![step_create_dir, step_create_json, step_copy_readme,],
+            InitMode::Noinstall => steps![
+                step_check_crate_config,
+                step_build_wasm,
+                step_create_dir,
+                step_create_json,
+                step_copy_readme,
+                step_run_wasm_bindgen
+            ],
         }
     }
 
@@ -211,11 +220,7 @@ impl Init {
         Ok(())
     }
 
-    fn step_running_wasm_bindgen(
-        &mut self,
-        step: &Step,
-        log: &Logger,
-    ) -> result::Result<(), Error> {
+    fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
         info!(&log, "Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_path,
@@ -259,7 +264,7 @@ mod test {
                 "step_create_json",
                 "step_copy_readme",
                 "step_install_wasm_bindgen",
-                "step_running_wasm_bindgen"
+                "step_run_wasm_bindgen"
             ]
         );
     }
@@ -273,6 +278,25 @@ mod test {
         assert_eq!(
             steps,
             ["step_create_dir", "step_create_json", "step_copy_readme"]
+        );
+    }
+
+    #[test]
+    fn init_skip_install() {
+        let steps: Vec<&str> = Init::get_process_steps(InitMode::Noinstall)
+            .into_iter()
+            .map(|(n, _)| n)
+            .collect();
+        assert_eq!(
+            steps,
+            [
+                "step_check_crate_config",
+                "step_build_wasm",
+                "step_create_dir",
+                "step_create_json",
+                "step_copy_readme",
+                "step_run_wasm_bindgen"
+            ]
         );
     }
 }
