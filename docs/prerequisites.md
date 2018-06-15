@@ -24,6 +24,6 @@ You will need to create an npm account if you plan on publishing your package to
 the npm public registry. You can find information about signing up for npm
 [here][npm-signup-info].
 
-[rust-wasm-install-info]: https://rust-lang-nursery.github.io/rust-wasm/setup.html
+[rust-wasm-install-info]: https://rustwasm.github.io/book/setup.html
 [npm-install-info]: https://www.npmjs.com/get-npm
 [npm-signup-info]: https://www.npmjs.com/signup
