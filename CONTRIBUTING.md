@@ -5,7 +5,7 @@
 If you are trying to use `wasm-pack` and run into an issue- please file an
 issue! We'd love to get you up and running, even if the issue you have might
 not be directly related to the code in `wasm-pack`. This tool seeks to make
-it easy for developers to get going, so there's a good chance we can do 
+it easy for developers to get going, so there's a good chance we can do
 something to alleviate the issue by making `wasm-pack` better documented or
 more robust to different developer environments.
 
@@ -67,5 +67,5 @@ cargo +nightly fmt
 As mentioned in the readme file, this project is a part of the [`rust-wasm` working group],
 an official working group of the Rust project. We follow the Rust [Code of Conduct and enforcement policies].
 
-[`rust-wasm` working group]: https://github.com/rust-lang-nursery/rust-wasm
+[`rust-wasm` working group]: https://github.com/rustwasm/team
 [Code of Conduct and enforcement policies]: CODE_OF_CONDUCT.md
