@@ -123,20 +123,20 @@ pub fn write_package_json(
         )
     };
 
-    PBAR.step(step, &msg)?;
+    PBAR.step(step, &msg);
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm(scope, disable_dts);
 
     if npm_data.description.is_none() {
-        PBAR.warn(&warn_fmt("description"))?;
+        PBAR.warn(&warn_fmt("description"));
     }
     if npm_data.repository.is_none() {
-        PBAR.warn(&warn_fmt("repository"))?;
+        PBAR.warn(&warn_fmt("repository"));
     }
     if npm_data.license.is_none() {
-        PBAR.warn(&warn_fmt("license"))?;
+        PBAR.warn(&warn_fmt("license"));
     }
 
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
@@ -150,7 +150,7 @@ pub fn get_crate_name(path: &str) -> Result<String, Error> {
 
 pub fn check_crate_config(path: &str, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
-    PBAR.step(&step, &msg)?;
+    PBAR.step(&step, &msg);
     check_wasm_bindgen(path)?;
     check_crate_type(path)?;
     Ok(())

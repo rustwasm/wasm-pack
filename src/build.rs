@@ -6,7 +6,7 @@ use PBAR;
 
 pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     let msg = format!("{}Adding WASM target...", emoji::TARGET);
-    PBAR.step(step, &msg)?;
+    PBAR.step(step, &msg);
     ensure_nightly()?;
     let output = Command::new("rustup")
         .arg("target")
@@ -41,7 +41,7 @@ fn ensure_nightly() -> Result<(), Error> {
 
 pub fn cargo_build_wasm(path: &str, debug: bool, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
-    PBAR.step(step, &msg)?;
+    PBAR.step(step, &msg);
     let output = {
         let mut cmd = Command::new("cargo");
         cmd.current_dir(path).arg("+nightly").arg("build");

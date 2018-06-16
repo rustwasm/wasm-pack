@@ -6,7 +6,7 @@ use PBAR;
 
 pub fn cargo_install_wasm_bindgen(step: &Step) -> Result<(), Error> {
     let msg = format!("{}Installing WASM-bindgen...", emoji::DOWN_ARROW);
-    PBAR.step(step, &msg)?;
+    PBAR.step(step, &msg);
     let output = Command::new("cargo")
         .arg("install")
         .arg("wasm-bindgen-cli")
@@ -15,7 +15,7 @@ pub fn cargo_install_wasm_bindgen(step: &Step) -> Result<(), Error> {
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
         if s.contains("already exists") {
-            PBAR.info("wasm-bindgen already installed")?;
+            PBAR.info("wasm-bindgen already installed");
             return Ok(());
         }
         Error::cli("Installing wasm-bindgen failed", s)
@@ -33,7 +33,7 @@ pub fn wasm_bindgen_build(
     step: &Step,
 ) -> Result<(), Error> {
     let msg = format!("{}Running WASM-bindgen...", emoji::RUNNER);
-    PBAR.step(step, &msg)?;
+    PBAR.step(step, &msg);
     let binary_name = name.replace("-", "_");
     let release_or_debug = if debug { "debug" } else { "release" };
     let wasm_path = format!(

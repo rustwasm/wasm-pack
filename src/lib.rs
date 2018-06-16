@@ -4,6 +4,7 @@ extern crate failure;
 extern crate indicatif;
 #[macro_use]
 extern crate lazy_static;
+extern crate parking_lot;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;

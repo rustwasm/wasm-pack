@@ -26,6 +26,6 @@ pub fn login(
     npm::npm_login(&registry, &scope, always_auth, &auth_type)?;
     info!(&log, "Logged you in!");
 
-    PBAR.message(&format!("👋  logged you in!"))?;
+    PBAR.message(&format!("👋  logged you in!"));
     Ok(())
 }
