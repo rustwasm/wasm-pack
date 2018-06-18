@@ -35,7 +35,7 @@ pub struct Init {
     disable_dts: bool,
     target: String,
     debug: bool,
-    crate_name: Option<String>,
+    crate_name: String,
 }
 
 type InitStep = fn(&mut Init, &Step, &Logger) -> result::Result<(), Error>;
@@ -47,15 +47,17 @@ impl Init {
         disable_dts: bool,
         target: String,
         debug: bool,
-    ) -> Init {
-        Init {
-            crate_path: set_crate_path(path),
+    ) -> Result<Init, Error> {
+        let crate_path = set_crate_path(path);
+        let crate_name = manifest::get_crate_name(&crate_path)?;
+        Ok(Init {
+            crate_path,
             scope,
             disable_dts,
             target,
             debug,
-            crate_name: None,
-        }
+            crate_name
+        })
     }
 
     fn get_process_steps(mode: InitMode) -> Vec<(&'static str, InitStep)> {
@@ -202,19 +204,19 @@ impl Init {
         info!(&log, "Installing wasm-bindgen-cli was successful.");
 
         info!(&log, "Getting the crate name from the manifest...");
-        self.crate_name = Some(manifest::get_crate_name(&self.crate_path)?);
+        self.crate_name = manifest::get_crate_name(&self.crate_path)?;
         #[cfg(not(target_os = "windows"))]
         info!(
             &log,
             "Got crate name {} from the manifest at {}/Cargo.toml.",
-            &self.crate_name.as_ref().unwrap(),
+            &self.crate_name,
             &self.crate_path
         );
         #[cfg(target_os = "windows")]
         info!(
             &log,
             "Got crate name {} from the manifest at {}\\Cargo.toml.",
-            &self.crate_name.as_ref().unwrap(),
+            &self.crate_name,
             &self.crate_path
         );
         Ok(())
@@ -224,7 +226,7 @@ impl Init {
         info!(&log, "Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_path,
-            &self.crate_name.as_ref().unwrap(),
+            &self.crate_name,
             self.disable_dts,
             &self.target,
             self.debug,
