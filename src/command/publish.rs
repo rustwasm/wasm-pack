@@ -13,6 +13,6 @@ pub fn publish(path: Option<String>, log: &Logger) -> result::Result<(), Error> 
     npm::npm_publish(&crate_path)?;
     info!(&log, "Published your package!");
 
-    PBAR.message("💥  published your package!")?;
+    PBAR.message("💥  published your package!");
     Ok(())
 }

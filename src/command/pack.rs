@@ -15,6 +15,6 @@ pub fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     #[cfg(target_os = "windows")]
     info!(&log, "Your package is located at {}\\pkg", &crate_path);
 
-    PBAR.message("🎒  packed up your package!")?;
+    PBAR.message("🎒  packed up your package!");
     Ok(())
 }

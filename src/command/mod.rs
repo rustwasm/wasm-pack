@@ -146,7 +146,7 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
         Ok(_) => {}
         Err(ref e) => {
             error!(&log, "{}", e);
-            PBAR.error(e.error_type())?;
+            PBAR.error(e.error_type());
         }
     }
 

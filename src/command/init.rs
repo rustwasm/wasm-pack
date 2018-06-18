@@ -17,7 +17,7 @@ use PBAR;
 // the correct type here.
 pub fn create_pkg_dir(path: &str, step: &Step) -> result::Result<(), Error> {
     let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
-    PBAR.step(step, &msg)?;
+    PBAR.step(step, &msg);
     let pkg_dir_path = format!("{}/pkg", path);
     fs::create_dir_all(pkg_dir_path)?;
     Ok(())
@@ -114,13 +114,13 @@ impl Init {
             "Your WASM pkg is ready to publish at {}/pkg.", &self.crate_path
         );
 
-        PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration))?;
+        PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
 
         PBAR.message(&format!(
             "{} Your WASM pkg is ready to publish at {}/pkg.",
             emoji::PACKAGE,
             &self.crate_path
-        ))?;
+        ));
         Ok(())
     }
 
