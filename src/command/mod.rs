@@ -23,9 +23,9 @@ pub enum Command {
         #[structopt(long = "scope", short = "s")]
         scope: Option<String>,
 
-        #[structopt(long = "--skip-build")]
-        /// Do not build, only update metadata
-        skip_build: bool,
+        #[structopt(long = "mode", short = "m", default_value = "normal")]
+        /// Sets steps to be run. [possible values: no-build, no-install, normal]
+        mode: String,
 
         #[structopt(long = "no-typescript")]
         /// By default a *.d.ts file is generated for the generated JS file, but
@@ -89,7 +89,7 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
         Command::Init {
             path,
             scope,
-            skip_build,
+            mode,
             disable_dts,
             target,
             debug,
@@ -100,17 +100,18 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
                 "Path: {:?}, Scope: {:?}, Skip build: {}, Disable Dts: {}, Target: {}, Debug: {}",
                 &path,
                 &scope,
-                &skip_build,
+                &mode,
                 &disable_dts,
                 &target,
                 debug
             );
-            let mode = if skip_build {
-                InitMode::Nobuild
-            } else {
-                InitMode::Normal
+            let modetype = match &*mode {
+                "no-build" => InitMode::Nobuild,
+                "no-install" => InitMode::Noinstall,
+                "normal" => InitMode::Normal,
+                _ => InitMode::Normal,
             };
-            Init::new(path, scope, disable_dts, target, debug).process(&log, mode)
+            Init::new(path, scope, disable_dts, target, debug)?.process(&log, modetype)
         }
         Command::Pack { path } => {
             info!(&log, "Running pack command...");
