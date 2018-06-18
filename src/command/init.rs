@@ -56,7 +56,7 @@ impl Init {
             disable_dts,
             target,
             debug,
-            crate_name
+            crate_name,
         })
     }
 
