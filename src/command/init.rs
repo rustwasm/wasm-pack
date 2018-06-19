@@ -8,14 +8,11 @@ use manifest;
 use progressbar::Step;
 use readme;
 use slog::Logger;
+use std::fs;
 use std::time::Instant;
-use std::{fs, result};
 use PBAR;
 
-// quicli::prelude::* imports a different result struct which gets
-// precedence over the std::result::Result, so have had to specify
-// the correct type here.
-pub fn create_pkg_dir(path: &str, step: &Step) -> result::Result<(), Error> {
+pub fn create_pkg_dir(path: &str, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
     PBAR.step(step, &msg);
     let pkg_dir_path = format!("{}/pkg", path);
@@ -38,7 +35,7 @@ pub struct Init {
     crate_name: String,
 }
 
-type InitStep = fn(&mut Init, &Step, &Logger) -> result::Result<(), Error>;
+type InitStep = fn(&mut Init, &Step, &Logger) -> Result<(), Error>;
 
 impl Init {
     pub fn new(
@@ -95,7 +92,7 @@ impl Init {
         }
     }
 
-    pub fn process(&mut self, log: &Logger, mode: InitMode) -> result::Result<(), Error> {
+    pub fn process(&mut self, log: &Logger, mode: InitMode) -> Result<(), Error> {
         let process_steps = Init::get_process_steps(mode);
 
         let mut step_counter = Step::new(process_steps.len());
@@ -124,21 +121,21 @@ impl Init {
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Checking crate configuration...");
         manifest::check_crate_config(&self.crate_path, step)?;
         info!(&log, "Crate is correctly configured.");
         Ok(())
     }
 
-    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Adding wasm-target...");
         build::rustup_add_wasm_target(step)?;
         info!(&log, "Adding wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+    fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Building wasm...");
         build::cargo_build_wasm(&self.crate_path, self.debug, step)?;
 
@@ -155,14 +152,14 @@ impl Init {
         Ok(())
     }
 
-    fn step_create_dir(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+    fn step_create_dir(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Creating a pkg directory...");
         create_pkg_dir(&self.crate_path, step)?;
         info!(&log, "Created a pkg directory at {}.", &self.crate_path);
         Ok(())
     }
 
-    fn step_create_json(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+    fn step_create_json(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Writing a package.json...");
         manifest::write_package_json(&self.crate_path, &self.scope, self.disable_dts, step)?;
         #[cfg(not(target_os = "windows"))]
@@ -178,7 +175,7 @@ impl Init {
         Ok(())
     }
 
-    fn step_copy_readme(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+    fn step_copy_readme(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Copying readme from crate...");
         readme::copy_from_crate(&self.crate_path, step)?;
         #[cfg(not(target_os = "windows"))]
@@ -194,11 +191,7 @@ impl Init {
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(
-        &mut self,
-        step: &Step,
-        log: &Logger,
-    ) -> result::Result<(), Error> {
+    fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Installing wasm-bindgen-cli...");
         bindgen::cargo_install_wasm_bindgen(step)?;
         info!(&log, "Installing wasm-bindgen-cli was successful.");
@@ -222,7 +215,7 @@ impl Init {
         Ok(())
     }
 
-    fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> result::Result<(), Error> {
+    fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_path,
