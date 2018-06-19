@@ -44,18 +44,18 @@ pub enum Error {
 
 impl Error {
     /// Construct a CLI error.
-    pub fn cli(message: &str, stderr: Cow<str>) -> Result<(), Self> {
-        Err(Error::Cli {
+    pub fn cli(message: &str, stderr: Cow<str>) -> Self {
+        Error::Cli {
             message: message.to_string(),
             stderr: stderr.to_string(),
-        })
+        }
     }
 
     /// Construct a crate configuration error.
-    pub fn crate_config(message: &str) -> Result<(), Self> {
-        Err(Error::CrateConfig {
+    pub fn crate_config(message: &str) -> Self {
+        Error::CrateConfig {
             message: message.to_string(),
-        })
+        }
     }
 
     /// Get a string description of this error's type.

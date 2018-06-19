@@ -166,6 +166,31 @@ pub fn get_crate_name(path: &str) -> Result<String, Error> {
     Ok(read_cargo_toml(path)?.package.name)
 }
 
+/// Get the version of `wasm-bindgen` specified as a dependency.
+pub fn get_wasm_bindgen_version(path: &str) -> Result<String, Error> {
+    match read_cargo_toml(path)?
+        .dependencies
+        .and_then(|deps| deps.wasm_bindgen)
+    {
+        Some(ref version) if version.is_empty() => {
+            let msg = format!(
+                "\"{}\" dependency is missing its version number",
+                style("wasm-bindgen").bold().dim()
+            );
+            let e = Error::crate_config(&msg);
+            Err(e)
+        }
+        Some(version) => Ok(version),
+        None => {
+            let msg = format!(
+                "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n[dependencies]\nwasm-bindgen = \"0.2\"",
+                style("wasm-bindgen").bold().dim());
+            let e = Error::crate_config(&msg);
+            Err(e)
+        }
+    }
+}
+
 /// Check that the crate the given path is properly configured.
 pub fn check_crate_config(path: &str, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
@@ -176,15 +201,8 @@ pub fn check_crate_config(path: &str, step: &Step) -> Result<(), Error> {
 }
 
 fn check_wasm_bindgen(path: &str) -> Result<(), Error> {
-    if read_cargo_toml(path)?.dependencies.map_or(false, |x| {
-        !x.wasm_bindgen.unwrap_or("".to_string()).is_empty()
-    }) {
-        return Ok(());
-    }
-    Error::crate_config(&format!(
-        "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n[dependencies]\nwasm-bindgen = \"0.2\"",
-        style("wasm-bindgen").bold().dim()
-    ))
+    let _ = get_wasm_bindgen_version(path)?;
+    Ok(())
 }
 
 fn check_crate_type(path: &str) -> Result<(), Error> {
@@ -192,9 +210,10 @@ fn check_crate_type(path: &str) -> Result<(), Error> {
         lib.crate_type
             .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
     }) {
-        return Ok(());
+        Ok(())
+    } else {
+        let msg = "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:\n\n[lib]\ncrate-type = [\"cdylib\"]";
+        let e = Error::crate_config(msg);
+        Err(e)
     }
-    Error::crate_config(
-      "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:\n\n[lib]\ncrate-type = [\"cdylib\"]"
-    )
 }

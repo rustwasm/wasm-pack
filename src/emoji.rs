@@ -26,3 +26,4 @@ pub static DANCERS: Emoji = Emoji("👯  ", "");
 pub static ERROR: Emoji = Emoji("⛔  ", "");
 pub static INFO: Emoji = Emoji("ℹ️  ", "");
 pub static WRENCH: Emoji = Emoji("🔧  ", "");
+pub static CHECK: Emoji = Emoji("✓  ", "");

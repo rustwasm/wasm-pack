@@ -3,17 +3,62 @@
 use emoji;
 use error::Error;
 use progressbar::Step;
-use std::process::Command;
+use std::{path, process::Command};
 use PBAR;
 
+#[cfg(not(target_family = "windows"))]
+static LOCAL_BINDGEN_PATH: &str = "bin/wasm-bindgen";
+
+#[cfg(target_family = "windows")]
+static LOCAL_BINDGEN_PATH: &str = "bin\\wasm-bindgen";
+
+/// Return a string containing the path to the local `wasm-bindgen`.
+fn local_wasm_bindgen_path_str(crate_path: &str) -> String {
+    #[cfg(not(target_family = "windows"))]
+    return format!("{}/{}", crate_path, LOCAL_BINDGEN_PATH);
+    #[cfg(target_family = "windows")]
+    return format!("{}\\{}", crate_path, LOCAL_BINDGEN_PATH);
+}
+
+/// Check if the `wasm-bindgen` dependency is locally satisfied.
+pub fn wasm_bindgen_version_check(
+    crate_path: &str,
+    dep_version: &str,
+    step: &Step,
+) -> Result<bool, Error> {
+    let msg = format!("{}Checking WASM-bindgen dependency...", emoji::CHECK);
+    PBAR.step(step, &msg);
+
+    let wasm_bindgen = local_wasm_bindgen_path_str(crate_path);
+    if !path::Path::new(&wasm_bindgen).is_file() {
+        return Ok(false);
+    }
+
+    let output = Command::new(wasm_bindgen).arg("--version").output()?;
+    if output.status.success() {
+        let s = String::from_utf8_lossy(&output.stdout);
+        let installed_version = s.trim();
+        Ok(installed_version == dep_version)
+    } else {
+        let error_msg = "Could not find version of local wasm-bindgen";
+        let s = String::from_utf8_lossy(&output.stderr);
+        let e = Error::cli(error_msg, s);
+        Err(e)
+    }
+}
+
 /// Install the `wasm-bindgen` CLI with `cargo install`.
-pub fn cargo_install_wasm_bindgen(step: &Step) -> Result<(), Error> {
+pub fn cargo_install_wasm_bindgen(path: &str, version: &str, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Installing WASM-bindgen...", emoji::DOWN_ARROW);
     PBAR.step(step, &msg);
     let output = Command::new("cargo")
         .arg("install")
-        .arg("wasm-bindgen-cli")
         .arg("--force")
+        .arg("wasm-bindgen-cli")
+        .arg("--version")
+        .arg(version)
+        .arg("--root")
+        .arg(path)
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
@@ -21,7 +66,7 @@ pub fn cargo_install_wasm_bindgen(step: &Step) -> Result<(), Error> {
             PBAR.info("wasm-bindgen already installed");
             return Ok(());
         }
-        Error::cli("Installing wasm-bindgen failed", s)
+        Err(Error::cli("Installing wasm-bindgen failed", s))
     } else {
         Ok(())
     }
@@ -56,7 +101,8 @@ pub fn wasm_bindgen_build(
         _ => "--browser",
     };
 
-    let output = Command::new("wasm-bindgen")
+    let wasm_bindgen = local_wasm_bindgen_path_str(path);
+    let output = Command::new(wasm_bindgen)
         .current_dir(path)
         .arg(&wasm_path)
         .arg("--out-dir")
@@ -66,7 +112,7 @@ pub fn wasm_bindgen_build(
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("wasm-bindgen failed to execute properly", s)
+        Err(Error::cli("wasm-bindgen failed to execute properly", s))
     } else {
         Ok(())
     }

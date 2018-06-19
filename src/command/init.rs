@@ -211,9 +211,15 @@ impl Init {
     }
 
     fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Installing wasm-bindgen-cli...");
-        bindgen::cargo_install_wasm_bindgen(step)?;
-        info!(&log, "Installing wasm-bindgen-cli was successful.");
+        info!(&log, "Checking WASM-bindgen version...");
+        let bindgen_version = manifest::get_wasm_bindgen_version(&self.crate_path)?;
+        let bindgen_installed =
+            bindgen::wasm_bindgen_version_check(&self.crate_path, &bindgen_version, step)?;
+        if !bindgen_installed {
+            info!(&log, "Installing wasm-bindgen-cli...");
+            bindgen::cargo_install_wasm_bindgen(&self.crate_path, &bindgen_version, step)?;
+            info!(&log, "Installing wasm-bindgen-cli was successful.");
+        }
 
         info!(&log, "Getting the crate name from the manifest...");
         self.crate_name = manifest::get_crate_name(&self.crate_path)?;
