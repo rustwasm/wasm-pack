@@ -23,6 +23,7 @@ extern crate toml;
 pub mod bindgen;
 pub mod build;
 pub mod command;
+pub mod config;
 pub mod emoji;
 pub mod error;
 pub mod logger;
