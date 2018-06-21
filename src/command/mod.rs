@@ -6,6 +6,7 @@ mod pack;
 /// Data structures and functions for publishing a package.
 pub mod publish;
 pub mod test;
+mod snip;
 pub mod utils;
 
 use self::build::{Build, BuildOptions};
@@ -13,6 +14,7 @@ use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
+use self::snip::{snip, SnipOpitons};
 use error::Error;
 use slog::Logger;
 use std::path::PathBuf;
@@ -77,10 +79,18 @@ pub enum Command {
         /// strategies besides classic username/password entry in legacy npm.
         auth_type: Option<String>,
     },
+<<<<<<< HEAD
 
     #[structopt(name = "test")]
     /// 👩‍🔬  test your wasm!
     Test(TestOptions),
+||||||| merged common ancestors
+=======
+
+    #[structopt(name = "snip")]
+    /// Replace a wasm function with an `unreachable`.
+    Snip(SnipOpitons),
+>>>>>>> cmd(snip): rebase
 }
 
 /// Run a command with the given logger!
@@ -119,10 +129,18 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), failu
             );
             login(registry, scope, always_auth, auth_type, &log)
         }
+<<<<<<< HEAD
         Command::Test(test_opts) => {
             info!(&log, "Running test command...");
             Test::try_from_opts(test_opts).and_then(|t| t.run(&log))
         }
+||||||| merged common ancestors
+=======
+        Command::Snip(opts) => {
+            info!(&log, "Running snip command...");
+            snip(opts)
+        }
+>>>>>>> cmd(snip): rebase
     };
 
     match status {
