@@ -17,6 +17,8 @@ pub enum Error {
     Cli { message: String, stderr: String },
     #[fail(display = "{}", message)]
     CrateConfig { message: String },
+    #[fail(display = "{}", message)]
+    DirNotFound { message: String },
 }
 
 impl Error {
@@ -45,6 +47,7 @@ impl Error {
             Error::CrateConfig { message: _ } => {
                 "There was a crate configuration error. Details:\n\n"
             }
+            Error::DirNotFound { message: _ } => "Unable to find the directory\n\n",
         }.to_string()
     }
 }
