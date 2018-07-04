@@ -71,6 +71,7 @@ impl CargoManifest {
     fn into_npm(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
+        let js_bg_file = format!("{}_bg.js", filename);
         let js_file = format!("{}.js", filename);
         let dts_file = if disable_dts == true {
             None
@@ -81,7 +82,7 @@ impl CargoManifest {
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
         }
-        let mut files = vec![wasm_file];
+        let mut files = vec![wasm_file, js_bg_file];
 
         match dts_file {
             Some(ref dts_file) => {
