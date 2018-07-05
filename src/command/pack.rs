@@ -10,14 +10,12 @@ pub fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
 
     info!(&log, "Packing up the npm package...");
     match npm::npm_pack(&crate_path) {
-        Ok(r) => r,
-        Err(Error::Io { .. }) => {
-            return Err(Error::DirNotFound {
-                message: "Unable to find the pkg directory".to_owned(),
-            });
-        }
-        Err(e) => return Err(e),
-    };
+        Ok(r) => Ok(r),
+        Err(Error::Io { .. }) => Err(Error::DirNotFound {
+            message: "Unable to find the pkg directory".to_owned(),
+        }),
+        Err(e) => Err(e),
+    }?;
     #[cfg(not(target_os = "windows"))]
     info!(&log, "Your package is located at {}/pkg", &crate_path);
     #[cfg(target_os = "windows")]
