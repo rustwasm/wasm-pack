@@ -9,13 +9,14 @@ pub fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     info!(&log, "Packing up the npm package...");
-    match npm::npm_pack(&crate_path) {
-        Ok(r) => Ok(r),
-        Err(Error::Io { .. }) => Err(Error::DirNotFound {
-            message: "Unable to find the pkg directory".to_owned(),
-        }),
-        Err(e) => Err(e),
-    }?;
+    npm::npm_pack(&crate_path).map_err(|e| {
+        match e {
+            Error::Io { .. } => Error::PkgNotFound {
+                message: format!("Unable to find the pkg directory at path '{}', set the path as the parent directory of the pkg directory", &crate_path),
+            },
+            e => e,
+        }
+    })?;
     #[cfg(not(target_os = "windows"))]
     info!(&log, "Your package is located at {}/pkg", &crate_path);
     #[cfg(target_os = "windows")]

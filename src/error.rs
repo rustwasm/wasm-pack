@@ -18,7 +18,7 @@ pub enum Error {
     #[fail(display = "{}", message)]
     CrateConfig { message: String },
     #[fail(display = "{}", message)]
-    DirNotFound { message: String },
+    PkgNotFound { message: String },
 }
 
 impl Error {
@@ -47,7 +47,9 @@ impl Error {
             Error::CrateConfig { message: _ } => {
                 "There was a crate configuration error. Details:\n\n"
             }
-            Error::DirNotFound { message: _ } => "Unable to find the directory\n\n",
+            Error::PkgNotFound {
+                message: _,
+            } => "Unable to find the 'pgk' directory at the path, set the path as the parent of the 'pkg' directory \n\n",
         }.to_string()
     }
 }

@@ -10,13 +10,14 @@ pub fn publish(path: Option<String>, log: &Logger) -> result::Result<(), Error> 
 
     info!(&log, "Publishing the npm package...");
     info!(&log, "npm info located in the npm debug log");
-    match npm::npm_publish(&crate_path) {
-        Ok(r) => Ok(r),
-        Err(Error::Io { .. }) => Err(Error::DirNotFound {
-            message: "Unable to find the pkg directory".to_owned(),
-        }),
-        Err(e) => Err(e),
-    }?;
+    npm::npm_publish(&crate_path).map_err(|e| {
+        match e {
+        Error::Io { .. } => Error::PkgNotFound {
+            message: format!("Unable to find the pkg directory at path '{}', set the path as the parent directory of the pkg directory", &crate_path),
+        },
+        e => e,
+    }
+    })?;
     info!(&log, "Published your package!");
 
     PBAR.message("💥  published your package!");
