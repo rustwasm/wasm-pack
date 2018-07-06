@@ -84,6 +84,13 @@ fn it_creates_a_package_json_provided_path() {
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> = ["js_hello_world_bg.wasm", "js_hello_world_bg.js", "js_hello_world.d.ts"]
+        .iter()
+        .map(|&s| String::from(s))
+        .collect();
+    assert_eq!(actual_files, expected_files);
 }
 
 #[test]
@@ -97,6 +104,13 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "@test/scopes-hello-world");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> = ["scopes_hello_world_bg.wasm", "scopes_hello_world_bg.js", "scopes_hello_world.d.ts"]
+        .iter()
+        .map(|&s| String::from(s))
+        .collect();
+    assert_eq!(actual_files, expected_files);
 }
 
 #[test]
