@@ -1,4 +1,4 @@
-use command::utils::set_crate_path;
+use command::utils::{find_pkg_directory, set_crate_path};
 use error::Error;
 use npm;
 use slog::Logger;
@@ -23,23 +23,4 @@ pub fn publish(path: Option<String>, log: &Logger) -> result::Result<(), Error> 
 
     PBAR.message("💥  published your package!");
     Ok(())
-}
-
-fn find_pkg_directory(guess_path: &str) -> Option<Box<&Path>> {
-    let path = Path::new(guess_path);
-    if is_pkg_directory(path) {
-        return Some(Box::new(path));
-    }
-
-    path.parent().and_then(|v| {
-        if is_pkg_directory(v) {
-            Some(Box::new(v))
-        } else {
-            None
-        }
-    })
-}
-
-fn is_pkg_directory(path: &Path) -> bool {
-    path.exists() && path.is_dir() && path.ends_with("pkg")
 }
