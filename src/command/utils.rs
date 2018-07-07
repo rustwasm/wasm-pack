@@ -16,15 +16,10 @@ pub fn find_pkg_directory(guess_path: &str) -> Option<PathBuf> {
     }
 
     path.read_dir().ok().and_then(|entries| {
-        for entry in entries {
-            if entry.is_ok() {
-                let p = entry.unwrap().path();
-                if is_pkg_directory(&p) {
-                    return Some(p);
-                }
-            }
-        }
-        None
+        entries
+            .filter(|x| x.is_ok())
+            .map(|x| x.unwrap().path())
+            .find(|x| is_pkg_directory(&x))
     })
 }
 
