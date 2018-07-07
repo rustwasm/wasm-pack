@@ -2,7 +2,6 @@ use command::utils::{find_pkg_directory, set_crate_path};
 use error::Error;
 use npm;
 use slog::Logger;
-use std::path::Path;
 use std::result;
 use PBAR;
 
@@ -10,7 +9,7 @@ pub fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
     info!(&log, "Packing up the npm package...");
-    let pkg_directory: Box<&Path> = find_pkg_directory(&crate_path).ok_or(Error::PkgNotFound {
+    let pkg_directory = find_pkg_directory(&crate_path).ok_or(Error::PkgNotFound {
         message: format!(
             "Unable to find the pkg directory at path '{}', or in a child directory of '{}'",
             &crate_path, &crate_path

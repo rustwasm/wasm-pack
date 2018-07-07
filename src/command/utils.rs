@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 pub fn set_crate_path(path: Option<String>) -> String {
     let crate_path = match path {
@@ -9,18 +9,22 @@ pub fn set_crate_path(path: Option<String>) -> String {
     crate_path
 }
 
-pub fn find_pkg_directory(guess_path: &str) -> Option<Box<&Path>> {
-    let path = Path::new(guess_path);
-    if is_pkg_directory(path) {
-        return Some(Box::new(path));
+pub fn find_pkg_directory(guess_path: &str) -> Option<PathBuf> {
+    let path = PathBuf::from(guess_path);
+    if is_pkg_directory(&path) {
+        return Some(path);
     }
 
-    path.parent().and_then(|v| {
-        if is_pkg_directory(v) {
-            Some(Box::new(v))
-        } else {
-            None
+    path.read_dir().ok().and_then(|entries| {
+        for entry in entries {
+            if entry.is_ok() {
+                let p = entry.unwrap().path();
+                if is_pkg_directory(&p) {
+                    return Some(p);
+                }
+            }
         }
+        None
     })
 }
 
