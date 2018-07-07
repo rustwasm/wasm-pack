@@ -17,8 +17,7 @@ pub fn find_pkg_directory(guess_path: &str) -> Option<PathBuf> {
 
     path.read_dir().ok().and_then(|entries| {
         entries
-            .filter(|x| x.is_ok())
-            .map(|x| x.unwrap().path())
+            .filter_map(|x| x.ok().map(|v| v.path()))
             .find(|x| is_pkg_directory(&x))
     })
 }
