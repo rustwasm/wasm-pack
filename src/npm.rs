@@ -4,11 +4,7 @@ use std::process::{Command, Stdio};
 pub const DEFAULT_NPM_REGISTRY: &'static str = "https://registry.npmjs.org/";
 
 pub fn npm_pack(path: &str) -> Result<(), Error> {
-    let pkg_file_path = format!("{}/pkg", path);
-    let output = Command::new("npm")
-        .current_dir(pkg_file_path)
-        .arg("pack")
-        .output()?;
+    let output = Command::new("npm").current_dir(path).arg("pack").output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
         Error::cli("Packaging up your code failed", s)
