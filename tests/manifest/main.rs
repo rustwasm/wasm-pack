@@ -86,7 +86,6 @@ fn it_creates_a_package_json_provided_path() {
     assert_eq!(pkg.name, "js-hello-world");
     assert_eq!(pkg.main, "js_hello_world.js");
 
-
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
         "js_hello_world_bg.wasm",
