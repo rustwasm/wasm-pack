@@ -92,7 +92,7 @@ check out our [contribution policy].
 6. Run `wasm-pack init`, optionally, pass a path to a dir or a scope (see above for details)
 7. This tool generates files in a `pkg` dir
 8. To publish to npm, run `wasm-pack publish`. You may need to login to the
-  registry you want to publish to. You can login using `wasm-pack login`.`
+  registry you want to publish to. You can login using `wasm-pack login`.
 
 [rust-wasm/36]: https://github.com/rustwasm/team/issues/36
 [wasm-bindgen]: https://github.com/alexcrichton/wasm-bindgen
