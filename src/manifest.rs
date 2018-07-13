@@ -80,9 +80,9 @@ impl CargoManifest {
         };
 
         let js_bg_file = if target == "nodejs" {
-          Some(format!("{}_bg.js", filename))
+            Some(format!("{}_bg.js", filename))
         } else {
-          None
+            None
         };
 
         if let Some(s) = scope {
@@ -98,10 +98,10 @@ impl CargoManifest {
         }
 
         match js_bg_file {
-          Some(ref js_bg_file) => {
-            files.push(js_bg_file.to_string());
-          }
-          None => {}
+            Some(ref js_bg_file) => {
+                files.push(js_bg_file.to_string());
+            }
+            None => {}
         }
 
         NpmPackage {
