@@ -7,7 +7,9 @@ matrix:
   # tests pass
   - rust: nightly
     script:
-    - cargo test --locked
+    # XXX: `--test-threads 1` is a hack until we have a proper fix for
+    # synchronizing access to the fixtures.
+    - cargo test --locked -- --test-threads 1
     - rustup component add rustfmt-preview
     - cargo fmt --all -- --check
     env: RUST_BACKTRACE=1
