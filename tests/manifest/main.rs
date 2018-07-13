@@ -149,6 +149,33 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
 }
 
 #[test]
+fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
+    let step = wasm_pack::progressbar::Step::new(1);
+    let path = ".".to_string();
+    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
+    assert!(manifest::write_package_json(&path, &None, true, "", &step).is_ok());
+    let package_json_path = format!("{}/pkg/package.json", &path);
+    assert!(fs::metadata(package_json_path).is_ok());
+    assert!(utils::read_package_json(&path).is_ok());
+    let pkg = utils::read_package_json(&path).unwrap();
+    assert_eq!(pkg.name, "wasm-pack");
+    assert_eq!(pkg.repository.ty, "git");
+    assert_eq!(
+        pkg.repository.url,
+        "https://github.com/ashleygwilliams/wasm-pack.git"
+    );
+    assert_eq!(pkg.main, "wasm_pack.js");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> =
+        ["wasm_pack_bg.wasm"]
+            .iter()
+            .map(|&s| String::from(s))
+            .collect();
+    assert_eq!(actual_files, expected_files);
+}
+
+#[test]
 fn it_errors_when_wasm_bindgen_is_not_declared() {
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config("tests/fixtures/bad-cargo-toml", &step).is_err());
