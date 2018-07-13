@@ -73,6 +73,7 @@ impl CargoManifest {
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_bg_file = format!("{}_bg.js", filename);
         let js_file = format!("{}.js", filename);
+
         let dts_file = if disable_dts == true {
             None
         } else {

@@ -6,6 +6,7 @@ extern crate wasm_pack;
 
 mod utils;
 
+use std::collections::HashSet;
 use std::fs;
 
 use wasm_pack::manifest;
@@ -59,13 +60,17 @@ fn it_creates_a_package_json_default_path() {
         pkg.repository.url,
         "https://github.com/ashleygwilliams/wasm-pack.git"
     );
-    assert_eq!(
-        pkg.files,
-        ["wasm_pack_bg.wasm", "wasm_pack_bg.js", "wasm_pack.d.ts"]
-    );
     assert_eq!(pkg.main, "wasm_pack.js");
     let types = pkg.types.unwrap_or_default();
     assert_eq!(types, "wasm_pack.d.ts");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> =
+        ["wasm_pack_bg.wasm", "wasm_pack_bg.js", "wasm_pack.d.ts"]
+            .iter()
+            .map(|&s| String::from(s))
+            .collect();
+    assert_eq!(actual_files, expected_files);
 }
 
 #[test]
@@ -79,6 +84,17 @@ fn it_creates_a_package_json_provided_path() {
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
+    assert_eq!(pkg.main, "js_hello_world.js");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> = [
+        "js_hello_world_bg.wasm",
+        "js_hello_world_bg.js",
+        "js_hello_world.d.ts",
+    ].iter()
+        .map(|&s| String::from(s))
+        .collect();
+    assert_eq!(actual_files, expected_files);
 }
 
 #[test]
@@ -92,6 +108,17 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     assert!(utils::read_package_json(&path).is_ok());
     let pkg = utils::read_package_json(&path).unwrap();
     assert_eq!(pkg.name, "@test/scopes-hello-world");
+    assert_eq!(pkg.main, "scopes_hello_world.js");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> = [
+        "scopes_hello_world_bg.wasm",
+        "scopes_hello_world_bg.js",
+        "scopes_hello_world.d.ts",
+    ].iter()
+        .map(|&s| String::from(s))
+        .collect();
+    assert_eq!(actual_files, expected_files);
 }
 
 #[test]
