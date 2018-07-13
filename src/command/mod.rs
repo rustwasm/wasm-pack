@@ -1,3 +1,5 @@
+//! CLI command structures, parsing, and execution.
+
 pub mod init;
 mod login;
 mod pack;
@@ -13,13 +15,16 @@ use slog::Logger;
 use std::result;
 use PBAR;
 
+/// The various kinds of commands that `wasm-pack` can execute.
 #[derive(Debug, StructOpt)]
 pub enum Command {
     #[structopt(name = "init")]
     /// 🐣  initialize a package.json based on your compiled wasm!
     Init {
+        /// The path to the Rust crate.
         path: Option<String>,
 
+        /// The npm scope to use in package.json, if any.
         #[structopt(long = "scope", short = "s")]
         scope: Option<String>,
 
@@ -43,11 +48,17 @@ pub enum Command {
 
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish!
-    Pack { path: Option<String> },
+    Pack {
+        /// The path to the Rust crate.
+        path: Option<String>,
+    },
 
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish!
-    Publish { path: Option<String> },
+    Publish {
+        /// The path to the Rust crate.
+        path: Option<String>,
+    },
 
     #[structopt(name = "login", alias = "adduser", alias = "add-user")]
     /// 👤  Add a registry user account! (aliases: adduser, add-user)
@@ -82,6 +93,7 @@ pub enum Command {
     },
 }
 
+/// Run a command with the given logger!
 pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it

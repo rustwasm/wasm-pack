@@ -1,3 +1,7 @@
+//! Your favorite rust -> wasm workflow tool!
+
+#![deny(missing_docs)]
+
 extern crate console;
 #[macro_use]
 extern crate failure;
@@ -30,14 +34,17 @@ pub mod readme;
 use progressbar::ProgressOutput;
 
 lazy_static! {
+    /// The global progress bar and user-facing message output.
     pub static ref PBAR: ProgressOutput = { ProgressOutput::new() };
 }
 
 /// 📦 ✨  pack and publish your wasm!
 #[derive(Debug, StructOpt)]
 pub struct Cli {
+    /// The subcommand to run.
     #[structopt(subcommand)] // Note that we mark a field as a subcommand
     pub cmd: command::Command,
+
     /// Log verbosity is based off the number of v used
     #[structopt(long = "verbose", short = "v", parse(from_occurrences))]
     pub verbosity: u8,

@@ -4,22 +4,40 @@ use std::borrow::Cow;
 use std::io;
 use toml;
 
+/// Errors that can potentially occur in `wasm-pack`.
 #[derive(Debug, Fail)]
 pub enum Error {
     /// Maps any underlying I/O errors that are thrown to this variant
     #[fail(display = "{}", _0)]
     Io(#[cause] io::Error),
+
+    /// A JSON serialization or deserialization error.
     #[fail(display = "{}", _0)]
     SerdeJson(#[cause] serde_json::Error),
+
+    /// A TOML serialization or deserialization error.
     #[fail(display = "{}", _0)]
     SerdeToml(#[cause] toml::de::Error),
+
+    /// An error invoking another CLI tool.
     #[fail(display = "{}. stderr:\n\n{}", message, stderr)]
-    Cli { message: String, stderr: String },
+    Cli {
+        /// Error message.
+        message: String,
+        /// The underlying CLI's `stderr` output.
+        stderr: String,
+    },
+
+    /// A crate configuration error.
     #[fail(display = "{}", message)]
-    CrateConfig { message: String },
+    CrateConfig {
+        /// A message describing the configuration error.
+        message: String,
+    },
 }
 
 impl Error {
+    /// Construct a CLI error.
     pub fn cli(message: &str, stderr: Cow<str>) -> Result<(), Self> {
         Err(Error::Cli {
             message: message.to_string(),
@@ -27,12 +45,14 @@ impl Error {
         })
     }
 
+    /// Construct a crate configuration error.
     pub fn crate_config(message: &str) -> Result<(), Self> {
         Err(Error::CrateConfig {
             message: message.to_string(),
         })
     }
 
+    /// Get a string description of this error's type.
     pub fn error_type(&self) -> String {
         match self {
             Error::Io(_) => "There was an I/O error. Details:\n\n",
