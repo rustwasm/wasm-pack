@@ -1,9 +1,13 @@
+//! Building a Rust crate into a `.wasm` binary.
+
 use emoji;
 use error::Error;
 use progressbar::Step;
 use std::process::Command;
 use PBAR;
 
+/// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
+/// the `nightly` toolchain.
 pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     let msg = format!("{}Adding WASM target...", emoji::TARGET);
     PBAR.step(step, &msg);
@@ -23,6 +27,7 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     }
 }
 
+/// Ensure that the `nightly` toolchain is installed in `rustup`.
 fn ensure_nightly() -> Result<(), Error> {
     let nightly_check = Command::new("rustc").arg("+nightly").arg("-V").output()?;
     if !nightly_check.status.success() {
@@ -39,6 +44,8 @@ fn ensure_nightly() -> Result<(), Error> {
     Ok(())
 }
 
+/// Run `cargo build` with the `nightly` toolchain and targetting
+/// `wasm32-unknown-unknown`.
 pub fn cargo_build_wasm(path: &str, debug: bool, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);

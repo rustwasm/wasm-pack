@@ -1,3 +1,5 @@
+//! Logging facilities for `wasm-pack`.
+
 use command::Command;
 use error::Error;
 use slog::{Drain, Level, Logger};

@@ -1,3 +1,5 @@
+//! Reading and writing Cargo.toml and package.json manifests.
+
 use std::fs::File;
 use std::io::prelude::*;
 
@@ -159,10 +161,12 @@ pub fn write_package_json(
     Ok(())
 }
 
+/// Get the crate name for the crate at the given path.
 pub fn get_crate_name(path: &str) -> Result<String, Error> {
     Ok(read_cargo_toml(path)?.package.name)
 }
 
+/// Check that the crate the given path is properly configured.
 pub fn check_crate_config(path: &str, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
     PBAR.step(&step, &msg);

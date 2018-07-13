@@ -1,9 +1,12 @@
+//! Functionality related to installing and running `wasm-bindgen`.
+
 use emoji;
 use error::Error;
 use progressbar::Step;
 use std::process::Command;
 use PBAR;
 
+/// Install the `wasm-bindgen` CLI with `cargo install`.
 pub fn cargo_install_wasm_bindgen(step: &Step) -> Result<(), Error> {
     let msg = format!("{}Installing WASM-bindgen...", emoji::DOWN_ARROW);
     PBAR.step(step, &msg);
@@ -24,6 +27,8 @@ pub fn cargo_install_wasm_bindgen(step: &Step) -> Result<(), Error> {
     }
 }
 
+/// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
+/// `.wasm`.
 pub fn wasm_bindgen_build(
     path: &str,
     name: &str,
