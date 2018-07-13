@@ -68,14 +68,21 @@ fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
 }
 
 impl CargoManifest {
-    fn into_npm(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+    fn into_npm(mut self, scope: &Option<String>, disable_dts: bool, target: &str) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
+
         let dts_file = if disable_dts == true {
             None
         } else {
             Some(format!("{}.d.ts", filename))
+        };
+
+        let js_bg_file = if target == "nodejs" {
+            Some(format!("{}_bg.js", filename))
+        } else {
+            None
         };
 
         if let Some(s) = scope {
@@ -86,6 +93,13 @@ impl CargoManifest {
         match dts_file {
             Some(ref dts_file) => {
                 files.push(dts_file.to_string());
+            }
+            None => {}
+        }
+
+        match js_bg_file {
+            Some(ref js_bg_file) => {
+                files.push(js_bg_file.to_string());
             }
             None => {}
         }
@@ -112,6 +126,7 @@ pub fn write_package_json(
     path: &str,
     scope: &Option<String>,
     disable_dts: bool,
+    target: &str,
     step: &Step,
 ) -> Result<(), Error> {
     let msg = format!("{}Writing a package.json...", emoji::MEMO);
@@ -127,7 +142,7 @@ pub fn write_package_json(
     let pkg_file_path = format!("{}/pkg/package.json", path);
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
-    let npm_data = crate_data.into_npm(scope, disable_dts);
+    let npm_data = crate_data.into_npm(scope, disable_dts, target);
 
     if npm_data.description.is_none() {
         PBAR.warn(&warn_fmt("description"));

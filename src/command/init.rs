@@ -161,7 +161,13 @@ impl Init {
 
     fn step_create_json(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Writing a package.json...");
-        manifest::write_package_json(&self.crate_path, &self.scope, self.disable_dts, step)?;
+        manifest::write_package_json(
+            &self.crate_path,
+            &self.scope,
+            self.disable_dts,
+            &self.target,
+            step,
+        )?;
         #[cfg(not(target_os = "windows"))]
         info!(
             &log,
