@@ -1,5 +1,60 @@
 # Changelog
 
+## ⭐ 0.4.1
+
+- #### 🤕 Fixes
+
+  - **fix `files` key value for projects build for `nodejs` target - [ashleygwilliams], [issue/199] [pull/205]**
+
+    We became aware that the `files` key in `package.json` did not include the additional `_bg.js` file that 
+    `wasm-bindgen` generates for projects being built for the `nodejs` target. This resulted in the file not
+    being included in the published package and resulted in a `Module Not Found` error for folks.
+
+    This was a group effort from [mciantyre] with [pull/200] and [Brooooooklyn] with [pull/197]. Thank you so
+    much for your diligence and patience while we sorted through it.
+
+    [mciantyre]: https://github.com/mciantyre
+    [Brooooooklyn]: https://github.com/Brooooooklyn
+    [issue/199]: https://github.com/rustwasm/wasm-pack/issues/199
+    [pull/205]: https://github.com/rustwasm/wasm-pack/pull/205
+    [pull/197]: https://github.com/rustwasm/wasm-pack/pull/197
+    [pull/200]: https://github.com/rustwasm/wasm-pack/pull/200
+
+- #### 🛠️ Maintenance
+
+  - **clean up `quicli` remnants - [SoryRawyer], [pull/193]**
+
+    In [v0.3.0] we removed the `quicli` dependency, however there were a few remnants
+    left behind. They are now removed!
+
+    [SoryRawyer]: https://github.com/SoryRawyer
+    [pull/193]: https://github.com/rustwasm/wasm-pack/pull/193
+    [v0.3.0]: https://github.com/rustwasm/wasm-pack/blob/master/CHANGELOG.md#-030
+
+- #### 📖 Documentation
+
+  - **DOCUMENT EVERYTHING!! and deny missing docs for all future development - [fitzgen], [pull/208]**
+
+    The `wasm-pack` team has worked hard on tutorial documentation and keeping the codebase as self-explanatory
+    as possible, but we have been slowly accruing a documentation debt. This amazing PR, landed just moments
+    before this point release and was just too good not to include. Thank you so much, [fitzgen]!
+
+    [fitzgen]: https://github.com/fitzgen
+    [pull/208]: https://github.com/rustwasm/wasm-pack/pull/208
+
+  - **fix README code example - [steveklabnik], [pull/195]**
+
+    The code example in our `README.md` was missing a critical `pub`. It's there now!
+
+    [pull/195]: https://github.com/rustwasm/wasm-pack/pull/195/files
+
+  - **fix README markup - [Hywan], [pull/202]**
+
+    There was an errant `` ` `` - it's gone now!
+
+    [Hywan]: https://github.com/Hywan
+    [pull/202]: https://github.com/rustwasm/wasm-pack/pull/202
+
 ## 🌟 0.4.0
 
 This release has a ton of awesome things in it, but the best thing is that
