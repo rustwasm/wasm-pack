@@ -1,16 +1,9 @@
-extern crate failure;
-#[macro_use]
-extern crate serde_derive;
-extern crate serde_json;
-extern crate wasm_pack;
-
-mod utils;
-
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
 
-use wasm_pack::manifest;
+use utils;
+use wasm_pack::{self, manifest};
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
@@ -60,14 +53,14 @@ fn it_recognizes_a_map_during_depcheck() {
 
 #[test]
 fn it_creates_a_package_json_default_path() {
+    let fixture = utils::fixture(".");
     let step = wasm_pack::progressbar::Step::new(1);
-    let path = PathBuf::from(".");
-    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
-    assert!(manifest::write_package_json(&path, &None, false, "", &step).is_ok());
-    let package_json_path = &path.join("pkg").join("package.json");
+    wasm_pack::command::init::create_pkg_dir(&fixture.path, &step).unwrap();
+    assert!(manifest::write_package_json(&fixture.path, &None, false, "", &step).is_ok());
+    let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
-    assert!(utils::read_package_json(&path).is_ok());
-    let pkg = utils::read_package_json(&path).unwrap();
+    assert!(utils::manifest::read_package_json(&fixture.path).is_ok());
+    let pkg = utils::manifest::read_package_json(&fixture.path).unwrap();
     assert_eq!(pkg.name, "wasm-pack");
     assert_eq!(pkg.repository.ty, "git");
     assert_eq!(
@@ -88,14 +81,14 @@ fn it_creates_a_package_json_default_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
+    let fixture = utils::fixture("tests/fixtures/js-hello-world");
     let step = wasm_pack::progressbar::Step::new(1);
-    let path = PathBuf::from("tests/fixtures/js-hello-world");
-    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
-    assert!(manifest::write_package_json(&path, &None, false, "", &step).is_ok());
-    let package_json_path = &path.join("pkg").join("package.json");
+    wasm_pack::command::init::create_pkg_dir(&fixture.path, &step).unwrap();
+    assert!(manifest::write_package_json(&fixture.path, &None, false, "", &step).is_ok());
+    let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
-    assert!(utils::read_package_json(&path).is_ok());
-    let pkg = utils::read_package_json(&path).unwrap();
+    assert!(utils::manifest::read_package_json(&fixture.path).is_ok());
+    let pkg = utils::manifest::read_package_json(&fixture.path).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
     assert_eq!(pkg.main, "js_hello_world.js");
 
@@ -109,16 +102,17 @@ fn it_creates_a_package_json_provided_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path_with_scope() {
+    let fixture = utils::fixture("tests/fixtures/scopes");
     let step = wasm_pack::progressbar::Step::new(1);
-    let path = PathBuf::from("tests/fixtures/scopes");
-    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
+    wasm_pack::command::init::create_pkg_dir(&fixture.path, &step).unwrap();
     assert!(
-        manifest::write_package_json(&path, &Some("test".to_string()), false, "", &step).is_ok()
+        manifest::write_package_json(&fixture.path, &Some("test".to_string()), false, "", &step)
+            .is_ok()
     );
-    let package_json_path = &path.join("pkg").join("package.json");
+    let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
-    assert!(utils::read_package_json(&path).is_ok());
-    let pkg = utils::read_package_json(&path).unwrap();
+    assert!(utils::manifest::read_package_json(&fixture.path).is_ok());
+    let pkg = utils::manifest::read_package_json(&fixture.path).unwrap();
     assert_eq!(pkg.name, "@test/scopes-hello-world");
     assert_eq!(pkg.main, "scopes_hello_world.js");
 
@@ -132,14 +126,14 @@ fn it_creates_a_package_json_provided_path_with_scope() {
 
 #[test]
 fn it_creates_a_pkg_json_with_correct_files_on_node() {
+    let fixture = utils::fixture(".");
     let step = wasm_pack::progressbar::Step::new(1);
-    let path = PathBuf::from(".");
-    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
-    assert!(manifest::write_package_json(&path, &None, false, "nodejs", &step).is_ok());
-    let package_json_path = &path.join("pkg").join("package.json");
+    wasm_pack::command::init::create_pkg_dir(&fixture.path, &step).unwrap();
+    assert!(manifest::write_package_json(&fixture.path, &None, false, "nodejs", &step).is_ok());
+    let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
-    assert!(utils::read_package_json(&path).is_ok());
-    let pkg = utils::read_package_json(&path).unwrap();
+    assert!(utils::manifest::read_package_json(&fixture.path).is_ok());
+    let pkg = utils::manifest::read_package_json(&fixture.path).unwrap();
     assert_eq!(pkg.name, "wasm-pack");
     assert_eq!(pkg.repository.ty, "git");
     assert_eq!(
@@ -161,14 +155,14 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
 
 #[test]
 fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
+    let fixture = utils::fixture(".");
     let step = wasm_pack::progressbar::Step::new(1);
-    let path = PathBuf::from(".");
-    wasm_pack::command::init::create_pkg_dir(&path, &step).unwrap();
-    assert!(manifest::write_package_json(&path, &None, true, "", &step).is_ok());
-    let package_json_path = &path.join("pkg").join("package.json");
+    wasm_pack::command::init::create_pkg_dir(&fixture.path, &step).unwrap();
+    assert!(manifest::write_package_json(&fixture.path, &None, true, "", &step).is_ok());
+    let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
-    assert!(utils::read_package_json(&path).is_ok());
-    let pkg = utils::read_package_json(&path).unwrap();
+    assert!(utils::manifest::read_package_json(&fixture.path).is_ok());
+    let pkg = utils::manifest::read_package_json(&fixture.path).unwrap();
     assert_eq!(pkg.name, "wasm-pack");
     assert_eq!(pkg.repository.ty, "git");
     assert_eq!(
@@ -187,16 +181,14 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
 
 #[test]
 fn it_errors_when_wasm_bindgen_is_not_declared() {
+    let fixture = utils::fixture("tests/fixtures/bad-cargo-toml");
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(
-        manifest::check_crate_config(&PathBuf::from("tests/fixtures/bad-cargo-toml"), &step)
-            .is_err()
-    );
+    assert!(manifest::check_crate_config(&fixture.path, &step).is_err());
 }
 
 #[test]
 fn it_does_not_error_when_wasm_bindgen_is_declared() {
+    let fixture = utils::fixture("tests/fixtures/js-hello-world");
     let step = wasm_pack::progressbar::Step::new(1);
-    let path = PathBuf::from("tests/fixtures/js-hello-world");
-    assert!(manifest::check_crate_config(&path, &step).is_ok());
+    assert!(manifest::check_crate_config(&fixture.path, &step).is_ok());
 }

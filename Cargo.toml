@@ -23,3 +23,7 @@ slog-term = "2.4"
 slog-async = "2.3"
 structopt = "0.2"
 toml = "0.4"
+
+[dev-dependencies]
+copy_dir = "0.1.2"
+tempdir = "0.3"
