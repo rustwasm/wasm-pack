@@ -1,8 +1,12 @@
+//! Functionality related to publishing to npm.
+
 use error::Error;
 use std::process::{Command, Stdio};
 
+/// The default npm registry used when we aren't working with a custom registry.
 pub const DEFAULT_NPM_REGISTRY: &'static str = "https://registry.npmjs.org/";
 
+/// Run the `npm pack` command.
 pub fn npm_pack(path: &str) -> Result<(), Error> {
     let output = Command::new("npm").current_dir(path).arg("pack").output()?;
     if !output.status.success() {
@@ -13,6 +17,7 @@ pub fn npm_pack(path: &str) -> Result<(), Error> {
     }
 }
 
+/// Run the `npm publish` command.
 pub fn npm_publish(path: &str) -> Result<(), Error> {
     let output = Command::new("npm")
         .current_dir(path)
@@ -26,6 +31,7 @@ pub fn npm_publish(path: &str) -> Result<(), Error> {
     }
 }
 
+/// Run the `npm login` command.
 pub fn npm_login(
     registry: &String,
     scope: &Option<String>,

@@ -1,3 +1,5 @@
+//! Initializing a crate for packing `.wasm`s.
+
 use bindgen;
 use build;
 use command::utils::set_crate_path;
@@ -12,6 +14,7 @@ use std::fs;
 use std::time::Instant;
 use PBAR;
 
+/// Construct our `pkg` directory in the crate.
 pub fn create_pkg_dir(path: &str, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
     PBAR.step(step, &msg);
@@ -20,12 +23,20 @@ pub fn create_pkg_dir(path: &str, step: &Step) -> Result<(), Error> {
     Ok(())
 }
 
+/// The `InitMode` determines which mode of initialization we are running, and
+/// what build and install steps we perform.
 pub enum InitMode {
+    /// Perform all the build and install steps.
     Normal,
+    /// Don't build the crate as a `.wasm` but do install tools and create
+    /// meta-data.
     Nobuild,
+    /// Don't install tools like `wasm-bindgen`, just use the global
+    /// environment's existing versions to do builds.
     Noinstall,
 }
 
+/// Everything required to configure and run the `wasm-pack init` command.
 pub struct Init {
     crate_path: String,
     scope: Option<String>,
@@ -38,6 +49,7 @@ pub struct Init {
 type InitStep = fn(&mut Init, &Step, &Logger) -> Result<(), Error>;
 
 impl Init {
+    /// Construct a new `Init` command.
     pub fn new(
         path: Option<String>,
         scope: Option<String>,
@@ -92,6 +104,7 @@ impl Init {
         }
     }
 
+    /// Execute this `Init` command.
     pub fn process(&mut self, log: &Logger, mode: InitMode) -> Result<(), Error> {
         let process_steps = Init::get_process_steps(mode);
 
@@ -161,7 +174,13 @@ impl Init {
 
     fn step_create_json(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Writing a package.json...");
-        manifest::write_package_json(&self.crate_path, &self.scope, self.disable_dts, step)?;
+        manifest::write_package_json(
+            &self.crate_path,
+            &self.scope,
+            self.disable_dts,
+            &self.target,
+            step,
+        )?;
         #[cfg(not(target_os = "windows"))]
         info!(
             &log,

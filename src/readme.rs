@@ -1,3 +1,5 @@
+//! Generating `README` files for the packaged wasm.
+
 use error::Error;
 use std::fs;
 
@@ -5,6 +7,7 @@ use emoji;
 use progressbar::Step;
 use PBAR;
 
+/// Copy the crate's README into the `pkg` directory.
 pub fn copy_from_crate(path: &str, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Copying over your README...", emoji::DANCERS);
     PBAR.step(step, &msg);

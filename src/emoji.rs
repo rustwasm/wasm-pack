@@ -1,3 +1,16 @@
+//! Emoji contants used by `wasm-pack`.
+//!
+//! For the woefully unfamiliar:
+//!
+//! > Emoji are ideograms and smileys used in electronic messages and web
+//! > pages. Emoji exist in various genres, including facial expressions, common
+//! > objects, places and types of weather, and animals. They are much like
+//! > emoticons, but emoji are actual pictures instead of typographics.
+//!
+//! -- https://en.wikipedia.org/wiki/Emoji
+
+#![allow(missing_docs)]
+
 use console::Emoji;
 
 pub static TARGET: Emoji = Emoji("🎯  ", "");
