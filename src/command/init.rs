@@ -1,8 +1,6 @@
 //! Initializing a crate for packing `.wasm`s.
 
-use bindgen;
-use build;
-use command::utils::set_crate_path;
+use command::utils::{set_crate_path,create_pkg_dir};
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
@@ -43,71 +41,54 @@ pub struct Init {
     scope: Option<String>,
     disable_dts: bool,
     target: String,
+    // build without --release.
     debug: bool,
-    crate_name: String,
+}
+
+/// `Init` options
+#[derive(Debug, StructOpt)]
+pub struct InitOptions {
+    /// The path to the Rust crate.
+    pub path: Option<String>,
+
+    /// The npm scope to use in package.json, if any.
+    #[structopt(long = "scope", short = "s")]
+    pub scope: Option<String>,
+
+    #[structopt(long = "no-typescript")]
+    /// By default a *.d.ts file is generated for the generated JS file, but
+    /// this flag will disable generating this TypeScript file.
+    pub disable_dts: bool,
+
+    #[structopt(long = "target", short = "t", default_value = "browser")]
+    /// Sets the target environment. [possible values: browser, nodejs]
+    pub target: String,
+
+    #[structopt(long = "debug")]
+    /// Build without --release.
+    pub debug: bool,
+}
+
+impl From<InitOptions> for Init {
+    fn from(init_opts: InitOptions) -> Self {
+        let crate_path = set_crate_path(init_opts.path);
+        let crate_name = manifest::get_crate_name(&crate_path).unwrap();
+        Init  {
+            crate_path,
+            scope: init_opts.scope,
+            disable_dts:init_opts.disable_dts,
+            target:init_opts.target,
+            debug:init_opts.debug,
+        }
+    }
 }
 
 type InitStep = fn(&mut Init, &Step, &Logger) -> Result<(), Error>;
 
 impl Init {
-    /// Construct a new `Init` command.
-    pub fn new(
-        path: Option<PathBuf>,
-        scope: Option<String>,
-        disable_dts: bool,
-        target: String,
-        debug: bool,
-    ) -> Result<Init, Error> {
-        let crate_path = set_crate_path(path);
-        let crate_name = manifest::get_crate_name(&crate_path)?;
-        Ok(Init {
-            crate_path,
-            scope,
-            disable_dts,
-            target,
-            debug,
-            crate_name,
-        })
-    }
-
-    fn get_process_steps(mode: InitMode) -> Vec<(&'static str, InitStep)> {
-        macro_rules! steps {
-            ($($name:ident),+) => {
-                {
-                    let mut steps: Vec<(&'static str, InitStep)> = Vec::new();
-                    $(steps.push((stringify!($name), Init::$name));)*
-                    steps
-                }
-            };
-            ($($name:ident,)*) => (steps![$($name),*])
-        }
-
-        match mode {
-            InitMode::Normal => steps![
-                step_check_crate_config,
-                step_add_wasm_target,
-                step_build_wasm,
-                step_create_dir,
-                step_create_json,
-                step_copy_readme,
-                step_install_wasm_bindgen,
-                step_run_wasm_bindgen,
-            ],
-            InitMode::Nobuild => steps![step_create_dir, step_create_json, step_copy_readme,],
-            InitMode::Noinstall => steps![
-                step_check_crate_config,
-                step_build_wasm,
-                step_create_dir,
-                step_create_json,
-                step_copy_readme,
-                step_run_wasm_bindgen
-            ],
-        }
-    }
-
     /// Execute this `Init` command.
-    pub fn process(&mut self, log: &Logger, mode: InitMode) -> Result<(), Error> {
-        let process_steps = Init::get_process_steps(mode);
+    pub fn run(&mut self, log: &Logger) -> Result<(), Error> {
+        let process_steps = Init::set_process_steps();
 
         let mut step_counter = Step::new(process_steps.len());
 

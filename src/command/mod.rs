@@ -1,15 +1,17 @@
 //! CLI command structures, parsing, and execution.
 
+mod build;
 pub mod init;
 mod login;
 mod pack;
 mod publish;
 pub mod utils;
 
-use self::init::{Init, InitMode};
 use self::login::login;
 use self::pack::pack;
 use self::publish::publish;
+use self::build::{Build,BuildMode};
+use self::init::Init;
 use error::Error;
 use slog::Logger;
 use std::path::PathBuf;
@@ -21,37 +23,16 @@ use PBAR;
 pub enum Command {
     #[structopt(name = "init")]
     /// 🐣  initialize a package.json based on your compiled wasm!
-    Init {
-        /// The path to the Rust crate.
-        #[structopt(parse(from_os_str))]
-        path: Option<PathBuf>,
+    Init(init::InitOptions),
 
-        /// The npm scope to use in package.json, if any.
-        #[structopt(long = "scope", short = "s")]
-        scope: Option<String>,
-
-        #[structopt(long = "mode", short = "m", default_value = "normal")]
-        /// Sets steps to be run. [possible values: no-build, no-install, normal]
-        mode: String,
-
-        #[structopt(long = "no-typescript")]
-        /// By default a *.d.ts file is generated for the generated JS file, but
-        /// this flag will disable generating this TypeScript file.
-        disable_dts: bool,
-
-        #[structopt(long = "target", short = "t", default_value = "browser")]
-        /// Sets the target environment. [possible values: browser, nodejs]
-        target: String,
-
-        #[structopt(long = "debug")]
-        /// Build without --release.
-        debug: bool,
-    },
+    /// build
+    #[structopt(name = "build")]
+    Build(self::build::BuildOptions),
 
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish!
     Pack {
-        /// The path to the Rust crate.  
+        /// The path to the Rust crate.
         #[structopt(parse(from_os_str))]
         path: Option<PathBuf>,
     },
@@ -102,32 +83,18 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
     let status = match command {
-        Command::Init {
-            path,
-            scope,
-            mode,
-            disable_dts,
-            target,
-            debug,
-        } => {
+        Command::Init(init_opts) => {
             info!(&log, "Running init command...");
-            info!(
-                &log,
-                "Path: {:?}, Scope: {:?}, Skip build: {}, Disable Dts: {}, Target: {}, Debug: {}",
-                &path,
-                &scope,
-                &mode,
-                &disable_dts,
-                &target,
-                debug
-            );
-            let modetype = match &*mode {
-                "no-build" => InitMode::Nobuild,
-                "no-install" => InitMode::Noinstall,
-                "normal" => InitMode::Normal,
-                _ => InitMode::Normal,
+            Init::from(init_opts).run(&log)
+        }
+        Command::Build(build_opts) => {
+            info!(&log, "Running build command...");
+            let build_mode = match build_opts.mode.as_str() {
+                "no-install" => BuildMode::Noinstall,
+                "normal" => BuildMode::Normal,
+                _ => BuildMode::Normal,
             };
-            Init::new(path, scope, disable_dts, target, debug)?.process(&log, modetype)
+            Build::from(build_opts).run(&log, build_mode)
         }
         Command::Pack { path } => {
             info!(&log, "Running pack command...");
