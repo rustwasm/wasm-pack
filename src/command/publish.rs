@@ -5,6 +5,8 @@ use slog::Logger;
 use std::result;
 use PBAR;
 
+/// Creates a tarball from a 'pkg' directory
+/// and publishes it to the NPM registry
 pub fn publish(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 

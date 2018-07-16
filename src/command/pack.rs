@@ -5,6 +5,8 @@ use slog::Logger;
 use std::result;
 use PBAR;
 
+/// Executes the 'npm pack' command on the 'pkg' directory
+/// which creates a tarball that can be published to the NPM registry
 pub fn pack(path: Option<String>, log: &Logger) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path);
 
