@@ -1,7 +1,7 @@
 use std::path::{Path, PathBuf};
 
 use copy_dir::copy_dir;
-use tempdir;
+use tempfile;
 
 /// Copy the given fixture into a unique temporary directory. This allows the
 /// test to mutate the copied fixture without messing up other tests that are
@@ -12,14 +12,14 @@ pub fn fixture<P>(fixture: P) -> Fixture
 where
     P: AsRef<Path>,
 {
-    let dir = tempdir::TempDir::new("wasm-pack").expect("should create temporary directory OK");
-    let path = dir.path().join("fixture");
+    let dir = tempfile::tempdir().expect("should create temporary directory OK");
+    let path = dir.path().join("wasm-pack");
     copy_dir(fixture, &path).expect("should copy fixture directory into temporary directory OK");
     Fixture { dir, path }
 }
 
 pub struct Fixture {
-    pub dir: tempdir::TempDir,
+    pub dir: tempfile::TempDir,
     pub path: PathBuf,
 }
 

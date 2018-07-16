@@ -26,4 +26,4 @@ toml = "0.4"
 
 [dev-dependencies]
 copy_dir = "0.1.2"
-tempdir = "0.3"
+tempfile = "3"
