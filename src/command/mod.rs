@@ -7,11 +7,11 @@ mod pack;
 mod publish;
 pub mod utils;
 
+use self::build::{Build, BuildMode};
+use self::init::Init;
 use self::login::login;
 use self::pack::pack;
 use self::publish::publish;
-use self::build::{Build,BuildMode};
-use self::init::Init;
 use error::Error;
 use slog::Logger;
 use std::path::PathBuf;

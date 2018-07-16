@@ -1,6 +1,6 @@
 //! Initializing a crate for packing `.wasm`s.
 
-use command::utils::{set_crate_path,create_pkg_dir};
+use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
@@ -41,8 +41,6 @@ pub struct Init {
     scope: Option<String>,
     disable_dts: bool,
     target: String,
-    // build without --release.
-    debug: bool,
 }
 
 /// `Init` options
@@ -63,22 +61,16 @@ pub struct InitOptions {
     #[structopt(long = "target", short = "t", default_value = "browser")]
     /// Sets the target environment. [possible values: browser, nodejs]
     pub target: String,
-
-    #[structopt(long = "debug")]
-    /// Build without --release.
-    pub debug: bool,
 }
 
 impl From<InitOptions> for Init {
     fn from(init_opts: InitOptions) -> Self {
         let crate_path = set_crate_path(init_opts.path);
-        let crate_name = manifest::get_crate_name(&crate_path).unwrap();
-        Init  {
+        Init {
             crate_path,
             scope: init_opts.scope,
-            disable_dts:init_opts.disable_dts,
-            target:init_opts.target,
-            debug:init_opts.debug,
+            disable_dts: init_opts.disable_dts,
+            target: init_opts.target,
         }
     }
 }

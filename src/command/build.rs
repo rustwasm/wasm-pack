@@ -1,8 +1,6 @@
-//! Initializing a crate for packing `.wasm`s.
-
 use bindgen;
 use build;
-use command::utils::{set_crate_path, create_pkg_dir};
+use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
@@ -35,7 +33,7 @@ pub enum BuildMode {
 }
 
 /// Everything required to configure and run the `wasm-pack build` command.
-#[derive(Debug,StructOpt)]
+#[derive(Debug, StructOpt)]
 pub struct BuildOptions {
     /// The path to the Rust crate.
     pub path: Option<String>,
@@ -60,7 +58,6 @@ pub struct BuildOptions {
     #[structopt(long = "debug")]
     /// Build without --release.
     debug: bool,
-
     // build config from manifest
     // build_config: Option<BuildConfig>,
 }
@@ -72,10 +69,10 @@ impl From<BuildOptions> for Build {
         // let build_config = manifest::xxx(&crate_path).xxx();
         Build {
             crate_path,
-            scope:build_opts.scope,
-            disable_dts:build_opts.disable_dts,
-            target:build_opts.target,
-            debug:build_opts.debug,
+            scope: build_opts.scope,
+            disable_dts: build_opts.disable_dts,
+            target: build_opts.target,
+            debug: build_opts.debug,
             // build_config,
             crate_name,
         }
@@ -85,7 +82,7 @@ impl From<BuildOptions> for Build {
 type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
 
 impl Build {
-        /// Execute this `Init` command.
+    /// Execute this `Build` command.
     pub fn run(&mut self, log: &Logger, mode: BuildMode) -> Result<(), Error> {
         let process_steps = Build::get_process_steps(mode);
 
@@ -147,7 +144,6 @@ impl Build {
             ],
         }
     }
-
 
     fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Checking crate configuration...");
