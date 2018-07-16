@@ -12,8 +12,17 @@ pub fn fixture<P>(fixture: P) -> Fixture
 where
     P: AsRef<Path>,
 {
+    let fixture = fixture
+        .as_ref()
+        .canonicalize()
+        .expect("should canonicalize fixture path OK");
     let dir = tempfile::tempdir().expect("should create temporary directory OK");
     let path = dir.path().join("wasm-pack");
+    println!(
+        "wasm-pack: copying test fixture '{}' to temporary directory '{}'",
+        fixture.display(),
+        path.display()
+    );
     copy_dir(fixture, &path).expect("should copy fixture directory into temporary directory OK");
     Fixture { dir, path }
 }
