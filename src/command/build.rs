@@ -83,7 +83,7 @@ type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
 
 impl Build {
     /// Execute this `Build` command.
-    pub fn run(&mut self, log: &Logger, mode: BuildMode) -> Result<(), Error> {
+    pub fn run(&mut self, log: &Logger, mode: &BuildMode) -> Result<(), Error> {
         let process_steps = Build::get_process_steps(mode);
 
         let mut step_counter = Step::new(process_steps.len());
@@ -112,7 +112,7 @@ impl Build {
         Ok(())
     }
 
-    fn get_process_steps(mode: BuildMode) -> Vec<(&'static str, BuildStep)> {
+    fn get_process_steps(mode: &BuildMode) -> Vec<(&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {
@@ -123,7 +123,7 @@ impl Build {
                 };
             ($($name:ident,)*) => (steps![$($name),*])
         }
-        match mode {
+        match &mode {
             BuildMode::Normal => steps![
                 step_check_crate_config,
                 step_add_wasm_target,
