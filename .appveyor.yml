@@ -8,7 +8,7 @@ install:
 build: false
 
 test_script:
-  - cargo test --locked
+  - cargo test --locked -- --test-threads 1
 
 before_deploy:
   - ps: |

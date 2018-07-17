@@ -2,7 +2,8 @@
 > Your favorite rust -> wasm workflow tool!
 
 [![Build Status](https://travis-ci.org/rustwasm/wasm-pack.svg?branch=master)](https://travis-ci.org/rustwasm/wasm-pack)
-[![Build status](https://ci.appveyor.com/api/projects/status/7jjuo5wewu9lyyfi?svg=true)](https://ci.appveyor.com/project/rustwasm/wasm-pack)
+[![Build status](https://ci.appveyor.com/api/projects/status/iv1qtnqtv168ef8h?svg=true)](https://ci.appveyor.com/project/ashleygwilliams/wasm-pack-071k0)
+
 
 This tool seeks to be a one-stop shop for building and working with rust-
 generated WebAssembly that you would like to interop with JavaScript, in the
