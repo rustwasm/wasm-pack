@@ -30,7 +30,8 @@ visiting that repo!
 
 ## 🎙️ Commands
 
-- [`init`](docs/init.md): Generate an npm wasm pkg from a rustwasm crate
+- [`init`](docs/init.md): Initialize an npm wasm pkg from a rustwasm crate
+- [`build`](docs/build.md): Generate an npm wasm pkg from a rustwasm crate
 - [`pack`](docs/pack.md): Create a tarball of your rustwasm pkg
 - [`publish`](docs/publish.md): Publish your rustwasm pkg to a registry
 
@@ -90,7 +91,7 @@ check out our [contribution policy].
   ```
 
 5. Install this tool: `cargo install wasm-pack`
-6. Run `wasm-pack init`, optionally, pass a path to a dir or a scope (see above for details)
+6. Run `wasm-pack build`, optionally, pass a path to a dir or a scope (see above for details)
 7. This tool generates files in a `pkg` dir
 8. To publish to npm, run `wasm-pack publish`. You may need to login to the
   registry you want to publish to. You can login using `wasm-pack login`.

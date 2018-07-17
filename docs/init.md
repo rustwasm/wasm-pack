@@ -1,9 +1,9 @@
 # wasm-pack init
 
 The `wasm-pack init` command creates the files neccessary for JavaScript
-interoperability and for publishing a package to npm. This involves compiling
-your code to wasm and generating a pkg folder. This pkg folder will contain the
-wasm binary, a JS wrapper file, your `README`, and a `package.json` file.
+interoperability and for publishing a package to npm. This involves
+generating a pkg folder. This pkg folder will contain the
+`README` and a `package.json` file.
 
 ## Path
 
@@ -46,27 +46,4 @@ This command would create a `package.json` file for a package called
 `@test/js-hello-world`. For more information about scoping, you can refer to
 the npm documentation [here][npm-scope-documentation].
 
-## Debug
-
-The init command accepts an optional `--debug` argument. This will build the
-output package using cargo's
-[default non-release profile][cargo-profile-sections-documentation]. Building
-this way is faster but applies few optimizations to the output, and enables
-debug assertions and other runtime correctness checks.
-
-The exact meaning of this flag may evolve as the platform matures.
-
 [npm-scope-documentation]: https://docs.npmjs.com/misc/scope
-[cargo-profile-sections-documentation]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-profile-sections
-
-## Skipping build
-
-The init command accepts an optional `--skip-build` argument.
-
-This will deactivate those steps:
-- installing wasm target (via cargo)
-- compiling the code to wasm
-- installing wasm-bindgen (via rustup)
-- running wasm-bindgen on the built wasm
-
-Basically it will remains only the steps that update the metadata of `package.json`.
