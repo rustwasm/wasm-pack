@@ -73,7 +73,7 @@ impl Error {
             }
             Error::PkgNotFound {
                 message: _,
-            } => "Unable to find the 'pgk' directory at the path, set the path as the parent of the 'pkg' directory \n\n",
+            } => "Unable to find the 'pkg' directory at the path, set the path as the parent of the 'pkg' directory \n\n",
         }.to_string()
     }
 }
