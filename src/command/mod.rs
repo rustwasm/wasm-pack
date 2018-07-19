@@ -12,6 +12,7 @@ use self::pack::pack;
 use self::publish::publish;
 use error::Error;
 use slog::Logger;
+use std::path::PathBuf;
 use std::result;
 use PBAR;
 
@@ -22,7 +23,8 @@ pub enum Command {
     /// 🐣  initialize a package.json based on your compiled wasm!
     Init {
         /// The path to the Rust crate.
-        path: Option<String>,
+        #[structopt(parse(from_os_str))]
+        path: Option<PathBuf>,
 
         /// The npm scope to use in package.json, if any.
         #[structopt(long = "scope", short = "s")]
@@ -49,15 +51,17 @@ pub enum Command {
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish!
     Pack {
-        /// The path to the Rust crate.
-        path: Option<String>,
+        /// The path to the Rust crate.  
+        #[structopt(parse(from_os_str))]
+        path: Option<PathBuf>,
     },
 
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish!
     Publish {
         /// The path to the Rust crate.
-        path: Option<String>,
+        #[structopt(parse(from_os_str))]
+        path: Option<PathBuf>,
     },
 
     #[structopt(name = "login", alias = "adduser", alias = "add-user")]

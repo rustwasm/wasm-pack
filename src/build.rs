@@ -3,6 +3,7 @@
 use emoji;
 use error::Error;
 use progressbar::Step;
+use std::path::Path;
 use std::process::Command;
 use PBAR;
 
@@ -46,7 +47,7 @@ fn ensure_nightly() -> Result<(), Error> {
 
 /// Run `cargo build` with the `nightly` toolchain and targetting
 /// `wasm32-unknown-unknown`.
-pub fn cargo_build_wasm(path: &str, debug: bool, step: &Step) -> Result<(), Error> {
+pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let output = {

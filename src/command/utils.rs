@@ -4,10 +4,10 @@ use std::path::{Path, PathBuf};
 
 /// If an explicit path is given, then use it, otherwise assume the current
 /// directory is the crate path.
-pub fn set_crate_path(path: Option<String>) -> String {
+pub fn set_crate_path(path: Option<PathBuf>) -> PathBuf {
     let crate_path = match path {
         Some(p) => p,
-        None => ".".to_string(),
+        None => PathBuf::from("."),
     };
 
     crate_path
@@ -15,10 +15,9 @@ pub fn set_crate_path(path: Option<String>) -> String {
 
 /// Locates the pkg directory from a specific path
 /// Returns None if unable to find the 'pkg' directory
-pub fn find_pkg_directory(guess_path: &str) -> Option<PathBuf> {
-    let path = PathBuf::from(guess_path);
-    if is_pkg_directory(&path) {
-        return Some(path);
+pub fn find_pkg_directory(path: &Path) -> Option<PathBuf> {
+    if is_pkg_directory(path) {
+        return Some(path.to_owned());
     }
 
     path.read_dir().ok().and_then(|entries| {

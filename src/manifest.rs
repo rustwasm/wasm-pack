@@ -2,6 +2,7 @@
 
 use std::fs::File;
 use std::io::prelude::*;
+use std::path::Path;
 
 use console::style;
 use emoji;
@@ -60,8 +61,8 @@ struct Repository {
     url: String,
 }
 
-fn read_cargo_toml(path: &str) -> Result<CargoManifest, Error> {
-    let manifest_path = format!("{}/Cargo.toml", path);
+fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
+    let manifest_path = path.join("Cargo.toml");
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
     cargo_file.read_to_string(&mut cargo_contents)?;
@@ -125,7 +126,7 @@ impl CargoManifest {
 
 /// Generate a package.json file inside in `./pkg`.
 pub fn write_package_json(
-    path: &str,
+    path: &Path,
     scope: &Option<String>,
     disable_dts: bool,
     target: &str,
@@ -141,7 +142,7 @@ pub fn write_package_json(
     };
 
     PBAR.step(step, &msg);
-    let pkg_file_path = format!("{}/pkg/package.json", path);
+    let pkg_file_path = path.join("pkg").join("package.json");
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm(scope, disable_dts, target);
@@ -162,12 +163,12 @@ pub fn write_package_json(
 }
 
 /// Get the crate name for the crate at the given path.
-pub fn get_crate_name(path: &str) -> Result<String, Error> {
+pub fn get_crate_name(path: &Path) -> Result<String, Error> {
     Ok(read_cargo_toml(path)?.package.name)
 }
 
 /// Check that the crate the given path is properly configured.
-pub fn check_crate_config(path: &str, step: &Step) -> Result<(), Error> {
+pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
     PBAR.step(&step, &msg);
     check_wasm_bindgen(path)?;
@@ -175,7 +176,7 @@ pub fn check_crate_config(path: &str, step: &Step) -> Result<(), Error> {
     Ok(())
 }
 
-fn check_wasm_bindgen(path: &str) -> Result<(), Error> {
+fn check_wasm_bindgen(path: &Path) -> Result<(), Error> {
     if read_cargo_toml(path)?.dependencies.map_or(false, |x| {
         !x.wasm_bindgen.unwrap_or("".to_string()).is_empty()
     }) {
@@ -187,7 +188,7 @@ fn check_wasm_bindgen(path: &str) -> Result<(), Error> {
     ))
 }
 
-fn check_crate_type(path: &str) -> Result<(), Error> {
+fn check_crate_type(path: &Path) -> Result<(), Error> {
     if read_cargo_toml(path)?.lib.map_or(false, |lib| {
         lib.crate_type
             .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
