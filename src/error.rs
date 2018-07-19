@@ -34,6 +34,12 @@ pub enum Error {
         /// A message describing the configuration error.
         message: String,
     },
+    #[fail(display = "{}", message)]
+    /// Error when the 'pkg' directory is not found.
+    PkgNotFound {
+        /// Message describing the error.
+        message: String,
+    },
 }
 
 impl Error {
@@ -65,6 +71,9 @@ impl Error {
             Error::CrateConfig { message: _ } => {
                 "There was a crate configuration error. Details:\n\n"
             }
+            Error::PkgNotFound {
+                message: _,
+            } => "Unable to find the 'pgk' directory at the path, set the path as the parent of the 'pkg' directory \n\n",
         }.to_string()
     }
 }
