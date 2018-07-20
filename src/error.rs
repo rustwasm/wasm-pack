@@ -1,12 +1,17 @@
 //! Code related to error handling for wasm-pack
 use serde_json;
 use std::borrow::Cow;
+use std::env;
 use std::io;
 use toml;
 
 /// Errors that can potentially occur in `wasm-pack`.
 #[derive(Debug, Fail)]
 pub enum Error {
+    /// Maps any underlying environment errors that are thrown to this variant.
+    #[fail(display = "{}", _0)]
+    Env(#[cause] env::VarError),
+
     /// Maps any underlying I/O errors that are thrown to this variant
     #[fail(display = "{}", _0)]
     Io(#[cause] io::Error),
@@ -44,23 +49,24 @@ pub enum Error {
 
 impl Error {
     /// Construct a CLI error.
-    pub fn cli(message: &str, stderr: Cow<str>) -> Result<(), Self> {
-        Err(Error::Cli {
+    pub fn cli(message: &str, stderr: Cow<str>) -> Self {
+        Error::Cli {
             message: message.to_string(),
             stderr: stderr.to_string(),
-        })
+        }
     }
 
     /// Construct a crate configuration error.
-    pub fn crate_config(message: &str) -> Result<(), Self> {
-        Err(Error::CrateConfig {
+    pub fn crate_config(message: &str) -> Self {
+        Error::CrateConfig {
             message: message.to_string(),
-        })
+        }
     }
 
     /// Get a string description of this error's type.
     pub fn error_type(&self) -> String {
         match self {
+            Error::Env(_) => "There was an environment error. Details:\n\n",
             Error::Io(_) => "There was an I/O error. Details:\n\n",
             Error::SerdeJson(_) => "There was an JSON error. Details:\n\n",
             Error::SerdeToml(_) => "There was an TOML error. Details:\n\n",
@@ -75,6 +81,12 @@ impl Error {
                 message: _,
             } => "Unable to find the 'pkg' directory at the path, set the path as the parent of the 'pkg' directory \n\n",
         }.to_string()
+    }
+}
+
+impl From<env::VarError> for Error {
+    fn from(e: env::VarError) -> Self {
+        Error::Env(e)
     }
 }
 

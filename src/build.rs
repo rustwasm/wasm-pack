@@ -21,7 +21,10 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Adding the wasm32-unknown-unknown target failed", s)
+        Err(Error::cli(
+            "Adding the wasm32-unknown-unknown target failed",
+            s,
+        ))
     } else {
         Ok(())
     }
@@ -38,7 +41,7 @@ fn ensure_nightly() -> Result<(), Error> {
             .output()?;
         if !res.status.success() {
             let s = String::from_utf8_lossy(&res.stderr);
-            return Error::cli("Adding the nightly toolchain failed", s);
+            return Err(Error::cli("Adding the nightly toolchain failed", s));
         }
     }
     Ok(())
@@ -61,7 +64,7 @@ pub fn cargo_build_wasm(path: &str, debug: bool, step: &Step) -> Result<(), Erro
 
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Compilation of your program failed", s)
+        Err(Error::cli("Compilation of your program failed", s))
     } else {
         Ok(())
     }

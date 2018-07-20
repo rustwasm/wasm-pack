@@ -123,7 +123,7 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
                 "normal" => InitMode::Normal,
                 _ => InitMode::Normal,
             };
-            Init::new(path, scope, disable_dts, target, debug)?.process(&log, modetype)
+            Init::new(path, scope, disable_dts, target, debug, modetype)?.process(&log)
         }
         Command::Pack { path } => {
             info!(&log, "Running pack command...");
