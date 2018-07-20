@@ -3,16 +3,34 @@
 use emoji;
 use error::Error;
 use progressbar::Step;
-use std::{path, process::Command};
+use std::{env, fs, path, process::Command};
 use PBAR;
 
 /// Return a string containing the path to the local `wasm-bindgen`.
-// fn local_wasm_bindgen_path_str(crate_path: &str) -> path::Path { // FIXUP
 fn local_wasm_bindgen_path_str(crate_path: &str) -> String {
     #[cfg(not(target_family = "windows"))]
     return format!("{}/{}", crate_path, "bin/wasm-bindgen");
     #[cfg(target_family = "windows")]
     return format!("{}\\{}", crate_path, "bin\\wasm-bindgen");
+}
+
+/// Return a string containing the path to the global `wasm-bindgen`.
+fn global_wasm_bindgen_path_str() -> Result<Option<String>, Error> {
+    #[cfg(target_family = "windows")]
+    let path_sep: &str = ";";
+    #[cfg(not(target_family = "windows"))]
+    let path_sep: &str = ":";
+
+    let path = env::var("PATH")?;
+    for path_dir in path.split(path_sep)
+    {
+        let prog_str = format!("{}/wasm-bindgen", path_dir);
+        if fs::metadata(&prog_str).is_ok() {
+            return Ok(Some(prog_str))
+        }
+    }
+
+    Ok(None)
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.
@@ -50,6 +68,10 @@ pub fn cargo_install_wasm_bindgen(
         return Ok(());
     }
 
+    if !install_permitted {
+        return Err(Error::crate_config("WASM-bindgen is not installed!"));
+    }
+
     let msg = format!("{}Installing WASM-bindgen...", emoji::DOWN_ARROW);
     PBAR.step(step, &msg);
     let output = Command::new("cargo")
@@ -63,10 +85,6 @@ pub fn cargo_install_wasm_bindgen(
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        if s.contains("already exists") {
-            PBAR.info("wasm-bindgen already installed");
-            return Ok(());
-        }
         Err(Error::cli("Installing wasm-bindgen failed", s))
     } else {
         Ok(())
