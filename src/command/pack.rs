@@ -14,7 +14,7 @@ pub fn pack(path: Option<PathBuf>, log: &Logger) -> result::Result<(), Error> {
     info!(&log, "Packing up the npm package...");
     let pkg_directory = find_pkg_directory(&crate_path).ok_or(Error::PkgNotFound {
         message: format!(
-            "Unable to find the pkg directory at path {:?}, or in a child directory of {:?}",
+            "Unable to find the pkg directory at path {:#?}, or in a child directory of {:#?}",
             &crate_path, &crate_path
         ),
     })?;
