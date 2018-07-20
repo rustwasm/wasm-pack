@@ -6,31 +6,21 @@ use progressbar::Step;
 use std::{path, process::Command};
 use PBAR;
 
-#[cfg(not(target_family = "windows"))]
-static LOCAL_BINDGEN_PATH: &str = "bin/wasm-bindgen";
-
-#[cfg(target_family = "windows")]
-static LOCAL_BINDGEN_PATH: &str = "bin\\wasm-bindgen";
-
 /// Return a string containing the path to the local `wasm-bindgen`.
+// fn local_wasm_bindgen_path_str(crate_path: &str) -> path::Path { // FIXUP
 fn local_wasm_bindgen_path_str(crate_path: &str) -> String {
     #[cfg(not(target_family = "windows"))]
-    return format!("{}/{}", crate_path, LOCAL_BINDGEN_PATH);
+    return format!("{}/{}", crate_path, "bin/wasm-bindgen");
     #[cfg(target_family = "windows")]
-    return format!("{}\\{}", crate_path, LOCAL_BINDGEN_PATH);
+    return format!("{}\\{}", crate_path, "bin\\wasm-bindgen");
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.
-pub fn wasm_bindgen_version_check(
-    crate_path: &str,
-    dep_version: &str,
-    step: &Step,
-) -> Result<bool, Error> {
-    let msg = format!("{}Checking WASM-bindgen dependency...", emoji::CHECK);
-    PBAR.step(step, &msg);
+fn wasm_bindgen_version_check(crate_path: &str, dep_version: &str) -> Result<bool, Error> {
+    let path_str = local_wasm_bindgen_path_str(crate_path);
+    let wasm_bindgen = path::Path::new(&path_str);
 
-    let wasm_bindgen = local_wasm_bindgen_path_str(crate_path);
-    if !path::Path::new(&wasm_bindgen).is_file() {
+    if !wasm_bindgen.is_file() {
         return Ok(false);
     }
 
@@ -48,7 +38,18 @@ pub fn wasm_bindgen_version_check(
 }
 
 /// Install the `wasm-bindgen` CLI with `cargo install`.
-pub fn cargo_install_wasm_bindgen(path: &str, version: &str, step: &Step) -> Result<(), Error> {
+pub fn cargo_install_wasm_bindgen(
+    path: &str,
+    version: &str,
+    install_permitted: bool,
+    step: &Step,
+) -> Result<(), Error> {
+    if wasm_bindgen_version_check(path, version)? {
+        let msg = format!("{}WASM-bindgen already installed...", emoji::DOWN_ARROW);
+        PBAR.step(step, &msg);
+        return Ok(());
+    }
+
     let msg = format!("{}Installing WASM-bindgen...", emoji::DOWN_ARROW);
     PBAR.step(step, &msg);
     let output = Command::new("cargo")

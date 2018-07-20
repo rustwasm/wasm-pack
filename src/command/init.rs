@@ -44,6 +44,7 @@ pub struct Init {
     target: String,
     debug: bool,
     crate_name: String,
+    mode: InitMode,
 }
 
 type InitStep = fn(&mut Init, &Step, &Logger) -> Result<(), Error>;
@@ -56,6 +57,7 @@ impl Init {
         disable_dts: bool,
         target: String,
         debug: bool,
+        mode: InitMode,
     ) -> Result<Init, Error> {
         let crate_path = set_crate_path(path);
         let crate_name = manifest::get_crate_name(&crate_path)?;
@@ -66,10 +68,11 @@ impl Init {
             target,
             debug,
             crate_name,
+            mode,
         })
     }
 
-    fn get_process_steps(mode: InitMode) -> Vec<(&'static str, InitStep)> {
+    fn get_process_steps(mode: &InitMode) -> Vec<(&'static str, InitStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {
@@ -105,8 +108,8 @@ impl Init {
     }
 
     /// Execute this `Init` command.
-    pub fn process(&mut self, log: &Logger, mode: InitMode) -> Result<(), Error> {
-        let process_steps = Init::get_process_steps(mode);
+    pub fn process(&mut self, log: &Logger) -> Result<(), Error> {
+        let process_steps = Init::get_process_steps(&self.mode);
 
         let mut step_counter = Step::new(process_steps.len());
 
@@ -211,15 +214,20 @@ impl Init {
     }
 
     fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Checking WASM-bindgen version...");
+        info!(&log, "Identifying WASM-bindgen dependency...");
         let bindgen_version = manifest::get_wasm_bindgen_version(&self.crate_path)?;
-        let bindgen_installed =
-            bindgen::wasm_bindgen_version_check(&self.crate_path, &bindgen_version, step)?;
-        if !bindgen_installed {
-            info!(&log, "Installing wasm-bindgen-cli...");
-            bindgen::cargo_install_wasm_bindgen(&self.crate_path, &bindgen_version, step)?;
-            info!(&log, "Installing wasm-bindgen-cli was successful.");
-        }
+        info!(&log, "Installing wasm-bindgen-cli...");
+        let install_permitted = match self.mode {
+            InitMode::Noinstall => false,
+            _ => true,
+        };
+        bindgen::cargo_install_wasm_bindgen(
+            &self.crate_path,
+            &bindgen_version,
+            install_permitted,
+            step,
+        )?;
+        info!(&log, "Installing wasm-bindgen-cli was successful.");
 
         info!(&log, "Getting the crate name from the manifest...");
         self.crate_name = manifest::get_crate_name(&self.crate_path)?;
@@ -270,7 +278,7 @@ mod test {
 
     #[test]
     fn init_normal_build() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Normal)
+        let steps: Vec<&str> = Init::get_process_steps(&InitMode::Normal)
             .into_iter()
             .map(|(n, _)| n)
             .collect();
@@ -291,7 +299,7 @@ mod test {
 
     #[test]
     fn init_skip_build() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Nobuild)
+        let steps: Vec<&str> = Init::get_process_steps(&InitMode::Nobuild)
             .into_iter()
             .map(|(n, _)| n)
             .collect();
@@ -303,7 +311,7 @@ mod test {
 
     #[test]
     fn init_skip_install() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Noinstall)
+        let steps: Vec<&str> = Init::get_process_steps(&InitMode::Noinstall)
             .into_iter()
             .map(|(n, _)| n)
             .collect();
