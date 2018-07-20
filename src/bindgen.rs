@@ -3,57 +3,8 @@
 use emoji;
 use error::Error;
 use progressbar::Step;
-use std::{env, fs, path, process::Command};
+use std::{env, path, process::Command};
 use PBAR;
-
-/// Return a string containing the path to the local `wasm-bindgen`.
-fn local_wasm_bindgen_path_str(crate_path: &str) -> String {
-    #[cfg(not(target_family = "windows"))]
-    return format!("{}/{}", crate_path, "bin/wasm-bindgen");
-    #[cfg(target_family = "windows")]
-    return format!("{}\\{}", crate_path, "bin\\wasm-bindgen");
-}
-
-/// Return a string containing the path to the global `wasm-bindgen`.
-fn global_wasm_bindgen_path_str() -> Result<Option<String>, Error> {
-    #[cfg(target_family = "windows")]
-    let path_sep: &str = ";";
-    #[cfg(not(target_family = "windows"))]
-    let path_sep: &str = ":";
-
-    let path = env::var("PATH")?;
-    for path_dir in path.split(path_sep)
-    {
-        let prog_str = format!("{}/wasm-bindgen", path_dir);
-        if fs::metadata(&prog_str).is_ok() {
-            return Ok(Some(prog_str))
-        }
-    }
-
-    Ok(None)
-}
-
-/// Check if the `wasm-bindgen` dependency is locally satisfied.
-fn wasm_bindgen_version_check(crate_path: &str, dep_version: &str) -> Result<bool, Error> {
-    let path_str = local_wasm_bindgen_path_str(crate_path);
-    let wasm_bindgen = path::Path::new(&path_str);
-
-    if !wasm_bindgen.is_file() {
-        return Ok(false);
-    }
-
-    let output = Command::new(wasm_bindgen).arg("--version").output()?;
-    if output.status.success() {
-        let s = String::from_utf8_lossy(&output.stdout);
-        let installed_version = s.trim();
-        Ok(installed_version == dep_version)
-    } else {
-        let error_msg = "Could not find version of local wasm-bindgen";
-        let s = String::from_utf8_lossy(&output.stderr);
-        let e = Error::cli(error_msg, s);
-        Err(e)
-    }
-}
 
 /// Install the `wasm-bindgen` CLI with `cargo install`.
 pub fn cargo_install_wasm_bindgen(
@@ -62,14 +13,26 @@ pub fn cargo_install_wasm_bindgen(
     install_permitted: bool,
     step: &Step,
 ) -> Result<(), Error> {
-    if wasm_bindgen_version_check(path, version)? {
+    // Determine if the `wasm-bindgen` dependency is already met for the given mode.
+    let dependency_met = if let Some(bindgen_path) = wasm_bindgen_path_str(path, install_permitted)?
+    {
+        wasm_bindgen_version_check(&bindgen_path, version)?
+    } else {
+        false
+    };
+
+    // If the `wasm-bindgen` dependency is already met, print a message and return.
+    if dependency_met {
         let msg = format!("{}WASM-bindgen already installed...", emoji::DOWN_ARROW);
         PBAR.step(step, &msg);
         return Ok(());
     }
 
+    // If the `wasm-bindgen` dependency was not met, and installs are not
+    // permitted, return a configuration error.
     if !install_permitted {
         return Err(Error::crate_config("WASM-bindgen is not installed!"));
+        // FIXUP: This error message can be improved.
     }
 
     let msg = format!("{}Installing WASM-bindgen...", emoji::DOWN_ARROW);
@@ -98,6 +61,7 @@ pub fn wasm_bindgen_build(
     name: &str,
     disable_dts: bool,
     target: &str,
+    install_permitted: bool,
     debug: bool,
     step: &Step,
 ) -> Result<(), Error> {
@@ -105,34 +69,104 @@ pub fn wasm_bindgen_build(
     PBAR.step(step, &msg);
     let binary_name = name.replace("-", "_");
     let release_or_debug = if debug { "debug" } else { "release" };
-    let wasm_path = format!(
-        "target/wasm32-unknown-unknown/{}/{}.wasm",
-        release_or_debug, binary_name
-    );
-    let dts_arg = if disable_dts == false {
-        "--typescript"
-    } else {
-        "--no-typescript"
-    };
 
-    let target_arg = match target {
-        "nodejs" => "--nodejs",
-        _ => "--browser",
-    };
+    if let Some(wasm_bindgen_path_str) = wasm_bindgen_path_str(path, install_permitted)? {
+        let wasm_path = format!(
+            "target/wasm32-unknown-unknown/{}/{}.wasm",
+            release_or_debug, binary_name
+        );
 
-    let wasm_bindgen = local_wasm_bindgen_path_str(path);
-    let output = Command::new(wasm_bindgen)
-        .current_dir(path)
-        .arg(&wasm_path)
-        .arg("--out-dir")
-        .arg("./pkg")
-        .arg(dts_arg)
-        .arg(target_arg)
-        .output()?;
-    if !output.status.success() {
-        let s = String::from_utf8_lossy(&output.stderr);
-        Err(Error::cli("wasm-bindgen failed to execute properly", s))
+        let dts_arg = if disable_dts == false {
+            "--typescript"
+        } else {
+            "--no-typescript"
+        };
+
+        let target_arg = match target {
+            "nodejs" => "--nodejs",
+            _ => "--browser",
+        };
+
+        let bindgen_path = path::Path::new(&wasm_bindgen_path_str);
+        let output = Command::new(bindgen_path)
+            .current_dir(path)
+            .arg(&wasm_path)
+            .arg("--out-dir")
+            .arg("./pkg")
+            .arg(dts_arg)
+            .arg(target_arg)
+            .output()?;
+        if !output.status.success() {
+            let s = String::from_utf8_lossy(&output.stderr);
+            Err(Error::cli("wasm-bindgen failed to execute properly", s))
+        } else {
+            Ok(())
+        }
     } else {
-        Ok(())
+        Err(Error::crate_config("Could not find `wasm-bindgen`"))
     }
+}
+
+/// Check if the `wasm-bindgen` dependency is locally satisfied.
+fn wasm_bindgen_version_check(bindgen_path: &str, dep_version: &str) -> Result<bool, Error> {
+    let wasm_bindgen = path::Path::new(bindgen_path);
+
+    let output = Command::new(wasm_bindgen).arg("--version").output()?;
+    if output.status.success() {
+        let s = String::from_utf8_lossy(&output.stdout);
+        let installed_version = s.trim();
+        Ok(installed_version == dep_version)
+    } else {
+        // FIXUP: This error message can be improved.
+        let error_msg = "Could not find version of local wasm-bindgen";
+        let s = String::from_utf8_lossy(&output.stderr);
+        let e = Error::cli(error_msg, s);
+        Err(e)
+    }
+}
+
+/// Return a string to `wasm-bindgen`, if it exists for the given mode.
+fn wasm_bindgen_path_str(
+    crate_path: &str,
+    install_permitted: bool,
+) -> Result<Option<String>, Error> {
+    if install_permitted {
+        if let path_str @ Some(_) = local_wasm_bindgen_path_str(crate_path) {
+            return Ok(path_str);
+        }
+    }
+
+    global_wasm_bindgen_path_str()
+}
+
+/// Return a string containing the path to the local `wasm-bindgen`, if it exists.
+fn local_wasm_bindgen_path_str(crate_path: &str) -> Option<String> {
+    #[cfg(not(target_family = "windows"))]
+    let local_path = format!("{}/{}", crate_path, "bin/wasm-bindgen");
+    #[cfg(target_family = "windows")]
+    let local_path = format!("{}\\{}", crate_path, "bin\\wasm-bindgen");
+
+    if path::Path::new(&local_path).is_file() {
+        Some(local_path)
+    } else {
+        None
+    }
+}
+
+/// Return a string containing the path to the global `wasm-bindgen`, if it exists.
+fn global_wasm_bindgen_path_str() -> Result<Option<String>, Error> {
+    #[cfg(target_family = "windows")]
+    let path_sep: &str = ";";
+    #[cfg(not(target_family = "windows"))]
+    let path_sep: &str = ":";
+
+    let path = env::var("PATH")?;
+    for path_dir in path.split(path_sep) {
+        let prog_str = format!("{}/wasm-bindgen", path_dir);
+        if path::Path::new(&prog_str).is_file() {
+            return Ok(Some(prog_str));
+        }
+    }
+
+    Ok(None)
 }

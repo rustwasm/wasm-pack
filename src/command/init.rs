@@ -217,10 +217,12 @@ impl Init {
         info!(&log, "Identifying WASM-bindgen dependency...");
         let bindgen_version = manifest::get_wasm_bindgen_version(&self.crate_path)?;
         info!(&log, "Installing wasm-bindgen-cli...");
+
         let install_permitted = match self.mode {
             InitMode::Noinstall => false,
             _ => true,
         };
+
         bindgen::cargo_install_wasm_bindgen(
             &self.crate_path,
             &bindgen_version,
@@ -250,11 +252,16 @@ impl Init {
 
     fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Building the wasm bindings...");
+        let install_permitted = match self.mode {
+            InitMode::Noinstall => false,
+            _ => true,
+        };
         bindgen::wasm_bindgen_build(
             &self.crate_path,
             &self.crate_name,
             self.disable_dts,
             &self.target,
+            install_permitted,
             self.debug,
             step,
         )?;

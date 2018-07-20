@@ -1,8 +1,8 @@
 //! Code related to error handling for wasm-pack
 use serde_json;
 use std::borrow::Cow;
-use std::io;
 use std::env;
+use std::io;
 use toml;
 
 /// Errors that can potentially occur in `wasm-pack`.
