@@ -11,14 +11,15 @@ use progressbar::Step;
 use readme;
 use slog::Logger;
 use std::fs;
+use std::path::{Path, PathBuf};
 use std::time::Instant;
 use PBAR;
 
 /// Construct our `pkg` directory in the crate.
-pub fn create_pkg_dir(path: &str, step: &Step) -> Result<(), Error> {
+pub fn create_pkg_dir(path: &Path, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
     PBAR.step(step, &msg);
-    let pkg_dir_path = format!("{}/pkg", path);
+    let pkg_dir_path = path.join("pkg");
     fs::create_dir_all(pkg_dir_path)?;
     Ok(())
 }
@@ -38,7 +39,7 @@ pub enum InitMode {
 
 /// Everything required to configure and run the `wasm-pack init` command.
 pub struct Init {
-    crate_path: String,
+    crate_path: PathBuf,
     scope: Option<String>,
     disable_dts: bool,
     target: String,
@@ -51,7 +52,7 @@ type InitStep = fn(&mut Init, &Step, &Logger) -> Result<(), Error>;
 impl Init {
     /// Construct a new `Init` command.
     pub fn new(
-        path: Option<String>,
+        path: Option<PathBuf>,
         scope: Option<String>,
         disable_dts: bool,
         target: String,
@@ -121,15 +122,16 @@ impl Init {
         info!(&log, "Done in {}.", &duration);
         info!(
             &log,
-            "Your WASM pkg is ready to publish at {}/pkg.", &self.crate_path
+            "Your WASM pkg is ready to publish at {:#?}.",
+            &self.crate_path.join("pkg")
         );
 
         PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
 
         PBAR.message(&format!(
-            "{} Your WASM pkg is ready to publish at {}/pkg.",
+            "{} Your WASM pkg is ready to publish at {:#?}.",
             emoji::PACKAGE,
-            &self.crate_path
+            &self.crate_path.join("pkg")
         ));
         Ok(())
     }
@@ -152,15 +154,14 @@ impl Init {
         info!(&log, "Building wasm...");
         build::cargo_build_wasm(&self.crate_path, self.debug, step)?;
 
-        #[cfg(not(target_os = "windows"))]
         info!(
             &log,
-            "wasm built at {}/target/wasm32-unknown-unknown/release.", &self.crate_path
-        );
-        #[cfg(target_os = "windows")]
-        info!(
-            &log,
-            "wasm built at {}\\target\\wasm32-unknown-unknown\\release.", &self.crate_path
+            "wasm built at {:#?}.",
+            &self
+                .crate_path
+                .join("target")
+                .join("wasm32-unknown-unknown")
+                .join("release")
         );
         Ok(())
     }
@@ -168,7 +169,7 @@ impl Init {
     fn step_create_dir(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Creating a pkg directory...");
         create_pkg_dir(&self.crate_path, step)?;
-        info!(&log, "Created a pkg directory at {}.", &self.crate_path);
+        info!(&log, "Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }
 
@@ -181,15 +182,10 @@ impl Init {
             &self.target,
             step,
         )?;
-        #[cfg(not(target_os = "windows"))]
         info!(
             &log,
-            "Wrote a package.json at {}/pkg/package.json.", &self.crate_path
-        );
-        #[cfg(target_os = "windows")]
-        info!(
-            &log,
-            "Wrote a package.json at {}\\pkg\\package.json.", &self.crate_path
+            "Wrote a package.json at {:#?}.",
+            &self.crate_path.join("pkg").join("package.json")
         );
         Ok(())
     }
@@ -197,15 +193,10 @@ impl Init {
     fn step_copy_readme(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Copying readme from crate...");
         readme::copy_from_crate(&self.crate_path, step)?;
-        #[cfg(not(target_os = "windows"))]
         info!(
             &log,
-            "Copied readme from crate to {}/pkg.", &self.crate_path
-        );
-        #[cfg(target_os = "windows")]
-        info!(
-            &log,
-            "Copied readme from crate to {}\\pkg.", &self.crate_path
+            "Copied readme from crate to {:#?}.",
+            &self.crate_path.join("pkg")
         );
         Ok(())
     }
@@ -217,19 +208,11 @@ impl Init {
 
         info!(&log, "Getting the crate name from the manifest...");
         self.crate_name = manifest::get_crate_name(&self.crate_path)?;
-        #[cfg(not(target_os = "windows"))]
         info!(
             &log,
-            "Got crate name {} from the manifest at {}/Cargo.toml.",
+            "Got crate name {:#?} from the manifest at {:#?}.",
             &self.crate_name,
-            &self.crate_path
-        );
-        #[cfg(target_os = "windows")]
-        info!(
-            &log,
-            "Got crate name {} from the manifest at {}\\Cargo.toml.",
-            &self.crate_name,
-            &self.crate_path
+            &self.crate_path.join("Cargo.toml")
         );
         Ok(())
     }
@@ -244,15 +227,10 @@ impl Init {
             self.debug,
             step,
         )?;
-        #[cfg(not(target_os = "windows"))]
         info!(
             &log,
-            "wasm bindings were built at {}/pkg.", &self.crate_path
-        );
-        #[cfg(target_os = "windows")]
-        info!(
-            &log,
-            "wasm bindings were built at {}\\pkg.", &self.crate_path
+            "wasm bindings were built at {:#?}.",
+            &self.crate_path.join("pkg")
         );
         Ok(())
     }

@@ -3,6 +3,7 @@
 use emoji;
 use error::Error;
 use progressbar::Step;
+use std::path::Path;
 use std::process::Command;
 use PBAR;
 
@@ -30,7 +31,7 @@ pub fn cargo_install_wasm_bindgen(step: &Step) -> Result<(), Error> {
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
 /// `.wasm`.
 pub fn wasm_bindgen_build(
-    path: &str,
+    path: &Path,
     name: &str,
     disable_dts: bool,
     target: &str,

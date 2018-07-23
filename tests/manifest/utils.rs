@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::prelude::*;
+use std::path::Path;
 
 use failure::Error;
 use serde_json;
@@ -23,8 +24,8 @@ pub struct Repository {
     pub url: String,
 }
 
-pub fn read_package_json(path: &str) -> Result<NpmPackage, Error> {
-    let manifest_path = format!("{}/pkg/package.json", path);
+pub fn read_package_json(path: &Path) -> Result<NpmPackage, Error> {
+    let manifest_path = path.join("pkg").join("package.json");
     let mut pkg_file = File::open(manifest_path)?;
     let mut pkg_contents = String::new();
     pkg_file.read_to_string(&mut pkg_contents)?;
