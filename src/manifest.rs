@@ -1,5 +1,6 @@
 //! Reading and writing Cargo.toml and package.json manifests.
 
+use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
@@ -15,7 +16,7 @@ use PBAR;
 #[derive(Deserialize)]
 struct CargoManifest {
     package: CargoPackage,
-    dependencies: Option<CargoDependencies>,
+    dependencies: Option<HashMap<String, CargoDependency>>,
     lib: Option<CargoLib>,
 }
 
@@ -30,10 +31,14 @@ struct CargoPackage {
 }
 
 #[derive(Deserialize)]
-struct CargoDependencies {
-    #[serde(rename = "wasm-bindgen")]
-    wasm_bindgen: Option<String>,
+#[serde(untagged)]
+enum CargoDependency {
+    Simple(String),
+    Detailed(DetailedCargoDependency),
 }
+
+#[derive(Deserialize)]
+struct DetailedCargoDependency {}
 
 #[derive(Deserialize)]
 struct CargoLib {
@@ -177,9 +182,11 @@ pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), Error> {
 }
 
 fn check_wasm_bindgen(path: &Path) -> Result<(), Error> {
-    if read_cargo_toml(path)?.dependencies.map_or(false, |x| {
-        !x.wasm_bindgen.unwrap_or("".to_string()).is_empty()
-    }) {
+    let cargo_toml = read_cargo_toml(path)?;
+    if cargo_toml
+        .dependencies
+        .map_or(false, |deps| deps.contains_key("wasm-bindgen"))
+    {
         return Ok(());
     }
     Error::crate_config(&format!(
