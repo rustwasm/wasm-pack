@@ -68,7 +68,7 @@ check out our [contribution policy].
 3. Add this to the top of your `src/lib.rs`:
 
   ```rust
-  #![feature(proc_macro, wasm_import_module, wasm_custom_section)]
+  #![feature(use_extern_macros, wasm_import_module)]
 
   extern crate wasm_bindgen;
 
