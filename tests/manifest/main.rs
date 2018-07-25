@@ -51,6 +51,14 @@ fn it_checks_has_cdylib_wrong_crate_type() {
 }
 
 #[test]
+fn it_recognizes_a_map_during_depcheck() {
+    let step = wasm_pack::progressbar::Step::new(1);
+    assert!(
+        manifest::check_crate_config(&PathBuf::from("tests/fixtures/serde-feature"), &step).is_ok()
+    );
+}
+
+#[test]
 fn it_creates_a_package_json_default_path() {
     let step = wasm_pack::progressbar::Step::new(1);
     let path = PathBuf::from(".");
