@@ -1,5 +1,58 @@
 # Changelog
 
+## ✨ 0.4.2
+
+- #### 🤕 Fixes
+
+  - **recognize `[dependencies.wasm-bindgen]` during dep check in `init` - [ashleygwilliams], [issue/221] [pull/224]**
+
+    When we originally implemented the dependency check in `wasm-pack init` we naively only checked for the
+    "simple" dependency declaration, `[dependencies] wasm-bindgen="0.2"`. However! This is not the only way
+    to declare this dependency, and it's not the ideal way to do it if you want to specify features from the
+    crate. Now that a bunch of folks want to use `features = ["serde-serialize"]` we ran into a bunch of folks
+    having issues with our naive dependency checker! Thanks so much to [turboladen] for filing the very detailed
+    issue that helped us solve this quickly!
+
+    PSSSST! Curious what `features = ["serde-serialize"]` with `wasm-bindgen` actually does? It's awesome:
+
+    > It's possible to pass data from Rust to JS not explicitly supported in the [Feature Reference](./feature-reference.md) by serializing via [Serde](https://github.com/serde-rs/serde).
+
+    Read the [Passing arbitrary data to JS docs] to learn more!
+
+    [Passing arbitrary data to JS docs]: https://github.com/rustwasm/wasm-bindgen/blob/master/guide/src/passing-data.md
+    [turboladen]: https://github.com/turboladen
+    [issue/221]: https://github.com/rustwasm/wasm-pack/issues/221
+    [pull/224]: https://github.com/rustwasm/wasm-pack/pull/224
+
+  - **improve UX of publish and pack commands - [Mackiovello], [pull/198]**
+
+    Previous to this fix, you would need to be in the parent directory of the `/pkg` dir to successfully run
+    `pack` or `publish`. This was pretty crummy! Thankfully, [Mackiovello] swooped in with a fix, that you can
+    find documented in the [pack and publish docs]!
+
+    [Mackiovello]: https://github.com/Mackiovello
+    [pull/198]: https://github.com/rustwasm/wasm-pack/pull/198
+    [pack and publish docs]: https://github.com/rustwasm/wasm-pack/blob/05e4743c22b57f4c4a1bfff1df1d2cc1a595f523/docs/pack-and-publish.md
+
+  - **use `PathBuf` instead of `String` for paths - [Mackiovello], [pull/220]**
+
+    This is mostly a maintenance PR  but does fix one very small bug- depending on if you add a trailing slash to
+    a path that you pass to `init`, you might have seen an extra `/`! Now that we're using a proper Type to
+    handle this, that's much better, and in general, all the operations using paths are more robust now.
+
+    [pull/220]: https://github.com/rustwasm/wasm-pack/pull/220
+
+- #### 📖 Documentation
+
+  - **update docs and tests to eliminate no longer necessary feature flags - [ashleygwilliams], [pull/226]**
+
+    The Rust 2018 edition marches on and we are seeing feature flags drop like flies :) Instead of a whole slew
+    of feature flags, we now only need one, `#![feature(use_extern_macros)]`, and that one is also not long for
+    this world :)
+  
+    [pull/226]: https://github.com/rustwasm/wasm-pack/pull/226
+
+
 ## ⭐ 0.4.1
 
 - #### 🤕 Fixes
