@@ -79,18 +79,14 @@ pub enum Command {
         /// strategies besides classic username/password entry in legacy npm.
         auth_type: Option<String>,
     },
-<<<<<<< HEAD
 
     #[structopt(name = "test")]
     /// 👩‍🔬  test your wasm!
     Test(TestOptions),
-||||||| merged common ancestors
-=======
 
     #[structopt(name = "snip")]
     /// Replace a wasm function with an `unreachable`.
-    Snip(SnipOpitons),
->>>>>>> cmd(snip): rebase
+    Snip(SnipOptions),
 }
 
 /// Run a command with the given logger!
