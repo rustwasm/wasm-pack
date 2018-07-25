@@ -8,32 +8,9 @@ use manifest;
 use progressbar::Step;
 use readme;
 use slog::Logger;
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Instant;
 use PBAR;
-
-/// Construct our `pkg` directory in the crate.
-pub fn create_pkg_dir(path: &Path, step: &Step) -> Result<(), Error> {
-    let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
-    PBAR.step(step, &msg);
-    let pkg_dir_path = path.join("pkg");
-    fs::create_dir_all(pkg_dir_path)?;
-    Ok(())
-}
-
-/// The `InitMode` determines which mode of initialization we are running, and
-/// what build and install steps we perform.
-pub enum InitMode {
-    /// Perform all the build and install steps.
-    Normal,
-    /// Don't build the crate as a `.wasm` but do install tools and create
-    /// meta-data.
-    Nobuild,
-    /// Don't install tools like `wasm-bindgen`, just use the global
-    /// environment's existing versions to do builds.
-    Noinstall,
-}
 
 /// Everything required to configure and run the `wasm-pack init` command.
 pub struct Init {
@@ -47,7 +24,8 @@ pub struct Init {
 #[derive(Debug, StructOpt)]
 pub struct InitOptions {
     /// The path to the Rust crate.
-    pub path: Option<String>,
+    #[structopt(parse(from_os_str))]
+    pub path: Option<PathBuf>,
 
     /// The npm scope to use in package.json, if any.
     #[structopt(long = "scope", short = "s")]
@@ -109,34 +87,18 @@ impl Init {
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Checking crate configuration...");
-        manifest::check_crate_config(&self.crate_path, step)?;
-        info!(&log, "Crate is correctly configured.");
-        Ok(())
-    }
-
-    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Adding wasm-target...");
-        build::rustup_add_wasm_target(step)?;
-        info!(&log, "Adding wasm-target was successful.");
-        Ok(())
-    }
-
-    fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.debug, step)?;
-
-        info!(
-            &log,
-            "wasm built at {:#?}.",
-            &self
-                .crate_path
-                .join("target")
-                .join("wasm32-unknown-unknown")
-                .join("release")
-        );
-        Ok(())
+    fn set_process_steps() -> Vec<(&'static str, InitStep)> {
+        macro_rules! steps {
+            ($($name:ident),+) => {
+                {
+                let mut steps: Vec<(&'static str, InitStep)> = Vec::new();
+                    $(steps.push((stringify!($name), Init::$name));)*
+                        steps
+                    }
+                };
+            ($($name:ident,)*) => (steps![$($name),*])
+        }
+        steps![step_create_dir, step_create_json, step_copy_readme,]
     }
 
     fn step_create_dir(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
@@ -172,96 +134,5 @@ impl Init {
             &self.crate_path.join("pkg")
         );
         Ok(())
-    }
-
-    fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Installing wasm-bindgen-cli...");
-        bindgen::cargo_install_wasm_bindgen(step)?;
-        info!(&log, "Installing wasm-bindgen-cli was successful.");
-
-        info!(&log, "Getting the crate name from the manifest...");
-        self.crate_name = manifest::get_crate_name(&self.crate_path)?;
-        info!(
-            &log,
-            "Got crate name {:#?} from the manifest at {:#?}.",
-            &self.crate_name,
-            &self.crate_path.join("Cargo.toml")
-        );
-        Ok(())
-    }
-
-    fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Building the wasm bindings...");
-        bindgen::wasm_bindgen_build(
-            &self.crate_path,
-            &self.crate_name,
-            self.disable_dts,
-            &self.target,
-            self.debug,
-            step,
-        )?;
-        info!(
-            &log,
-            "wasm bindings were built at {:#?}.",
-            &self.crate_path.join("pkg")
-        );
-        Ok(())
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn init_normal_build() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Normal)
-            .into_iter()
-            .map(|(n, _)| n)
-            .collect();
-        assert_eq!(
-            steps,
-            [
-                "step_check_crate_config",
-                "step_add_wasm_target",
-                "step_build_wasm",
-                "step_create_dir",
-                "step_create_json",
-                "step_copy_readme",
-                "step_install_wasm_bindgen",
-                "step_run_wasm_bindgen"
-            ]
-        );
-    }
-
-    #[test]
-    fn init_skip_build() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Nobuild)
-            .into_iter()
-            .map(|(n, _)| n)
-            .collect();
-        assert_eq!(
-            steps,
-            ["step_create_dir", "step_create_json", "step_copy_readme"]
-        );
-    }
-
-    #[test]
-    fn init_skip_install() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Noinstall)
-            .into_iter()
-            .map(|(n, _)| n)
-            .collect();
-        assert_eq!(
-            steps,
-            [
-                "step_check_crate_config",
-                "step_build_wasm",
-                "step_create_dir",
-                "step_create_json",
-                "step_copy_readme",
-                "step_run_wasm_bindgen"
-            ]
-        );
     }
 }
