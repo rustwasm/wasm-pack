@@ -10,6 +10,17 @@ use PBAR;
 
 /// Copy the crate's README into the `pkg` directory.
 pub fn copy_from_crate(path: &Path, step: &Step) -> Result<(), Error> {
+    assert!(
+        fs::metadata(path).ok().map_or(false, |m| m.is_dir()),
+        "crate directory should exist"
+    );
+    assert!(
+        fs::metadata(path.join("pkg"))
+            .ok()
+            .map_or(false, |m| m.is_dir()),
+        "crate's pkg directory should exist"
+    );
+
     let msg = format!("{}Copying over your README...", emoji::DANCERS);
     PBAR.step(step, &msg);
     let crate_readme_path = path.join("README.md");
