@@ -30,7 +30,7 @@ visiting that repo!
 
 ## 🎙️ Commands
 
-- [`init`](docs/init.md): Initialize an npm wasm pkg from a rustwasm crate
+- [`init`](docs/init.md): [**Deprecated**] Initialize an npm wasm pkg from a rustwasm crate
 - [`build`](docs/build.md): Generate an npm wasm pkg from a rustwasm crate
 - [`pack`](docs/pack.md): Create a tarball of your rustwasm pkg
 - [`publish`](docs/publish.md): Publish your rustwasm pkg to a registry

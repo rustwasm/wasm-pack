@@ -1,14 +1,12 @@
 //! CLI command structures, parsing, and execution.
 
 mod build;
-pub mod init;
 mod login;
 mod pack;
 mod publish;
 pub mod utils;
 
 use self::build::{Build, BuildMode, BuildOptions};
-use self::init::{Init, InitOptions};
 use self::login::login;
 use self::pack::pack;
 use self::publish::publish;
@@ -21,12 +19,8 @@ use PBAR;
 /// The various kinds of commands that `wasm-pack` can execute.
 #[derive(Debug, StructOpt)]
 pub enum Command {
-    #[structopt(name = "init")]
-    /// 🐣  initialize a package.json based on your compiled wasm!
-    Init(InitOptions),
-
     /// 🏗️  build your npm package!
-    #[structopt(name = "build")]
+    #[structopt(name = "build", alias = "init")]
     Build(BuildOptions),
 
     #[structopt(name = "pack")]
@@ -83,10 +77,6 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
     let status = match command {
-        Command::Init(init_opts) => {
-            info!(&log, "Running init command...");
-            Init::from(init_opts).run(&log)
-        }
         Command::Build(build_opts) => {
             info!(&log, "Running build command...");
             let build_mode = match build_opts.mode.as_str() {

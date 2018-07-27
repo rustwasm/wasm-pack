@@ -1,4 +1,4 @@
-# wasm-pack init
+# wasm-pack init(Deprecated)
 
 The `wasm-pack init` command creates the files neccessary for JavaScript
 interoperability and for publishing a package to npm. This involves
