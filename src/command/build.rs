@@ -4,7 +4,7 @@ use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
-use manifest;
+use manifest::{self, BuildConfig};
 use progressbar::Step;
 use readme;
 use slog::Logger;
@@ -19,7 +19,7 @@ pub(crate) struct Build {
     pub disable_dts: bool,
     pub target: String,
     pub debug: bool,
-    // build_config: Option<BuildConfig>,
+    pub build_config: Option<BuildConfig>,
     pub crate_name: String,
 }
 
@@ -60,22 +60,20 @@ pub struct BuildOptions {
     #[structopt(long = "debug")]
     /// Build without --release.
     debug: bool,
-    // build config from manifest
-    // build_config: Option<BuildConfig>,
 }
 
 impl From<BuildOptions> for Build {
     fn from(build_opts: BuildOptions) -> Self {
         let crate_path = set_crate_path(build_opts.path);
         let crate_name = manifest::get_crate_name(&crate_path).unwrap();
-        // let build_config = manifest::xxx(&crate_path).xxx();
+        let manifest = manifest::read_cargo_toml(&crate_path).unwrap();
         Build {
             crate_path,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
             debug: build_opts.debug,
-            // build_config,
+            build_config: manifest.build_config,
             crate_name,
         }
     }

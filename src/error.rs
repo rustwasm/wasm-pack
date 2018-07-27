@@ -1,4 +1,5 @@
 //! Code related to error handling for wasm-pack
+use failure;
 use serde_json;
 use std::borrow::Cow;
 use std::io;
@@ -93,5 +94,13 @@ impl From<serde_json::Error> for Error {
 impl From<toml::de::Error> for Error {
     fn from(e: toml::de::Error) -> Self {
         Error::SerdeToml(e)
+    }
+}
+
+impl From<failure::Error> for Error {
+    fn from(e: failure::Error) -> Self {
+        Error::CrateConfig {
+            message: e.to_string(),
+        }
     }
 }
