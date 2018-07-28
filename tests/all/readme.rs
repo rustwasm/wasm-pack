@@ -3,12 +3,12 @@ extern crate wasm_pack;
 
 use std::fs;
 
-use utils;
+use utils::{self, fixture};
 use wasm_pack::readme;
 
 #[test]
 fn it_copies_a_readme_default_path() {
-    let fixture = utils::fixture(".");
+    let fixture = fixture::fixture(".");
     fs::create_dir(fixture.path.join("pkg")).expect("should create pkg directory OK");
 
     let step = wasm_pack::progressbar::Step::new(1);
@@ -25,14 +25,14 @@ fn it_copies_a_readme_default_path() {
 
     assert!(fs::metadata(&pkg_readme_path).is_ok());
 
-    let crate_readme = utils::readme::read_file(&crate_readme_path).unwrap();
-    let pkg_readme = utils::readme::read_file(&pkg_readme_path).unwrap();
+    let crate_readme = utils::file::read_file(&crate_readme_path).unwrap();
+    let pkg_readme = utils::file::read_file(&pkg_readme_path).unwrap();
     assert_eq!(crate_readme, pkg_readme);
 }
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
-    let fixture = utils::fixture("tests/fixtures/js-hello-world");
+    let fixture = fixture::fixture("tests/fixtures/js-hello-world");
     fs::create_dir(fixture.path.join("pkg")).expect("should create pkg directory OK");
 
     let step = wasm_pack::progressbar::Step::new(1);
@@ -47,7 +47,7 @@ fn it_creates_a_package_json_provided_path() {
     assert!(fs::metadata(&crate_readme_path).is_ok());
     assert!(fs::metadata(&pkg_readme_path).is_ok());
 
-    let crate_readme = utils::readme::read_file(&crate_readme_path).unwrap();
-    let pkg_readme = utils::readme::read_file(&pkg_readme_path).unwrap();
+    let crate_readme = utils::file::read_file(&crate_readme_path).unwrap();
+    let pkg_readme = utils::file::read_file(&pkg_readme_path).unwrap();
     assert_eq!(crate_readme, pkg_readme);
 }
