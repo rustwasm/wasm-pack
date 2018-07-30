@@ -66,3 +66,11 @@ deploy:
     branch: master
     condition: $DEPLOY = 1
     tags: true
+
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  local-dir: docs/book
+  keep-history: false
+  on:
+    branch: master
