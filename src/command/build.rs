@@ -1,8 +1,6 @@
-//! Initializing a crate for packing `.wasm`s.
-
 use bindgen;
 use build;
-use command::utils::set_crate_path;
+use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
@@ -10,104 +8,85 @@ use manifest;
 use progressbar::Step;
 use readme;
 use slog::Logger;
-use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::Instant;
 use PBAR;
 
-/// Construct our `pkg` directory in the crate.
-pub fn create_pkg_dir(path: &Path, step: &Step) -> Result<(), Error> {
-    let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
-    PBAR.step(step, &msg);
-    let pkg_dir_path = path.join("pkg");
-    fs::create_dir_all(pkg_dir_path)?;
-    Ok(())
+/// Everything required to configure and run the `wasm-pack init` command.
+pub(crate) struct Build {
+    pub crate_path: PathBuf,
+    pub scope: Option<String>,
+    pub disable_dts: bool,
+    pub target: String,
+    pub debug: bool,
+    // build_config: Option<BuildConfig>,
+    pub crate_name: String,
 }
 
-/// The `InitMode` determines which mode of initialization we are running, and
+/// The `BuildMode` determines which mode of initialization we are running, and
 /// what build and install steps we perform.
-pub enum InitMode {
+pub enum BuildMode {
     /// Perform all the build and install steps.
     Normal,
-    /// Don't build the crate as a `.wasm` but do install tools and create
-    /// meta-data.
-    Nobuild,
     /// Don't install tools like `wasm-bindgen`, just use the global
     /// environment's existing versions to do builds.
     Noinstall,
 }
 
-/// Everything required to configure and run the `wasm-pack init` command.
-pub struct Init {
-    crate_path: PathBuf,
-    scope: Option<String>,
-    disable_dts: bool,
-    target: String,
+/// Everything required to configure and run the `wasm-pack build` command.
+#[derive(Debug, StructOpt)]
+pub struct BuildOptions {
+    /// The path to the Rust crate.
+    #[structopt(parse(from_os_str))]
+    pub path: Option<PathBuf>,
+
+    /// The npm scope to use in package.json, if any.
+    #[structopt(long = "scope", short = "s")]
+    pub scope: Option<String>,
+
+    #[structopt(long = "mode", short = "m", default_value = "normal")]
+    /// Sets steps to be run. [possible values: no-install, normal]
+    pub mode: String,
+
+    #[structopt(long = "no-typescript")]
+    /// By default a *.d.ts file is generated for the generated JS file, but
+    /// this flag will disable generating this TypeScript file.
+    pub disable_dts: bool,
+
+    #[structopt(long = "target", short = "t", default_value = "browser")]
+    /// Sets the target environment. [possible values: browser, nodejs]
+    pub target: String,
+
+    #[structopt(long = "debug")]
+    /// Build without --release.
     debug: bool,
-    crate_name: String,
+    // build config from manifest
+    // build_config: Option<BuildConfig>,
 }
 
-type InitStep = fn(&mut Init, &Step, &Logger) -> Result<(), Error>;
-
-impl Init {
-    /// Construct a new `Init` command.
-    pub fn new(
-        path: Option<PathBuf>,
-        scope: Option<String>,
-        disable_dts: bool,
-        target: String,
-        debug: bool,
-    ) -> Result<Init, Error> {
-        let crate_path = set_crate_path(path);
-        let crate_name = manifest::get_crate_name(&crate_path)?;
-        Ok(Init {
+impl From<BuildOptions> for Build {
+    fn from(build_opts: BuildOptions) -> Self {
+        let crate_path = set_crate_path(build_opts.path);
+        let crate_name = manifest::get_crate_name(&crate_path).unwrap();
+        // let build_config = manifest::xxx(&crate_path).xxx();
+        Build {
             crate_path,
-            scope,
-            disable_dts,
-            target,
-            debug,
+            scope: build_opts.scope,
+            disable_dts: build_opts.disable_dts,
+            target: build_opts.target,
+            debug: build_opts.debug,
+            // build_config,
             crate_name,
-        })
-    }
-
-    fn get_process_steps(mode: InitMode) -> Vec<(&'static str, InitStep)> {
-        macro_rules! steps {
-            ($($name:ident),+) => {
-                {
-                    let mut steps: Vec<(&'static str, InitStep)> = Vec::new();
-                    $(steps.push((stringify!($name), Init::$name));)*
-                    steps
-                }
-            };
-            ($($name:ident,)*) => (steps![$($name),*])
-        }
-
-        match mode {
-            InitMode::Normal => steps![
-                step_check_crate_config,
-                step_add_wasm_target,
-                step_build_wasm,
-                step_create_dir,
-                step_create_json,
-                step_copy_readme,
-                step_install_wasm_bindgen,
-                step_run_wasm_bindgen,
-            ],
-            InitMode::Nobuild => steps![step_create_dir, step_create_json, step_copy_readme,],
-            InitMode::Noinstall => steps![
-                step_check_crate_config,
-                step_build_wasm,
-                step_create_dir,
-                step_create_json,
-                step_copy_readme,
-                step_run_wasm_bindgen
-            ],
         }
     }
+}
 
-    /// Execute this `Init` command.
-    pub fn process(&mut self, log: &Logger, mode: InitMode) -> Result<(), Error> {
-        let process_steps = Init::get_process_steps(mode);
+type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
+
+impl Build {
+    /// Execute this `Build` command.
+    pub fn run(&mut self, log: &Logger, mode: &BuildMode) -> Result<(), Error> {
+        let process_steps = Build::get_process_steps(mode);
 
         let mut step_counter = Step::new(process_steps.len());
 
@@ -134,6 +113,39 @@ impl Init {
             &self.crate_path.join("pkg")
         ));
         Ok(())
+    }
+
+    fn get_process_steps(mode: &BuildMode) -> Vec<(&'static str, BuildStep)> {
+        macro_rules! steps {
+            ($($name:ident),+) => {
+                {
+                let mut steps: Vec<(&'static str, BuildStep)> = Vec::new();
+                    $(steps.push((stringify!($name), Build::$name));)*
+                        steps
+                    }
+                };
+            ($($name:ident,)*) => (steps![$($name),*])
+        }
+        match &mode {
+            BuildMode::Normal => steps![
+                step_check_crate_config,
+                step_add_wasm_target,
+                step_build_wasm,
+                step_create_dir,
+                step_create_json,
+                step_copy_readme,
+                step_install_wasm_bindgen,
+                step_run_wasm_bindgen,
+            ],
+            BuildMode::Noinstall => steps![
+                step_check_crate_config,
+                step_build_wasm,
+                step_create_dir,
+                step_create_json,
+                step_copy_readme,
+                step_run_wasm_bindgen
+            ],
+        }
     }
 
     fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
@@ -233,62 +245,5 @@ impl Init {
             &self.crate_path.join("pkg")
         );
         Ok(())
-    }
-}
-
-#[cfg(test)]
-mod test {
-    use super::*;
-
-    #[test]
-    fn init_normal_build() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Normal)
-            .into_iter()
-            .map(|(n, _)| n)
-            .collect();
-        assert_eq!(
-            steps,
-            [
-                "step_check_crate_config",
-                "step_add_wasm_target",
-                "step_build_wasm",
-                "step_create_dir",
-                "step_create_json",
-                "step_copy_readme",
-                "step_install_wasm_bindgen",
-                "step_run_wasm_bindgen"
-            ]
-        );
-    }
-
-    #[test]
-    fn init_skip_build() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Nobuild)
-            .into_iter()
-            .map(|(n, _)| n)
-            .collect();
-        assert_eq!(
-            steps,
-            ["step_create_dir", "step_create_json", "step_copy_readme"]
-        );
-    }
-
-    #[test]
-    fn init_skip_install() {
-        let steps: Vec<&str> = Init::get_process_steps(InitMode::Noinstall)
-            .into_iter()
-            .map(|(n, _)| n)
-            .collect();
-        assert_eq!(
-            steps,
-            [
-                "step_check_crate_config",
-                "step_build_wasm",
-                "step_create_dir",
-                "step_create_json",
-                "step_copy_readme",
-                "step_run_wasm_bindgen"
-            ]
-        );
     }
 }

@@ -33,7 +33,7 @@ pub fn new(cmd: &Command, verbosity: u8) -> Result<Logger, Error> {
 /// Figure out where to stick the log based off the command arguments given
 fn log_file_path(cmd: &Command) -> PathBuf {
     let path = match cmd {
-        Command::Init { path, .. } => path,
+        Command::Build(build_opts) => &build_opts.path,
         Command::Pack { path } => path,
         Command::Publish { path } => path,
         Command::Login { .. } => &None,
