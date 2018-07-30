@@ -1,4 +1,4 @@
-# pack and publish 
+# pack and publish
 
 The `publish` and `pack` commands interact with the pkg directory that's 
 created when you run `wasm-pack init`. The `pack` command creates a tarball

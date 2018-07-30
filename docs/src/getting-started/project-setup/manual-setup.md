@@ -1,42 +1,4 @@
-# Setup
-
-## Installing wasm-pack
-
-You can install `wasm-pack` using the following command:
-
-```
-cargo install wasm-pack
-```
-
-If you have already installed `wasm-pack` and want to install a newer version,
-you can use the `--force` option, like this:
-
-```
-cargo install wasm-pack --force
-```
-
-## Project Initialization
-
-### Using a Template
-
-You can create a new Rust-WebAssembly project by using the [rustwasm wasm-pack-template].
-
-To so do, you'll need the `cargo-generate` tool. To install `cargo-generate`:
-
-```
-cargo install cargo-generate
-```
-
-Then run:
-
-```
-cargo generate --git https://github.com/rustwasm/wasm-pack-template
-```
-
-You will be prompted to give your project a name. Once you do, you will have a directory
-with a new project, ready to go.
-
-### Manually
+# Manual Setup
 
 You can create a new Rust project named `my-lib` using this command.
 
