@@ -11,7 +11,10 @@ use std::path::PathBuf;
 /// Create the logger for wasm-pack that will output any info warning or errors we encounter
 pub fn new(cmd: &Command, verbosity: u8) -> Result<Logger, Error> {
     let log_path = log_file_path(&cmd);
-    let file = OpenOptions::new().create(true).append(true).open(log_path)?;
+    let file = OpenOptions::new()
+        .create(true)
+        .append(true)
+        .open(log_path)?;
 
     let decorator = PlainDecorator::new(file);
     let drain = FullFormat::new(decorator).build().fuse();
