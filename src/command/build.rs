@@ -64,12 +64,15 @@ pub struct BuildOptions {
     // build_config: Option<BuildConfig>,
 }
 
-impl From<BuildOptions> for Build {
-    fn from(build_opts: BuildOptions) -> Self {
+type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
+
+impl Build {
+    /// Construct a build command from the given options.
+    pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
         let crate_path = set_crate_path(build_opts.path);
-        let crate_name = manifest::get_crate_name(&crate_path).unwrap();
+        let crate_name = manifest::get_crate_name(&crate_path)?;
         // let build_config = manifest::xxx(&crate_path).xxx();
-        Build {
+        Ok(Build {
             crate_path,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
@@ -77,13 +80,9 @@ impl From<BuildOptions> for Build {
             debug: build_opts.debug,
             // build_config,
             crate_name,
-        }
+        })
     }
-}
 
-type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
-
-impl Build {
     /// Execute this `Build` command.
     pub fn run(&mut self, log: &Logger, mode: &BuildMode) -> Result<(), Error> {
         let process_steps = Build::get_process_steps(mode);
