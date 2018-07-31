@@ -68,6 +68,12 @@ struct Repository {
 
 fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
     let manifest_path = path.join("Cargo.toml");
+    if !manifest_path.is_file() {
+        return Error::crate_config(&format!(
+            "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
+            path.display()
+        )).map(|_| unreachable!());
+    }
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
     cargo_file.read_to_string(&mut cargo_contents)?;
