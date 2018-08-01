@@ -84,7 +84,7 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
                 "normal" => BuildMode::Normal,
                 _ => BuildMode::Normal,
             };
-            Build::from(build_opts).run(&log, &build_mode)
+            Build::try_from_opts(build_opts).and_then(|mut b| b.run(&log, &build_mode))
         }
         Command::Pack { path } => {
             info!(&log, "Running pack command...");
