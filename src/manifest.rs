@@ -212,3 +212,28 @@ fn check_crate_type(path: &Path) -> Result<(), Error> {
       "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:\n\n[lib]\ncrate-type = [\"cdylib\"]"
     )
 }
+
+/// Get the version of `wasm-bindgen` specified as a dependency.
+pub fn get_wasm_bindgen_version(path: &Path) -> Result<String, Error> {
+    if let Some(deps) = read_cargo_toml(path)?.dependencies {
+        match deps.get("wasm_bindgen") {
+            Some(CargoDependency::Simple(version)) => Ok(version.clone()),
+            Some(CargoDependency::Detailed(_)) => {
+                let msg = format!(
+                    "\"{}\" dependency is missing its version number",
+                    style("wasm-bindgen").bold().dim()
+                );
+                Err(Error::CrateConfig { message: msg })
+            }
+            None => {
+                let message = format!(
+                    "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n[dependencies]\nwasm-bindgen = \"0.2\"",
+                    style("wasm-bindgen").bold().dim());
+                Err(Error::CrateConfig { message })
+            }
+        }
+    } else {
+        let message = String::from("Could not find crate dependencies");
+        Err(Error::CrateConfig { message })
+    }
+}

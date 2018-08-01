@@ -6,7 +6,7 @@ mod pack;
 mod publish;
 pub mod utils;
 
-use self::build::{Build, BuildMode, BuildOptions};
+use self::build::{Build, BuildOptions};
 use self::login::login;
 use self::pack::pack;
 use self::publish::publish;
@@ -79,12 +79,7 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
     let status = match command {
         Command::Build(build_opts) => {
             info!(&log, "Running build command...");
-            let build_mode = match build_opts.mode.as_str() {
-                "no-install" => BuildMode::Noinstall,
-                "normal" => BuildMode::Normal,
-                _ => BuildMode::Normal,
-            };
-            Build::try_from_opts(build_opts).and_then(|mut b| b.run(&log, &build_mode))
+            Build::try_from_opts(build_opts).and_then(|mut b| b.run(&log))
         }
         Command::Pack { path } => {
             info!(&log, "Running pack command...");
