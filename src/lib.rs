@@ -41,8 +41,13 @@ pub mod manifest;
 pub mod npm;
 pub mod progressbar;
 pub mod readme;
+<<<<<<< HEAD
 pub mod target;
 pub mod test;
+||||||| merged common ancestors
+=======
+pub mod snip;
+>>>>>>> build(snip): hidde snip into build
 
 use progressbar::ProgressOutput;
 

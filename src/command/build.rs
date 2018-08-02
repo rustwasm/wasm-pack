@@ -311,4 +311,20 @@ impl Build {
         info!(&log, "wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())
     }
+
+    fn set_run_wasm_snip(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+        let msg = format!("{}Running WASM-opt...", emoji::RUNNER);
+        PBAR.step(step, &msg);
+
+        snip::set_run_wasm_snip(
+            // FIXME(csmoe) add wasm_snip_config() in build
+            self.wasm_snip_config(),
+        )?;
+        info!(
+            &log,
+            "wasm bindings were snipped at {:#?}.",
+            &self.crate_path.join("pkg")
+        );
+        Ok(())
+    }
 }

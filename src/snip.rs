@@ -3,7 +3,7 @@ use parity_wasm::elements::{self, Serialize};
 use wasm_snip;
 
 #[derive(Clone, Debug, StructOpt)]
-pub struct SnipOptions {
+pub struct WasmSnipConfig {
     input: String,
     #[structopt(long = "output", short = "o")]
     pub(crate) output: Option<String>,
@@ -16,7 +16,7 @@ pub struct SnipOptions {
     snip_rust_panicking_code: bool,
 }
 
-impl Into<wasm_snip::Options> for SnipOptions {
+impl Into<wasm_snip::Options> for WasmSnipConfig {
     fn into(self) -> wasm_snip::Options {
         wasm_snip::Options {
             input: ::std::path::PathBuf::from(self.input),
@@ -28,7 +28,7 @@ impl Into<wasm_snip::Options> for SnipOptions {
     }
 }
 
-pub(crate) fn snip(opts: SnipOptions) -> Result<(), Error> {
+pub(crate) fn run_wasm_snip(opts: WasmSnipConfig) -> Result<(), Error> {
     let module = wasm_snip::snip(opts.clone().into())?;
 
     if let Some(output) = opts.output {

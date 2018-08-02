@@ -3,10 +3,17 @@
 pub mod build;
 mod login;
 mod pack;
+<<<<<<< HEAD
 /// Data structures and functions for publishing a package.
 pub mod publish;
 pub mod test;
 mod snip;
+||||||| merged common ancestors
+mod publish;
+mod snip;
+=======
+mod publish;
+>>>>>>> build(snip): hidde snip into build
 pub mod utils;
 
 use self::build::{Build, BuildOptions};
@@ -86,6 +93,9 @@ pub enum Command {
 
     #[structopt(name = "snip")]
     /// Replace a wasm function with an `unreachable`.
+
+    #[structopt(name = "snip")]
+    /// Replace a wasm function with an `unreachable`.
     Snip(SnipOptions),
 }
 
@@ -125,18 +135,14 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), failu
             );
             login(registry, scope, always_auth, auth_type, &log)
         }
-<<<<<<< HEAD
         Command::Test(test_opts) => {
             info!(&log, "Running test command...");
             Test::try_from_opts(test_opts).and_then(|t| t.run(&log))
         }
-||||||| merged common ancestors
-=======
         Command::Snip(opts) => {
             info!(&log, "Running snip command...");
             snip(opts)
         }
->>>>>>> cmd(snip): rebase
     };
 
     match status {
