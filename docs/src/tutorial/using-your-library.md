@@ -1,90 +1,70 @@
 # Run The Code From npm
 
-Alright let's make a new small directory to test that we can now run this code and pull it from npm.
+This portion of the tutorial will help you create a [Webpack] JavaScript project that will
+run your WebAssembly code in the browser.
+
+[Webpack]: https://webpack.js.org/
+
+## Scaffold a JavaScript Project
+
+To scaffold a project that we can use our new package in, we'll use an npm template called
+[`create-wasm-app`]. To use this run this command in a directory *different* than your Rust
+project:
+
+[`create-wasm-app`]: https://github.com/rustwasm/create-wasm-app
+
+```
+npm init wasm-app
+```
+
+This tool will ask you for the name of a project, and then create a directory with that name.
+
+If we look in that directory, we'll see the following:
+
+- `.gitignore`: ignores `node_modules`
+- `LICENSE-APACHE` and `LICENSE-MIT`: most Rust projects are licensed this way, so these are included for you
+- `README.md`: the file you are reading now!
+- `index.html`: a bare bones html document that includes the webpack bundle
+- `index.js`: example js file with a comment showing how to import and use a wasm pkg
+- `package.json` and `package-lock.json`: 
+  - pulls in devDependencies for using webpack:
+      - [`webpack`](https://www.npmjs.com/package/webpack)
+      - [`webpack-cli`](https://www.npmjs.com/package/webpack-cli)
+      - [`webpack-dev-server`](https://www.npmjs.com/package/webpack-dev-server)
+  - defines a `start` script to run `webpack-dev-server`
+- `webpack.config.js`: configuration file for bundling your js with webpack
+
+## Add Your npm Package
+
+The scaffolded project includes an example WebAssembly package, `hello-wasm-pack`, in your
+`package.json`. Go into the `package.json` file, add your package, and remove the 
+`hello-wasm-pack` dependency from the `"dependencies"` section.
+
+Now, open up the `index.js` file. Replace the `hello-wasm-pack` in the first line with the
+name of your package:
+
+```js
+import * as wasm from "<your package name>";
+
+wasm.greet();
+```
+
+## Run The Project
+
+Before we run our project, we need to make sure we install our dependencies:
 
 ```bash
-$ mkdir test
-$ cd test
+npm install
 ```
 
-Now we need to create a `package.json` file that looks like this:
-
-```json
-{
-  "scripts": {
-    "serve": "webpack-dev-server"
-  },
-  "dependencies": {
-    "@MYSCOPE/wasm-add": "^0.1.0"
-  },
-  "devDependencies": {
-    "webpack": "^4.0.1",
-    "webpack-cli": "^2.0.10",
-    "webpack-dev-server": "^3.1.0"
-  }
-}
-```
-
-where `MYSCOPE` is your npm username. You can expand this to be a more complete file but
-we're really just trying to verify that this works!
-
-Next up we'll need to create a small webpack configuration so that we can use the
-`webpack-dev-server` to serve the wasm file properly. It should be noted that webpack isn't
-a requirement. It's just what was chosen for this tutorial. You just need something to server the
-code! Here's what your `webpack.config.js` should look like:
-
-```javascript
-const path = require('path');
-module.exports = {
-  entry: "./index.js",
-  output: {
-    path: path.resolve(__dirname, "dist"),
-    filename: "index.js",
-  },
-  mode: "development"
-};
-```
-
-This tells webpack that if it's going to start things up use `index.js`. Before we do that though
-we'll need to setup a small html file. Create a new file called `index.html` and put this inside it:
-
-```html
-<!DOCTYPE html>
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>wasm-pack example</title>
-  </head>
-  <body>
-    <script src="./index.js"></script>
-  </body>
-</html>
-```
-
-We're almost set. Now we need to setup our JS file so that we can run some wasm code!
-Make a file called `index.js` and put this inside of it:
-
-```javascript
-const js = import("@MYSCOPE/wasm-add/wasm_add.js");
-js.then(js => {
-  js.alert_add(3,2);
-});
-```
-
-Since web pack [can't load wasm synchronously yet](https://github.com/webpack/webpack/issues/6615)
-we are using the import statement above followed
-by the promise in order to load it properly. This is what lets us then call `alert_add`. We're
-importing from the `node_module` folder we haven't gotten yet so let's import all of our
-dependencies finally and run the example!
+We should be ready to run our project now! To run our project we'll run:
 
 ```bash
-$ npm install
-$ npm run serve
+npm start
 ```
 
-Then in a web browser navigate to `http://localhost:8080` you should see something like this:
-
-![An alert box saying "Hello from Rust! 3 + 2 = 5"](./wasm-pack/wasm-pack.png)
+Then in a web browser navigate to `http://localhost:8080` and you should be greeted with an
+alert box that says "Hello World!".
 
 If you did congrats you've successfully uploaded your first bit of wasm code to npm and used it
 properly!

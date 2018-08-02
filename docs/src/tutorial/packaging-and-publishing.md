@@ -20,7 +20,7 @@ This is everything you need to upload your code to npm! Let's do just that!
 First off, you will need to login to npm with the account you made earlier:
 
 ```bash
-$ npm login
+$ wasm-pack login
 ```
 
 Next you will need to go into the output directory and actually upload the package:
