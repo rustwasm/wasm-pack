@@ -12,6 +12,15 @@ matrix:
     - cargo fmt --all -- --check
     env: RUST_BACKTRACE=1
 
+  # book
+  - rust: stable
+    before_script:
+    - (test -x $HOME/.cargo/bin/cargo-install-update || cargo install cargo-update)
+    - (test -x $HOME/.cargo/bin/mdbook || cargo install --vers "^0.1" mdbook)
+    - cargo install-update -a
+    script:
+    - cd docs && mdbook build
+
   # dist linux binary
   - env: TARGET=x86_64-unknown-linux-musl DEPLOY=1
     rust: nightly
@@ -57,3 +66,11 @@ deploy:
     branch: master
     condition: $DEPLOY = 1
     tags: true
+
+  provider: pages
+  skip-cleanup: true
+  github-token: $GITHUB_TOKEN
+  local-dir: docs/book
+  keep-history: false
+  on:
+    branch: master

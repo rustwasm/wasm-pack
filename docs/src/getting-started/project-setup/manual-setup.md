@@ -1,21 +1,4 @@
-# Setup
-
-## Installing wasm-pack
-
-You can install `wasm-pack` using the following command:
-
-```
-cargo install wasm-pack
-```
-
-If you have already installed `wasm-pack` and want to install a newer version,
-you can use the `--force` option, like this:
-
-```
-cargo install wasm-pack --force
-```
-
-## Project Initialization
+# Manual Setup
 
 You can create a new Rust project named `my-lib` using this command.
 
@@ -26,7 +9,7 @@ cargo new --lib my-lib
 The `--lib` flag specifies that the project is a library, which is important
 because we will be calling this code from JavaScript.
 
-### Cargo.toml changes
+#### Cargo.toml changes
 
 You will need to add `wasm-bindgen` to your `Cargo.toml` in the dependencies
 section. `wasm-bindgen` is a tool that facilitates interoperability between
