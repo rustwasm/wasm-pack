@@ -7,6 +7,14 @@ much Rust knowledge to complete this tutorial.
 
 Be sure to have done the following before starting:
 
-1. Read and install all the [Prerequisites](../prerequisites/index.html).
-2. [Install `wasm-pack`](../../getting-started/installation.html).
-3. [Setup a new project](../../getting-started/project-setup/using-a-template.html).
+1. [Install `wasm-pack`](../../installer)
+1. Read and install the [Prerequisites](../prerequisites/index.html).
+
+    - You'll need [Rust], version 1.30 or higher. (Currently either `beta` or `nightly` channels). [Learn more](../project-setup/rust.html).
+    - You'll need [Node.js] and [npm] installed. You'll also need an npm Account. [Learn more](../project-setup/npm.html).
+
+⚠️ We strongly recommend that you install [Node.js] using a version manager. You can learn more [here](https://npmjs.com/get-npm).
+
+[Rust]: https://www.rust-lang.org
+[Node.js]: https://nodejs.org
+[npm]: https://npmjs.com

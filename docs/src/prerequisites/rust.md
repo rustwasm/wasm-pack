@@ -1,31 +1,35 @@
 # Rust
 
-`wasm-pack` is a tool written in Rust, and distributed with `cargo`. As a result,
-you'll need Rust and `cargo` to use `wasm-pack`.
+`wasm-pack` is a Command Line Interface tool written in Rust, and distributed with `cargo`.
+As a result, you'll need Rust and `cargo` to use `wasm-pack`.
 
-To install Rust, visit this [page](https://www.rust-lang.org/en-US/install.html).
+### Installing Rust and Cargo
 
-You can be sure you have Rust and Cargo installed by running:
+To install Rust, visit this [page](https://www.rust-lang.org/en-US/install.html), which will
+walk you through installing Rust and `cargo` on your machine using a tool called `rustup`.
+
+To confirm you have Rust and `cargo` installed, run:
 
 ```
 rustc --version
 cargo --version
 ```
 
-### `nightly` Rust
+### Rust Versions
 
-`wasm-pack` depends on `wasm-bindgen` which currently requires Rust features that
-have not yet been stabilized. As a result, you'll need to use a nightly version of
-Rust to run `wasm-pack`.
+`wasm-pack` depends on a library called `wasm-bindgen`. `wasm-bindgen` requires that you use
+Rust 1.30.0 or higher. This version is currently only available on the `nightly` or `beta`
+channels.
 
-You can install the nightly channel by running:
-
-```
-rustup install nightly
-```
-
-You can configure rustup to always use `nightly` in a directory by running:
+To get the correct version of Rust, you'll use `rustup` a Rust version manager that comes
+bundled with Rust. Run this command to install the latest Rust on the `beta` channel:
 
 ```
-rustup override set nightly
+rustup install beta
+```
+
+You can set your project directory to always use this version of Rust by running:
+
+```
+rustup override set beta
 ```
