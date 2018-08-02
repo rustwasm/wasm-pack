@@ -1,4 +1,5 @@
 use bindgen;
+use opt;
 use build;
 use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
@@ -244,5 +245,19 @@ impl Build {
             &self.crate_path.join("pkg")
         );
         Ok(())
+    }
+
+    fn step_run_wasm_opt(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+        info!(&log, "Optimizing the wasm bindings...");
+        opt::run_wasm_opt(
+            &self.crate_path,
+            &self.crate_name,
+            &self.build_config.opt_passes(),
+        )?;
+        info!(
+            &log,
+            "wasm bindings were optimized at {:#?}.",
+            &self.crate_path.join("pkg")
+        );
     }
 }
