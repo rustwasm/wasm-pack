@@ -49,13 +49,19 @@ struct CargoLib {
 #[derive(Serialize)]
 struct NpmPackage {
     name: String,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     collaborators: Vec<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     description: Option<String>,
     version: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     license: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     repository: Option<Repository>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
     files: Vec<String>,
     main: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     types: Option<String>,
 }
 
