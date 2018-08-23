@@ -24,14 +24,14 @@ visiting that repo!
 
 ## 🔮 Prerequisities
 
-- [Development Environment](docs/prerequisites.md)
-- [Installation and Getting Started](docs/setup.md)
+- [Development Environment](docs/src/prerequisites.md)
+- [Installation and Getting Started](docs/src/setup.md)
 
 ## 🎙️ Commands
 
-- [`init`](docs/init.md): Generate an npm wasm pkg from a rustwasm crate
-- [`build`](docs/build.md): Generate an npm wasm pkg from a rustwasm crate
-- [`pack` and `publish`](docs/pack-and-publish.md): Create a tarball of your rustwasm pkg and/or publish to a registry
+- [`init`](docs/src/commands/init.md): Generate an npm wasm pkg from a rustwasm crate
+- [`build`](docs/src/commands/build.md): Generate an npm wasm pkg from a rustwasm crate
+- [`pack` and `publish`](docs/src/commands/pack-and-publish.md): Create a tarball of your rustwasm pkg and/or publish to a registry
 
 ## 📝 Logging
 
@@ -49,7 +49,7 @@ customize the log verbosity using the verbosity flag.
 Read our [guide] on getting up and running for developing `wasm-pack`, and
 check out our [contribution policy].
 
-[guide]: docs/contributing.md
+[guide]: docs/src/contributing.md
 [contribution policy]: CONTRIBUTING.md
 
 ## ⚡ Quickstart Guide
