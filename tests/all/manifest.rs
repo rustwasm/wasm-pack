@@ -192,3 +192,21 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&fixture.path, &step).is_ok());
 }
+
+#[test]
+fn it_gets_wasm_bindgen_version() {
+    let fixture = fixture::fixture("tests/fixtures/js-hello-world");
+    assert_eq!(
+        manifest::get_wasm_bindgen_version(&fixture.path).unwrap(),
+        "0.2"
+    );
+}
+
+#[test]
+fn it_gets_wasm_bindgen_version_with_underscores() {
+    let fixture = fixture::fixture("tests/fixtures/with-underscores");
+    assert_eq!(
+        manifest::get_wasm_bindgen_version(&fixture.path).unwrap(),
+        "0.2"
+    );
+}
