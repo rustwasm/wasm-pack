@@ -13,14 +13,14 @@ use serde_json;
 use toml;
 use PBAR;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct CargoManifest {
     package: CargoPackage,
     dependencies: Option<HashMap<String, CargoDependency>>,
     lib: Option<CargoLib>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct CargoPackage {
     name: String,
     authors: Vec<String>,
@@ -30,19 +30,19 @@ struct CargoPackage {
     repository: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum CargoDependency {
     Simple(String),
     Detailed(DetailedCargoDependency),
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct DetailedCargoDependency {
     version: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct CargoLib {
     #[serde(rename = "crate-type")]
     crate_type: Option<Vec<String>>,
@@ -192,6 +192,8 @@ pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
     PBAR.step(&step, &msg);
     check_wasm_bindgen(path)?;
+    // TODO: check that if there is a `wasm-bindgen-test` dependency, then it
+    // matches `wasm-bindgen`.
     check_crate_type(path)?;
     Ok(())
 }
