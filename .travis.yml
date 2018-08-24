@@ -1,76 +1,77 @@
 language: rust
 sudo: false
+cache: cargo
+
+DEPLOY_TO_GITHUB: &DEPLOY_TO_GITHUB
+  before_deploy:
+    - git config --local user.name "Ashley Williams"
+    - git config --local user.email "ashley666ashley@gmail.com"
+    - name="wasm-pack-$TRAVIS_TAG-$TARGET"
+    - mkdir $name
+    - cp target/$TARGET/release/wasm-pack $name/
+    - cp README.md LICENSE-MIT LICENSE-APACHE $name/
+    - tar czvf $name.tar.gz $name
+  deploy:
+    provider: releases
+    api_key:
+      secure: fx0rR5Ii1KcsydexE6QpkDbqItNdj3Lt6L5yFZaKKB/ejw9M555NkXA+0GZqV0sLZ54qfR8zTaXAf6eBFKgcG9etaCl7vTXqsvDrlssth82oki1zufP39uuoOy4WgFq8OfACOtUq7opDAgYmpaGzlFiny+c5j7asGwDtAU1Fc3JeJsvAnxHKg9+0spXFD6kBQd5CWpqDXv2rLFK0b8IM2fHAzd0PiJZQWqz//2Cj/r9rTiewtIzqigctAfOgFwYoQvfdM+0mKb4pefG+zXEGfxxQr4r5hqZ6UMO7hto3Jnm9LRjNR8dNaDQCqQ0bkdLTAMTC3nV/gZPM679yQU3KHueVjg9pleNzuKnuBgYmH9+BrlG1dW68kqA+6Xh+wIJYrLuagWhJDlCtiU6PM5QAbFg3mabPIBG3M2IHTrOVATme+iW5vpROARhgjbQEF235DyvZaT+Tml3+PY+PfcRax2DVUhvGQViv4tzppbT0PjjBlEbGct49cFLGdqZIJBiVrYW24I2QkENTnUgZsFIBuJlVCBHZwZlLo9ldVvu4XTMKw65z42zoTzobjtbC1QPEZPiaJXSxC7W569fqL/ORXwGToFk6rQjXwEqDP2okGiusR75LXrZD6qFibNpqeypRFtqOzntsOfTUGrlaN1yTt/6dz0V0j9uI7a9/CHVcblI=
+    file_glob: true
+    file: wasm-pack-$TRAVIS_TAG-$TARGET.tar.gz
+    skip_cleanup: true
+    on:
+      branch: master
+      condition: $DEPLOY = 1
+      tags: true
 
 matrix:
   include:
 
   # tests pass
-  - rust: nightly
+
+  - env: JOB=test RUST_BACKTRACE=1
+    rust: nightly
     script:
     - cargo test --locked
     - rustup component add rustfmt-preview
     - cargo fmt --all -- --check
-    env: RUST_BACKTRACE=1
 
   # book
-  - rust: stable
+  - env: JOB=book
+    rust: stable
     before_script:
     - (test -x $HOME/.cargo/bin/cargo-install-update || cargo install cargo-update)
     - (test -x $HOME/.cargo/bin/mdbook || cargo install --vers "^0.1" mdbook)
     - cargo install-update -a
     script:
     - cd docs && mdbook build
+    deploy:
+      provider: pages
+      skip-cleanup: true
+      github-token: $GITHUB_TOKEN
+      local-dir: docs/book
+      keep-history: false
+      on:
+        branch: master
 
   # dist linux binary
-  - env: TARGET=x86_64-unknown-linux-musl DEPLOY=1
+  - env: JOB=dist-linux TARGET=x86_64-unknown-linux-musl DEPLOY=1
     rust: nightly
-    before_script:
-      - rustup target add $TARGET
-      - curl https://www.openssl.org/source/openssl-1.0.2l.tar.gz | tar xzf -
-      - (cd openssl-1.0.2l &&
-        CC=musl-gcc ./Configure --prefix=$HOME/openssl-musl no-dso no-ssl2 no-ssl3 linux-x86_64 -fPIC &&
-        make -j$(nproc) &&
-        make install)
-      - export OPENSSL_DIR=$HOME/openssl-musl
+    before_script: rustup target add $TARGET
     script: cargo build --release --target $TARGET --locked
+    addons:
+      apt:
+        packages:
+          - musl-tools
+    <<: *DEPLOY_TO_GITHUB
 
   # dist OSX binary
-  - os: osx
+  - env: JOB=dist-osx MACOSX_DEPLOYMENT_TARGET=10.7 DEPLOY=1 TARGET=x86_64-apple-darwin
+    os: osx
     rust: nightly
-    env: MACOSX_DEPLOYMENT_TARGET=10.7 DEPLOY=1 TARGET=x86_64-apple-darwin
     script: cargo build --release --target $TARGET --locked
     install: true
+    <<: *DEPLOY_TO_GITHUB
 
-addons:
-  apt:
-    packages:
-    - musl-tools
-
-before_deploy:
-- git config --local user.name "Ashley Williams"
-- git config --local user.email "ashley666ashley@gmail.com"
-- name="wasm-pack-$TRAVIS_TAG-$TARGET"
-- mkdir $name
-- cp target/$TARGET/release/wasm-pack $name/
-- cp README.md LICENSE-MIT LICENSE-APACHE $name/
-- tar czvf $name.tar.gz $name
-
-deploy:
-  provider: releases
-  api_key:
-    secure: fx0rR5Ii1KcsydexE6QpkDbqItNdj3Lt6L5yFZaKKB/ejw9M555NkXA+0GZqV0sLZ54qfR8zTaXAf6eBFKgcG9etaCl7vTXqsvDrlssth82oki1zufP39uuoOy4WgFq8OfACOtUq7opDAgYmpaGzlFiny+c5j7asGwDtAU1Fc3JeJsvAnxHKg9+0spXFD6kBQd5CWpqDXv2rLFK0b8IM2fHAzd0PiJZQWqz//2Cj/r9rTiewtIzqigctAfOgFwYoQvfdM+0mKb4pefG+zXEGfxxQr4r5hqZ6UMO7hto3Jnm9LRjNR8dNaDQCqQ0bkdLTAMTC3nV/gZPM679yQU3KHueVjg9pleNzuKnuBgYmH9+BrlG1dW68kqA+6Xh+wIJYrLuagWhJDlCtiU6PM5QAbFg3mabPIBG3M2IHTrOVATme+iW5vpROARhgjbQEF235DyvZaT+Tml3+PY+PfcRax2DVUhvGQViv4tzppbT0PjjBlEbGct49cFLGdqZIJBiVrYW24I2QkENTnUgZsFIBuJlVCBHZwZlLo9ldVvu4XTMKw65z42zoTzobjtbC1QPEZPiaJXSxC7W569fqL/ORXwGToFk6rQjXwEqDP2okGiusR75LXrZD6qFibNpqeypRFtqOzntsOfTUGrlaN1yTt/6dz0V0j9uI7a9/CHVcblI=
-  file_glob: true
-  file: wasm-pack-$TRAVIS_TAG-$TARGET.tar.gz
-  skip_cleanup: true
-  on:
-    branch: master
-    condition: $DEPLOY = 1
-    tags: true
-
-  provider: pages
-  skip-cleanup: true
-  github-token: $GITHUB_TOKEN
-  local-dir: docs/book
-  keep-history: false
-  on:
-    branch: master
+notifications:
+  email:
+    on_success: never
