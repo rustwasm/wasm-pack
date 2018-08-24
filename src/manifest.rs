@@ -38,7 +38,9 @@ enum CargoDependency {
 }
 
 #[derive(Deserialize)]
-struct DetailedCargoDependency {}
+struct DetailedCargoDependency {
+    version: Option<String>,
+}
 
 #[derive(Deserialize)]
 struct CargoLib {
@@ -194,17 +196,8 @@ pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), Error> {
 }
 
 fn check_wasm_bindgen(path: &Path) -> Result<(), Error> {
-    let cargo_toml = read_cargo_toml(path)?;
-    if cargo_toml
-        .dependencies
-        .map_or(false, |deps| deps.contains_key("wasm-bindgen"))
-    {
-        return Ok(());
-    }
-    Error::crate_config(&format!(
-        "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n[dependencies]\nwasm-bindgen = \"0.2\"",
-        style("wasm-bindgen").bold().dim()
-    ))
+    get_wasm_bindgen_version(path)?;
+    Ok(())
 }
 
 fn check_crate_type(path: &Path) -> Result<(), Error> {
@@ -222,9 +215,15 @@ fn check_crate_type(path: &Path) -> Result<(), Error> {
 /// Get the version of `wasm-bindgen` specified as a dependency.
 pub fn get_wasm_bindgen_version(path: &Path) -> Result<String, Error> {
     if let Some(deps) = read_cargo_toml(path)?.dependencies {
-        match deps.get("wasm_bindgen") {
-            Some(CargoDependency::Simple(version)) => Ok(version.clone()),
-            Some(CargoDependency::Detailed(_)) => {
+        match deps
+            .get("wasm-bindgen")
+            .or_else(|| deps.get("wasm_bindgen"))
+        {
+            Some(CargoDependency::Simple(version))
+            | Some(CargoDependency::Detailed(DetailedCargoDependency {
+                version: Some(version),
+            })) => Ok(version.clone()),
+            Some(CargoDependency::Detailed(DetailedCargoDependency { version: None })) => {
                 let msg = format!(
                     "\"{}\" dependency is missing its version number",
                     style("wasm-bindgen").bold().dim()
