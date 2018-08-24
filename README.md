@@ -24,8 +24,8 @@ visiting that repo!
 
 ## 🔮 Prerequisities
 
-- [Development Environment](docs/prerequisites.md)
-- [Installation and Getting Started](docs/setup.md)
+- [Development Environment](docs/src/prerequisites/index.md)
+- [Installation and Getting Started](docs/src/getting-started/index.md)
 
 ## 🎙️ Commands
 
