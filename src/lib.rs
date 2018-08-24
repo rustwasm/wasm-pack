@@ -19,6 +19,7 @@ extern crate slog;
 extern crate slog_async;
 extern crate slog_term;
 extern crate toml;
+extern crate which;
 
 pub mod bindgen;
 pub mod build;

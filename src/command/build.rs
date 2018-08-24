@@ -19,6 +19,7 @@ pub(crate) struct Build {
     pub disable_dts: bool,
     pub target: String,
     pub debug: bool,
+    pub mode: BuildMode,
     // build_config: Option<BuildConfig>,
     pub crate_name: String,
 }
@@ -71,6 +72,10 @@ impl Build {
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
         let crate_path = set_crate_path(build_opts.path);
         let crate_name = manifest::get_crate_name(&crate_path)?;
+        let mode = match build_opts.mode.as_str() {
+            "no-install" => BuildMode::Noinstall,
+            _ => BuildMode::Normal,
+        };
         // let build_config = manifest::xxx(&crate_path).xxx();
         Ok(Build {
             crate_path,
@@ -78,14 +83,15 @@ impl Build {
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
             debug: build_opts.debug,
+            mode,
             // build_config,
             crate_name,
         })
     }
 
     /// Execute this `Build` command.
-    pub fn run(&mut self, log: &Logger, mode: &BuildMode) -> Result<(), Error> {
-        let process_steps = Build::get_process_steps(mode);
+    pub fn run(&mut self, log: &Logger) -> Result<(), Error> {
+        let process_steps = Build::get_process_steps(&self.mode);
 
         let mut step_counter = Step::new(process_steps.len());
 
@@ -100,14 +106,14 @@ impl Build {
         info!(&log, "Done in {}.", &duration);
         info!(
             &log,
-            "Your WASM pkg is ready to publish at {:#?}.",
+            "Your wasm pkg is ready to publish at {:#?}.",
             &self.crate_path.join("pkg")
         );
 
         PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
 
         PBAR.message(&format!(
-            "{} Your WASM pkg is ready to publish at {:#?}.",
+            "{} Your wasm pkg is ready to publish at {:#?}.",
             emoji::PACKAGE,
             &self.crate_path.join("pkg")
         ));
@@ -213,8 +219,19 @@ impl Build {
     }
 
     fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+        info!(&log, "Identifying wasm-bindgen dependency...");
+        let bindgen_version = manifest::get_wasm_bindgen_version(&self.crate_path)?;
         info!(&log, "Installing wasm-bindgen-cli...");
-        bindgen::cargo_install_wasm_bindgen(step)?;
+        let install_permitted = match self.mode {
+            BuildMode::Normal => true,
+            BuildMode::Noinstall => false,
+        };
+        bindgen::cargo_install_wasm_bindgen(
+            &self.crate_path,
+            &bindgen_version,
+            install_permitted,
+            step,
+        )?;
         info!(&log, "Installing wasm-bindgen-cli was successful.");
 
         info!(&log, "Getting the crate name from the manifest...");
