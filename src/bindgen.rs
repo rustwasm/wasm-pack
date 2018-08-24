@@ -75,10 +75,10 @@ pub fn wasm_bindgen_build(
             "target/wasm32-unknown-unknown/{}/{}.wasm",
             release_or_debug, binary_name
         );
-        let dts_arg = if disable_dts == false {
-            "--typescript"
-        } else {
+        let dts_arg = if disable_dts {
             "--no-typescript"
+        } else {
+            "--typescript"
         };
         let target_arg = match target {
             "nodejs" => "--nodejs",
