@@ -13,7 +13,7 @@ fn main() {
     setup_panic!();
     if let Err(e) = run() {
         eprintln!("{}", e);
-        for cause in e.causes().skip(1) {
+        for cause in Fail::iter_causes(&e) {
             eprintln!("Caused by: {}", cause);
         }
         ::std::process::exit(1);
