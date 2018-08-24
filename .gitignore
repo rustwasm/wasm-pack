@@ -3,3 +3,4 @@ target/
 **/*.rs.bk
 **/pkg
 tests/fixtures/**/Cargo.lock
+wasm-pack.log
