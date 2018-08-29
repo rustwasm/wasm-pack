@@ -28,6 +28,19 @@ where
         fixture.display(),
         path.display()
     );
-    copy_dir(fixture, &path).expect("should copy fixture directory into temporary directory OK");
+
+    {
+        // Copying too many things in parallel totally kills my machine(??!!?!),
+        // so make sure we are only doing one `copy_dir` at a time...
+        use std::sync::Mutex;
+        lazy_static! {
+            static ref ONE_AT_A_TIME: Mutex<()> = Mutex::new(());
+        }
+        let _locked = ONE_AT_A_TIME.lock();
+
+        copy_dir(fixture, &path)
+            .expect("should copy fixture directory into temporary directory OK");
+    }
+
     Fixture { dir, path }
 }

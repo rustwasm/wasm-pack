@@ -3,8 +3,10 @@
 #![deny(missing_docs)]
 
 extern crate console;
+extern crate curl;
 #[macro_use]
 extern crate failure;
+extern crate flate2;
 extern crate indicatif;
 #[macro_use]
 extern crate lazy_static;
@@ -18,6 +20,7 @@ extern crate structopt;
 extern crate slog;
 extern crate slog_async;
 extern crate slog_term;
+extern crate tar;
 extern crate toml;
 extern crate which;
 

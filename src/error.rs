@@ -1,4 +1,5 @@
 //! Code related to error handling for wasm-pack
+use curl;
 use serde_json;
 use std::borrow::Cow;
 use std::io;
@@ -19,6 +20,10 @@ pub enum Error {
     #[fail(display = "{}", _0)]
     SerdeToml(#[cause] toml::de::Error),
 
+    #[fail(display = "{}", _0)]
+    /// A curl error.
+    Curl(#[cause] curl::Error),
+
     /// An error invoking another CLI tool.
     #[fail(display = "{}. stderr:\n\n{}", message, stderr)]
     Cli {
@@ -34,10 +39,33 @@ pub enum Error {
         /// A message describing the configuration error.
         message: String,
     },
+
     #[fail(display = "{}", message)]
     /// Error when the 'pkg' directory is not found.
     PkgNotFound {
         /// Message describing the error.
+        message: String,
+    },
+
+    #[fail(display = "{}", message)]
+    /// An error related to an archive that we downloaded.
+    Archive {
+        /// Error message.
+        message: String,
+    },
+
+    #[fail(display = "{}", message)]
+    /// Error when some operation or feature is unsupported for the current
+    /// target or environment.
+    Unsupported {
+        /// Error message.
+        message: String,
+    },
+
+    #[fail(display = "{}", message)]
+    /// Error related to some HTTP request.
+    Http {
+        /// Error message.
         message: String,
     },
 }
@@ -58,6 +86,27 @@ impl Error {
         })
     }
 
+    /// Construct an archive error.
+    pub fn archive(message: &str) -> Self {
+        Error::Archive {
+            message: message.to_string(),
+        }
+    }
+
+    /// Construct an unsupported error.
+    pub fn unsupported(message: &str) -> Self {
+        Error::Unsupported {
+            message: message.to_string(),
+        }
+    }
+
+    /// Construct an http error.
+    pub fn http(message: &str) -> Self {
+        Error::Http {
+            message: message.to_string(),
+        }
+    }
+
     /// Get a string description of this error's type.
     pub fn error_type(&self) -> String {
         match self {
@@ -74,6 +123,10 @@ impl Error {
             Error::PkgNotFound {
                 message: _,
             } => "Unable to find the 'pkg' directory at the path, set the path as the parent of the 'pkg' directory \n\n",
+            Error::Curl(_) => "There was an error making an HTTP request with curl. Details:\n\n",
+            Error::Archive {..} => "There was an error related to an archive file. Details:\n\n",
+            Error::Unsupported {..} => "There was an unsupported operation attempted. Details:\n\n",
+            Error::Http {..} => "There wasn an HTTP error. Details:\n\n",
         }.to_string()
     }
 }
@@ -81,6 +134,12 @@ impl Error {
 impl From<io::Error> for Error {
     fn from(e: io::Error) -> Self {
         Error::Io(e)
+    }
+}
+
+impl From<curl::Error> for Error {
+    fn from(e: curl::Error) -> Self {
+        Error::Curl(e)
     }
 }
 

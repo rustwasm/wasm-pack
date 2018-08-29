@@ -226,11 +226,12 @@ impl Build {
             BuildMode::Normal => true,
             BuildMode::Noinstall => false,
         };
-        bindgen::cargo_install_wasm_bindgen(
+        bindgen::install_wasm_bindgen(
             &self.crate_path,
             &bindgen_version,
             install_permitted,
             step,
+            log,
         )?;
         info!(&log, "Installing wasm-bindgen-cli was successful.");
 
