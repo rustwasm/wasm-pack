@@ -57,7 +57,7 @@ matrix:
   - env: JOB=dist-linux TARGET=x86_64-unknown-linux-musl DEPLOY=1
     rust: nightly
     before_script: rustup target add $TARGET
-    script: cargo build --release --target $TARGET --locked
+    script: cargo build --release --target $TARGET --locked --features vendored-openssl
     addons:
       apt:
         packages:
