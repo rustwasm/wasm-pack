@@ -9,6 +9,7 @@ extern crate wasm_pack;
 #[macro_use]
 extern crate lazy_static;
 
+mod bindgen;
 mod build;
 mod manifest;
 mod readme;
