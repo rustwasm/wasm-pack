@@ -21,6 +21,20 @@ fn it_can_run_node_tests() {
 }
 
 #[test]
+fn it_can_run_tests_with_different_wbg_test_and_wbg_versions() {
+    let fixture = fixture::wbg_test_diff_versions();
+    fixture.install_local_wasm_bindgen();
+    let cmd = Command::Test(test::TestOptions {
+        path: Some(fixture.path.clone()),
+        node: true,
+        mode: build::BuildMode::Noinstall,
+        ..Default::default()
+    });
+    let logger = logger::new(&cmd, 3).unwrap();
+    command::run_wasm_pack(cmd, &logger).expect("should run test command OK");
+}
+
+#[test]
 #[cfg(any(
     all(target_os = "linux", target_arch = "x86_64"),
     all(target_os = "macos", target_arch = "x86_64"),
