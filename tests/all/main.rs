@@ -8,6 +8,7 @@ extern crate wasm_pack;
 
 mod bindgen;
 mod build;
+mod lockfile;
 mod manifest;
 mod readme;
 mod test;
