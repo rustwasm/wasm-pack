@@ -19,11 +19,10 @@ pub fn set_crate_path(path: Option<PathBuf>) -> PathBuf {
 }
 
 /// Construct our `pkg` directory in the crate.
-pub fn create_pkg_dir(path: &Path, step: &Step) -> Result<(), Error> {
+pub fn create_pkg_dir(out_dir: &Path, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
     PBAR.step(step, &msg);
-    let pkg_dir_path = path.join("pkg");
-    fs::create_dir_all(pkg_dir_path)?;
+    fs::create_dir_all(&out_dir)?;
     Ok(())
 }
 
