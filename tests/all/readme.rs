@@ -9,13 +9,14 @@ use wasm_pack::readme;
 #[test]
 fn it_copies_a_readme_default_path() {
     let fixture = fixture::fixture(".");
-    fs::create_dir(fixture.path.join("pkg")).expect("should create pkg directory OK");
+    let out_dir = fixture.path.join("pkg");
+    fs::create_dir(&out_dir).expect("should create pkg directory OK");
 
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(readme::copy_from_crate(&fixture.path, &step).is_ok());
+    assert!(readme::copy_from_crate(&fixture.path, &out_dir, &step).is_ok());
 
     let crate_readme_path = fixture.path.join("README.md");
-    let pkg_readme_path = fixture.path.join("pkg").join("README.md");
+    let pkg_readme_path = out_dir.join("README.md");
     println!(
         "wasm-pack: should have copied README.md from '{}' to '{}'",
         crate_readme_path.display(),
@@ -33,12 +34,13 @@ fn it_copies_a_readme_default_path() {
 #[test]
 fn it_creates_a_package_json_provided_path() {
     let fixture = fixture::fixture("tests/fixtures/js-hello-world");
-    fs::create_dir(fixture.path.join("pkg")).expect("should create pkg directory OK");
+    let out_dir = fixture.path.join("pkg");
+    fs::create_dir(&out_dir).expect("should create pkg directory OK");
 
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(readme::copy_from_crate(&fixture.path, &step).is_ok());
+    assert!(readme::copy_from_crate(&fixture.path, &out_dir, &step).is_ok());
     let crate_readme_path = fixture.path.join("README.md");
-    let pkg_readme_path = fixture.path.join("pkg").join("README.md");
+    let pkg_readme_path = out_dir.join("README.md");
     println!(
         "wasm-pack: should have copied README.md from '{}' to '{}'",
         crate_readme_path.display(),

@@ -22,6 +22,7 @@ pub(crate) struct Build {
     pub mode: BuildMode,
     // build_config: Option<BuildConfig>,
     pub crate_name: String,
+    pub out_dir: PathBuf,
 }
 
 /// The `BuildMode` determines which mode of initialization we are running, and
@@ -63,6 +64,9 @@ pub struct BuildOptions {
     debug: bool,
     // build config from manifest
     // build_config: Option<BuildConfig>,
+    #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
+    /// Sets the output directory with a relative path.
+    pub out_dir: String,
 }
 
 type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
@@ -72,6 +76,7 @@ impl Build {
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
         let crate_path = set_crate_path(build_opts.path);
         let crate_name = manifest::get_crate_name(&crate_path)?;
+        let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
         let mode = match build_opts.mode.as_str() {
             "no-install" => BuildMode::Noinstall,
             _ => BuildMode::Normal,
@@ -86,6 +91,7 @@ impl Build {
             mode,
             // build_config,
             crate_name,
+            out_dir,
         })
     }
 
@@ -106,8 +112,7 @@ impl Build {
         info!(&log, "Done in {}.", &duration);
         info!(
             &log,
-            "Your wasm pkg is ready to publish at {:#?}.",
-            &self.crate_path.join("pkg")
+            "Your wasm pkg is ready to publish at {:#?}.", &self.out_dir
         );
 
         PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
@@ -115,7 +120,7 @@ impl Build {
         PBAR.message(&format!(
             "{} Your wasm pkg is ready to publish at {:#?}.",
             emoji::PACKAGE,
-            &self.crate_path.join("pkg")
+            self.out_dir.canonicalize().unwrap_or(self.out_dir.clone())
         ));
         Ok(())
     }
@@ -185,7 +190,7 @@ impl Build {
 
     fn step_create_dir(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Creating a pkg directory...");
-        create_pkg_dir(&self.crate_path, step)?;
+        create_pkg_dir(&self.out_dir, step)?;
         info!(&log, "Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }
@@ -194,6 +199,7 @@ impl Build {
         info!(&log, "Writing a package.json...");
         manifest::write_package_json(
             &self.crate_path,
+            &self.out_dir,
             &self.scope,
             self.disable_dts,
             &self.target,
@@ -202,19 +208,15 @@ impl Build {
         info!(
             &log,
             "Wrote a package.json at {:#?}.",
-            &self.crate_path.join("pkg").join("package.json")
+            &self.out_dir.join("package.json")
         );
         Ok(())
     }
 
     fn step_copy_readme(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Copying readme from crate...");
-        readme::copy_from_crate(&self.crate_path, step)?;
-        info!(
-            &log,
-            "Copied readme from crate to {:#?}.",
-            &self.crate_path.join("pkg")
-        );
+        readme::copy_from_crate(&self.crate_path, &self.out_dir, step)?;
+        info!(&log, "Copied readme from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
@@ -249,17 +251,14 @@ impl Build {
         info!(&log, "Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_path,
+            &self.out_dir,
             &self.crate_name,
             self.disable_dts,
             &self.target,
             self.debug,
             step,
         )?;
-        info!(
-            &log,
-            "wasm bindings were built at {:#?}.",
-            &self.crate_path.join("pkg")
-        );
+        info!(&log, "wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())
     }
 }
