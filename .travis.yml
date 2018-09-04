@@ -1,6 +1,5 @@
 language: rust
 sudo: false
-cache: cargo
 
 DEPLOY_TO_GITHUB: &DEPLOY_TO_GITHUB
   before_deploy:

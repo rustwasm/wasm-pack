@@ -186,6 +186,7 @@ pub fn cargo_install_wasm_bindgen(root_path: &Path, version: &str) -> Result<(),
 /// `.wasm`.
 pub fn wasm_bindgen_build(
     path: &Path,
+    out_dir: &Path,
     name: &str,
     disable_dts: bool,
     target: &str,
@@ -197,6 +198,8 @@ pub fn wasm_bindgen_build(
 
     let binary_name = name.replace("-", "_");
     let release_or_debug = if debug { "debug" } else { "release" };
+
+    let out_dir = out_dir.to_str().unwrap();
 
     if let Some(wasm_bindgen_path) = wasm_bindgen_path(path) {
         let wasm_path = format!(
@@ -217,7 +220,7 @@ pub fn wasm_bindgen_build(
             .current_dir(path)
             .arg(&wasm_path)
             .arg("--out-dir")
-            .arg("./pkg")
+            .arg(out_dir)
             .arg(dts_arg)
             .arg(target_arg)
             .output()?;

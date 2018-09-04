@@ -24,8 +24,8 @@ pub struct Repository {
     pub url: String,
 }
 
-pub fn read_package_json(path: &Path) -> Result<NpmPackage, Error> {
-    let manifest_path = path.join("pkg").join("package.json");
+pub fn read_package_json(path: &Path, out_dir: &Path) -> Result<NpmPackage, Error> {
+    let manifest_path = path.join(out_dir).join("package.json");
     let mut pkg_file = File::open(manifest_path)?;
     let mut pkg_contents = String::new();
     pkg_file.read_to_string(&mut pkg_contents)?;

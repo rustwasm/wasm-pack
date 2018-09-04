@@ -146,6 +146,7 @@ impl CargoManifest {
 /// Generate a package.json file inside in `./pkg`.
 pub fn write_package_json(
     path: &Path,
+    out_dir: &Path,
     scope: &Option<String>,
     disable_dts: bool,
     target: &str,
@@ -161,7 +162,7 @@ pub fn write_package_json(
     };
 
     PBAR.step(step, &msg);
-    let pkg_file_path = path.join("pkg").join("package.json");
+    let pkg_file_path = out_dir.join("package.json");
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = crate_data.into_npm(scope, disable_dts, target);
