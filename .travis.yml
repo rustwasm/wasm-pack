@@ -1,6 +1,12 @@
 language: rust
 sudo: false
 
+# Cache `cargo install`ed tools, but don't cache the project's `target`
+# directory (which ends up over-caching and filling all disk space!)
+cache:
+  directories:
+    - /home/travis/.cargo
+
 DEPLOY_TO_GITHUB: &DEPLOY_TO_GITHUB
   before_deploy:
     - git config --local user.name "Ashley Williams"
