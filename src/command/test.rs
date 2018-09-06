@@ -12,8 +12,7 @@ use progressbar::Step;
 use slog::Logger;
 use std::path::PathBuf;
 use std::time::Instant;
-use test;
-use webdriver;
+use test::{self, webdriver};
 use PBAR;
 
 #[derive(Debug, Default, StructOpt)]
@@ -129,8 +128,10 @@ impl Test {
         }
 
         if headless && !any_browser {
-            return Error::crate_config("The `--headless` flag only applies to browser tests")
-                .map(|_| unreachable!());
+            return Error::crate_config(
+                "The `--headless` flag only applies to browser tests. Node does not provide a UI, \
+                 so it doesn't make sense to talk about a headless version of Node tests.",
+            ).map(|_| unreachable!());
         }
 
         Ok(Test {

@@ -1,5 +1,5 @@
 use tempfile;
-use wasm_pack::bindgen;
+use wasm_pack::{binaries, bindgen};
 
 #[test]
 #[cfg(any(
@@ -9,13 +9,8 @@ use wasm_pack::bindgen;
 fn can_download_prebuilt_wasm_bindgen() {
     let dir = tempfile::TempDir::new().unwrap();
     bindgen::download_prebuilt_wasm_bindgen(dir.path(), "0.2.19").unwrap();
-    assert!(dir.path().join("bin").join("wasm-bindgen").is_file());
-    assert!(
-        dir.path()
-            .join("bin")
-            .join("wasm-bindgen-test-runner")
-            .is_file()
-    );
+    assert!(binaries::local_bin_path(dir.path(), "wasm-bindgen").is_file());
+    assert!(binaries::local_bin_path(dir.path(), "wasm-bindgen-test-runner").is_file());
 }
 
 #[test]

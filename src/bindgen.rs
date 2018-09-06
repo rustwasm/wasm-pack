@@ -1,6 +1,6 @@
 //! Functionality related to installing and running `wasm-bindgen`.
 
-use binaries::{bin_path, install_binaries_from_targz_at_url};
+use binaries::{self, bin_path, install_binaries_from_targz_at_url};
 use emoji;
 use error::Error;
 use progressbar::Step;
@@ -77,9 +77,9 @@ pub fn download_prebuilt_wasm_bindgen(root_path: &Path, version: &str) -> Result
     )
 }
 
-/// Use `cargo install` to install the `wasm-bindgen` CLI to the given root
-/// path.
-pub fn cargo_install_wasm_bindgen(root_path: &Path, version: &str) -> Result<(), Error> {
+/// Use `cargo install` to install the `wasm-bindgen` CLI locally into the given
+/// crate.
+pub fn cargo_install_wasm_bindgen(crate_path: &Path, version: &str) -> Result<(), Error> {
     let output = Command::new("cargo")
         .arg("install")
         .arg("--force")
@@ -87,7 +87,7 @@ pub fn cargo_install_wasm_bindgen(root_path: &Path, version: &str) -> Result<(),
         .arg("--version")
         .arg(version)
         .arg("--root")
-        .arg(root_path)
+        .arg(crate_path)
         .output()?;
     if !output.status.success() {
         let message = "Installing wasm-bindgen failed".to_string();
@@ -97,11 +97,7 @@ pub fn cargo_install_wasm_bindgen(root_path: &Path, version: &str) -> Result<(),
             stderr: s.to_string(),
         })
     } else {
-        if cfg!(target_os = "windows") {
-            assert!(root_path.join("bin").join("wasm-bindgen.exe").is_file());
-        } else {
-            assert!(root_path.join("bin").join("wasm-bindgen").is_file());
-        }
+        assert!(binaries::local_bin_path(crate_path, "wasm-bindgen").is_file());
         Ok(())
     }
 }

@@ -1,5 +1,7 @@
 //! Testing a Rust crate compiled to wasm.
 
+pub mod webdriver;
+
 use error::Error;
 use slog::Logger;
 use std::ffi::OsStr;

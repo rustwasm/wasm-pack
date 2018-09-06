@@ -10,6 +10,9 @@ use copy_dir::copy_dir;
 use tempfile;
 
 pub struct Fixture {
+    // NB: we wrap the fixture's tempdir in a `ManuallyDrop` so that if a test
+    // fails, its directory isn't deleted, and we have a chance to manually
+    // inspect its state and figure out what is going on.
     pub dir: ManuallyDrop<tempfile::TempDir>,
     pub path: PathBuf,
 }
@@ -77,7 +80,7 @@ impl Fixture {
                 return;
             }
 
-            const WASM_BINDGEN_VERSION: &str = "0.2.17";
+            const WASM_BINDGEN_VERSION: &str = "0.2.21";
             wasm_pack::bindgen::download_prebuilt_wasm_bindgen(&tests, WASM_BINDGEN_VERSION)
                 .or_else(|_| {
                     wasm_pack::bindgen::cargo_install_wasm_bindgen(&tests, WASM_BINDGEN_VERSION)
@@ -89,73 +92,65 @@ impl Fixture {
 
     /// Download `geckodriver` and return its path.
     ///
-    /// Takes car to ensure that only one `geckodriver` is downloaded for the whole
+    /// Takes care to ensure that only one `geckodriver` is downloaded for the whole
     /// test suite.
     pub fn install_local_geckodriver(&self) {
         static FETCH_GECKODRIVER: Once = ONCE_INIT;
 
         let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
 
-        let bin = tests.join("bin");
-        fs::create_dir_all(&bin).expect("could not create `tests/bin` directory");
+        wasm_pack::binaries::ensure_local_bin_dir(&tests)
+            .expect("could not create fixture's `bin` directory");
 
-        let geckodriver = bin.join(if cfg!(target_os = "windows") {
-            "geckodriver.exe"
-        } else {
-            "geckodriver"
-        });
+        let geckodriver = wasm_pack::binaries::local_bin_path(&tests, "geckodriver");
 
         FETCH_GECKODRIVER.call_once(|| {
             if geckodriver.is_file() {
                 return;
             }
 
-            wasm_pack::webdriver::install_geckodriver(&tests).unwrap();
+            wasm_pack::test::webdriver::install_geckodriver(&tests).unwrap();
             assert!(geckodriver.is_file());
         });
 
-        let self_bin = self.path.join("bin");
-        fs::create_dir_all(&self_bin).expect("could not create fixture's `bin` directory");
+        wasm_pack::binaries::ensure_local_bin_dir(&self.path)
+            .expect("could not create fixture's `bin` directory");
 
         fs::copy(
             &geckodriver,
-            self_bin.join(geckodriver.file_name().unwrap()),
+            wasm_pack::binaries::local_bin_path(&self.path, "geckodriver"),
         ).expect("could not copy `geckodriver` to fixture directory");
     }
 
     /// Download `chromedriver` and return its path.
     ///
-    /// Takes car to ensure that only one `chromedriver` is downloaded for the whole
+    /// Takes care to ensure that only one `chromedriver` is downloaded for the whole
     /// test suite.
     pub fn install_local_chromedriver(&self) {
         static FETCH_CHROMEDRIVER: Once = ONCE_INIT;
 
         let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
 
-        let bin = tests.join("bin");
-        fs::create_dir_all(&bin).expect("could not create `tests/bin` directory");
+        wasm_pack::binaries::ensure_local_bin_dir(&tests)
+            .expect("could not create fixture's `bin` directory");
 
-        let chromedriver = bin.join(if cfg!(target_os = "windows") {
-            "chromedriver.exe"
-        } else {
-            "chromedriver"
-        });
+        let chromedriver = wasm_pack::binaries::local_bin_path(&tests, "chromedriver");
 
         FETCH_CHROMEDRIVER.call_once(|| {
             if chromedriver.is_file() {
                 return;
             }
 
-            wasm_pack::webdriver::install_chromedriver(&tests).unwrap();
+            wasm_pack::test::webdriver::install_chromedriver(&tests).unwrap();
             assert!(chromedriver.is_file());
         });
 
-        let self_bin = self.path.join("bin");
-        fs::create_dir_all(&self_bin).expect("could not create fixture's `bin` directory");
+        wasm_pack::binaries::ensure_local_bin_dir(&self.path)
+            .expect("could not create fixture's `bin` directory");
 
         fs::copy(
             &chromedriver,
-            self_bin.join(chromedriver.file_name().unwrap()),
+            wasm_pack::binaries::local_bin_path(&self.path, "chromedriver"),
         ).expect("could not copy `chromedriver` to fixture directory");
     }
 }

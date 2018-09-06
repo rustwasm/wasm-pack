@@ -38,7 +38,6 @@ pub mod progressbar;
 pub mod readme;
 pub mod target;
 pub mod test;
-pub mod webdriver;
 
 use progressbar::ProgressOutput;
 

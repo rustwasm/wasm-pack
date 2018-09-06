@@ -1,7 +1,5 @@
 target/
-**/target
 **/*.rs.bk
-**/pkg
 tests/.crates.toml
 tests/bin
 wasm-pack.log

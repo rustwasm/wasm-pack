@@ -11,27 +11,49 @@ use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
 use tar;
+use target;
 use which::which;
 use zip;
 
+/// Get the path for a crate's directory of locally-installed binaries.
+///
+/// This does not check whether or ensure that the directory exists.
+pub fn local_bin_dir(crate_path: &Path) -> PathBuf {
+    crate_path.join("bin")
+}
+
+/// Ensure that the crate's directory for locally-installed binaries exists.
+pub fn ensure_local_bin_dir(crate_path: &Path) -> io::Result<()> {
+    fs::create_dir_all(local_bin_dir(crate_path))
+}
+
+/// Get the path for where `bin` would be if we have a crate-local install for
+/// it.
+///
+/// This does *not* check whether there is a file at that path or not.
+///
+/// This will automatically add the `.exe` extension for windows.
+pub fn local_bin_path(crate_path: &Path, bin: &str) -> PathBuf {
+    let mut p = local_bin_dir(crate_path).join(bin);
+    if target::WINDOWS {
+        p.set_extension("exe");
+    }
+    p
+}
+
 /// Get the local (at `$CRATE/bin/$BIN`; preferred) or global (on `$PATH`) path
 /// for the given binary.
+///
+/// If this function returns `Some(path)`, then a file at that path exists (or
+/// at least existed when we checked! In general, we aren't really worried about
+/// racing with an uninstall of a tool that we rely on.)
 pub fn bin_path(log: &Logger, crate_path: &Path, bin: &str) -> Option<PathBuf> {
     assert!(!bin.ends_with(".exe"));
     debug!(log, "Searching for {} binary...", bin);
 
     // Return the path to the local binary, if it exists.
     let local_path = |crate_path: &Path| -> Option<PathBuf> {
-        let mut p = crate_path.to_path_buf();
-        p.push("bin");
-        if cfg!(target_os = "windows") {
-            let mut bin = bin.to_string();
-            bin.push_str(".exe");
-            p.push(bin);
-        } else {
-            p.push(bin);
-        }
-
+        let p = local_bin_path(crate_path, bin);
         debug!(log, "Checking for local {} binary at {}", bin, p.display());
         if p.is_file() {
             Some(p)
@@ -62,40 +84,46 @@ pub fn bin_path(log: &Logger, crate_path: &Path, bin: &str) -> Option<PathBuf> {
         })
 }
 
+fn with_url_context<T, E>(url: &str, r: Result<T, E>) -> Result<T, impl failure::Fail>
+where
+    Result<T, E>: failure::ResultExt<T, E>,
+{
+    use failure::ResultExt;
+    r.with_context(|_| format!("when requesting {}", url))
+}
+
+fn transfer(
+    url: &str,
+    easy: &mut curl::easy::Easy,
+    data: &mut Vec<u8>,
+) -> Result<(), failure::Error> {
+    let mut transfer = easy.transfer();
+    with_url_context(
+        url,
+        transfer.write_function(|part| {
+            data.extend_from_slice(part);
+            Ok(part.len())
+        }),
+    )?;
+    with_url_context(url, transfer.perform())?;
+    Ok(())
+}
+
 fn curl(url: &str) -> Result<Vec<u8>, failure::Error> {
     let mut data = Vec::new();
-
-    fn with_url_context<T, E>(url: &str, r: Result<T, E>) -> Result<T, impl failure::Fail>
-    where
-        Result<T, E>: failure::ResultExt<T, E>,
-    {
-        use failure::ResultExt;
-        r.with_context(|_| format!("when requesting {}", url))
-    }
 
     let mut easy = curl::easy::Easy::new();
     with_url_context(url, easy.follow_location(true))?;
     with_url_context(url, easy.url(url))?;
+    transfer(url, &mut easy, &mut data)?;
 
-    {
-        let mut transfer = easy.transfer();
-        with_url_context(
-            url,
-            transfer.write_function(|part| {
-                data.extend_from_slice(part);
-                Ok(part.len())
-            }),
-        )?;
-        with_url_context(url, transfer.perform())?;
-    }
-
-    let code = with_url_context(url, easy.response_code())?;
-    if 200 <= code && code < 300 {
+    let status_code = with_url_context(url, easy.response_code())?;
+    if 200 <= status_code && status_code < 300 {
         Ok(data)
     } else {
         Err(Error::http(&format!(
             "received a bad HTTP status code ({}) when requesting {}",
-            code, url
+            status_code, url
         )).into())
     }
 }
@@ -117,8 +145,8 @@ where
     let tarball = curl(&url).map_err(|e| Error::http(&e.to_string()))?;
     let mut archive = tar::Archive::new(flate2::read::GzDecoder::new(&tarball[..]));
 
-    let bin = crate_path.join("bin");
-    fs::create_dir_all(&bin)?;
+    ensure_local_bin_dir(crate_path)?;
+    let bin = local_bin_dir(crate_path);
 
     for entry in archive.entries()? {
         let mut entry = entry?;
@@ -166,8 +194,8 @@ where
     let data = io::Cursor::new(data);
     let mut zip = zip::ZipArchive::new(data)?;
 
-    let bin = crate_path.join("bin");
-    fs::create_dir_all(&bin)?;
+    ensure_local_bin_dir(crate_path)?;
+    let bin = local_bin_dir(crate_path);
 
     for i in 0..zip.len() {
         let mut entry = zip.by_index(i).unwrap();

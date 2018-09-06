@@ -1,5 +1,5 @@
 use utils::fixture::fixture;
-use wasm_pack::webdriver;
+use wasm_pack::test::webdriver;
 
 #[test]
 #[cfg(any(
