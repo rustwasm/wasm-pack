@@ -3,7 +3,7 @@ use build;
 use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use error::Error;
-use indicatif::HumanDuration;
+use humantime::format_duration;
 use manifest;
 use progressbar::Step;
 use readme;
@@ -108,7 +108,7 @@ impl Build {
             step_counter.inc();
         }
 
-        let duration = HumanDuration(started.elapsed());
+        let duration = format_duration(started.elapsed());
         info!(&log, "Done in {}.", &duration);
         info!(
             &log,

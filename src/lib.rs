@@ -7,7 +7,6 @@ extern crate curl;
 #[macro_use]
 extern crate failure;
 extern crate flate2;
-extern crate indicatif;
 #[macro_use]
 extern crate lazy_static;
 extern crate parking_lot;
@@ -18,6 +17,7 @@ extern crate serde_json;
 extern crate structopt;
 #[macro_use]
 extern crate slog;
+extern crate humantime;
 extern crate slog_async;
 extern crate slog_term;
 extern crate tar;
