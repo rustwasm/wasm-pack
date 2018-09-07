@@ -2,13 +2,11 @@
 
 use console::style;
 use emoji;
-use indicatif::{ProgressBar, ProgressStyle};
 use parking_lot::RwLock;
 use std::fmt;
 
 /// Synchronized progress bar and status message printing.
 pub struct ProgressOutput {
-    spinner: RwLock<ProgressBar>,
     messages: RwLock<String>,
 }
 
@@ -16,7 +14,6 @@ impl ProgressOutput {
     /// Construct a new `ProgressOutput`.
     pub fn new() -> Self {
         Self {
-            spinner: RwLock::new(ProgressBar::new_spinner()),
             messages: RwLock::new(String::from("")),
         }
     }
@@ -29,9 +26,6 @@ impl ProgressOutput {
     }
 
     fn finish(&self) {
-        let spinner = self.spinner.read();
-        spinner.finish();
-
         let mut message = self.messages.write();
         print!("{}", *message);
         message.clear();
@@ -39,10 +33,8 @@ impl ProgressOutput {
 
     /// Print the given message.
     pub fn message(&self, message: &str) {
+        self.add_message(message);
         self.finish();
-
-        let mut spinner = self.spinner.write();
-        *spinner = Self::progressbar(message);
     }
 
     fn add_message(&self, msg: &str) {
@@ -83,18 +75,6 @@ impl ProgressOutput {
             message
         );
         self.add_message(&err);
-    }
-
-    fn progressbar(msg: &str) -> ProgressBar {
-        let pb = ProgressBar::new_spinner();
-        pb.enable_steady_tick(200);
-        pb.set_style(
-            ProgressStyle::default_spinner()
-                .tick_chars("/|\\- ")
-                .template("{spinner:.dim.bold} {wide_msg}"),
-        );
-        pb.set_message(&msg);
-        pb
     }
 
     /// After having built up a series of messages, print all of them out.
