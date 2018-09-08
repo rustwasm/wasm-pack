@@ -9,7 +9,7 @@ use PBAR;
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry
 pub fn publish(path: Option<PathBuf>, log: &Logger) -> result::Result<(), Error> {
-    let crate_path = set_crate_path(path);
+    let crate_path = set_crate_path(path)?;
 
     info!(&log, "Publishing the npm package...");
     info!(&log, "npm info located in the npm debug log");

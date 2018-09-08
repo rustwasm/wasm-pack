@@ -23,7 +23,9 @@ extern crate slog_term;
 extern crate tar;
 extern crate toml;
 extern crate which;
+extern crate zip;
 
+pub mod binaries;
 pub mod bindgen;
 pub mod build;
 pub mod command;
@@ -34,6 +36,8 @@ pub mod manifest;
 pub mod npm;
 pub mod progressbar;
 pub mod readme;
+pub mod target;
+pub mod test;
 
 use progressbar::ProgressOutput;
 

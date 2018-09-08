@@ -13,14 +13,41 @@ use serde_json;
 use toml;
 use PBAR;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct CargoManifest {
     package: CargoPackage,
     dependencies: Option<HashMap<String, CargoDependency>>,
+    #[serde(rename = "dev-dependencies")]
+    dev_dependencies: Option<HashMap<String, CargoDependency>>,
     lib: Option<CargoLib>,
 }
 
-#[derive(Deserialize)]
+fn normalize_dependency_name(dep: &str) -> String {
+    dep.replace("-", "_")
+}
+
+fn normalize_dependencies(
+    deps: HashMap<String, CargoDependency>,
+) -> HashMap<String, CargoDependency> {
+    let mut new_deps = HashMap::with_capacity(deps.len());
+    for (key, val) in deps {
+        new_deps.insert(normalize_dependency_name(&key), val);
+    }
+    new_deps
+}
+
+impl CargoManifest {
+    fn normalize_dependencies(&mut self) {
+        if let Some(deps) = self.dependencies.take() {
+            self.dependencies = Some(normalize_dependencies(deps));
+        }
+        if let Some(dev_deps) = self.dev_dependencies.take() {
+            self.dev_dependencies = Some(normalize_dependencies(dev_deps));
+        }
+    }
+}
+
+#[derive(Debug, Deserialize)]
 struct CargoPackage {
     name: String,
     authors: Vec<String>,
@@ -30,19 +57,19 @@ struct CargoPackage {
     repository: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum CargoDependency {
     Simple(String),
     Detailed(DetailedCargoDependency),
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct DetailedCargoDependency {
     version: Option<String>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct CargoLib {
     #[serde(rename = "crate-type")]
     crate_type: Option<Vec<String>>,
@@ -86,7 +113,10 @@ fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
     let mut cargo_contents = String::new();
     cargo_file.read_to_string(&mut cargo_contents)?;
 
-    Ok(toml::from_str(&cargo_contents)?)
+    let mut manifest: CargoManifest = toml::from_str(&cargo_contents)?;
+    manifest.normalize_dependencies();
+
+    Ok(manifest)
 }
 
 impl CargoManifest {
@@ -192,12 +222,31 @@ pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
     PBAR.step(&step, &msg);
     check_wasm_bindgen(path)?;
+    check_wasm_bindgen_test(path)?;
     check_crate_type(path)?;
     Ok(())
 }
 
 fn check_wasm_bindgen(path: &Path) -> Result<(), Error> {
     get_wasm_bindgen_version(path)?;
+    Ok(())
+}
+
+fn check_wasm_bindgen_test(path: &Path) -> Result<(), Error> {
+    let expected_version = get_wasm_bindgen_version(path)?;
+
+    // Only do the version check if `wasm-bindgen-test` is actually a
+    // dependency. Not every crate needs to have tests!
+    if let Ok(actual_version) = get_wasm_bindgen_test_version(path) {
+        if expected_version != actual_version {
+            return Error::crate_config(&format!(
+                "The `wasm-bindgen-test` dependency version ({}) must match \
+                 the `wasm-bindgen` dependency version ({}), but it does not.",
+                actual_version, expected_version
+            ));
+        }
+    }
+
     Ok(())
 }
 
@@ -209,17 +258,22 @@ fn check_crate_type(path: &Path) -> Result<(), Error> {
         return Ok(());
     }
     Error::crate_config(
-      "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your Cargo.toml file:\n\n[lib]\ncrate-type = [\"cdylib\"]"
+      "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
+       Cargo.toml file:\n\n\
+       [lib]\n\
+       crate-type = [\"cdylib\"]"
     )
 }
 
-/// Get the version of `wasm-bindgen` specified as a dependency.
-pub fn get_wasm_bindgen_version(path: &Path) -> Result<String, Error> {
-    if let Some(deps) = read_cargo_toml(path)?.dependencies {
-        match deps
-            .get("wasm-bindgen")
-            .or_else(|| deps.get("wasm_bindgen"))
-        {
+fn get_dependency_version(
+    dependencies: Option<&HashMap<String, CargoDependency>>,
+    dependency: &str,
+    dependencies_section_name: &str,
+    version_suggestion: &str,
+) -> Result<String, Error> {
+    if let Some(deps) = dependencies {
+        let dependency = normalize_dependency_name(dependency);
+        match deps.get(&dependency) {
             Some(CargoDependency::Simple(version))
             | Some(CargoDependency::Detailed(DetailedCargoDependency {
                 version: Some(version),
@@ -227,14 +281,20 @@ pub fn get_wasm_bindgen_version(path: &Path) -> Result<String, Error> {
             Some(CargoDependency::Detailed(DetailedCargoDependency { version: None })) => {
                 let msg = format!(
                     "\"{}\" dependency is missing its version number",
-                    style("wasm-bindgen").bold().dim()
+                    style(&dependency).bold().dim()
                 );
                 Err(Error::CrateConfig { message: msg })
             }
             None => {
                 let message = format!(
-                    "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n[dependencies]\nwasm-bindgen = \"0.2\"",
-                    style("wasm-bindgen").bold().dim());
+                    "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
+                     [{}]\n\
+                     {} = \"{}\"",
+                    style(&dependency).bold().dim(),
+                    dependencies_section_name,
+                    dependency,
+                    version_suggestion
+                );
                 Err(Error::CrateConfig { message })
             }
         }
@@ -242,4 +302,26 @@ pub fn get_wasm_bindgen_version(path: &Path) -> Result<String, Error> {
         let message = String::from("Could not find crate dependencies");
         Err(Error::CrateConfig { message })
     }
+}
+
+/// Get the version of `wasm-bindgen` specified as a dependency.
+pub fn get_wasm_bindgen_version(path: &Path) -> Result<String, Error> {
+    let toml = read_cargo_toml(path)?;
+    get_dependency_version(
+        toml.dependencies.as_ref(),
+        "wasm-bindgen",
+        "dependencies",
+        "0.2",
+    )
+}
+
+/// Get the version of `wasm-bindgen-test` specified as a dependency.
+pub fn get_wasm_bindgen_test_version(path: &Path) -> Result<String, Error> {
+    let toml = read_cargo_toml(path)?;
+    get_dependency_version(
+        toml.dev_dependencies.as_ref(),
+        "wasm-bindgen-test",
+        "dev-dependencies",
+        "0.2",
+    )
 }

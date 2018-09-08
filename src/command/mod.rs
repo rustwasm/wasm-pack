@@ -1,15 +1,17 @@
 //! CLI command structures, parsing, and execution.
 
-mod build;
+pub mod build;
 mod login;
 mod pack;
 mod publish;
+pub mod test;
 pub mod utils;
 
 use self::build::{Build, BuildOptions};
 use self::login::login;
 use self::pack::pack;
 use self::publish::publish;
+use self::test::{Test, TestOptions};
 use error::Error;
 use slog::Logger;
 use std::path::PathBuf;
@@ -70,6 +72,10 @@ pub enum Command {
         /// strategies besides classic username/password entry in legacy npm.
         auth_type: Option<String>,
     },
+
+    #[structopt(name = "test")]
+    /// 👩‍🔬  test your wasm!
+    Test(TestOptions),
 }
 
 /// Run a command with the given logger!
@@ -107,6 +113,10 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
                 &auth_type
             );
             login(registry, scope, always_auth, auth_type, &log)
+        }
+        Command::Test(test_opts) => {
+            info!(&log, "Running test command...");
+            Test::try_from_opts(test_opts).and_then(|t| t.run(&log))
         }
     };
 
