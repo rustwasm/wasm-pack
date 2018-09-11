@@ -156,7 +156,7 @@ pub fn write_package_json(
 
     let warn_fmt = |field| {
         format!(
-            "Field {} is missing from Cargo.toml. It is not necessary, but recommended",
+            "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
             field
         )
     };
