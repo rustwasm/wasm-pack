@@ -22,6 +22,8 @@ pub fn npm_publish(path: &str) -> Result<(), Error> {
     let output = Command::new("npm")
         .current_dir(path)
         .arg("publish")
+        .stdin(Stdio::inherit())
+        .stdout(Stdio::inherit())
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
