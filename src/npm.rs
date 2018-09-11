@@ -1,5 +1,6 @@
 //! Functionality related to publishing to npm.
 
+use command::publish::access::Access;
 use error::Error;
 use std::process::{Command, Stdio};
 
@@ -18,13 +19,23 @@ pub fn npm_pack(path: &str) -> Result<(), Error> {
 }
 
 /// Run the `npm publish` command.
-pub fn npm_publish(path: &str) -> Result<(), Error> {
-    let output = Command::new("npm")
-        .current_dir(path)
-        .arg("publish")
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .output()?;
+pub fn npm_publish(path: &str, access: Option<Access>) -> Result<(), Error> {
+    let output = match access {
+        Some(a) => Command::new("npm")
+            .current_dir(path)
+            .arg("publish")
+            .arg(&format!("{}", a.to_string()))
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .output()?,
+        None => Command::new("npm")
+            .current_dir(path)
+            .arg("publish")
+            .stdin(Stdio::inherit())
+            .stdout(Stdio::inherit())
+            .output()?,
+    };
+
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
         Error::cli("Publishing to npm failed", s)
