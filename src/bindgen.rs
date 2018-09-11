@@ -99,12 +99,15 @@ fn curl(url: &str) -> Result<Vec<u8>, failure::Error> {
 pub fn download_prebuilt_wasm_bindgen(root_path: &Path, version: &str) -> Result<(), Error> {
     let linux = cfg!(target_os = "linux");
     let macos = cfg!(target_os = "macos");
+    let windows = cfg!(windows);
     let x86_64 = cfg!(target_arch = "x86_64");
 
     let target = if linux && x86_64 {
         "x86_64-unknown-linux-musl"
     } else if macos && x86_64 {
         "x86_64-apple-darwin"
+    } else if windows && x86_64 {
+        "x86_64-pc-windows-msvc"
     } else {
         return Err(Error::unsupported(
             "there are no pre-built `wasm-bindgen` binaries for this target",
