@@ -1,3 +1,7 @@
+/// Data structure to represent published package access level.
+pub mod access;
+
+use self::access::Access;
 use command::utils::{find_pkg_directory, set_crate_path};
 use error::Error;
 use npm;
@@ -8,7 +12,11 @@ use PBAR;
 
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry
-pub fn publish(path: Option<PathBuf>, log: &Logger) -> result::Result<(), Error> {
+pub fn publish(
+    path: Option<PathBuf>,
+    access: Option<Access>,
+    log: &Logger,
+) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path)?;
 
     info!(&log, "Publishing the npm package...");
@@ -20,7 +28,7 @@ pub fn publish(path: Option<PathBuf>, log: &Logger) -> result::Result<(), Error>
         ),
     })?;
 
-    npm::npm_publish(&pkg_directory.to_string_lossy())?;
+    npm::npm_publish(&pkg_directory.to_string_lossy(), access)?;
     info!(&log, "Published your package!");
 
     PBAR.message("💥  published your package!");
