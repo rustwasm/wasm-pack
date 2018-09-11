@@ -57,6 +57,7 @@ pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Err
             cmd.arg("--release");
         }
         cmd.arg("--target").arg("wasm32-unknown-unknown");
+        cmd.arg("--color").arg("always");
         cmd.output()?
     };
 
