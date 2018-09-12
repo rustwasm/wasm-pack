@@ -11,6 +11,7 @@ extern crate lazy_static;
 
 mod bindgen;
 mod build;
+mod lockfile;
 mod manifest;
 mod readme;
 mod utils;

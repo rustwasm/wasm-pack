@@ -2,6 +2,7 @@
 
 #![deny(missing_docs)]
 
+extern crate cargo_metadata;
 extern crate console;
 extern crate curl;
 #[macro_use]
@@ -29,6 +30,7 @@ pub mod build;
 pub mod command;
 pub mod emoji;
 pub mod error;
+pub mod lockfile;
 pub mod logger;
 pub mod manifest;
 pub mod npm;
