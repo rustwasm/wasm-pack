@@ -19,23 +19,25 @@ test_script:
 
 before_deploy:
   - ps: |
-        $NAME = "wasm-pack-${env:APPVEYOR_REPO_TAG_NAME}-${env:TARGET}"
+        $NAME = "wasm-pack-${env:APPVEYOR_REPO_TAG_NAME}-x86_64-pc-windows-msvc"
         New-Item -Path $NAME -ItemType directory
         Copy-Item target/release/wasm-pack.exe "${NAME}/"
+        Copy-Item target/release/wasm-pack.exe wasm-pack-init.exe
         Copy-Item LICENSE-MIT "${NAME}/"
         Copy-Item LICENSE-APACHE "${NAME}/"
         Copy-Item README.md "${NAME}/"
         7z a -ttar "${NAME}.tar" "${NAME}"
         7z a "${NAME}.tar.gz" "${NAME}.tar"
         Push-AppveyorArtifact "${NAME}.tar.gz"
+        Push-AppveyorArtifact wasm-pack-init.exe
 
 deploy:
-  artifact: /.*\.tar.gz/
+  artifact: /.*\.tar.gz/, /.*\.exe/
   description: 'Appveyor Automated Release'
   provider: GitHub
   draft: false
   prerelease: false
-  autho_token:
+  auth_token:
     secure: iHsRUqwGf/Zh7OuYpHOWQL8buaOL+c8/6kXLRly8V2j0LCUo7CcDs0NxQ0vl2bhZ
   on:
     appveyor_repo_tag: true
