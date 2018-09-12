@@ -9,6 +9,7 @@ readme = "README.md"
 categories = ["wasm"]
 
 [dependencies]
+atty = "0.2.11"
 console = "0.6.1"
 curl = "0.4.13"
 failure = "0.1.2"

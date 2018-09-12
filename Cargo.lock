@@ -900,6 +900,7 @@ dependencies = [
 name = "wasm-pack"
 version = "0.4.2"
 dependencies = [
+ "atty 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "console 0.6.1 (registry+https://github.com/rust-lang/crates.io-index)",
  "copy_dir 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "curl 0.4.14 (registry+https://github.com/rust-lang/crates.io-index)",
