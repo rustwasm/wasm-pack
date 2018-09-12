@@ -24,13 +24,13 @@ visiting that repo!
 
 ## 🔮 Prerequisities
 
-- [Development Environment](docs/src/prerequisites/index.md)
-- [Installation and Getting Started](docs/src/getting-started/index.md)
+- [Development Environment](https://rustwasm.github.io/wasm-pack/prerequisites/index.html)
+- [Installation and Getting Started](https://rustwasm.github.io/wasm-pack/getting-started/index.html)
 
 ## 🎙️ Commands
 
-- [`build`](docs/src/commands/build.md): Generate an npm wasm pkg from a rustwasm crate
-- [`pack` and `publish`](docs/src/commands/pack-and-publish.md): Create a tarball of your rustwasm pkg and/or publish to a registry
+- [`build`](https://rustwasm.github.io/wasm-pack/commands/build.html): Generate an npm wasm pkg from a rustwasm crate
+- [`pack` and `publish`](https://rustwasm.github.io/wasm-pack/command/pack-and-publish.html): Create a tarball of your rustwasm pkg and/or publish to a registry
 
 ## 📝 Logging
 
@@ -48,7 +48,7 @@ customize the log verbosity using the verbosity flag.
 Read our [guide] on getting up and running for developing `wasm-pack`, and
 check out our [contribution policy].
 
-[guide]: docs/src/contributing.md
+[guide]: https://rustwasm.github.io/wasm-pack/contributing.html
 [contribution policy]: CONTRIBUTING.md
 
 ## ⚡ Quickstart Guide
@@ -66,8 +66,6 @@ check out our [contribution policy].
 3. Add this to the top of your `src/lib.rs`:
 
   ```rust
-  #![feature(use_extern_macros)]
-
   extern crate wasm_bindgen;
 
   use wasm_bindgen::prelude::*;
@@ -91,7 +89,4 @@ check out our [contribution policy].
 6. Run `wasm-pack build`, optionally, pass a path to a dir or a scope (see above for details)
 7. This tool generates files in a `pkg` dir
 8. To publish to npm, run `wasm-pack publish`. You may need to login to the
-  registry you want to publish to. You can login using `wasm-pack login`.
-
-[rust-wasm/36]: https://github.com/rustwasm/team/issues/36
-[wasm-bindgen]: https://github.com/alexcrichton/wasm-bindgen
+   registry you want to publish to. You can login using `wasm-pack login`.
