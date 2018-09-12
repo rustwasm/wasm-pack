@@ -1,6 +1,10 @@
+environment:
+  global:
+    RUSTFLAGS: -C target-feature=+crt-static
+
 install:
   - appveyor-retry appveyor DownloadFile https://win.rustup.rs/ -FileName rustup-init.exe
-  - if not defined RUSTFLAGS rustup-init.exe -y --default-host x86_64-pc-windows-msvc --default-toolchain nightly
+  - rustup-init.exe -y --default-host x86_64-pc-windows-msvc --default-toolchain nightly
   - set PATH=%PATH%;C:\Users\appveyor\.cargo\bin
   - rustc -V
   - cargo -V
@@ -8,7 +12,7 @@ install:
 build: false
 
 test_script:
-  - cargo test --locked -- --test-threads 1
+  - cargo test --release --locked
 
 before_deploy:
   - ps: |
@@ -31,5 +35,4 @@ deploy:
   autho_token:
     secure: iHsRUqwGf/Zh7OuYpHOWQL8buaOL+c8/6kXLRly8V2j0LCUo7CcDs0NxQ0vl2bhZ
   on:
-    branch: master
     appveyor_repo_tag: true
