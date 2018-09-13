@@ -4,18 +4,19 @@ use emoji;
 use error::Error;
 use progressbar::Step;
 use std::fs;
+use std::io;
 use std::path::{Path, PathBuf};
 use PBAR;
 
 /// If an explicit path is given, then use it, otherwise assume the current
 /// directory is the crate path.
-pub fn set_crate_path(path: Option<PathBuf>) -> PathBuf {
+pub fn set_crate_path(path: Option<PathBuf>) -> io::Result<PathBuf> {
     let crate_path = match path {
         Some(p) => p,
         None => PathBuf::from("."),
     };
 
-    crate_path
+    crate_path.canonicalize()
 }
 
 /// Construct our `pkg` directory in the crate.

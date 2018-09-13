@@ -67,3 +67,27 @@ pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Err
         Ok(())
     }
 }
+
+/// Run `cargo build --tests` with the `nightly` toolchain and targetting
+/// `wasm32-unknown-unknown`.
+pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
+    let output = {
+        let mut cmd = Command::new("cargo");
+        cmd.current_dir(path)
+            .arg("+nightly")
+            .arg("build")
+            .arg("--tests");
+        if !debug {
+            cmd.arg("--release");
+        }
+        cmd.arg("--target").arg("wasm32-unknown-unknown");
+        cmd.output()?
+    };
+
+    if !output.status.success() {
+        let s = String::from_utf8_lossy(&output.stderr);
+        Error::cli("Compilation of your program failed", s)
+    } else {
+        Ok(())
+    }
+}

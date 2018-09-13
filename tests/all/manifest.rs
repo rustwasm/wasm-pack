@@ -250,3 +250,16 @@ fn it_gets_wasm_bindgen_version_with_underscores() {
         "0.2"
     );
 }
+
+#[test]
+fn the_wasm_bindgen_test_version_should_match_the_wasm_bindgen_version() {
+    let fixture = fixture::fixture("tests/fixtures/wbg-test-bad-versions");
+    let step = wasm_pack::progressbar::Step::new(1);
+    let result = manifest::check_crate_config(&fixture.path, &step);
+    assert!(result.is_err());
+    let msg = result.unwrap_err().to_string();
+    assert!(msg.contains(&format!(
+        "The `wasm-bindgen-test` dependency version (0.2.19) must match \
+         the `wasm-bindgen` dependency version (0.2.21), but it does not."
+    )));
+}

@@ -4,6 +4,7 @@ use serde_json;
 use std::borrow::Cow;
 use std::io;
 use toml;
+use zip;
 
 /// Errors that can potentially occur in `wasm-pack`.
 #[derive(Debug, Fail)]
@@ -23,6 +24,10 @@ pub enum Error {
     #[fail(display = "{}", _0)]
     /// A curl error.
     Curl(#[cause] curl::Error),
+
+    #[fail(display = "{}", _0)]
+    /// An error handling zip archives.
+    Zip(#[cause] zip::result::ZipError),
 
     /// An error invoking another CLI tool.
     #[fail(display = "{}. stderr:\n\n{}", message, stderr)]
@@ -113,6 +118,7 @@ impl Error {
             Error::Io(_) => "There was an I/O error. Details:\n\n",
             Error::SerdeJson(_) => "There was an JSON error. Details:\n\n",
             Error::SerdeToml(_) => "There was an TOML error. Details:\n\n",
+            Error::Zip(_) => "There was an error handling zip files. Details:\n\n",
             Error::Cli {
                 message: _,
                 stderr: _,
@@ -146,6 +152,12 @@ impl From<curl::Error> for Error {
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Self {
         Error::SerdeJson(e)
+    }
+}
+
+impl From<zip::result::ZipError> for Error {
+    fn from(e: zip::result::ZipError) -> Self {
+        Error::Zip(e)
     }
 }
 
