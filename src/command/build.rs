@@ -1,3 +1,5 @@
+//! Implementation of the `wasm-pack build` command.
+
 use bindgen;
 use build;
 use command::utils::{create_pkg_dir, set_crate_path};
@@ -9,6 +11,7 @@ use progressbar::Step;
 use readme;
 use slog::Logger;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::time::Instant;
 use PBAR;
 
@@ -27,12 +30,30 @@ pub(crate) struct Build {
 
 /// The `BuildMode` determines which mode of initialization we are running, and
 /// what build and install steps we perform.
+#[derive(Clone, Copy, Debug)]
 pub enum BuildMode {
     /// Perform all the build and install steps.
     Normal,
     /// Don't install tools like `wasm-bindgen`, just use the global
     /// environment's existing versions to do builds.
     Noinstall,
+}
+
+impl Default for BuildMode {
+    fn default() -> BuildMode {
+        BuildMode::Normal
+    }
+}
+
+impl FromStr for BuildMode {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Error> {
+        match s {
+            "no-install" => Ok(BuildMode::Noinstall),
+            "normal" => Ok(BuildMode::Normal),
+            _ => Error::crate_config(&format!("Unknown build mode: {}", s)).map(|_| unreachable!()),
+        }
+    }
 }
 
 /// Everything required to configure and run the `wasm-pack build` command.
@@ -48,7 +69,7 @@ pub struct BuildOptions {
 
     #[structopt(long = "mode", short = "m", default_value = "normal")]
     /// Sets steps to be run. [possible values: no-install, normal]
-    pub mode: String,
+    pub mode: BuildMode,
 
     #[structopt(long = "no-typescript")]
     /// By default a *.d.ts file is generated for the generated JS file, but
@@ -74,13 +95,9 @@ type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
 impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
-        let crate_path = set_crate_path(build_opts.path);
+        let crate_path = set_crate_path(build_opts.path)?;
         let crate_name = manifest::get_crate_name(&crate_path)?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
-        let mode = match build_opts.mode.as_str() {
-            "no-install" => BuildMode::Noinstall,
-            _ => BuildMode::Normal,
-        };
         // let build_config = manifest::xxx(&crate_path).xxx();
         Ok(Build {
             crate_path,
@@ -88,7 +105,7 @@ impl Build {
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
             debug: build_opts.debug,
-            mode,
+            mode: build_opts.mode,
             // build_config,
             crate_name,
             out_dir,
@@ -258,6 +275,7 @@ impl Build {
             &self.target,
             self.debug,
             step,
+            log,
         )?;
         info!(&log, "wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())

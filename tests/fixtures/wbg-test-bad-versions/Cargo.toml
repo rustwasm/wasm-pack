@@ -1,0 +1,16 @@
+[package]
+name = "wbg-test-node"
+version = "0.1.0"
+authors = ["Nick Fitzgerald <fitzgen@gmail.com>"]
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# We depend on wasm-bindgen 0.2.21
+wasm-bindgen = "0.2.21"
+
+[dev-dependencies]
+# And we depend on wasm-bindgen-test 0.2.19. But this should match the
+# wasm-bindgen dependency!
+wasm-bindgen-test = "0.2.19"

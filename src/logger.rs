@@ -39,6 +39,7 @@ fn log_file_path(cmd: &Command) -> PathBuf {
         Command::Build(build_opts) => &build_opts.path,
         Command::Pack { path } => path,
         Command::Publish { path } => path,
+        Command::Test(test_opts) => &test_opts.path,
         Command::Login { .. } => &None,
     };
 

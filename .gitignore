@@ -1,6 +1,5 @@
 target/
-**/target
 **/*.rs.bk
-**/pkg
-tests/fixtures/**/Cargo.lock
+tests/.crates.toml
+tests/bin
 wasm-pack.log
