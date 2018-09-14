@@ -3,14 +3,15 @@
 pub mod build;
 mod login;
 mod pack;
-mod publish;
+/// Data structures and functions for publishing a package.
+pub mod publish;
 pub mod test;
 pub mod utils;
 
 use self::build::{Build, BuildOptions};
 use self::login::login;
 use self::pack::pack;
-use self::publish::publish;
+use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
 use error::Error;
 use slog::Logger;
@@ -36,6 +37,10 @@ pub enum Command {
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish!
     Publish {
+        /// The access level for the package to be published
+        #[structopt(long = "access", short = "a")]
+        access: Option<Access>,
+
         /// The path to the Rust crate.
         #[structopt(parse(from_os_str))]
         path: Option<PathBuf>,
@@ -92,10 +97,10 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
             info!(&log, "Path: {:?}", &path);
             pack(path, &log)
         }
-        Command::Publish { path } => {
+        Command::Publish { path, access } => {
             info!(&log, "Running publish command...");
             info!(&log, "Path: {:?}", &path);
-            publish(path, &log)
+            publish(path, access, &log)
         }
         Command::Login {
             registry,
