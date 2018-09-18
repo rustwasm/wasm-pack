@@ -1,7 +1,7 @@
 use manifest::npm::repository::Repository;
 
 #[derive(Serialize)]
-pub struct ES6Package {
+pub struct ESModulesPackage {
     pub name: String,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub collaborators: Vec<String>,

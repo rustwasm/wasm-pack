@@ -1,12 +1,12 @@
 mod commonjs;
-mod es6;
+mod esmodules;
 pub mod repository;
 
 pub use self::commonjs::CommonJSPackage;
-pub use self::es6::ES6Package;
+pub use self::esmodules::ESModulesPackage;
 
 #[derive(Serialize)]
 pub enum NpmPackage {
     CommonJSPackage(CommonJSPackage),
-    ES6Package(ES6Package),
+    ESModulesPackage(ESModulesPackage),
 }
