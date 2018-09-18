@@ -7,10 +7,10 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
+use self::npm::{CommonJSPackage, ES6Package, NpmPackage, Repository};
 use console::style;
 use emoji;
 use error::Error;
-use self::npm::{NpmPackage, Repository};
 use progressbar::Step;
 use serde_json;
 use toml;
@@ -97,7 +97,7 @@ fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
 }
 
 impl CargoManifest {
-    fn into_npm(mut self, scope: &Option<String>, disable_dts: bool, target: &str) -> NpmPackage {
+    fn into_commonjs(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
@@ -108,11 +108,7 @@ impl CargoManifest {
             Some(format!("{}.d.ts", filename))
         };
 
-        let js_bg_file = if target == "nodejs" {
-            Some(format!("{}_bg.js", filename))
-        } else {
-            None
-        };
+        let js_bg_file = Some(format!("{}_bg.js", filename));
 
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
@@ -133,7 +129,7 @@ impl CargoManifest {
             None => {}
         }
 
-        NpmPackage {
+        NpmPackage::CommonJSPackage(CommonJSPackage {
             name: self.package.name,
             collaborators: self.package.authors,
             description: self.package.description,
@@ -146,7 +142,46 @@ impl CargoManifest {
             files: files,
             main: js_file,
             types: dts_file,
+        })
+    }
+
+    fn into_es6(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+        let filename = self.package.name.replace("-", "_");
+        let wasm_file = format!("{}_bg.wasm", filename);
+        let js_file = format!("{}.js", filename);
+
+        let dts_file = if disable_dts == true {
+            None
+        } else {
+            Some(format!("{}.d.ts", filename))
+        };
+
+        if let Some(s) = scope {
+            self.package.name = format!("@{}/{}", s, self.package.name);
         }
+        let mut files = vec![wasm_file];
+
+        match dts_file {
+            Some(ref dts_file) => {
+                files.push(dts_file.to_string());
+            }
+            None => {}
+        }
+
+        NpmPackage::ES6Package(ES6Package {
+            name: self.package.name,
+            collaborators: self.package.authors,
+            description: self.package.description,
+            version: self.package.version,
+            license: self.package.license,
+            repository: self.package.repository.map(|repo_url| Repository {
+                ty: "git".to_string(),
+                url: repo_url,
+            }),
+            files: files,
+            module: js_file,
+            types: dts_file,
+        })
     }
 }
 
@@ -161,28 +196,34 @@ pub fn write_package_json(
 ) -> Result<(), Error> {
     let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
-    let warn_fmt = |field| {
-        format!(
-            "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
-            field
-        )
-    };
+    //TODO: below, these checks need to move
+    //let warn_fmt = |field| {
+    //    format!(
+    //        "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
+    //        field
+    //    )
+    //};
 
     PBAR.step(step, &msg);
     let pkg_file_path = out_dir.join("package.json");
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
-    let npm_data = crate_data.into_npm(scope, disable_dts, target);
+    let npm_data = if target == "nodejs" {
+        crate_data.into_commonjs(scope, disable_dts)
+    } else {
+        crate_data.into_es6(scope, disable_dts)
+    };
 
-    if npm_data.description.is_none() {
-        PBAR.warn(&warn_fmt("description"));
-    }
-    if npm_data.repository.is_none() {
-        PBAR.warn(&warn_fmt("repository"));
-    }
-    if npm_data.license.is_none() {
-        PBAR.warn(&warn_fmt("license"));
-    }
+    //TODO: these checks won't work now, we should do this before we serialize
+    //if npm_data.description.is_none() {
+    //    PBAR.warn(&warn_fmt("description"));
+    //}
+    //if npm_data.repository.is_none() {
+    //    PBAR.warn(&warn_fmt("repository"));
+    //}
+    //if npm_data.license.is_none() {
+    //    PBAR.warn(&warn_fmt("license"));
+    //}
 
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
