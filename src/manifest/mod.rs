@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-use self::npm::{repository::Repository, CommonJSPackage, ES6Package, NpmPackage};
+use self::npm::{repository::Repository, CommonJSPackage, ESModulesPackage, NpmPackage};
 use console::style;
 use emoji;
 use error::Error;
@@ -145,7 +145,7 @@ impl CargoManifest {
         })
     }
 
-    fn into_es6(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+    fn into_esmodules(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
@@ -168,7 +168,7 @@ impl CargoManifest {
             None => {}
         }
 
-        NpmPackage::ES6Package(ES6Package {
+        NpmPackage::ESModulesPackage(ESModulesPackage {
             name: self.package.name,
             collaborators: self.package.authors,
             description: self.package.description,
@@ -211,7 +211,7 @@ pub fn write_package_json(
     let npm_data = if target == "nodejs" {
         crate_data.into_commonjs(scope, disable_dts)
     } else {
-        crate_data.into_es6(scope, disable_dts)
+        crate_data.into_esmodules(scope, disable_dts)
     };
 
     //TODO: these checks won't work now, we should do this before we serialize
