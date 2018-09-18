@@ -159,7 +159,7 @@ impl CargoManifest {
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
         }
-        let mut files = vec![wasm_file];
+        let mut files = vec![wasm_file, js_file.clone()];
 
         match dts_file {
             Some(ref dts_file) => {
