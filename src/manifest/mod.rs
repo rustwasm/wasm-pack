@@ -1,5 +1,7 @@
 //! Reading and writing Cargo.toml and package.json manifests.
 
+mod npm;
+
 use std::collections::HashMap;
 use std::fs::File;
 use std::io::prelude::*;
@@ -8,6 +10,7 @@ use std::path::Path;
 use console::style;
 use emoji;
 use error::Error;
+use self::npm::{NpmPackage, Repository};
 use progressbar::Step;
 use serde_json;
 use toml;
@@ -73,32 +76,6 @@ struct DetailedCargoDependency {
 struct CargoLib {
     #[serde(rename = "crate-type")]
     crate_type: Option<Vec<String>>,
-}
-
-#[derive(Serialize)]
-struct NpmPackage {
-    name: String,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    collaborators: Vec<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    description: Option<String>,
-    version: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    license: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    repository: Option<Repository>,
-    #[serde(skip_serializing_if = "Vec::is_empty")]
-    files: Vec<String>,
-    main: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    types: Option<String>,
-}
-
-#[derive(Serialize)]
-struct Repository {
-    #[serde(rename = "type")]
-    ty: String,
-    url: String,
 }
 
 fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
