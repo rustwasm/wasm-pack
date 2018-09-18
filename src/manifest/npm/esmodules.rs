@@ -17,4 +17,5 @@ pub struct ESModulesPackage {
     pub module: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<String>,
+    pub sideEffects: String,
 }
