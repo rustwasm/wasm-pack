@@ -70,6 +70,7 @@ fn it_creates_a_package_json_default_path() {
     );
     assert_eq!(pkg.module, "wasm_pack.js");
     assert_eq!(pkg.types, "wasm_pack.d.ts");
+    assert_eq!(pkg.side_effects, "false");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = ["wasm_pack_bg.wasm", "wasm_pack.d.ts", "wasm_pack.js"]

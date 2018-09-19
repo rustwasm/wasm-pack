@@ -193,7 +193,7 @@ impl CargoManifest {
             files: files,
             module: js_file,
             types: dts_file,
-            sideEffects: "false".to_string(),
+            side_effects: "false".to_string(),
         })
     }
 }
