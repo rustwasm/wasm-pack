@@ -13,8 +13,16 @@ pub struct NpmPackage {
     pub license: String,
     pub repository: Repository,
     pub files: Vec<String>,
+    #[serde(default = "default_none")]
     pub main: String,
-    pub types: Option<String>,
+    #[serde(default = "default_none")]
+    pub module: String,
+    #[serde(default = "default_none")]
+    pub types: String,
+}
+
+fn default_none() -> String {
+  "".to_string()
 }
 
 #[derive(Deserialize)]
@@ -29,6 +37,7 @@ pub fn read_package_json(path: &Path, out_dir: &Path) -> Result<NpmPackage, Erro
     let mut pkg_file = File::open(manifest_path)?;
     let mut pkg_contents = String::new();
     pkg_file.read_to_string(&mut pkg_contents)?;
-
+    
+    println!("pkg_file: {}", pkg_contents);
     Ok(serde_json::from_str(&pkg_contents)?)
 }
