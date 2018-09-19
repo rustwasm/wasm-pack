@@ -129,6 +129,8 @@ impl CargoManifest {
             None => {}
         }
 
+        check_optional_fields(&self.package.description, &self.package.repository, &self.package.license);
+
         NpmPackage::CommonJSPackage(CommonJSPackage {
             name: self.package.name,
             collaborators: self.package.authors,
@@ -168,6 +170,8 @@ impl CargoManifest {
             None => {}
         }
 
+        check_optional_fields(&self.package.description, &self.package.repository, &self.package.license);
+
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: self.package.name,
             collaborators: self.package.authors,
@@ -197,13 +201,6 @@ pub fn write_package_json(
 ) -> Result<(), Error> {
     let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
-    //TODO: below, these checks need to move
-    //let warn_fmt = |field| {
-    //    format!(
-    //        "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
-    //        field
-    //    )
-    //};
 
     PBAR.step(step, &msg);
     let pkg_file_path = out_dir.join("package.json");
@@ -215,20 +212,31 @@ pub fn write_package_json(
         crate_data.into_esmodules(scope, disable_dts)
     };
 
-    //TODO: these checks won't work now, we should do this before we serialize
-    //if npm_data.description.is_none() {
-    //    PBAR.warn(&warn_fmt("description"));
-    //}
-    //if npm_data.repository.is_none() {
-    //    PBAR.warn(&warn_fmt("repository"));
-    //}
-    //if npm_data.license.is_none() {
-    //    PBAR.warn(&warn_fmt("license"));
-    //}
 
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
     Ok(())
+}
+
+/// Check the data for missing fields and warn 
+pub fn check_optional_fields(description: &Option<String>, repository: &Option<String>, license: &Option<String>) {
+    let warn_fmt = |field| {
+        format!(
+            "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
+            field
+        )
+    };
+
+    if description.is_none() {
+        PBAR.warn(&warn_fmt("description"));
+    }
+    if repository.is_none() {
+        PBAR.warn(&warn_fmt("repository"));
+    }
+    if license.is_none() {
+        PBAR.warn(&warn_fmt("license"));
+    }
+
 }
 
 /// Get the crate name for the crate at the given path.
