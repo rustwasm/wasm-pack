@@ -60,6 +60,27 @@ struct CargoPackage {
     repository: Option<String>,
 }
 
+impl CargoPackage {
+    fn check_optional_fields(&self) {
+        let warn_fmt = |field| {
+            format!(
+                "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
+                field
+            )
+        };
+
+        if self.description.is_none() {
+            PBAR.warn(&warn_fmt("description"));
+        }
+        if self.repository.is_none() {
+            PBAR.warn(&warn_fmt("repository"));
+        }
+        if self.license.is_none() {
+            PBAR.warn(&warn_fmt("license"));
+        }
+    }
+}
+
 #[derive(Debug, Deserialize)]
 #[serde(untagged)]
 enum CargoDependency {
@@ -118,11 +139,7 @@ impl CargoManifest {
             None
         };
 
-        check_optional_fields(
-            &self.package.description,
-            &self.package.repository,
-            &self.package.license,
-        );
+        &self.package.check_optional_fields();
 
         NpmPackage::CommonJSPackage(CommonJSPackage {
             name: self.package.name,
@@ -158,11 +175,7 @@ impl CargoManifest {
             self.package.name = format!("@{}/{}", s, self.package.name);
         }
 
-        check_optional_fields(
-            &self.package.description,
-            &self.package.repository,
-            &self.package.license,
-        );
+        &self.package.check_optional_fields();
 
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: self.package.name,
@@ -206,30 +219,6 @@ pub fn write_package_json(
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
     Ok(())
-}
-
-/// Check the data for missing fields and warn
-pub fn check_optional_fields(
-    description: &Option<String>,
-    repository: &Option<String>,
-    license: &Option<String>,
-) {
-    let warn_fmt = |field| {
-        format!(
-            "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
-            field
-        )
-    };
-
-    if description.is_none() {
-        PBAR.warn(&warn_fmt("description"));
-    }
-    if repository.is_none() {
-        PBAR.warn(&warn_fmt("repository"));
-    }
-    if license.is_none() {
-        PBAR.warn(&warn_fmt("license"));
-    }
 }
 
 /// Get the crate name for the crate at the given path.
