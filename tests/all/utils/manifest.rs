@@ -22,7 +22,7 @@ pub struct NpmPackage {
 }
 
 fn default_none() -> String {
-  "".to_string()
+    "".to_string()
 }
 
 #[derive(Deserialize)]
@@ -37,7 +37,6 @@ pub fn read_package_json(path: &Path, out_dir: &Path) -> Result<NpmPackage, Erro
     let mut pkg_file = File::open(manifest_path)?;
     let mut pkg_contents = String::new();
     pkg_file.read_to_string(&mut pkg_contents)?;
-    
-    println!("pkg_file: {}", pkg_contents);
+
     Ok(serde_json::from_str(&pkg_contents)?)
 }
