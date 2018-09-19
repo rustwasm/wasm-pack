@@ -19,6 +19,8 @@ pub struct NpmPackage {
     pub module: String,
     #[serde(default = "default_none")]
     pub types: String,
+    #[serde(default = "default_none", rename = "sideEffects")]
+    pub side_effects: String,
 }
 
 fn default_none() -> String {
