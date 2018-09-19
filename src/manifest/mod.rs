@@ -129,7 +129,11 @@ impl CargoManifest {
             None => {}
         }
 
-        check_optional_fields(&self.package.description, &self.package.repository, &self.package.license);
+        check_optional_fields(
+            &self.package.description,
+            &self.package.repository,
+            &self.package.license,
+        );
 
         NpmPackage::CommonJSPackage(CommonJSPackage {
             name: self.package.name,
@@ -170,7 +174,11 @@ impl CargoManifest {
             None => {}
         }
 
-        check_optional_fields(&self.package.description, &self.package.repository, &self.package.license);
+        check_optional_fields(
+            &self.package.description,
+            &self.package.repository,
+            &self.package.license,
+        );
 
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: self.package.name,
@@ -201,7 +209,6 @@ pub fn write_package_json(
 ) -> Result<(), Error> {
     let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
-
     PBAR.step(step, &msg);
     let pkg_file_path = out_dir.join("package.json");
     let mut pkg_file = File::create(pkg_file_path)?;
@@ -212,14 +219,17 @@ pub fn write_package_json(
         crate_data.into_esmodules(scope, disable_dts)
     };
 
-
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
     pkg_file.write_all(npm_json.as_bytes())?;
     Ok(())
 }
 
-/// Check the data for missing fields and warn 
-pub fn check_optional_fields(description: &Option<String>, repository: &Option<String>, license: &Option<String>) {
+/// Check the data for missing fields and warn
+pub fn check_optional_fields(
+    description: &Option<String>,
+    repository: &Option<String>,
+    license: &Option<String>,
+) {
     let warn_fmt = |field| {
         format!(
             "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
@@ -236,7 +246,6 @@ pub fn check_optional_fields(description: &Option<String>, repository: &Option<S
     if license.is_none() {
         PBAR.warn(&warn_fmt("license"));
     }
-
 }
 
 /// Get the crate name for the crate at the given path.
