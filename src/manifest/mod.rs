@@ -101,33 +101,22 @@ impl CargoManifest {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
+        let mut files = vec![wasm_file];
 
-        let dts_file = if disable_dts == true {
-            None
-        } else {
-            Some(format!("{}.d.ts", filename))
-        };
-
-        let js_bg_file = Some(format!("{}_bg.js", filename));
+        let js_bg_file = format!("{}_bg.js", filename);
+        files.push(js_bg_file.to_string());
 
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
         }
-        let mut files = vec![wasm_file];
 
-        match dts_file {
-            Some(ref dts_file) => {
-                files.push(dts_file.to_string());
-            }
-            None => {}
-        }
-
-        match js_bg_file {
-            Some(ref js_bg_file) => {
-                files.push(js_bg_file.to_string());
-            }
-            None => {}
-        }
+        let dts_file = if disable_dts == false {
+            let file = format!("{}.d.ts", filename);
+            files.push(file.to_string());
+            Some(file)
+        } else {
+            None
+        };
 
         check_optional_fields(
             &self.package.description,
@@ -155,23 +144,18 @@ impl CargoManifest {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
+        let mut files = vec![wasm_file, js_file.clone()];
 
-        let dts_file = if disable_dts == true {
-            None
+        let dts_file = if disable_dts == false {
+            let file = format!("{}.d.ts", filename);
+            files.push(file.to_string());
+            Some(file)
         } else {
-            Some(format!("{}.d.ts", filename))
+            None
         };
 
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
-        }
-        let mut files = vec![wasm_file, js_file.clone()];
-
-        match dts_file {
-            Some(ref dts_file) => {
-                files.push(dts_file.to_string());
-            }
-            None => {}
         }
 
         check_optional_fields(
