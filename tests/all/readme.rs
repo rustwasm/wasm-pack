@@ -8,7 +8,7 @@ use wasm_pack::readme;
 
 #[test]
 fn it_copies_a_readme_default_path() {
-    let fixture = fixture::fixture(".");
+    let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
 
@@ -33,7 +33,7 @@ fn it_copies_a_readme_default_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
-    let fixture = fixture::fixture("tests/fixtures/js-hello-world");
+    let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
 
