@@ -1,4 +1,4 @@
-use utils::fixture::fixture;
+use utils::fixture;
 use wasm_pack::test::webdriver;
 
 #[test]
@@ -8,7 +8,7 @@ use wasm_pack::test::webdriver;
     all(target_os = "windows", target_arch = "x86")
 ))]
 fn can_install_chromedriver() {
-    let fixture = fixture("tests/fixtures/js-hello-world");
+    let fixture = fixture::js_hello_world();
     assert!(webdriver::install_chromedriver(&fixture.path).is_ok());
 }
 
@@ -21,6 +21,6 @@ fn can_install_chromedriver() {
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn can_install_geckodriver() {
-    let fixture = fixture("tests/fixtures/js-hello-world");
+    let fixture = fixture::js_hello_world();
     assert!(webdriver::install_geckodriver(&fixture.path).is_ok());
 }

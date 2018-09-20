@@ -4,7 +4,7 @@ use wasm_pack::{command, logger, Cli};
 
 #[test]
 fn build_in_non_crate_directory_doesnt_panic() {
-    let fixture = utils::fixture::fixture("tests/fixtures/not-a-crate");
+    let fixture = utils::fixture::not_a_crate();
     let cli = Cli::from_iter_safe(vec![
         "wasm-pack",
         "build",

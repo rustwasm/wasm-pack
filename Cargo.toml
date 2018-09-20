@@ -32,7 +32,6 @@ which = "2.0.0"
 zip = "0.4.2"
 
 [dev-dependencies]
-copy_dir = "0.1.2"
 tempfile = "3"
 
 [features]

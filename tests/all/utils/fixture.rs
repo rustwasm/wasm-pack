@@ -1,14 +1,21 @@
 use std::env;
 use std::fs;
+use std::io;
 use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
 use std::sync::{Once, ONCE_INIT};
 use std::thread;
 use wasm_pack;
 
-use copy_dir::copy_dir;
 use tempfile;
 
+fn hard_link_or_copy<P1: AsRef<Path>, P2: AsRef<Path>>(from: P1, to: P2) -> io::Result<()> {
+    let from = from.as_ref();
+    let to = to.as_ref();
+    fs::hard_link(from, to).or_else(|_| fs::copy(from, to).map(|_| ()))
+}
+
+/// A test fixture in a temporary directory.
 pub struct Fixture {
     // NB: we wrap the fixture's tempdir in a `ManuallyDrop` so that if a test
     // fails, its directory isn't deleted, and we have a chance to manually
@@ -17,66 +24,123 @@ pub struct Fixture {
     pub path: PathBuf,
 }
 
-/// Copy the given fixture into a unique temporary directory. This allows the
-/// test to mutate the copied fixture without messing up other tests that are
-/// also trying to read from or write to that fixture. The given path should be
-/// relative from the root of the repository, eg
-/// "tests/fixtures/im-from-brooklyn-the-place-where-stars-are-born".
-pub fn fixture<P>(fixture: P) -> Fixture
-where
-    P: AsRef<Path>,
-{
-    // Make sure that all fixtures end up sharing a target dir, and we don't
-    // recompile wasm-bindgen and friends many times over.
-    static SET_TARGET_DIR: Once = ONCE_INIT;
-    SET_TARGET_DIR.call_once(|| {
-        env::set_var(
-            "CARGO_TARGET_DIR",
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("target"),
-        );
-    });
+impl Fixture {
+    /// Create a new test fixture in a temporary directory.
+    pub fn new() -> Fixture {
+        // Make sure that all fixtures end up sharing a target dir, and we don't
+        // recompile wasm-bindgen and friends many times over.
+        static SET_TARGET_DIR: Once = ONCE_INIT;
+        SET_TARGET_DIR.call_once(|| {
+            env::set_var(
+                "CARGO_TARGET_DIR",
+                Path::new(env!("CARGO_MANIFEST_DIR")).join("target"),
+            );
+        });
 
-    let fixture = fixture
-        .as_ref()
-        .canonicalize()
-        .expect("should canonicalize fixture path OK");
-    let dir = ManuallyDrop::new(tempfile::tempdir().expect("should create temporary directory OK"));
-    let path = dir.path().join("wasm-pack");
-    println!(
-        "wasm-pack: copying test fixture '{}' to temporary directory '{}'",
-        fixture.display(),
-        path.display()
-    );
-
-    {
-        // Copying too many things in parallel totally kills my machine(??!!?!),
-        // so make sure we are only doing one `copy_dir` at a time...
-        use std::sync::Mutex;
-        lazy_static! {
-            static ref ONE_AT_A_TIME: Mutex<()> = Mutex::new(());
-        }
-        let _locked = ONE_AT_A_TIME.lock();
-
-        copy_dir(fixture, &path)
-            .expect("should copy fixture directory into temporary directory OK");
+        let dir =
+            ManuallyDrop::new(tempfile::tempdir().expect("should create temporary directory OK"));
+        let path = dir.path().join("wasm-pack");
+        Fixture { dir, path }
     }
 
-    Fixture { dir, path }
-}
+    /// Create a file within this fixture.
+    ///
+    /// `path` should be a relative path to the file (relative within this
+    /// fixture's path).
+    ///
+    /// The `contents` are written to the file.
+    pub fn file<P: AsRef<Path>, C: AsRef<[u8]>>(&self, path: P, contents: C) -> &Self {
+        assert!(path.as_ref().is_relative());
+        let path = self.path.join(path);
+        if let Some(parent) = path.parent() {
+            fs::create_dir_all(parent).unwrap();
+        }
+        fs::write(path, contents).unwrap();
+        self
+    }
 
-impl Fixture {
+    /// Add a generic `README.md` file to the fixture.
+    pub fn readme(&self) -> &Self {
+        self.file(
+            "README.md",
+            r#"
+                # Fixture!
+                > an example rust -> wasm project
+            "#,
+        )
+    }
+
+    /// Add a `Cargo.toml` with a correctly configured `wasm-bindgen`
+    /// dependency, `wasm-bindgen-test` dev-dependency, and `crate-type =
+    /// ["cdylib"]`.
+    ///
+    /// `name` is the crate's name.
+    pub fn cargo_toml(&self, name: &str) -> &Self {
+        self.file(
+            "Cargo.toml",
+            &format!(
+                r#"
+                    [package]
+                    authors = ["The wasm-pack developers"]
+                    description = "so awesome rust+wasm package"
+                    license = "WTFPL"
+                    name = "{}"
+                    repository = "https://github.com/rustwasm/wasm-pack.git"
+                    version = "0.1.0"
+
+                    [lib]
+                    crate-type = ["cdylib"]
+
+                    [dependencies]
+                    wasm-bindgen = "0.2.21"
+
+                    [dev-dependencies]
+                    wasm-bindgen-test = "0.2.21"
+                "#,
+                name
+            ),
+        )
+    }
+
+    /// Add a `src/lib.rs` file that contains a "hello world" program.
+    pub fn hello_world_src_lib(&self) -> &Self {
+        self.file(
+            "src/lib.rs",
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                // Import the `window.alert` function from the Web.
+                #[wasm_bindgen]
+                extern {
+                    fn alert(s: &str);
+                }
+
+                // Export a `greet` function from Rust to JavaScript, that alerts a
+                // hello message.
+                #[wasm_bindgen]
+                pub fn greet(name: &str) {
+                    alert(&format!("Hello, {}!", name));
+                }
+            "#,
+        )
+    }
+
     /// Install a local wasm-bindgen for this fixture.
     ///
     /// Takes care not to re-install for every fixture, but only the one time
     /// for the whole test suite.
-    pub fn install_local_wasm_bindgen(&self) {
+    pub fn install_local_wasm_bindgen(&self) -> &Self {
         static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
 
         let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
-        let bin = tests.join("bin");
+        let shared_wasm_bindgen = wasm_pack::binaries::local_bin_path(&tests, "wasm-bindgen");
+        let shared_wasm_bindgen_test_runner =
+            wasm_pack::binaries::local_bin_path(&tests, "wasm-bindgen-test-runner");
 
         INSTALL_WASM_BINDGEN.call_once(|| {
-            if bin.join("wasm-bindgen").is_file() {
+            if shared_wasm_bindgen.is_file() {
+                assert!(shared_wasm_bindgen_test_runner.is_file());
                 return;
             }
 
@@ -87,14 +151,29 @@ impl Fixture {
                 }).unwrap();
         });
 
-        copy_dir(bin, self.path.join("bin")).expect("could not copy `bin` directory into temp dir");
+        assert!(shared_wasm_bindgen.is_file());
+        assert!(shared_wasm_bindgen_test_runner.is_file());
+
+        wasm_pack::binaries::ensure_local_bin_dir(&self.path).unwrap();
+
+        hard_link_or_copy(
+            &shared_wasm_bindgen,
+            wasm_pack::binaries::local_bin_path(&self.path, "wasm-bindgen"),
+        ).expect("could not copy `wasm-bindgen` to fixture directory");
+
+        hard_link_or_copy(
+            &shared_wasm_bindgen_test_runner,
+            wasm_pack::binaries::local_bin_path(&self.path, "wasm-bindgen-test-runner"),
+        ).expect("could not copy `wasm-bindgen-test` to fixture directory");
+
+        self
     }
 
     /// Download `geckodriver` and return its path.
     ///
     /// Takes care to ensure that only one `geckodriver` is downloaded for the whole
     /// test suite.
-    pub fn install_local_geckodriver(&self) {
+    pub fn install_local_geckodriver(&self) -> &Self {
         static FETCH_GECKODRIVER: Once = ONCE_INIT;
 
         let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
@@ -116,17 +195,19 @@ impl Fixture {
         wasm_pack::binaries::ensure_local_bin_dir(&self.path)
             .expect("could not create fixture's `bin` directory");
 
-        fs::copy(
+        hard_link_or_copy(
             &geckodriver,
             wasm_pack::binaries::local_bin_path(&self.path, "geckodriver"),
         ).expect("could not copy `geckodriver` to fixture directory");
+
+        self
     }
 
     /// Download `chromedriver` and return its path.
     ///
     /// Takes care to ensure that only one `chromedriver` is downloaded for the whole
     /// test suite.
-    pub fn install_local_chromedriver(&self) {
+    pub fn install_local_chromedriver(&self) -> &Self {
         static FETCH_CHROMEDRIVER: Once = ONCE_INIT;
 
         let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
@@ -148,10 +229,12 @@ impl Fixture {
         wasm_pack::binaries::ensure_local_bin_dir(&self.path)
             .expect("could not create fixture's `bin` directory");
 
-        fs::copy(
+        hard_link_or_copy(
             &chromedriver,
             wasm_pack::binaries::local_bin_path(&self.path, "chromedriver"),
         ).expect("could not copy `chromedriver` to fixture directory");
+
+        self
     }
 }
 
@@ -161,4 +244,213 @@ impl Drop for Fixture {
             unsafe { ManuallyDrop::drop(&mut self.dir) }
         }
     }
+}
+
+pub fn bad_cargo_toml() -> Fixture {
+    let fixture = Fixture::new();
+    fixture.readme().hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            name = "bad-cargo-toml"
+            version = "0.1.0"
+            authors = ["The wasm-pack developers"]
+
+            [lib]
+            crate-type = ["foo"]
+
+            [dependencies]
+            # Note: no wasm-bindgen dependency!
+        "#,
+    );
+    fixture
+}
+
+pub fn js_hello_world() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("js-hello-world")
+        .hello_world_src_lib();
+    fixture
+}
+
+pub fn no_cdylib() -> Fixture {
+    let fixture = Fixture::new();
+    fixture.readme().hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "{}"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            # [lib]
+            # crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2.21"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "0.2.21"
+        "#,
+    );
+    fixture
+}
+
+pub fn not_a_crate() -> Fixture {
+    let fixture = Fixture::new();
+    fixture.file("README.md", "This is not a Rust crate!");
+    fixture
+}
+
+pub fn serde_feature() -> Fixture {
+    let fixture = Fixture::new();
+    fixture.readme().hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            name = "serde-serialize"
+            version = "0.1.0"
+            authors = ["The wasm-pack developers"]
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies.wasm-bindgen]
+            version = "^0.2"
+            features = ["serde-serialize"]
+        "#,
+    );
+    fixture
+}
+
+pub fn wbg_test_bad_versions() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .hello_world_src_lib()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "wbg-test-node"
+                version = "0.1.0"
+                authors = ["The wasm-pack developers"]
+
+                [lib]
+                crate-type = ["cdylib"]
+
+                [dependencies]
+                # We depend on wasm-bindgen 0.2.21
+                wasm-bindgen = "=0.2.21"
+
+                [dev-dependencies]
+                # And we depend on wasm-bindgen-test 0.2.19. But this should match the
+                # wasm-bindgen dependency!
+                wasm-bindgen-test = "=0.2.19"
+            "#,
+        ).file(
+            "tests/node.rs",
+            r#"
+                extern crate wasm_bindgen_test;
+                use wasm_bindgen_test::*;
+
+                #[wasm_bindgen_test]
+                fn pass() {
+                    assert_eq!(1, 1);
+                }
+            "#,
+        );
+    fixture
+}
+
+pub fn wbg_test_browser() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("wbg-test-browser")
+        .hello_world_src_lib()
+        .file(
+            "tests/browser.rs",
+            r#"
+                extern crate wasm_bindgen_test;
+                use wasm_bindgen_test::*;
+
+                wasm_bindgen_test_configure!(run_in_browser);
+
+                #[wasm_bindgen_test]
+                fn pass() {
+                    assert_eq!(1, 1);
+                }
+            "#,
+        );
+    fixture
+}
+
+pub fn wbg_test_fail() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("wbg-test-fail")
+        .hello_world_src_lib()
+        .file(
+            "tests/node.rs",
+            r#"
+                extern crate wasm_bindgen_test;
+                use wasm_bindgen_test::*;
+
+                #[wasm_bindgen_test]
+                fn pass() {
+                    assert_eq!(1, 2);
+                }
+            "#,
+        );
+    fixture
+}
+
+pub fn wbg_test_node() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("wbg-test-node")
+        .hello_world_src_lib()
+        .file(
+            "tests/node.rs",
+            r#"
+                extern crate wasm_bindgen_test;
+                use wasm_bindgen_test::*;
+
+                #[wasm_bindgen_test]
+                fn pass() {
+                    assert_eq!(1, 1);
+                }
+            "#,
+        );
+    fixture
+}
+
+pub fn with_underscores() -> Fixture {
+    let fixture = Fixture::new();
+    fixture.readme().hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            name = "with-underscores"
+            version = "0.1.0"
+            authors = ["The wasm-pack developers"]
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            # Cargo will normalize "wasm-bindgen" and "wasm_bindgen" and that shouldn't
+            # break wasm-pack.
+            wasm_bindgen = "0.2"
+        "#,
+    );
+    fixture
 }

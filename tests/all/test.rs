@@ -1,14 +1,14 @@
 use std::env;
 use std::fs;
 use tempfile;
-use utils::fixture::fixture;
+use utils::fixture;
 use wasm_pack::binaries;
 use wasm_pack::command::{self, build, test, Command};
 use wasm_pack::logger;
 
 #[test]
 fn it_can_run_node_tests() {
-    let fixture = fixture("tests/fixtures/wbg-test-node");
+    let fixture = fixture::wbg_test_node();
     fixture.install_local_wasm_bindgen();
     let cmd = Command::Test(test::TestOptions {
         path: Some(fixture.path.clone()),
@@ -28,7 +28,7 @@ fn it_can_run_node_tests() {
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn it_can_run_browser_tests() {
-    let fixture = fixture("tests/fixtures/wbg-test-browser");
+    let fixture = fixture::wbg_test_browser();
     fixture.install_local_wasm_bindgen();
 
     let firefox = cfg!(any(
@@ -73,7 +73,7 @@ fn it_can_run_browser_tests() {
 
 #[test]
 fn it_can_run_failing_tests() {
-    let fixture = fixture("tests/fixtures/wbg-test-fail");
+    let fixture = fixture::wbg_test_fail();
     fixture.install_local_wasm_bindgen();
     let cmd = Command::Test(test::TestOptions {
         path: Some(fixture.path.clone()),
@@ -97,7 +97,7 @@ fn it_can_run_failing_tests() {
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn it_can_find_a_webdriver_on_path() {
-    let fixture = fixture("tests/fixtures/wbg-test-browser");
+    let fixture = fixture::wbg_test_browser();
     fixture.install_local_wasm_bindgen();
     fixture.install_local_geckodriver();
 
@@ -128,7 +128,7 @@ fn it_can_find_a_webdriver_on_path() {
 
 #[test]
 fn it_requires_node_or_a_browser() {
-    let fixture = fixture("tests/fixtures/wbg-test-node");
+    let fixture = fixture::wbg_test_node();
     fixture.install_local_wasm_bindgen();
 
     let cmd = Command::Test(test::TestOptions {
@@ -146,7 +146,7 @@ fn it_requires_node_or_a_browser() {
 
 #[test]
 fn the_headless_flag_requires_a_browser() {
-    let fixture = fixture("tests/fixtures/wbg-test-node");
+    let fixture = fixture::wbg_test_node();
     fixture.install_local_wasm_bindgen();
 
     let cmd = Command::Test(test::TestOptions {
