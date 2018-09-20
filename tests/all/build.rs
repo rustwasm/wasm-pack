@@ -28,10 +28,10 @@ fn build_in_heisen_crate() {
         "build",
         &fixture.path.display().to_string(),
     ]).unwrap();
-    let logger = logger::new(&cli.cmd, cli.verbosity).unwrap();
+    let logger = logger::new(&cli.cmd, 4).unwrap();
     let result = command::run_wasm_pack(cli.cmd, &logger);
     assert!(
-        result.is_err(),
+        result.is_ok(),
         "i should be able to reproduce issue 303 in a test"
     );
 }
