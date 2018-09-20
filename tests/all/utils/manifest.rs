@@ -13,8 +13,18 @@ pub struct NpmPackage {
     pub license: String,
     pub repository: Repository,
     pub files: Vec<String>,
+    #[serde(default = "default_none")]
     pub main: String,
-    pub types: Option<String>,
+    #[serde(default = "default_none")]
+    pub module: String,
+    #[serde(default = "default_none")]
+    pub types: String,
+    #[serde(default = "default_none", rename = "sideEffects")]
+    pub side_effects: String,
+}
+
+fn default_none() -> String {
+    "".to_string()
 }
 
 #[derive(Deserialize)]

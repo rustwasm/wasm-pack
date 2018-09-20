@@ -68,12 +68,12 @@ fn it_creates_a_package_json_default_path() {
         pkg.repository.url,
         "https://github.com/ashleygwilliams/wasm-pack.git"
     );
-    assert_eq!(pkg.main, "wasm_pack.js");
-    let types = pkg.types.unwrap_or_default();
-    assert_eq!(types, "wasm_pack.d.ts");
+    assert_eq!(pkg.module, "wasm_pack.js");
+    assert_eq!(pkg.types, "wasm_pack.d.ts");
+    assert_eq!(pkg.side_effects, "false");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
-    let expected_files: HashSet<String> = ["wasm_pack_bg.wasm", "wasm_pack.d.ts"]
+    let expected_files: HashSet<String> = ["wasm_pack_bg.wasm", "wasm_pack.d.ts", "wasm_pack.js"]
         .iter()
         .map(|&s| String::from(s))
         .collect();
@@ -92,10 +92,14 @@ fn it_creates_a_package_json_provided_path() {
     assert!(utils::manifest::read_package_json(&fixture.path, &out_dir).is_ok());
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
-    assert_eq!(pkg.main, "js_hello_world.js");
+    assert_eq!(pkg.module, "js_hello_world.js");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
-    let expected_files: HashSet<String> = ["js_hello_world_bg.wasm", "js_hello_world.d.ts"]
+    let expected_files: HashSet<String> = [
+        "js_hello_world_bg.wasm",
+        "js_hello_world.d.ts",
+        "js_hello_world.js",
+    ]
         .iter()
         .map(|&s| String::from(s))
         .collect();
@@ -123,10 +127,14 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     assert!(utils::manifest::read_package_json(&fixture.path, &out_dir).is_ok());
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     assert_eq!(pkg.name, "@test/scopes-hello-world");
-    assert_eq!(pkg.main, "scopes_hello_world.js");
+    assert_eq!(pkg.module, "scopes_hello_world.js");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
-    let expected_files: HashSet<String> = ["scopes_hello_world_bg.wasm", "scopes_hello_world.d.ts"]
+    let expected_files: HashSet<String> = [
+        "scopes_hello_world_bg.wasm",
+        "scopes_hello_world.d.ts",
+        "scopes_hello_world.js",
+    ]
         .iter()
         .map(|&s| String::from(s))
         .collect();
@@ -154,8 +162,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
         "https://github.com/ashleygwilliams/wasm-pack.git"
     );
     assert_eq!(pkg.main, "wasm_pack.js");
-    let types = pkg.types.unwrap_or_default();
-    assert_eq!(types, "wasm_pack.d.ts");
+    assert_eq!(pkg.types, "wasm_pack.d.ts");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> =
@@ -177,19 +184,6 @@ fn it_creates_a_pkg_json_in_out_dir() {
     let package_json_path = &fixture.path.join(&out_dir).join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::manifest::read_package_json(&fixture.path, &out_dir).is_ok());
-
-    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
-    assert_eq!(pkg.name, "js-hello-world");
-    assert_eq!(pkg.main, "js_hello_world.js");
-
-    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
-
-    let expected_files: HashSet<String> = ["js_hello_world_bg.wasm", "js_hello_world.d.ts"]
-        .iter()
-        .map(|&s| String::from(s))
-        .collect();
-
-    assert_eq!(actual_files, expected_files);
 }
 
 #[test]
@@ -209,10 +203,10 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
         pkg.repository.url,
         "https://github.com/ashleygwilliams/wasm-pack.git"
     );
-    assert_eq!(pkg.main, "wasm_pack.js");
+    assert_eq!(pkg.module, "wasm_pack.js");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
-    let expected_files: HashSet<String> = ["wasm_pack_bg.wasm"]
+    let expected_files: HashSet<String> = ["wasm_pack_bg.wasm", "wasm_pack.js"]
         .iter()
         .map(|&s| String::from(s))
         .collect();
