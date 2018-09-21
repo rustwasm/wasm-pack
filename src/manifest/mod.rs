@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-use self::npm::{repository::Repository, CommonJSPackage, ESModulesPackage, NpmPackage};
+use self::npm::{repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage};
 use console::style;
 use emoji;
 use error::Error;
@@ -193,6 +193,42 @@ impl CargoManifest {
             side_effects: "false".to_string(),
         })
     }
+
+    fn into_nomodules(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+        let filename = self.package.name.replace("-", "_");
+        let wasm_file = format!("{}_bg.wasm", filename);
+        let js_file = format!("{}.js", filename);
+        let mut files = vec![wasm_file, js_file.clone()];
+
+        let dts_file = if disable_dts == false {
+            let file = format!("{}.d.ts", filename);
+            files.push(file.to_string());
+            Some(file)
+        } else {
+            None
+        };
+
+        if let Some(s) = scope {
+            self.package.name = format!("@{}/{}", s, self.package.name);
+        }
+
+        &self.package.check_optional_fields();
+
+        NpmPackage::NoModulesPackage(NoModulesPackage {
+            name: self.package.name,
+            collaborators: self.package.authors,
+            description: self.package.description,
+            version: self.package.version,
+            license: self.package.license,
+            repository: self.package.repository.map(|repo_url| Repository {
+                ty: "git".to_string(),
+                url: repo_url,
+            }),
+            files: files,
+            browser: js_file,
+            types: dts_file,
+        })
+    }
 }
 
 /// Generate a package.json file inside in `./pkg`.
@@ -212,6 +248,8 @@ pub fn write_package_json(
     let crate_data = read_cargo_toml(path)?;
     let npm_data = if target == "nodejs" {
         crate_data.into_commonjs(scope, disable_dts)
+    } else if target == "no-modules" {
+        crate_data.into_nomodules(scope, disable_dts)
     } else {
         crate_data.into_esmodules(scope, disable_dts)
     };
