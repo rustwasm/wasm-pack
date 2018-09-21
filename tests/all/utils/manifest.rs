@@ -18,6 +18,8 @@ pub struct NpmPackage {
     #[serde(default = "default_none")]
     pub module: String,
     #[serde(default = "default_none")]
+    pub browser: String,
+    #[serde(default = "default_none")]
     pub types: String,
     #[serde(default = "default_none", rename = "sideEffects")]
     pub side_effects: String,

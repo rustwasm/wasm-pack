@@ -136,6 +136,7 @@ pub fn wasm_bindgen_build(
         };
         let target_arg = match target {
             "nodejs" => "--nodejs",
+            "no-modules" => "--no-modules",
             _ => "--browser",
         };
         let bindgen_path = Path::new(&wasm_bindgen_path);

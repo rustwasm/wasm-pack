@@ -180,6 +180,41 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
 }
 
 #[test]
+fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
+    let fixture = fixture::js_hello_world();
+    let out_dir = fixture.path.join("pkg");
+    let step = wasm_pack::progressbar::Step::new(1);
+    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    assert!(
+        manifest::write_package_json(&fixture.path, &out_dir, &None, false, "no-modules", &step)
+            .is_ok()
+    );
+    let package_json_path = &out_dir.join("package.json");
+    assert!(fs::metadata(package_json_path).is_ok());
+    utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(pkg.name, "js-hello-world");
+    assert_eq!(pkg.repository.ty, "git");
+    assert_eq!(
+        pkg.repository.url,
+        "https://github.com/rustwasm/wasm-pack.git"
+    );
+    assert_eq!(pkg.browser, "js_hello_world.js");
+    assert_eq!(pkg.types, "js_hello_world.d.ts");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> = [
+        "js_hello_world_bg.wasm",
+        "js_hello_world.js",
+        "js_hello_world.d.ts",
+    ]
+        .iter()
+        .map(|&s| String::from(s))
+        .collect();
+    assert_eq!(actual_files, expected_files);
+}
+
+#[test]
 fn it_creates_a_pkg_json_in_out_dir() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("./custom/out");
