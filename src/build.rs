@@ -52,7 +52,10 @@ pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Err
     PBAR.step(step, &msg);
     let output = {
         let mut cmd = Command::new("cargo");
-        cmd.current_dir(path).arg("+nightly").arg("build");
+        cmd.current_dir(path)
+            .arg("+nightly")
+            .arg("build")
+            .arg("--lib");
         if !debug {
             cmd.arg("--release");
         }
