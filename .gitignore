@@ -4,3 +4,4 @@ tests/.crates.toml
 tests/bin
 wasm-pack.log
 /build-installer
+.idea/
