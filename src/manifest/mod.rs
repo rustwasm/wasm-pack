@@ -7,7 +7,9 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::path::Path;
 
-use self::npm::{repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage};
+use self::npm::{
+    repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
+};
 use console::style;
 use emoji;
 use error::Error;
