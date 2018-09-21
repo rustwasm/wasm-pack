@@ -11,7 +11,7 @@
 - [Commands](./commands/index.md)
   - [`init` (DEPRECATED)](./commands/init.md)
   - [`build`](./commands/build.md)
-  - [`pack` and `publish`](./command/pack-and-publish.md)
+  - [`pack` and `publish`](./commands/pack-and-publish.md)
 - [Tutorial](./tutorial/index.md)
   - [Writing a Rust-WebAssembly Library](./tutorial/writing-a-rust-webassembly-library.md)
   - [Packaging and Publishing](./tutorial/packaging-and-publishing.md)
