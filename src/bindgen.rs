@@ -140,14 +140,19 @@ pub fn wasm_bindgen_build(
             _ => "--browser",
         };
         let bindgen_path = Path::new(&wasm_bindgen_path);
-        let output = Command::new(bindgen_path)
-            .current_dir(path)
+        let mut cmd = Command::new(bindgen_path);
+        cmd.current_dir(path)
             .arg(&wasm_path)
             .arg("--out-dir")
             .arg(out_dir)
             .arg(dts_arg)
-            .arg(target_arg)
-            .output()?;
+            .arg(target_arg);
+
+        if debug {
+            cmd.arg("--debug");
+        }
+
+        let output = cmd.output()?;
         if !output.status.success() {
             let s = String::from_utf8_lossy(&output.stderr);
             Error::cli("wasm-bindgen failed to execute properly", s)
