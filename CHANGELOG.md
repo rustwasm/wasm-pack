@@ -19,7 +19,7 @@
 
     Read the [Passing arbitrary data to JS docs] to learn more!
 
-    [Passing arbitrary data to JS docs]: https://github.com/rustwasm/wasm-bindgen/blob/master/guide/src/passing-data.md
+    [Passing arbitrary data to JS docs]: https://github.com/rustwasm/wasm-bindgen/blob/master/guide/src/reference/arbitrary-data-with-serde.md
     [turboladen]: https://github.com/turboladen
     [issue/221]: https://github.com/rustwasm/wasm-pack/issues/221
     [pull/224]: https://github.com/rustwasm/wasm-pack/pull/224
