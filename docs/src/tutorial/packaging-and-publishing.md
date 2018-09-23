@@ -4,7 +4,7 @@ We've made our code so now we need to package it all up. In your project directo
 command:
 
 ```bash
-$ wasm-pack init --scope MYSCOPE
+$ wasm-pack build --scope MYSCOPE
 ```
 
 where `MYSCOPE` is your npm username. Normally you could just type `wasm-pack init` but since
@@ -21,7 +21,7 @@ First off you'll need to login to npm with the account you made earlier if you d
 one:
 
 ```bash
-$ npm login
+$ wasm-pack login
 ```
 
 Next you'll need to go into the `pkg` directory and actually upload the package:
