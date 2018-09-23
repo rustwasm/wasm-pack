@@ -172,13 +172,18 @@ fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str, log: &L
                 .split_whitespace()
                 .nth(1)
                 .map(|v| {
+                    use semver::{Version, VersionReq};
+
                     info!(
                         log,
-                        "Checking installed `wasm-bindgen` version == expected version: {} == {}",
+                        "Checking installed `wasm-bindgen` version {} meets contraint {}",
                         v,
                         dep_version
                     );
-                    v == dep_version
+
+                    let installed = Version::parse(v).unwrap();
+                    let constraint = VersionReq::parse(dep_version).unwrap();
+                    constraint.matches(&installed)
                 }).unwrap_or(false)
         }).unwrap_or(false)
 }
