@@ -18,7 +18,7 @@ pub fn check_rustc_version(step: &Step) -> Result<String, Error> {
             if mv < 30 {
               return Err(Error::RustcVersion {
                 message: format!(
-                  "Your version of Rust, '{}', is not supported. Please install Rust version 1.30.0 or higher.",
+                  "Your version of Rust, '1.{}', is not supported. Please install Rust version 1.30.0 or higher.",
                   mv.to_string()
                 ),
                 local_minor_version: mv.to_string(),
