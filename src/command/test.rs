@@ -255,7 +255,7 @@ impl Test {
                  wasm-bindgen-test = \"0.2\"",
                 style("wasm-bindgen").bold().dim(),
             );
-            return Err(Error::CrateConfig { message })
+            return Err(Error::CrateConfig { message });
         }
 
         let install_permitted = match self.mode {
