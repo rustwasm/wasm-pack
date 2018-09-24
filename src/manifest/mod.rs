@@ -10,7 +10,6 @@ use std::path::Path;
 use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
-use console::style;
 use emoji;
 use error::Error;
 use progressbar::Step;
