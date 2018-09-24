@@ -11,7 +11,7 @@ use PBAR;
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
 pub fn check_rustc_version(step: &Step) -> Result<String, Error> {
-    let msg = format!("{}Checking `rustc` version...", emoji::TARGET);
+    let msg = format!("{}Checking `rustc` version...", emoji::CRAB);
     PBAR.step(step, &msg);
     let local_minor_version = rustc_minor_version();
     match local_minor_version {
@@ -44,7 +44,7 @@ fn rustc_minor_version() -> Option<u32> {
             }
         };
     }
-    let rustc = otry!(env::var_os("RUSTC"));
+    let rustc = otry!(env::var_os("RUSTC").unwrap_or(|| "rustc".into())); // updated because we are not in a build script
     let output = otry!(Command::new(rustc).arg("--version").output().ok());
     let version = otry!(str::from_utf8(&output.stdout).ok());
     let mut pieces = version.split('.');
