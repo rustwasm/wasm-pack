@@ -24,14 +24,15 @@ visiting that repo!
 
 ## 🔮 Prerequisities
 
-- [Development Environment](https://rustwasm.github.io/wasm-pack/prerequisites/index.html)
-- [Installation and Getting Started](https://rustwasm.github.io/wasm-pack/getting-started/index.html)
+- [Development Environment](https://rustwasm.github.io/wasm-pack/book/prerequisites/index.html)
+- [Installation](https://rustwasm.github.io/wasm-pack/installer)
+- [Project Setup](https://rustwasm.github.io/wasm-pack/book/project-setup/index.html)
 
 ## 🎙️ Commands
 
-- [`init` (⚠️ DEPRECATED)](https://rustwasm.github.io/wasm-pack/commands/build.html): This command has been deprecated since release `0.5.0`, in favor of `build`. `0.4.2` and previous use this command.
-- [`build`](https://rustwasm.github.io/wasm-pack/commands/build.html): Generate an npm wasm pkg from a rustwasm crate
-- [`pack` and `publish`](https://rustwasm.github.io/wasm-pack/command/pack-and-publish.html): Create a tarball of your rustwasm pkg and/or publish to a registry
+- [`init` (⚠️ DEPRECATED)](https://rustwasm.github.io/wasm-pack/book/commands/init.html): This command has been deprecated since release `0.5.0`, in favor of `build`. `0.4.2` and previous use this command.
+- [`build`](https://rustwasm.github.io/wasm-pack/book/commands/build.html): Generate an npm wasm pkg from a rustwasm crate
+- [`pack` and `publish`](https://rustwasm.github.io/wasm-pack/book/commands/pack-and-publish.html): Create a tarball of your rustwasm pkg and/or publish to a registry
 
 ## 📝 Logging
 
@@ -49,7 +50,7 @@ customize the log verbosity using the verbosity flag.
 Read our [guide] on getting up and running for developing `wasm-pack`, and
 check out our [contribution policy].
 
-[guide]: https://rustwasm.github.io/wasm-pack/contributing.html
+[guide]: https://rustwasm.github.io/wasm-pack/book/contributing.html
 [contribution policy]: CONTRIBUTING.md
 
 ## ⚡ Quickstart Guide
