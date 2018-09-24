@@ -29,6 +29,7 @@ visiting that repo!
 
 ## 🎙️ Commands
 
+- [`init` (⚠️ DEPRECATED)](https://rustwasm.github.io/wasm-pack/commands/build.html): This command has been deprecated since release `0.5.0`, in favor of `build`. `0.4.2` and previous use this command.
 - [`build`](https://rustwasm.github.io/wasm-pack/commands/build.html): Generate an npm wasm pkg from a rustwasm crate
 - [`pack` and `publish`](https://rustwasm.github.io/wasm-pack/command/pack-and-publish.html): Create a tarball of your rustwasm pkg and/or publish to a registry
 
