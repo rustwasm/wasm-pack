@@ -25,6 +25,8 @@ fn it_gets_the_crate_name_provided_path() {
 #[test]
 fn it_checks_has_cdylib_default_path() {
     let fixture = fixture::no_cdylib();
+    // Ensure that there is a `Cargo.lock`.
+    fixture.cargo_check();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&fixture.path, &step).is_err());
 }
@@ -32,6 +34,8 @@ fn it_checks_has_cdylib_default_path() {
 #[test]
 fn it_checks_has_cdylib_provided_path() {
     let fixture = fixture::js_hello_world();
+    // Ensure that there is a `Cargo.lock`.
+    fixture.cargo_check();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&fixture.path, &step).is_ok());
 }
@@ -46,6 +50,8 @@ fn it_checks_has_cdylib_wrong_crate_type() {
 #[test]
 fn it_recognizes_a_map_during_depcheck() {
     let fixture = fixture::serde_feature();
+    // Ensure that there is a `Cargo.lock`.
+    fixture.cargo_check();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&fixture.path, &step).is_ok());
 }
@@ -264,38 +270,8 @@ fn it_errors_when_wasm_bindgen_is_not_declared() {
 #[test]
 fn it_does_not_error_when_wasm_bindgen_is_declared() {
     let fixture = fixture::js_hello_world();
+    // Ensure that there is a `Cargo.lock`.
+    fixture.cargo_check();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&fixture.path, &step).is_ok());
-}
-
-#[test]
-fn it_gets_wasm_bindgen_version() {
-    let fixture = fixture::js_hello_world();
-    assert_eq!(
-        manifest::get_wasm_bindgen_version(&fixture.path).unwrap(),
-        "0.2.21"
-    );
-}
-
-#[test]
-fn it_gets_wasm_bindgen_version_with_underscores() {
-    let fixture = fixture::with_underscores();
-    assert_eq!(
-        manifest::get_wasm_bindgen_version(&fixture.path).unwrap(),
-        "0.2"
-    );
-}
-
-#[test]
-fn the_wasm_bindgen_test_version_should_match_the_wasm_bindgen_version() {
-    let fixture = fixture::wbg_test_bad_versions();
-    let step = wasm_pack::progressbar::Step::new(1);
-    let result = manifest::check_crate_config(&fixture.path, &step);
-    assert!(result.is_err());
-    let msg = result.unwrap_err().to_string();
-    println!("{}", msg);
-    assert!(msg.contains(&format!(
-        "The `wasm-bindgen-test` dependency version (=0.2.19) must match \
-         the `wasm-bindgen` dependency version (=0.2.21), but it does not."
-    )));
 }

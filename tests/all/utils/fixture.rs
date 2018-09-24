@@ -3,11 +3,12 @@ use std::fs;
 use std::io;
 use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
+use std::process::{Command, Stdio};
 use std::sync::{Once, ONCE_INIT};
 use std::thread;
 use wasm_pack;
 
-use tempfile;
+use tempfile::TempDir;
 
 fn hard_link_or_copy<P1: AsRef<Path>, P2: AsRef<Path>>(from: P1, to: P2) -> io::Result<()> {
     let from = from.as_ref();
@@ -20,7 +21,7 @@ pub struct Fixture {
     // NB: we wrap the fixture's tempdir in a `ManuallyDrop` so that if a test
     // fails, its directory isn't deleted, and we have a chance to manually
     // inspect its state and figure out what is going on.
-    pub dir: ManuallyDrop<tempfile::TempDir>,
+    pub dir: ManuallyDrop<TempDir>,
     pub path: PathBuf,
 }
 
@@ -30,17 +31,20 @@ impl Fixture {
         // Make sure that all fixtures end up sharing a target dir, and we don't
         // recompile wasm-bindgen and friends many times over.
         static SET_TARGET_DIR: Once = ONCE_INIT;
+        let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
         SET_TARGET_DIR.call_once(|| {
-            env::set_var(
-                "CARGO_TARGET_DIR",
-                Path::new(env!("CARGO_MANIFEST_DIR")).join("target"),
-            );
+            env::set_var("CARGO_TARGET_DIR", &target_dir);
         });
 
-        let dir =
-            ManuallyDrop::new(tempfile::tempdir().expect("should create temporary directory OK"));
+        let root = target_dir.join("t");
+        fs::create_dir_all(&root).unwrap();
+        let dir = TempDir::new_in(&root).unwrap();
         let path = dir.path().join("wasm-pack");
-        Fixture { dir, path }
+        eprintln!("Created fixture at {}", path.display());
+        Fixture {
+            dir: ManuallyDrop::new(dir),
+            path,
+        }
     }
 
     /// Create a file within this fixture.
@@ -92,10 +96,10 @@ impl Fixture {
                     crate-type = ["cdylib"]
 
                     [dependencies]
-                    wasm-bindgen = "0.2.21"
+                    wasm-bindgen = "=0.2.21"
 
                     [dev-dependencies]
-                    wasm-bindgen-test = "0.2.21"
+                    wasm-bindgen-test = "=0.2.21"
                 "#,
                 name
             ),
@@ -236,6 +240,24 @@ impl Fixture {
 
         self
     }
+
+    /// The `step_install_wasm_bindgen` and `step_run_wasm_bindgen` steps only
+    /// occur after the `step_build_wasm` step. In order to read the lockfile
+    /// in the test fixture's temporary directory, we should first build the
+    /// crate, targeting `wasm32-unknown-unknown`.
+    pub fn cargo_check(&self) -> &Self {
+        Command::new("cargo")
+            .current_dir(&self.path)
+            .arg("+nightly")
+            .arg("check")
+            .arg("--target")
+            .arg("wasm32-unknown-unknown")
+            .stdout(Stdio::null())
+            .stderr(Stdio::null())
+            .status()
+            .unwrap();
+        self
+    }
 }
 
 impl Drop for Fixture {
@@ -292,10 +314,10 @@ pub fn no_cdylib() -> Fixture {
             # crate-type = ["cdylib"]
 
             [dependencies]
-            wasm-bindgen = "0.2.21"
+            wasm-bindgen = "=0.2.21"
 
             [dev-dependencies]
-            wasm-bindgen-test = "0.2.21"
+            wasm-bindgen-test = "=0.2.21"
         "#,
     );
     fixture
@@ -328,40 +350,50 @@ pub fn serde_feature() -> Fixture {
     fixture
 }
 
-pub fn wbg_test_bad_versions() -> Fixture {
+pub fn wbg_test_diff_versions() -> Fixture {
     let fixture = Fixture::new();
     fixture
         .readme()
-        .hello_world_src_lib()
         .file(
             "Cargo.toml",
             r#"
                 [package]
-                name = "wbg-test-node"
+                name = "wbg-test-diff-versions"
                 version = "0.1.0"
                 authors = ["The wasm-pack developers"]
 
                 [lib]
-                crate-type = ["cdylib"]
+                crate-type = ["cdylib", "rlib"]
 
                 [dependencies]
                 # We depend on wasm-bindgen 0.2.21
                 wasm-bindgen = "=0.2.21"
 
                 [dev-dependencies]
-                # And we depend on wasm-bindgen-test 0.2.19. But this should match the
-                # wasm-bindgen dependency!
-                wasm-bindgen-test = "=0.2.19"
+                # And we depend on wasm-bindgen-test 0.2.19. This should still
+                # work, and we should end up with `wasm-bindgen` at 0.2.21 and
+                # wasm-bindgen-test at 0.2.19, and everything should still work.
+                wasm-bindgen-test = "0.2.19"
+            "#,
+        ).file(
+            "src/lib.rs",
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                #[wasm_bindgen]
+                pub fn one() -> u32 { 1 }
             "#,
         ).file(
             "tests/node.rs",
             r#"
+                extern crate wbg_test_diff_versions;
                 extern crate wasm_bindgen_test;
                 use wasm_bindgen_test::*;
 
                 #[wasm_bindgen_test]
                 fn pass() {
-                    assert_eq!(1, 1);
+                    assert_eq!(wbg_test_diff_versions::one(), 1);
                 }
             "#,
         );
@@ -430,27 +462,5 @@ pub fn wbg_test_node() -> Fixture {
                 }
             "#,
         );
-    fixture
-}
-
-pub fn with_underscores() -> Fixture {
-    let fixture = Fixture::new();
-    fixture.readme().hello_world_src_lib().file(
-        "Cargo.toml",
-        r#"
-            [package]
-            name = "with-underscores"
-            version = "0.1.0"
-            authors = ["The wasm-pack developers"]
-
-            [lib]
-            crate-type = ["cdylib"]
-
-            [dependencies]
-            # Cargo will normalize "wasm-bindgen" and "wasm_bindgen" and that shouldn't
-            # break wasm-pack.
-            wasm_bindgen = "0.2"
-        "#,
-    );
     fixture
 }
