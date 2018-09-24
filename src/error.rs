@@ -29,6 +29,22 @@ pub enum Error {
     /// An error handling zip archives.
     Zip(#[cause] zip::result::ZipError),
 
+    #[fail(display = "{}", _0)]
+    /// An error in parsing your rustc version.
+    RustcMissing {
+        /// Error message
+        message: String,
+    },
+
+    #[fail(display = "{}", _0)]
+    /// An error from having an unsupported rustc version.
+    RustcVersion {
+        /// Error message
+        message: String,
+        /// The minor version of the local rust
+        local_minor_version: String,
+    },
+
     /// An error invoking another CLI tool.
     #[fail(display = "{}. stderr:\n\n{}", message, stderr)]
     Cli {
@@ -112,6 +128,14 @@ impl Error {
         }
     }
 
+    /// Construct a rustc version error.
+    pub fn rustc_version_error(message: &str, local_version: &str) -> Self {
+        Error::RustcVersion {
+            message: message.to_string(),
+            local_minor_version: local_version.to_string(),
+        }
+    }
+
     /// Get a string description of this error's type.
     pub fn error_type(&self) -> String {
         match self {
@@ -119,6 +143,13 @@ impl Error {
             Error::SerdeJson(_) => "There was an JSON error. Details:\n\n",
             Error::SerdeToml(_) => "There was an TOML error. Details:\n\n",
             Error::Zip(_) => "There was an error handling zip files. Details:\n\n",
+            Error::RustcMissing {
+              message: _,
+            } =>  "We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher.",
+            Error::RustcVersion {
+              message: _,
+              local_minor_version: _,
+            } => "Your rustc version is not supported. Please install version 1.30.0 or higher.",
             Error::Cli {
                 message: _,
                 stderr: _,

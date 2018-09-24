@@ -5,20 +5,62 @@ use error::Error;
 use progressbar::Step;
 use std::path::Path;
 use std::process::Command;
+use std::str;
 use PBAR;
 
+/// Ensure that `rustc` is present and that it is >= 1.30.0
+pub fn check_rustc_version(step: &Step) -> Result<String, Error> {
+    let msg = format!("{}Checking `rustc` version...", emoji::CRAB);
+    PBAR.step(step, &msg);
+    let local_minor_version = rustc_minor_version();
+    match local_minor_version {
+        Some(mv) => {
+            if mv < 30 {
+              return Err(Error::RustcVersion {
+                message: format!(
+                  "Your version of Rust, '1.{}', is not supported. Please install Rust version 1.30.0 or higher.",
+                  mv.to_string()
+                ),
+                local_minor_version: mv.to_string(),
+              })
+            } else {
+              Ok(mv.to_string())
+            }
+      },
+      None => Err(Error::RustcMissing {
+        message: "We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher.".to_string(),
+      }),
+    }
+}
+
+// from https://github.com/alexcrichton/proc-macro2/blob/79e40a113b51836f33214c6d00228934b41bd4ad/build.rs#L44-L61
+fn rustc_minor_version() -> Option<u32> {
+    macro_rules! otry {
+        ($e:expr) => {
+            match $e {
+                Some(e) => e,
+                None => return None,
+            }
+        };
+    }
+    let output = otry!(Command::new("rustc").arg("--version").output().ok());
+    let version = otry!(str::from_utf8(&output.stdout).ok());
+    let mut pieces = version.split('.');
+    if pieces.next() != Some("rustc 1") {
+        return None;
+    }
+    otry!(pieces.next()).parse().ok()
+}
+
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
-/// the `nightly` toolchain.
+/// current toolchain
 pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     let msg = format!("{}Adding WASM target...", emoji::TARGET);
     PBAR.step(step, &msg);
-    ensure_nightly()?;
     let output = Command::new("rustup")
         .arg("target")
         .arg("add")
         .arg("wasm32-unknown-unknown")
-        .arg("--toolchain")
-        .arg("nightly")
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
@@ -28,34 +70,13 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     }
 }
 
-/// Ensure that the `nightly` toolchain is installed in `rustup`.
-fn ensure_nightly() -> Result<(), Error> {
-    let nightly_check = Command::new("rustc").arg("+nightly").arg("-V").output()?;
-    if !nightly_check.status.success() {
-        let res = Command::new("rustup")
-            .arg("toolchain")
-            .arg("install")
-            .arg("nightly")
-            .output()?;
-        if !res.status.success() {
-            let s = String::from_utf8_lossy(&res.stderr);
-            return Error::cli("Adding the nightly toolchain failed", s);
-        }
-    }
-    Ok(())
-}
-
-/// Run `cargo build` with the `nightly` toolchain and targetting
-/// `wasm32-unknown-unknown`.
+/// Run `cargo build` targetting `wasm32-unknown-unknown`.
 pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let output = {
         let mut cmd = Command::new("cargo");
-        cmd.current_dir(path)
-            .arg("+nightly")
-            .arg("build")
-            .arg("--lib");
+        cmd.current_dir(path).arg("build").arg("--lib");
         if !debug {
             cmd.arg("--release");
         }
@@ -71,15 +92,11 @@ pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Err
     }
 }
 
-/// Run `cargo build --tests` with the `nightly` toolchain and targetting
-/// `wasm32-unknown-unknown`.
+/// Run `cargo build --tests` targetting `wasm32-unknown-unknown`.
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
     let output = {
         let mut cmd = Command::new("cargo");
-        cmd.current_dir(path)
-            .arg("+nightly")
-            .arg("build")
-            .arg("--tests");
+        cmd.current_dir(path).arg("build").arg("--tests");
         if !debug {
             cmd.arg("--release");
         }
