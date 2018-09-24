@@ -185,7 +185,20 @@ impl Test {
         }
         match self.mode {
             BuildMode::Normal => steps![
+                step_check_rustc_version,
                 step_check_crate_config,
+                step_add_wasm_target,
+                step_build_tests,
+                step_install_wasm_bindgen,
+                step_test_node if self.node,
+                step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
+                step_test_chrome if self.chrome,
+                step_get_geckodriver if self.firefox && self.geckodriver.is_none(),
+                step_test_firefox if self.firefox,
+                step_get_safaridriver if self.safari && self.safaridriver.is_none(),
+                step_test_safari if self.safari,
+            ],
+            BuildMode::Force => steps![
                 step_add_wasm_target,
                 step_build_tests,
                 step_install_wasm_bindgen,
@@ -210,6 +223,13 @@ impl Test {
                 step_test_safari if self.safari,
             ],
         }
+    }
+
+    fn step_check_rustc_version(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+        info!(log, "Checking rustc version...");
+        let _ = build::check_rustc_version(step)?;
+        info!(log, "Rustc version is correct.");
+        Ok(())
     }
 
     fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
@@ -260,6 +280,10 @@ impl Test {
 
         let install_permitted = match self.mode {
             BuildMode::Normal => {
+                info!(&log, "Ensuring wasm-bindgen-cli is installed...");
+                true
+            }
+            BuildMode::Force => {
                 info!(&log, "Ensuring wasm-bindgen-cli is installed...");
                 true
             }
