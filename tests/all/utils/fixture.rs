@@ -8,7 +8,7 @@ use std::sync::{Once, ONCE_INIT};
 use std::thread;
 use wasm_pack;
 
-use tempfile;
+use tempfile::TempDir;
 
 fn hard_link_or_copy<P1: AsRef<Path>, P2: AsRef<Path>>(from: P1, to: P2) -> io::Result<()> {
     let from = from.as_ref();
@@ -21,7 +21,7 @@ pub struct Fixture {
     // NB: we wrap the fixture's tempdir in a `ManuallyDrop` so that if a test
     // fails, its directory isn't deleted, and we have a chance to manually
     // inspect its state and figure out what is going on.
-    pub dir: ManuallyDrop<tempfile::TempDir>,
+    pub dir: ManuallyDrop<TempDir>,
     pub path: PathBuf,
 }
 
@@ -31,18 +31,20 @@ impl Fixture {
         // Make sure that all fixtures end up sharing a target dir, and we don't
         // recompile wasm-bindgen and friends many times over.
         static SET_TARGET_DIR: Once = ONCE_INIT;
+        let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
         SET_TARGET_DIR.call_once(|| {
-            env::set_var(
-                "CARGO_TARGET_DIR",
-                Path::new(env!("CARGO_MANIFEST_DIR")).join("target"),
-            );
+            env::set_var("CARGO_TARGET_DIR", &target_dir);
         });
 
-        let dir =
-            ManuallyDrop::new(tempfile::tempdir().expect("should create temporary directory OK"));
+        let root = target_dir.join("t");
+        fs::create_dir_all(&root).unwrap();
+        let dir = TempDir::new_in(&root).unwrap();
         let path = dir.path().join("wasm-pack");
         eprintln!("Created fixture at {}", path.display());
-        Fixture { dir, path }
+        Fixture {
+            dir: ManuallyDrop::new(dir),
+            path,
+        }
     }
 
     /// Create a file within this fixture.

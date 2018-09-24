@@ -4,10 +4,11 @@ use super::build::BuildMode;
 use bindgen;
 use build;
 use command::utils::set_crate_path;
+use console::style;
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
-use lockfile;
+use lockfile::Lockfile;
 use manifest;
 use progressbar::Step;
 use slog::Logger;
@@ -239,14 +240,23 @@ impl Test {
 
     fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
-        let bindgen_version = lockfile::get_wasm_bindgen_version(&self.crate_path)?;
+        let lockfile = Lockfile::new(&self.crate_path)?;
+        let bindgen_version = lockfile.require_wasm_bindgen()?;
 
         // Unlike `wasm-bindgen` and `wasm-bindgen-cli`, `wasm-bindgen-test`
         // will work with any semver compatible `wasm-bindgen-cli`, so just make
         // sure that it is depended upon, so we can run tests on
         // `wasm32-unkown-unknown`. Don't enforce that it is the same version as
         // `wasm-bindgen`.
-        let _bindgen_test_version = lockfile::get_wasm_bindgen_test_version(&self.crate_path)?;
+        if lockfile.wasm_bindgen_test_version().is_none() {
+            let message = format!(
+                "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
+                 [dev-dependencies]\n\
+                 wasm-bindgen-test = \"0.2\"",
+                style("wasm-bindgen").bold().dim(),
+            );
+            return Err(Error::CrateConfig { message })
+        }
 
         let install_permitted = match self.mode {
             BuildMode::Normal => {
