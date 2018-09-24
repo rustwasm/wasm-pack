@@ -62,6 +62,11 @@ cargo +nightly fmt
 
 [rustfmt]: https://github.com/rust-lang-nursery/rustfmt
 
+### IDE Configuration files
+Machine specific configuration files may be generaged by your IDE while working on the project. Please make sure to add these files to a global .gitignore so they are kept from accidentally being commited to the project and causing issues for other contributors.
+
+Some examples of these files are the `.idea` folder created by JetBrains products (WebStorm, IntelliJ, etc) as well as `.vscode` created by Visual Studio Code for workspace specific settings. 
+
 ## Conduct
 
 As mentioned in the readme file, this project is a part of the [`rust-wasm` working group],
