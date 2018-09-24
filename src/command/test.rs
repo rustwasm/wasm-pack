@@ -4,9 +4,11 @@ use super::build::BuildMode;
 use bindgen;
 use build;
 use command::utils::set_crate_path;
+use console::style;
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
+use lockfile::Lockfile;
 use manifest;
 use progressbar::Step;
 use slog::Logger;
@@ -238,12 +240,33 @@ impl Test {
 
     fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
-        let bindgen_version = manifest::get_wasm_bindgen_version(&self.crate_path)?;
-        info!(&log, "Installing wasm-bindgen-cli...");
+        let lockfile = Lockfile::new(&self.crate_path)?;
+        let bindgen_version = lockfile.require_wasm_bindgen()?;
+
+        // Unlike `wasm-bindgen` and `wasm-bindgen-cli`, `wasm-bindgen-test`
+        // will work with any semver compatible `wasm-bindgen-cli`, so just make
+        // sure that it is depended upon, so we can run tests on
+        // `wasm32-unkown-unknown`. Don't enforce that it is the same version as
+        // `wasm-bindgen`.
+        if lockfile.wasm_bindgen_test_version().is_none() {
+            let message = format!(
+                "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
+                 [dev-dependencies]\n\
+                 wasm-bindgen-test = \"0.2\"",
+                style("wasm-bindgen").bold().dim(),
+            );
+            return Err(Error::CrateConfig { message })
+        }
 
         let install_permitted = match self.mode {
-            BuildMode::Normal => true,
-            BuildMode::Noinstall => false,
+            BuildMode::Normal => {
+                info!(&log, "Ensuring wasm-bindgen-cli is installed...");
+                true
+            }
+            BuildMode::Noinstall => {
+                info!(&log, "Searching for existing wasm-bindgen-cli install...");
+                false
+            }
         };
 
         bindgen::install_wasm_bindgen(
@@ -257,7 +280,7 @@ impl Test {
         self.test_runner_path = Some(bindgen::wasm_bindgen_test_runner_path(log, &self.crate_path)
             .expect("if installing wasm-bindgen succeeded, then we should have wasm-bindgen-test-runner too"));
 
-        info!(&log, "Installing wasm-bindgen-cli was successful.");
+        info!(&log, "Getting wasm-bindgen-cli was successful.");
         Ok(())
     }
 

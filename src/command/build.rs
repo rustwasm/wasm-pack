@@ -6,6 +6,7 @@ use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use error::Error;
 use indicatif::HumanDuration;
+use lockfile::Lockfile;
 use manifest;
 use progressbar::Step;
 use readme;
@@ -239,7 +240,8 @@ impl Build {
 
     fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
-        let bindgen_version = manifest::get_wasm_bindgen_version(&self.crate_path)?;
+        let lockfile = Lockfile::new(&self.crate_path)?;
+        let bindgen_version = lockfile.require_wasm_bindgen()?;
         info!(&log, "Installing wasm-bindgen-cli...");
         let install_permitted = match self.mode {
             BuildMode::Normal => true,
