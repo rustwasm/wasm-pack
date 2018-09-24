@@ -67,6 +67,10 @@ Machine specific configuration files may be generaged by your IDE while working 
 
 Some examples of these files are the `.idea` folder created by JetBrains products (WebStorm, IntelliJ, etc) as well as `.vscode` created by Visual Studio Code for workspace specific settings. 
 
+For help setting up a global .gitignore check out this [GitHub article]!
+
+[GitHub article]: https://help.github.com/articles/ignoring-files/#create-a-global-gitignore
+
 ## Conduct
 
 As mentioned in the readme file, this project is a part of the [`rust-wasm` working group],
