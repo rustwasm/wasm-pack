@@ -94,10 +94,10 @@ impl Fixture {
                     crate-type = ["cdylib"]
 
                     [dependencies]
-                    wasm-bindgen = "0.2.21"
+                    wasm-bindgen = "=0.2.21"
 
                     [dev-dependencies]
-                    wasm-bindgen-test = "0.2.21"
+                    wasm-bindgen-test = "=0.2.21"
                 "#,
                 name
             ),
@@ -312,10 +312,10 @@ pub fn no_cdylib() -> Fixture {
             # crate-type = ["cdylib"]
 
             [dependencies]
-            wasm-bindgen = "0.2.21"
+            wasm-bindgen = "=0.2.21"
 
             [dev-dependencies]
-            wasm-bindgen-test = "0.2.21"
+            wasm-bindgen-test = "=0.2.21"
         "#,
     );
     fixture
