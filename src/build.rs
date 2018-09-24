@@ -55,17 +55,14 @@ fn rustc_minor_version() -> Option<u32> {
 }
 
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
-/// the `nightly` toolchain.
+/// current toolchain
 pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     let msg = format!("{}Adding WASM target...", emoji::TARGET);
     PBAR.step(step, &msg);
-    ensure_nightly()?;
     let output = Command::new("rustup")
         .arg("target")
         .arg("add")
         .arg("wasm32-unknown-unknown")
-        .arg("--toolchain")
-        .arg("nightly")
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
@@ -75,34 +72,13 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     }
 }
 
-/// Ensure that the `nightly` toolchain is installed in `rustup`.
-fn ensure_nightly() -> Result<(), Error> {
-    let nightly_check = Command::new("rustc").arg("+nightly").arg("-V").output()?;
-    if !nightly_check.status.success() {
-        let res = Command::new("rustup")
-            .arg("toolchain")
-            .arg("install")
-            .arg("nightly")
-            .output()?;
-        if !res.status.success() {
-            let s = String::from_utf8_lossy(&res.stderr);
-            return Error::cli("Adding the nightly toolchain failed", s);
-        }
-    }
-    Ok(())
-}
-
-/// Run `cargo build` with the `nightly` toolchain and targetting
-/// `wasm32-unknown-unknown`.
+/// Run `cargo build` targetting `wasm32-unknown-unknown`.
 pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let output = {
         let mut cmd = Command::new("cargo");
-        cmd.current_dir(path)
-            .arg("+nightly")
-            .arg("build")
-            .arg("--lib");
+        cmd.current_dir(path).arg("build").arg("--lib");
         if !debug {
             cmd.arg("--release");
         }
@@ -118,15 +94,11 @@ pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Err
     }
 }
 
-/// Run `cargo build --tests` with the `nightly` toolchain and targetting
-/// `wasm32-unknown-unknown`.
+/// Run `cargo build --tests` targetting `wasm32-unknown-unknown`.
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
     let output = {
         let mut cmd = Command::new("cargo");
-        cmd.current_dir(path)
-            .arg("+nightly")
-            .arg("build")
-            .arg("--tests");
+        cmd.current_dir(path).arg("build").arg("--tests");
         if !debug {
             cmd.arg("--release");
         }
