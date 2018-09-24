@@ -3,7 +3,6 @@
 use emoji;
 use error::Error;
 use progressbar::Step;
-use std::env;
 use std::path::Path;
 use std::process::Command;
 use std::str;
@@ -44,8 +43,7 @@ fn rustc_minor_version() -> Option<u32> {
             }
         };
     }
-    let rustc = otry!(env::var_os("RUSTC").unwrap_or(|| "rustc".into())); // updated because we are not in a build script
-    let output = otry!(Command::new(rustc).arg("--version").output().ok());
+    let output = otry!(Command::new("rustc").arg("--version").output().ok());
     let version = otry!(str::from_utf8(&output.stdout).ok());
     let mut pieces = version.split('.');
     if pieces.next() != Some("rustc 1") {
