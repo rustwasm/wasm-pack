@@ -30,14 +30,14 @@
 
       With this release, we will do the following:
 
-      - `--target broswer`: By default, we generate JS that is an ES6 module. We used to put
+      - `--target browser`: By default, we generate JS that is an ES6 module. We used to put
         this in the `main` field. Now we put it in the `module` field. We also add 
         `sideEffects: false` so that bundlers that want to tree shake can.
 
-      - `-- target nodejs`: This target doesn't change. We put generated JS that is a
+      - `--target nodejs`: This target doesn't change. We put generated JS that is a
         CommonJS module in the `main` key.
 
-      - `-- target no-modules`: This is a new target. For this target we generate bare JavaScript.
+      - `--target no-modules`: This is a new target. For this target we generate bare JavaScript.
         This code is put in a `browser` field.
 
       You can see the structs that represent each target's expected `package.json` [here](https://github.com/rustwasm/wasm-pack/tree/master/src/manifest/npm).
