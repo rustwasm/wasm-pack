@@ -1,20 +1,20 @@
 use std::fs;
 
 fn main() {
-    fs::create_dir_all("docs/book/installer").unwrap();
+    fs::create_dir_all("docs/installer").unwrap();
     fs::copy(
+        "docs/_installer/wasm-pack.js",
         "docs/installer/wasm-pack.js",
-        "docs/book/installer/wasm-pack.js",
     ).unwrap();
-    let index = fs::read_to_string("docs/installer/index.html").unwrap();
+    let index = fs::read_to_string("docs/_installer/index.html").unwrap();
     fs::write(
-        "docs/book/installer/index.html",
+        "docs/installer/index.html",
         fixup(&index),
     ).unwrap();
 
-    let init = fs::read_to_string("docs/installer/init.sh").unwrap();
+    let init = fs::read_to_string("docs/_installer/init.sh").unwrap();
     fs::write(
-        "docs/book/installer/init.sh",
+        "docs/installer/init.sh",
         fixup(&init),
     ).unwrap();
 }
