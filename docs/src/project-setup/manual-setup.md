@@ -40,7 +40,7 @@ this:
 
 ```toml
 [package]
-name = "hello-wasm
+name = "hello-wasm"
 version = "0.1.0"
 authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
 description = "babby's first wasm package"
