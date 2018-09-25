@@ -38,6 +38,8 @@ pub enum BuildMode {
     /// Don't install tools like `wasm-bindgen`, just use the global
     /// environment's existing versions to do builds.
     Noinstall,
+    /// Skip the rustc version check
+    Force,
 }
 
 impl Default for BuildMode {
@@ -52,6 +54,7 @@ impl FromStr for BuildMode {
         match s {
             "no-install" => Ok(BuildMode::Noinstall),
             "normal" => Ok(BuildMode::Normal),
+            "force" => Ok(BuildMode::Force),
             _ => Error::crate_config(&format!("Unknown build mode: {}", s)).map(|_| unreachable!()),
         }
     }
@@ -175,6 +178,13 @@ impl Build {
                 step_copy_readme,
                 step_run_wasm_bindgen
             ],
+            BuildMode::Force => steps![
+                step_build_wasm,
+                step_create_dir,
+                step_create_json,
+                step_copy_readme,
+                step_run_wasm_bindgen
+            ],
         }
     }
 
@@ -255,6 +265,7 @@ impl Build {
         info!(&log, "Installing wasm-bindgen-cli...");
         let install_permitted = match self.mode {
             BuildMode::Normal => true,
+            BuildMode::Force => true,
             BuildMode::Noinstall => false,
         };
         bindgen::install_wasm_bindgen(

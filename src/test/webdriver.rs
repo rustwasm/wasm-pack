@@ -19,6 +19,7 @@ pub fn get_or_install_chromedriver(
     match (mode, bin_path(log, crate_path, "chromedriver")) {
         (_, Some(path)) => Ok(path),
         (BuildMode::Normal, None) => install_chromedriver(crate_path),
+        (BuildMode::Force, None) => install_chromedriver(crate_path),
         (BuildMode::Noinstall, None) => Error::crate_config(
             "No crate-local `chromedriver` binary found, and could not find a global \
              `chromedriver` on the `$PATH`. Not installing `chromedriver` because of noinstall \
@@ -69,6 +70,7 @@ pub fn get_or_install_geckodriver(
     match (mode, bin_path(log, crate_path, "geckodriver")) {
         (_, Some(path)) => Ok(path),
         (BuildMode::Normal, None) => install_geckodriver(crate_path),
+        (BuildMode::Force, None) => install_geckodriver(crate_path),
         (BuildMode::Noinstall, None) => Error::crate_config(
             "No crate-local `geckodriver` binary found, and could not find a global `geckodriver` \
              on the `$PATH`. Not installing `geckodriver` because of noinstall mode.",
