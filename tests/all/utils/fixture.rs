@@ -6,9 +6,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::{Once, ONCE_INIT};
 use std::thread;
-use wasm_pack;
-
 use tempfile::TempDir;
+use wasm_pack;
 
 fn hard_link_or_copy<P1: AsRef<Path>, P2: AsRef<Path>>(from: P1, to: P2) -> io::Result<()> {
     let from = from.as_ref();
@@ -107,9 +106,9 @@ impl Fixture {
     }
 
     /// Add a `src/lib.rs` file that contains a "hello world" program.
-    pub fn hello_world_src_lib(&self) -> &Self {
+    pub fn hello_world_with_path(&self, path: impl AsRef<Path>) -> &Self {
         self.file(
-            "src/lib.rs",
+            path,
             r#"
                 extern crate wasm_bindgen;
                 use wasm_bindgen::prelude::*;
@@ -128,6 +127,10 @@ impl Fixture {
                 }
             "#,
         )
+    }
+
+    pub fn hello_world_src_lib(&self) -> &Self {
+        self.hello_world_with_path("src/lib.rs")
     }
 
     /// Install a local wasm-bindgen for this fixture.
@@ -468,5 +471,49 @@ pub fn wbg_test_node() -> Fixture {
                 }
             "#,
         );
+    fixture
+}
+
+pub fn nested_workspace() -> Fixture {
+    let fixture = Fixture::new();
+
+    // The upper crate
+    fixture
+        .readme()
+        .file(
+            "src/lib.rs",
+            r#"
+                compile_error!("Wrong crate");
+        "#,
+        ).file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "main-crate"
+                version = "0.1.0"
+                authors = ["The wasm-pack developers"]
+
+                [workspace]
+                members = [
+                    "sub-crate"
+                ]
+        "#,
+        );
+
+    fixture.hello_world_with_path("sub-crate/src/lib.rs").file(
+        "sub-crate/Cargo.toml",
+        r#"
+            [package]
+            name = "sub-crate"
+            version = "0.1.0"
+            authors = ["The wasm-pack developers"]
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+    "#,
+    );
     fixture
 }
