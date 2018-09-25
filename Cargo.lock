@@ -959,7 +959,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 
 [[package]]
 name = "wasm-pack"
-version = "0.4.2"
+version = "0.5.0"
 dependencies = [
  "atty 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
  "cargo_metadata 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
