@@ -60,7 +60,7 @@ matrix:
     - cargo install-update -a
     script:
     - (cd docs && mdbook build)
-    - rustc ./docs/installer/build-installer.rs
+    - rustc ./docs/_installer/build-installer.rs
     - ./build-installer
     deploy:
       provider: pages

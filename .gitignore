@@ -5,3 +5,4 @@ tests/bin
 wasm-pack.log
 /build-installer
 docs/book
+docs/installer
