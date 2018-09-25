@@ -35,14 +35,12 @@ fn it_can_run_tests_with_different_wbg_test_and_wbg_versions() {
 }
 
 #[test]
-#[cfg(
-    any(
-        all(target_os = "linux", target_arch = "x86_64"),
-        all(target_os = "macos", target_arch = "x86_64"),
-        all(target_os = "windows", target_arch = "x86"),
-        all(target_os = "windows", target_arch = "x86_64")
-    )
-)]
+#[cfg(any(
+    all(target_os = "linux", target_arch = "x86_64"),
+    all(target_os = "macos", target_arch = "x86_64"),
+    all(target_os = "windows", target_arch = "x86"),
+    all(target_os = "windows", target_arch = "x86_64")
+))]
 fn it_can_run_browser_tests() {
     let fixture = fixture::wbg_test_browser();
     fixture.install_local_wasm_bindgen();
@@ -105,15 +103,13 @@ fn it_can_run_failing_tests() {
 }
 
 #[test]
-#[cfg(
-    any(
-        all(target_os = "linux", target_arch = "x86"),
-        all(target_os = "linux", target_arch = "x86_64"),
-        all(target_os = "macos", target_arch = "x86_64"),
-        all(target_os = "windows", target_arch = "x86"),
-        all(target_os = "windows", target_arch = "x86_64")
-    )
-)]
+#[cfg(any(
+    all(target_os = "linux", target_arch = "x86"),
+    all(target_os = "linux", target_arch = "x86_64"),
+    all(target_os = "macos", target_arch = "x86_64"),
+    all(target_os = "windows", target_arch = "x86"),
+    all(target_os = "windows", target_arch = "x86_64")
+))]
 fn it_can_find_a_webdriver_on_path() {
     let fixture = fixture::wbg_test_browser();
     fixture.install_local_wasm_bindgen();
