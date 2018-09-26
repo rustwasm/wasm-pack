@@ -273,7 +273,7 @@ impl Test {
                 "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
                  [dev-dependencies]\n\
                  wasm-bindgen-test = \"0.2\"",
-                style("wasm-bindgen").bold().dim(),
+                style("wasm-bindgen-test").bold().dim(),
             );
             return Err(Error::CrateConfig { message });
         }
