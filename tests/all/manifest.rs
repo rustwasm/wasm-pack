@@ -129,7 +129,8 @@ fn it_creates_a_package_json_provided_path_with_scope() {
             false,
             "",
             &step
-        ).is_ok()
+        )
+        .is_ok()
     );
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());

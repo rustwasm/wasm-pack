@@ -122,7 +122,8 @@ fn it_can_find_a_webdriver_on_path() {
         geckodriver_dir
             .path()
             .join(local_geckodriver.file_name().unwrap()),
-    ).unwrap();
+    )
+    .unwrap();
     fs::remove_file(&local_geckodriver).unwrap();
 
     let mut paths: Vec<_> = env::split_paths(&env::var("PATH").unwrap()).collect();
@@ -202,7 +203,8 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
                 [dev-dependencies]
                 # no wasm-bindgen-test dep here!
             "#,
-        ).hello_world_src_lib()
+        )
+        .hello_world_src_lib()
         .install_local_wasm_bindgen();
 
     let cmd = Command::Test(test::TestOptions {

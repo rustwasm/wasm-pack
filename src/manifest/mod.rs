@@ -81,7 +81,8 @@ fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
         return Error::crate_config(&format!(
             "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
             path.display()
-        )).map(|_| unreachable!());
+        ))
+        .map(|_| unreachable!());
     }
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
