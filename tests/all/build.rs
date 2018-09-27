@@ -9,7 +9,8 @@ fn build_in_non_crate_directory_doesnt_panic() {
         "wasm-pack",
         "build",
         &fixture.path.display().to_string(),
-    ]).unwrap();
+    ])
+    .unwrap();
     let logger = logger::new(&cli.cmd, cli.verbosity).unwrap();
     let result = command::run_wasm_pack(cli.cmd, &logger);
     assert!(

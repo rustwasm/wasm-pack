@@ -69,7 +69,8 @@ fn get_lockfile_path(crate_path: &Path) -> Result<PathBuf, Error> {
     let crate_root = cargo_metadata::metadata(Some(&manifest))
         .map_err(|_| Error::CrateConfig {
             message: String::from("Error while processing crate metadata"),
-        })?.workspace_root;
+        })?
+        .workspace_root;
     // Check that a lock file can be found in the directory. Return an error
     // if it cannot, otherwise return the path buffer.
     let lockfile_path = Path::new(&crate_root).join("Cargo.lock");
