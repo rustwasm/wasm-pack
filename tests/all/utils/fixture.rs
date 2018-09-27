@@ -152,7 +152,8 @@ impl Fixture {
             wasm_pack::bindgen::download_prebuilt_wasm_bindgen(&tests, WASM_BINDGEN_VERSION)
                 .or_else(|_| {
                     wasm_pack::bindgen::cargo_install_wasm_bindgen(&tests, WASM_BINDGEN_VERSION)
-                }).unwrap();
+                })
+                .unwrap();
         });
 
         assert!(shared_wasm_bindgen.is_file());
@@ -163,12 +164,14 @@ impl Fixture {
         hard_link_or_copy(
             &shared_wasm_bindgen,
             wasm_pack::binaries::local_bin_path(&self.path, "wasm-bindgen"),
-        ).expect("could not copy `wasm-bindgen` to fixture directory");
+        )
+        .expect("could not copy `wasm-bindgen` to fixture directory");
 
         hard_link_or_copy(
             &shared_wasm_bindgen_test_runner,
             wasm_pack::binaries::local_bin_path(&self.path, "wasm-bindgen-test-runner"),
-        ).expect("could not copy `wasm-bindgen-test` to fixture directory");
+        )
+        .expect("could not copy `wasm-bindgen-test` to fixture directory");
 
         self
     }
@@ -202,7 +205,8 @@ impl Fixture {
         hard_link_or_copy(
             &geckodriver,
             wasm_pack::binaries::local_bin_path(&self.path, "geckodriver"),
-        ).expect("could not copy `geckodriver` to fixture directory");
+        )
+        .expect("could not copy `geckodriver` to fixture directory");
 
         self
     }
@@ -236,7 +240,8 @@ impl Fixture {
         hard_link_or_copy(
             &chromedriver,
             wasm_pack::binaries::local_bin_path(&self.path, "chromedriver"),
-        ).expect("could not copy `chromedriver` to fixture directory");
+        )
+        .expect("could not copy `chromedriver` to fixture directory");
 
         self
     }
@@ -375,7 +380,8 @@ pub fn wbg_test_diff_versions() -> Fixture {
                 # wasm-bindgen-test at 0.2.19, and everything should still work.
                 wasm-bindgen-test = "0.2.19"
             "#,
-        ).file(
+        )
+        .file(
             "src/lib.rs",
             r#"
                 extern crate wasm_bindgen;
@@ -384,7 +390,8 @@ pub fn wbg_test_diff_versions() -> Fixture {
                 #[wasm_bindgen]
                 pub fn one() -> u32 { 1 }
             "#,
-        ).file(
+        )
+        .file(
             "tests/node.rs",
             r#"
                 extern crate wbg_test_diff_versions;

@@ -78,7 +78,8 @@ pub fn bin_path(log: &Logger, crate_path: &Path, bin: &str) -> Option<PathBuf> {
             let p = p.canonicalize().unwrap_or(p);
             debug!(log, "Using {} binary at {}", bin, p.display());
             p
-        }).or_else(|| {
+        })
+        .or_else(|| {
             debug!(log, "Could not find {} binary.", bin);
             None
         })
@@ -124,7 +125,8 @@ fn curl(url: &str) -> Result<Vec<u8>, failure::Error> {
         Err(Error::http(&format!(
             "received a bad HTTP status code ({}) when requesting {}",
             status_code, url
-        )).into())
+        ))
+        .into())
     }
 }
 

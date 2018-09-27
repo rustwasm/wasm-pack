@@ -126,14 +126,16 @@ impl Test {
         if !node && !any_browser {
             return Error::crate_config(
                 "Must specify at least one of `--node`, `--chrome`, `--firefox`, or `--safari`",
-            ).map(|_| unreachable!());
+            )
+            .map(|_| unreachable!());
         }
 
         if headless && !any_browser {
             return Error::crate_config(
                 "The `--headless` flag only applies to browser tests. Node does not provide a UI, \
                  so it doesn't make sense to talk about a headless version of Node tests.",
-            ).map(|_| unreachable!());
+            )
+            .map(|_| unreachable!());
         }
 
         Ok(Test {
