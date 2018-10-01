@@ -253,7 +253,6 @@ impl Fixture {
     pub fn cargo_check(&self) -> &Self {
         Command::new("cargo")
             .current_dir(&self.path)
-            .arg("+nightly")
             .arg("check")
             .arg("--target")
             .arg("wasm32-unknown-unknown")

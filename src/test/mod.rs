@@ -30,7 +30,7 @@ where
     let output = {
         let mut cmd = Command::new("cargo");
         cmd.envs(envs);
-        cmd.current_dir(path).arg("+nightly").arg("test");
+        cmd.current_dir(path).arg("test");
         if release {
             cmd.arg("--release");
         }
