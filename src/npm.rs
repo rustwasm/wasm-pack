@@ -12,7 +12,7 @@ pub fn npm_pack(path: &str) -> Result<(), Error> {
     let output = Command::new("npm").current_dir(path).arg("pack").output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Packaging up your code failed", s)
+        Error::cli("Packaging up your code failed", s, output.status)
     } else {
         Ok(())
     }
@@ -38,7 +38,7 @@ pub fn npm_publish(path: &str, access: Option<Access>) -> Result<(), Error> {
 
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Publishing to npm failed", s)
+        Error::cli("Publishing to npm failed", s, output.status)
     } else {
         Ok(())
     }
@@ -76,7 +76,11 @@ pub fn npm_login(
 
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli(&format!("Login to registry {} failed", registry), s)
+        Error::cli(
+            &format!("Login to registry {} failed", registry),
+            s,
+            output.status,
+        )
     } else {
         Ok(())
     }

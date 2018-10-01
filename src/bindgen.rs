@@ -97,6 +97,7 @@ pub fn cargo_install_wasm_bindgen(crate_path: &Path, version: &str) -> Result<()
         Err(Error::Cli {
             message,
             stderr: s.to_string(),
+            exit_status: output.status,
         })
     } else {
         assert!(binaries::local_bin_path(crate_path, "wasm-bindgen").is_file());
@@ -155,7 +156,7 @@ pub fn wasm_bindgen_build(
         let output = cmd.output()?;
         if !output.status.success() {
             let s = String::from_utf8_lossy(&output.stderr);
-            Error::cli("wasm-bindgen failed to execute properly", s)
+            Error::cli("wasm-bindgen failed to execute properly", s, output.status)
         } else {
             Ok(())
         }

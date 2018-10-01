@@ -64,7 +64,11 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
         .output()?;
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Adding the wasm32-unknown-unknown target failed", s)
+        Error::cli(
+            "Adding the wasm32-unknown-unknown target failed",
+            s,
+            output.status,
+        )
     } else {
         Ok(())
     }
@@ -74,19 +78,17 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
 pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
-    let output = {
-        let mut cmd = Command::new("cargo");
-        cmd.current_dir(path).arg("build").arg("--lib");
-        if !debug {
-            cmd.arg("--release");
-        }
-        cmd.arg("--target").arg("wasm32-unknown-unknown");
-        cmd.output()?
-    };
+    let mut cmd = Command::new("cargo");
+    cmd.current_dir(path).arg("build").arg("--lib");
+    if !debug {
+        cmd.arg("--release");
+    }
+    cmd.arg("--target").arg("wasm32-unknown-unknown");
+    let output = cmd.output()?;
 
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Compilation of your program failed", s)
+        Error::cli("Compilation of your program failed", s, output.status)
     } else {
         Ok(())
     }
@@ -106,7 +108,7 @@ pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
 
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Compilation of your program failed", s)
+        Error::cli("Compilation of your program failed", s, output.status)
     } else {
         Ok(())
     }
