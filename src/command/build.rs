@@ -27,6 +27,8 @@ pub(crate) struct Build {
     // build_config: Option<BuildConfig>,
     pub crate_name: String,
     pub out_dir: PathBuf,
+    /// This is a workaround to pass the artifact's location from build_wasm to run_wasm_bindgen
+    pub wasm_file: Option<PathBuf>,
 }
 
 /// The `BuildMode` determines which mode of initialization we are running, and
@@ -113,6 +115,7 @@ impl Build {
             // build_config,
             crate_name,
             out_dir,
+            wasm_file: None,
         })
     }
 
@@ -212,17 +215,13 @@ impl Build {
 
     fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.debug, step)?;
+        let artifact =
+            build::cargo_build_wasm(&self.crate_path, self.debug, step, &self.crate_name)?;
 
-        info!(
-            &log,
-            "wasm built at {:#?}.",
-            &self
-                .crate_path
-                .join("target")
-                .join("wasm32-unknown-unknown")
-                .join("release")
-        );
+        info!(&log, "wasm built at {:#?}.", &artifact);
+
+        self.wasm_file = Some(artifact);
+
         Ok(())
     }
 
@@ -293,7 +292,7 @@ impl Build {
         bindgen::wasm_bindgen_build(
             &self.crate_path,
             &self.out_dir,
-            &self.crate_name,
+            &self.wasm_file.clone().unwrap(),
             self.disable_dts,
             &self.target,
             self.debug,

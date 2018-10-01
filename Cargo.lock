@@ -86,7 +86,7 @@ dependencies = [
 [[package]]
 name = "cargo_metadata"
 version = "0.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
+source = "git+https://github.com/roblabla/cargo_metadata?rev=54a24e30864feb7414ca400f65a486d1e01ec474#54a24e30864feb7414ca400f65a486d1e01ec474"
 dependencies = [
  "error-chain 0.12.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "semver 0.9.0 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -962,7 +962,7 @@ name = "wasm-pack"
 version = "0.5.0"
 dependencies = [
  "atty 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
- "cargo_metadata 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)",
+ "cargo_metadata 0.6.0 (git+https://github.com/roblabla/cargo_metadata?rev=54a24e30864feb7414ca400f65a486d1e01ec474)",
  "console 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "curl 0.4.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "failure 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1064,7 +1064,7 @@ dependencies = [
 "checksum byteorder 1.2.6 (registry+https://github.com/rust-lang/crates.io-index)" = "90492c5858dd7d2e78691cfb89f90d273a2800fc11d98f60786e5d87e2f83781"
 "checksum bzip2 0.3.3 (registry+https://github.com/rust-lang/crates.io-index)" = "42b7c3cbf0fa9c1b82308d57191728ca0256cb821220f4e2fd410a72ade26e3b"
 "checksum bzip2-sys 0.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "2c5162604199bbb17690ede847eaa6120a3f33d5ab4dcc8e7c25b16d849ae79b"
-"checksum cargo_metadata 0.6.0 (registry+https://github.com/rust-lang/crates.io-index)" = "2d6809b327f87369e6f3651efd2c5a96c49847a3ed2559477ecba79014751ee1"
+"checksum cargo_metadata 0.6.0 (git+https://github.com/roblabla/cargo_metadata?rev=54a24e30864feb7414ca400f65a486d1e01ec474)" = "<none>"
 "checksum cc 1.0.25 (registry+https://github.com/rust-lang/crates.io-index)" = "f159dfd43363c4d08055a07703eb7a3406b0dac4d0584d96965a3262db3c9d16"
 "checksum cfg-if 0.1.5 (registry+https://github.com/rust-lang/crates.io-index)" = "0c4e7bb64a8ebb0d856483e1e682ea3422f883c5f5615a90d51a2c82fe87fdd3"
 "checksum chrono 0.4.6 (registry+https://github.com/rust-lang/crates.io-index)" = "45912881121cb26fad7c38c17ba7daa18764771836b34fab7d3fbd93ed633878"

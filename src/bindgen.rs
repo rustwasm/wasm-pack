@@ -109,7 +109,7 @@ pub fn cargo_install_wasm_bindgen(crate_path: &Path, version: &str) -> Result<()
 pub fn wasm_bindgen_build(
     path: &Path,
     out_dir: &Path,
-    name: &str,
+    artifact: &Path,
     disable_dts: bool,
     target: &str,
     debug: bool,
@@ -119,16 +119,9 @@ pub fn wasm_bindgen_build(
     let msg = format!("{}Running WASM-bindgen...", emoji::RUNNER);
     PBAR.step(step, &msg);
 
-    let binary_name = name.replace("-", "_");
-    let release_or_debug = if debug { "debug" } else { "release" };
-
     let out_dir = out_dir.to_str().unwrap();
 
     if let Some(wasm_bindgen_path) = wasm_bindgen_path(log, path) {
-        let wasm_path = format!(
-            "target/wasm32-unknown-unknown/{}/{}.wasm",
-            release_or_debug, binary_name
-        );
         let dts_arg = if disable_dts {
             "--no-typescript"
         } else {
@@ -142,7 +135,7 @@ pub fn wasm_bindgen_build(
         let bindgen_path = Path::new(&wasm_bindgen_path);
         let mut cmd = Command::new(bindgen_path);
         cmd.current_dir(path)
-            .arg(&wasm_path)
+            .arg(artifact)
             .arg("--out-dir")
             .arg(out_dir)
             .arg(dts_arg)

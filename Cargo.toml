@@ -11,7 +11,6 @@ documentation = "https://rustwasm.github.io/wasm-pack/"
 
 [dependencies]
 atty = "0.2.11"
-cargo_metadata = "0.6.0"
 console = "0.6.1"
 curl = "0.4.13"
 failure = "0.1.2"
@@ -32,8 +31,7 @@ tar = "0.4.16"
 toml = "0.4"
 which = "2.0.0"
 zip = "0.4.2"
-
-[dev-dependencies]
+cargo_metadata = { git = "https://github.com/roblabla/cargo_metadata", rev = "54a24e30864feb7414ca400f65a486d1e01ec474" }
 tempfile = "3"
 
 [features]

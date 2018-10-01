@@ -20,3 +20,21 @@ fn build_in_non_crate_directory_doesnt_panic() {
     let err_msg = result.unwrap_err().to_string();
     assert!(err_msg.contains("missing a `Cargo.toml`"));
 }
+
+#[test]
+fn build_in_nested_workspace() {
+    let fixture = utils::fixture::nested_workspace();
+    let cli = Cli::from_iter_safe(vec![
+        "wasm-pack",
+        "build",
+        "--debug",
+        "--mode=no-install",
+        &fixture.path.join("sub-crate").display().to_string(),
+    ]).unwrap();
+    let logger = logger::new(&cli.cmd, cli.verbosity).unwrap();
+    let result = command::run_wasm_pack(cli.cmd, &logger);
+    assert!(
+        result.is_ok(),
+        "Building with wasm-pack in nested workspace should succeed"
+    );
+}
