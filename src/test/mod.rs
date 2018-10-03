@@ -40,7 +40,7 @@ where
 
     if !output.status.success() {
         let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Running wasm tests failed", s)
+        Error::cli("Running wasm tests failed", s, output.status)
     } else {
         for line in String::from_utf8_lossy(&output.stdout).lines() {
             info!(log, "test output: {}", line);
