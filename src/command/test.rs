@@ -94,11 +94,11 @@ pub struct Test {
     test_runner_path: Option<PathBuf>,
 }
 
-type TestStep = fn(&mut Test, &Step, &Logger) -> Result<(), Error>;
+type TestStep = fn(&mut Test, &Step, &Logger) -> Result<(), failure::Error>;
 
 impl Test {
     /// Construct a test command from the given options.
-    pub fn try_from_opts(test_opts: TestOptions) -> Result<Self, Error> {
+    pub fn try_from_opts(test_opts: TestOptions) -> Result<Self, failure::Error> {
         let TestOptions {
             path,
             node,
@@ -124,18 +124,18 @@ impl Test {
         let any_browser = chrome || firefox || safari;
 
         if !node && !any_browser {
-            return Error::crate_config(
+            return Err(Error::crate_config(
                 "Must specify at least one of `--node`, `--chrome`, `--firefox`, or `--safari`",
             )
-            .map(|_| unreachable!());
+            .into());
         }
 
         if headless && !any_browser {
-            return Error::crate_config(
+            return Err(Error::crate_config(
                 "The `--headless` flag only applies to browser tests. Node does not provide a UI, \
                  so it doesn't make sense to talk about a headless version of Node tests.",
             )
-            .map(|_| unreachable!());
+            .into());
         }
 
         Ok(Test {
@@ -155,7 +155,7 @@ impl Test {
     }
 
     /// Execute this test command.
-    pub fn run(mut self, log: &Logger) -> Result<(), Error> {
+    pub fn run(mut self, log: &Logger) -> Result<(), failure::Error> {
         let process_steps = self.get_process_steps();
         let mut step_counter = Step::new(process_steps.len());
 
@@ -227,40 +227,48 @@ impl Test {
         }
     }
 
-    fn step_check_rustc_version(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_check_rustc_version(
+        &mut self,
+        step: &Step,
+        log: &Logger,
+    ) -> Result<(), failure::Error> {
         info!(log, "Checking rustc version...");
         let _ = build::check_rustc_version(step)?;
         info!(log, "Rustc version is correct.");
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(log, "Checking crate configuration...");
         manifest::check_crate_config(&self.crate_path, step)?;
         info!(log, "Crate is correctly configured.");
         Ok(())
     }
 
-    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Adding wasm-target...");
-        build::rustup_add_wasm_target(step)?;
+        build::rustup_add_wasm_target(log, step)?;
         info!(&log, "Adding wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_tests(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_build_tests(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(log, "Compiling tests to wasm...");
 
         let msg = format!("{}Compiling tests to WASM...", emoji::CYCLONE);
         PBAR.step(step, &msg);
 
-        build::cargo_build_wasm_tests(&self.crate_path, !self.release)?;
+        build::cargo_build_wasm_tests(log, &self.crate_path, !self.release)?;
 
         info!(log, "Finished compiling tests to wasm.");
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_install_wasm_bindgen(
+        &mut self,
+        step: &Step,
+        log: &Logger,
+    ) -> Result<(), failure::Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_path)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
@@ -277,7 +285,7 @@ impl Test {
                  wasm-bindgen-test = \"0.2\"",
                 style("wasm-bindgen-test").bold().dim(),
             );
-            return Err(Error::CrateConfig { message });
+            return Err(Error::CrateConfig { message }.into());
         }
 
         let install_permitted = match self.mode {
@@ -310,7 +318,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_node(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_test_node(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         assert!(self.node);
         info!(log, "Running tests in node...");
         PBAR.step(step, "Running tests in node...");
@@ -327,7 +335,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_chromedriver(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_get_chromedriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting chromedriver...");
         assert!(self.chrome && self.chromedriver.is_none());
 
@@ -339,7 +347,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_chrome(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_test_chrome(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Running tests in Chrome...");
 
         let chromedriver = self.chromedriver.as_ref().unwrap().display().to_string();
@@ -366,10 +374,11 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)
+        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)?;
+        Ok(())
     }
 
-    fn step_get_geckodriver(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_get_geckodriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting geckodriver...");
         assert!(self.firefox && self.geckodriver.is_none());
 
@@ -381,7 +390,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_firefox(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_test_firefox(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Running tests in Firefox...");
 
         let geckodriver = self.geckodriver.as_ref().unwrap().display().to_string();
@@ -408,10 +417,11 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)
+        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)?;
+        Ok(())
     }
 
-    fn step_get_safaridriver(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_get_safaridriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting safaridriver...");
         assert!(self.safari && self.safaridriver.is_none());
 
@@ -419,7 +429,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_safari(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_test_safari(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Running tests in Safari...");
 
         let safaridriver = self.safaridriver.as_ref().unwrap().display().to_string();
@@ -446,6 +456,7 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)
+        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)?;
+        Ok(())
     }
 }

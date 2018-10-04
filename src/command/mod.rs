@@ -84,7 +84,7 @@ pub enum Command {
 }
 
 /// Run a command with the given logger!
-pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
+pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), failure::Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
     let status = match command {
@@ -129,7 +129,12 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
         Ok(_) => {}
         Err(ref e) => {
             error!(&log, "{}", e);
-            PBAR.error(e.error_type());
+            for c in e.iter_chain() {
+                if let Some(e) = c.downcast_ref::<Error>() {
+                    PBAR.error(e.error_type());
+                    break;
+                }
+            }
         }
     }
 

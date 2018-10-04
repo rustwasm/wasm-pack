@@ -16,7 +16,7 @@ pub fn publish(
     path: Option<PathBuf>,
     access: Option<Access>,
     log: &Logger,
-) -> result::Result<(), Error> {
+) -> result::Result<(), failure::Error> {
     let crate_path = set_crate_path(path)?;
 
     info!(&log, "Publishing the npm package...");
@@ -28,7 +28,7 @@ pub fn publish(
         ),
     })?;
 
-    npm::npm_publish(&pkg_directory.to_string_lossy(), access)?;
+    npm::npm_publish(log, &pkg_directory.to_string_lossy(), access)?;
     info!(&log, "Published your package!");
 
     PBAR.message("💥  published your package!");

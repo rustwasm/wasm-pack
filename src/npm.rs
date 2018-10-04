@@ -1,56 +1,51 @@
 //! Functionality related to publishing to npm.
 
+use child;
 use command::publish::access::Access;
-use error::Error;
+use failure::{self, ResultExt};
+use slog::Logger;
 use std::process::{Command, Stdio};
 
 /// The default npm registry used when we aren't working with a custom registry.
 pub const DEFAULT_NPM_REGISTRY: &'static str = "https://registry.npmjs.org/";
 
 /// Run the `npm pack` command.
-pub fn npm_pack(path: &str) -> Result<(), Error> {
-    let output = Command::new("npm").current_dir(path).arg("pack").output()?;
-    if !output.status.success() {
-        let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Packaging up your code failed", s, output.status)
-    } else {
-        Ok(())
-    }
+pub fn npm_pack(log: &Logger, path: &str) -> Result<(), failure::Error> {
+    let mut cmd = Command::new("npm");
+    cmd.current_dir(path).arg("pack");
+    child::run(log, cmd, "npm pack").context("Packaging up your code failed")?;
+    Ok(())
 }
 
 /// Run the `npm publish` command.
-pub fn npm_publish(path: &str, access: Option<Access>) -> Result<(), Error> {
-    let output = match access {
-        Some(a) => Command::new("npm")
+pub fn npm_publish(log: &Logger, path: &str, access: Option<Access>) -> Result<(), failure::Error> {
+    let mut cmd = Command::new("npm");
+    match access {
+        Some(a) => cmd
             .current_dir(path)
             .arg("publish")
             .arg(&format!("{}", a.to_string()))
             .stdin(Stdio::inherit())
-            .stdout(Stdio::inherit())
-            .output()?,
-        None => Command::new("npm")
+            .stdout(Stdio::inherit()),
+        None => cmd
             .current_dir(path)
             .arg("publish")
             .stdin(Stdio::inherit())
-            .stdout(Stdio::inherit())
-            .output()?,
+            .stdout(Stdio::inherit()),
     };
 
-    if !output.status.success() {
-        let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Publishing to npm failed", s, output.status)
-    } else {
-        Ok(())
-    }
+    child::run(log, cmd, "npm publish").context("Publishing to npm failed")?;
+    Ok(())
 }
 
 /// Run the `npm login` command.
 pub fn npm_login(
+    log: &Logger,
     registry: &String,
     scope: &Option<String>,
     always_auth: bool,
     auth_type: &Option<String>,
-) -> Result<(), Error> {
+) -> Result<(), failure::Error> {
     let mut args = String::new();
 
     args.push_str(&format!("--registry={}", registry));
@@ -67,21 +62,12 @@ pub fn npm_login(
         args.push_str(&format!(" --auth_type={}", auth_type));
     }
 
-    let output = Command::new("npm")
-        .arg("login")
+    let mut cmd = Command::new("npm");
+    cmd.arg("login")
         .arg(args)
         .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .output()?;
-
-    if !output.status.success() {
-        let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli(
-            &format!("Login to registry {} failed", registry),
-            s,
-            output.status,
-        )
-    } else {
-        Ok(())
-    }
+        .stdout(Stdio::inherit());
+    child::run(log, cmd, "npm login")
+        .with_context(|_| format!("Login to registry {} failed", registry))?;
+    Ok(())
 }

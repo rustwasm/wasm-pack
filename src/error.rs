@@ -101,19 +101,19 @@ pub enum Error {
 
 impl Error {
     /// Construct a CLI error.
-    pub fn cli(message: &str, stderr: Cow<str>, exit_status: ExitStatus) -> Result<(), Self> {
-        Err(Error::Cli {
+    pub fn cli(message: &str, stderr: Cow<str>, exit_status: ExitStatus) -> Self {
+        Error::Cli {
             message: message.to_string(),
             stderr: stderr.to_string(),
             exit_status,
-        })
+        }
     }
 
     /// Construct a crate configuration error.
-    pub fn crate_config(message: &str) -> Result<(), Self> {
-        Err(Error::CrateConfig {
+    pub fn crate_config(message: &str) -> Self {
+        Error::CrateConfig {
             message: message.to_string(),
-        })
+        }
     }
 
     /// Construct an archive error.

@@ -78,11 +78,10 @@ struct CargoLib {
 fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
     let manifest_path = path.join("Cargo.toml");
     if !manifest_path.is_file() {
-        return Error::crate_config(&format!(
+        return Err(Error::crate_config(&format!(
             "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
             path.display()
-        ))
-        .map(|_| unreachable!());
+        )));
     }
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
@@ -254,10 +253,10 @@ fn check_crate_type(path: &Path) -> Result<(), Error> {
     }) {
         return Ok(());
     }
-    Error::crate_config(
+    Err(Error::crate_config(
       "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
        Cargo.toml file:\n\n\
        [lib]\n\
        crate-type = [\"cdylib\", \"rlib\"]"
-    )
+    ))
 }
