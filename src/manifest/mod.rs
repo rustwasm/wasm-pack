@@ -38,7 +38,7 @@ struct CargoPackage {
 
 impl CargoPackage {
     fn check_optional_fields(&self) {
-        let warn_fmt = |field| {
+        let info_fmt = |field| {
             format!(
                 "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
                 field
@@ -46,13 +46,13 @@ impl CargoPackage {
         };
 
         if self.description.is_none() {
-            PBAR.warn(&warn_fmt("description"));
+            PBAR.info(&info_fmt("description"));
         }
         if self.repository.is_none() {
-            PBAR.warn(&warn_fmt("repository"));
+            PBAR.info(&info_fmt("repository"));
         }
         if self.license.is_none() {
-            PBAR.warn(&warn_fmt("license"));
+            PBAR.info(&info_fmt("license"));
         }
     }
 }
