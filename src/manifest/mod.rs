@@ -38,22 +38,23 @@ struct CargoPackage {
 
 impl CargoPackage {
     fn check_optional_fields(&self) {
-        let info_fmt = |field| {
-            format!(
-                "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
-                field
-            )
-        };
-
+        let mut messages = vec![];
         if self.description.is_none() {
-            PBAR.info(&info_fmt("description"));
+            messages.push("description");
         }
         if self.repository.is_none() {
-            PBAR.info(&info_fmt("repository"));
+            messages.push("repository");
         }
         if self.license.is_none() {
-            PBAR.info(&info_fmt("license"));
+            messages.push("license");
         }
+
+        match messages.len() {
+            1 => PBAR.info(&format!("Optional field missing from Cargo.toml: '{}'. This is not necessary, but recommended", messages[0])),
+            2 => PBAR.info(&format!("Optional fields missing from Cargo.toml: '{}', '{}'. These are not necessary, but recommended", messages[0], messages[1])),
+            3 => PBAR.info(&format!("Optional fields missing from Cargo.toml: '{}', '{}', and '{}'. These are not necessary, but recommended", messages[0], messages[1], messages[2])),
+            _ => ()
+        };
     }
 }
 
@@ -81,8 +82,7 @@ fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
         return Error::crate_config(&format!(
             "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
             path.display()
-        ))
-        .map(|_| unreachable!());
+        )).map(|_| unreachable!());
     }
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
