@@ -1,88 +1,121 @@
 //! Utilties for managing child processes.
 //!
-//! This module helps us ensure that:
-//!
-//! * All child processes that we spawn get properly logged and their output is
-//!   logged as well.
-//!
-//! * That any "quick running" child process does not spam the console with its
-//!   output.
-//!
-//! * That any "long running" child process gets its output copied to our
-//!   stderr, so that the user isn't sitting there wondering if anything at all
-//!   is happening. This is important for showing `cargo build`'s output, for
-//!   example.
+//! This module helps us ensure that all child processes that we spawn get
+//! properly logged and their output is logged as well.
 
 use error::Error;
 use failure;
 use slog::Logger;
 use std::{
-    io::{self, BufRead},
-    process,
+    io::{self, Read},
+    mem, process, string,
     sync::mpsc,
-    thread, time,
+    thread,
 };
 use PBAR;
 
-fn taking_too_long(since: time::Instant) -> bool {
-    since.elapsed() > time::Duration::from_millis(200)
+#[derive(Debug)]
+enum OutputFragment {
+    Stdout(Vec<u8>),
+    Stderr(Vec<u8>),
 }
 
-enum Output<S: AsRef<str>> {
-    Stdout(S),
-    Stderr(S),
-}
-
-fn print_child_output<S>(out: Result<Output<S>, io::Error>, command_name: &str)
+/// Read data from the give reader and send it as an `OutputFragment` over the
+/// given sender.
+fn read_and_send<R, F>(
+    mut reader: R,
+    sender: mpsc::Sender<OutputFragment>,
+    mut map: F,
+) -> io::Result<()>
 where
-    S: AsRef<str>,
+    R: Read,
+    F: FnMut(Vec<u8>) -> OutputFragment,
 {
-    let message = match out {
-        Ok(Output::Stdout(line)) => format!("{} (stdout): {}", command_name, line.as_ref()),
-        Ok(Output::Stderr(line)) => format!("{} (stderr): {}", command_name, line.as_ref()),
-        Err(e) => format!("error reading {} output: {}", command_name, e),
-    };
-    PBAR.message(&message);
-}
-
-fn handle_output<I, S>(
-    output: I,
-    logger: &Logger,
-    should_print: bool,
-    stdout: &mut String,
-    stderr: &mut String,
-    command_name: &str,
-) where
-    I: IntoIterator<Item = Result<Output<S>, io::Error>>,
-    S: AsRef<str>,
-{
-    for out in output {
-        match out {
-            Ok(Output::Stdout(ref line)) => {
-                let line = line.as_ref().trim_end();
-                info!(logger, "{} (stdout): {}", command_name, line);
-                stdout.push_str(line);
+    let mut buf = vec![0; 1024];
+    loop {
+        match reader.read(&mut buf) {
+            Err(e) => {
+                if e.kind() == io::ErrorKind::Interrupted {
+                    continue;
+                } else {
+                    return Err(e);
+                }
             }
-            Ok(Output::Stderr(ref line)) => {
-                let line = line.as_ref().trim_end();
-                info!(logger, "{} (stderr): {}", command_name, line);
-                stderr.push_str(line);
+            Ok(0) => return Ok(()),
+            Ok(n) => {
+                buf.truncate(n);
+                let buf = mem::replace(&mut buf, vec![0; 1024]);
+                sender.send(map(buf)).unwrap();
             }
-            Err(ref e) => {
-                warn!(logger, "error reading output: {}", e);
-            }
-        }
-        if should_print {
-            print_child_output(out, command_name);
         }
     }
 }
 
+/// Accumulates output from a stream of output fragments and calls a callback on
+/// each complete line as it is accumulating.
+struct OutputAccumulator<F> {
+    result: String,
+    in_progress: Vec<u8>,
+    on_each_line: F,
+}
+
+impl<F> OutputAccumulator<F>
+where
+    F: FnMut(&str),
+{
+    /// Construct a new output accumulator with the given `on_each_line`
+    /// callback.
+    fn new(on_each_line: F) -> OutputAccumulator<F> {
+        OutputAccumulator {
+            result: String::new(),
+            in_progress: Vec::new(),
+            on_each_line,
+        }
+    }
+
+    /// Add another fragment of output to the accumulation, calling the
+    /// `on_each_line` callback for any complete lines we accumulate.
+    fn push(&mut self, fragment: Vec<u8>) -> Result<(), string::FromUtf8Error> {
+        debug_assert!(!fragment.is_empty());
+        self.in_progress.extend(fragment);
+
+        if let Some((last_newline, _)) = self
+            .in_progress
+            .iter()
+            .cloned()
+            .enumerate()
+            .rev()
+            .find(|(_, ch)| *ch == b'\n')
+        {
+            let next_in_progress: Vec<u8> = self.in_progress[last_newline + 1..]
+                .iter()
+                .cloned()
+                .collect();
+            let mut these_lines = mem::replace(&mut self.in_progress, next_in_progress);
+            these_lines.truncate(last_newline + 1);
+            let these_lines = String::from_utf8(these_lines)?;
+            for line in these_lines.lines() {
+                (self.on_each_line)(line);
+            }
+            self.result.push_str(&these_lines);
+        }
+
+        Ok(())
+    }
+
+    /// Finish accumulation, run the `on_each_line` callback on the final line
+    /// (if any), and return the accumulated output.
+    fn finish(mut self) -> Result<String, string::FromUtf8Error> {
+        if !self.in_progress.is_empty() {
+            let last_line = String::from_utf8(self.in_progress)?;
+            (self.on_each_line)(&last_line);
+            self.result.push_str(&last_line);
+        }
+        Ok(self.result)
+    }
+}
+
 /// Run the given command and return its stdout.
-///
-/// If the command takes "too long", then its stdout and stderr are also piped
-/// to our stdout and stderr so that the user has an idea of what is going on
-/// behind the scenes.
 pub fn run(
     logger: &Logger,
     mut command: process::Command,
@@ -95,10 +128,8 @@ pub fn run(
         .stderr(process::Stdio::piped())
         .spawn()?;
 
-    let since = time::Instant::now();
-
-    let stdout = io::BufReader::new(child.stdout.take().unwrap());
-    let stderr = io::BufReader::new(child.stderr.take().unwrap());
+    let stdout = child.stdout.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
 
     let (send, recv) = mpsc::channel();
     let stdout_send = send.clone();
@@ -108,69 +139,39 @@ pub fn run(
     // and stderr on a separate thread to avoid potential dead locks with
     // waiting on the child process.
 
-    let stdout_handle = thread::spawn(move || {
-        for line in stdout.lines() {
-            stdout_send.send(line.map(Output::Stdout)).unwrap();
-        }
+    let stdout_handle =
+        thread::spawn(move || read_and_send(stdout, stdout_send, OutputFragment::Stdout));
+    let stderr_handle =
+        thread::spawn(move || read_and_send(stderr, stderr_send, OutputFragment::Stderr));
+
+    let mut stdout = OutputAccumulator::new(|line| {
+        info!(logger, "{} (stdout): {}", command_name, line);
+        PBAR.message(line)
+    });
+    let mut stderr = OutputAccumulator::new(|line| {
+        info!(logger, "{} (stderr): {}", command_name, line);
+        PBAR.message(line)
     });
 
-    let stderr_handle = thread::spawn(move || {
-        for line in stderr.lines() {
-            stderr_send.send(line.map(Output::Stderr)).unwrap();
-        }
-    });
+    for output in recv {
+        match output {
+            OutputFragment::Stdout(line) => stdout.push(line)?,
+            OutputFragment::Stderr(line) => stderr.push(line)?,
+        };
+    }
 
-    let mut stdout = String::new();
-    let mut stderr = String::new();
-    let mut is_long_running = false;
+    let stdout = stdout.finish()?;
+    let stderr = stderr.finish()?;
 
-    loop {
-        if !is_long_running && taking_too_long(since) {
-            // The command has now been taking too long. Print the buffered stdout and
-            // stderr, and then continue waiting on the child.
-            stdout
-                .lines()
-                .map(|l| Ok(Output::Stdout(l)))
-                .chain(stderr.lines().map(|l| Ok(Output::Stderr(l))))
-                .for_each(|l| print_child_output(l, command_name));
+    // Join the threads reading the child's output to make sure the finish OK.
+    stdout_handle.join().unwrap()?;
+    stderr_handle.join().unwrap()?;
 
-            is_long_running = true;
-        }
-
-        // Get any output that's been sent on the channel without blocking.
-        handle_output(
-            recv.try_iter(),
-            logger,
-            is_long_running,
-            &mut stdout,
-            &mut stderr,
-            command_name,
-        );
-
-        if let Some(exit) = child.try_wait()? {
-            // Block on collecting the rest of the child's output.
-            handle_output(
-                recv,
-                logger,
-                is_long_running,
-                &mut stdout,
-                &mut stderr,
-                command_name,
-            );
-
-            // Join the threads reading the child's output to make sure the
-            // finish OK.
-            stdout_handle.join().unwrap();
-            stderr_handle.join().unwrap();
-
-            if exit.success() {
-                return Ok(stdout);
-            } else {
-                let msg = format!("`{}` did not exit successfully", command_name);
-                return Err(Error::cli(&msg, stderr.into(), exit).into());
-            }
-        }
-
-        thread::yield_now();
+    let exit = child.wait()?;
+    if exit.success() {
+        return Ok(stdout);
+    } else {
+        let msg = format!("`{}` did not exit successfully", command_name);
+        return Err(Error::cli(&msg, stderr.into(), exit).into());
     }
 }
