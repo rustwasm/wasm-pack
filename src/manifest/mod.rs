@@ -38,22 +38,23 @@ struct CargoPackage {
 
 impl CargoPackage {
     fn check_optional_fields(&self) {
-        let warn_fmt = |field| {
-            format!(
-                "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
-                field
-            )
-        };
-
+        let mut messages = vec![];
         if self.description.is_none() {
-            PBAR.warn(&warn_fmt("description"));
+            messages.push("description");
         }
         if self.repository.is_none() {
-            PBAR.warn(&warn_fmt("repository"));
+            messages.push("repository");
         }
         if self.license.is_none() {
-            PBAR.warn(&warn_fmt("license"));
+            messages.push("license");
         }
+
+        match messages.len() {
+            1 => PBAR.info(&format!("Optional field missing from Cargo.toml: '{}'. This is not necessary, but recommended", messages[0])),
+            2 => PBAR.info(&format!("Optional fields missing from Cargo.toml: '{}', '{}'. These are not necessary, but recommended", messages[0], messages[1])),
+            3 => PBAR.info(&format!("Optional fields missing from Cargo.toml: '{}', '{}', and '{}'. These are not necessary, but recommended", messages[0], messages[1], messages[2])),
+            _ => ()
+        };
     }
 }
 
