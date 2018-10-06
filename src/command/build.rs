@@ -176,7 +176,8 @@ impl Build {
         info!(&log, "Done in {}.", &duration);
         info!(
             &log,
-            "Your wasm pkg is ready to publish at {}.", self.out_dir.display()
+            "Your wasm pkg is ready to publish at {}.",
+            self.out_dir.display()
         );
 
         PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
@@ -184,7 +185,10 @@ impl Build {
         PBAR.message(&format!(
             "{} Your wasm pkg is ready to publish at {}.",
             emoji::PACKAGE,
-            self.out_dir.canonicalize().unwrap_or(self.out_dir.clone()).display()
+            self.out_dir
+                .canonicalize()
+                .unwrap_or(self.out_dir.clone())
+                .display()
         ));
         Ok(())
     }
