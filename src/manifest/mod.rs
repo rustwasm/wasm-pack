@@ -11,8 +11,8 @@ use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
 use emoji;
-use failure;
 use error::Error;
+use failure;
 use progressbar::Step;
 use serde_json;
 use toml;
@@ -82,7 +82,8 @@ fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
         return Err(Error::crate_config(&format!(
             "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
             path.display()
-        )).into());
+        ))
+        .into());
     }
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();

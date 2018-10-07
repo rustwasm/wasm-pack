@@ -1,7 +1,7 @@
 //! Generating `README` files for the packaged wasm.
 
-use std::fs;
 use failure;
+use std::fs;
 use std::path::Path;
 
 use emoji;
