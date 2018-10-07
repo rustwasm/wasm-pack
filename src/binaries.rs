@@ -175,7 +175,8 @@ where
                 .map(|s| s.to_string_lossy())
                 .collect::<Vec<_>>()
                 .join(", "),
-        )).into())
+        ))
+        .into())
     }
 }
 
@@ -226,7 +227,8 @@ where
                 .map(|s| s.to_string_lossy())
                 .collect::<Vec<_>>()
                 .join(", "),
-        )).into())
+        ))
+        .into())
     }
 }
 

@@ -55,7 +55,10 @@ pub fn install_wasm_bindgen(
 }
 
 /// Download a tarball containing a pre-built `wasm-bindgen` binary.
-pub fn download_prebuilt_wasm_bindgen(root_path: &Path, version: &str) -> Result<(), failure::Error> {
+pub fn download_prebuilt_wasm_bindgen(
+    root_path: &Path,
+    version: &str,
+) -> Result<(), failure::Error> {
     let target = if target::LINUX && target::x86_64 {
         "x86_64-unknown-linux-musl"
     } else if target::MACOS && target::x86_64 {
@@ -65,7 +68,8 @@ pub fn download_prebuilt_wasm_bindgen(root_path: &Path, version: &str) -> Result
     } else {
         return Err(Error::unsupported(
             "there are no pre-built `wasm-bindgen` binaries for this target",
-        ).into());
+        )
+        .into());
     };
 
     let url = format!(
