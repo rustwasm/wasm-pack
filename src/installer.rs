@@ -23,7 +23,7 @@ use std::path::Path;
 use std::process;
 
 use atty;
-use failure::{Error, ResultExt};
+use failure::{self, ResultExt};
 use which;
 
 pub fn install() -> ! {
@@ -47,7 +47,7 @@ pub fn install() -> ! {
     process::exit(0);
 }
 
-fn do_install() -> Result<(), Error> {
+fn do_install() -> Result<(), failure::Error> {
     // Find `rustup.exe` in PATH, we'll be using its installation directory as
     // our installation directory.
     let rustup = match which::which("rustup") {
@@ -85,7 +85,7 @@ fn do_install() -> Result<(), Error> {
     Ok(())
 }
 
-fn confirm_can_overwrite(dst: &Path) -> Result<(), Error> {
+fn confirm_can_overwrite(dst: &Path) -> Result<(), failure::Error> {
     // If the `-f` argument was passed, we can always overwrite everything.
     if env::args().any(|arg| arg == "-f") {
         return Ok(());
