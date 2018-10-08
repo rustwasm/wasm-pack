@@ -187,7 +187,7 @@ impl Build {
             emoji::PACKAGE,
             self.out_dir
                 .canonicalize()
-                .unwrap_or(self.out_dir.clone())
+                .unwrap_or_else(|_err| self.out_dir.clone())
                 .display()
         ));
         Ok(())
