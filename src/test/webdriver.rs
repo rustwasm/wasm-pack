@@ -20,12 +20,11 @@ pub fn get_or_install_chromedriver(
         (_, Some(path)) => Ok(path),
         (BuildMode::Normal, None) => install_chromedriver(crate_path),
         (BuildMode::Force, None) => install_chromedriver(crate_path),
-        (BuildMode::Noinstall, None) => Error::crate_config(
+        (BuildMode::Noinstall, None) => Err(Error::crate_config(
             "No crate-local `chromedriver` binary found, and could not find a global \
              `chromedriver` on the `$PATH`. Not installing `chromedriver` because of noinstall \
              mode.",
-        )
-        .map(|_| unreachable!()),
+        )),
     }
 }
 
@@ -72,11 +71,10 @@ pub fn get_or_install_geckodriver(
         (_, Some(path)) => Ok(path),
         (BuildMode::Normal, None) => install_geckodriver(crate_path),
         (BuildMode::Force, None) => install_geckodriver(crate_path),
-        (BuildMode::Noinstall, None) => Error::crate_config(
+        (BuildMode::Noinstall, None) => Err(Error::crate_config(
             "No crate-local `geckodriver` binary found, and could not find a global `geckodriver` \
              on the `$PATH`. Not installing `geckodriver` because of noinstall mode.",
-        )
-        .map(|_| unreachable!()),
+        )),
     }
 }
 
@@ -133,6 +131,8 @@ pub fn get_safaridriver(log: &Logger, crate_path: &Path) -> Result<PathBuf, Erro
     if let Some(p) = bin_path(log, crate_path, "safaridriver") {
         Ok(p)
     } else {
-        Error::crate_config("could not find `safaridriver` on the `$PATH`").map(|_| unreachable!())
+        Err(Error::crate_config(
+            "could not find `safaridriver` on the `$PATH`",
+        ))
     }
 }

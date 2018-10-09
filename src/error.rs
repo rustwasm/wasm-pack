@@ -48,14 +48,17 @@ pub enum Error {
 
     /// An error invoking another CLI tool.
     #[fail(
-        display = "Process exited with {}: {}. stderr:\n\n{}",
+        display = "Process exited with {}: {}.\n\nstdout:{}\n\nstderr:\n\n{}",
         exit_status,
         message,
+        stdout,
         stderr
     )]
     Cli {
         /// Error message.
         message: String,
+        /// The underlying CLI's `stdout` output.
+        stdout: String,
         /// The underlying CLI's `stderr` output.
         stderr: String,
         /// The exit status of the subprocess
@@ -101,19 +104,20 @@ pub enum Error {
 
 impl Error {
     /// Construct a CLI error.
-    pub fn cli(message: &str, stderr: Cow<str>, exit_status: ExitStatus) -> Result<(), Self> {
-        Err(Error::Cli {
+    pub fn cli(message: &str, stdout: Cow<str>, stderr: Cow<str>, exit_status: ExitStatus) -> Self {
+        Error::Cli {
             message: message.to_string(),
+            stdout: stdout.to_string(),
             stderr: stderr.to_string(),
             exit_status,
-        })
+        }
     }
 
     /// Construct a crate configuration error.
-    pub fn crate_config(message: &str) -> Result<(), Self> {
-        Err(Error::CrateConfig {
+    pub fn crate_config(message: &str) -> Self {
+        Error::CrateConfig {
             message: message.to_string(),
-        })
+        }
     }
 
     /// Construct an archive error.
@@ -161,6 +165,7 @@ impl Error {
             } => "Your rustc version is not supported. Please install version 1.30.0 or higher.",
             Error::Cli {
                 message: _,
+                stdout: _,
                 stderr: _,
                 exit_status: _,
             } => "There was an error while calling another CLI tool. Details:\n\n",

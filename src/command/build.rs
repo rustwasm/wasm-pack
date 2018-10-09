@@ -55,7 +55,7 @@ impl FromStr for BuildMode {
             "no-install" => Ok(BuildMode::Noinstall),
             "normal" => Ok(BuildMode::Normal),
             "force" => Ok(BuildMode::Force),
-            _ => Error::crate_config(&format!("Unknown build mode: {}", s)).map(|_| unreachable!()),
+            _ => Err(Error::crate_config(&format!("Unknown build mode: {}", s))),
         }
     }
 }
@@ -94,11 +94,11 @@ pub struct BuildOptions {
     pub out_dir: String,
 }
 
-type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
+type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), failure::Error>;
 
 impl Build {
     /// Construct a build command from the given options.
-    pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
+    pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, failure::Error> {
         let crate_path = set_crate_path(build_opts.path)?;
         let crate_name = manifest::get_crate_name(&crate_path)?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
@@ -117,7 +117,7 @@ impl Build {
     }
 
     /// Execute this `Build` command.
-    pub fn run(&mut self, log: &Logger) -> Result<(), Error> {
+    pub fn run(&mut self, log: &Logger) -> Result<(), failure::Error> {
         let process_steps = Build::get_process_steps(&self.mode);
 
         let mut step_counter = Step::new(process_steps.len());
@@ -188,7 +188,11 @@ impl Build {
         }
     }
 
-    fn step_check_rustc_version(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_check_rustc_version(
+        &mut self,
+        step: &Step,
+        log: &Logger,
+    ) -> Result<(), failure::Error> {
         info!(&log, "Checking rustc version...");
         let version = build::check_rustc_version(step)?;
         let msg = format!("rustc version is {}.", version);
@@ -196,23 +200,23 @@ impl Build {
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Checking crate configuration...");
         manifest::check_crate_config(&self.crate_path, step)?;
         info!(&log, "Crate is correctly configured.");
         Ok(())
     }
 
-    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Adding wasm-target...");
-        build::rustup_add_wasm_target(step)?;
+        build::rustup_add_wasm_target(log, step)?;
         info!(&log, "Adding wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.debug, step)?;
+        build::cargo_build_wasm(log, &self.crate_path, self.debug, step)?;
 
         info!(
             &log,
@@ -226,14 +230,14 @@ impl Build {
         Ok(())
     }
 
-    fn step_create_dir(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_create_dir(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Creating a pkg directory...");
         create_pkg_dir(&self.out_dir, step)?;
         info!(&log, "Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }
 
-    fn step_create_json(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_create_json(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Writing a package.json...");
         manifest::write_package_json(
             &self.crate_path,
@@ -251,14 +255,18 @@ impl Build {
         Ok(())
     }
 
-    fn step_copy_readme(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_copy_readme(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Copying readme from crate...");
         readme::copy_from_crate(&self.crate_path, &self.out_dir, step)?;
         info!(&log, "Copied readme from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_install_wasm_bindgen(
+        &mut self,
+        step: &Step,
+        log: &Logger,
+    ) -> Result<(), failure::Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_path)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
@@ -288,7 +296,7 @@ impl Build {
         Ok(())
     }
 
-    fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_path,

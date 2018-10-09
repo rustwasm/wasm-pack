@@ -1,8 +1,11 @@
 //! Building a Rust crate into a `.wasm` binary.
 
+use child;
 use emoji;
 use error::Error;
+use failure::ResultExt;
 use progressbar::Step;
+use slog::Logger;
 use std::path::Path;
 use std::process::Command;
 use std::str;
@@ -54,28 +57,23 @@ fn rustc_minor_version() -> Option<u32> {
 
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
 /// current toolchain
-pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
+pub fn rustup_add_wasm_target(log: &Logger, step: &Step) -> Result<(), failure::Error> {
     let msg = format!("{}Adding WASM target...", emoji::TARGET);
     PBAR.step(step, &msg);
-    let output = Command::new("rustup")
-        .arg("target")
-        .arg("add")
-        .arg("wasm32-unknown-unknown")
-        .output()?;
-    if !output.status.success() {
-        let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli(
-            "Adding the wasm32-unknown-unknown target failed",
-            s,
-            output.status,
-        )
-    } else {
-        Ok(())
-    }
+    let mut cmd = Command::new("rustup");
+    cmd.arg("target").arg("add").arg("wasm32-unknown-unknown");
+    child::run(log, cmd, "rustup")
+        .context("Adding the wasm32-unknown-unknown target with rustup")?;
+    Ok(())
 }
 
 /// Run `cargo build` targetting `wasm32-unknown-unknown`.
-pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Error> {
+pub fn cargo_build_wasm(
+    log: &Logger,
+    path: &Path,
+    debug: bool,
+    step: &Step,
+) -> Result<(), failure::Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("cargo");
@@ -84,32 +82,22 @@ pub fn cargo_build_wasm(path: &Path, debug: bool, step: &Step) -> Result<(), Err
         cmd.arg("--release");
     }
     cmd.arg("--target").arg("wasm32-unknown-unknown");
-    let output = cmd.output()?;
-
-    if !output.status.success() {
-        let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Compilation of your program failed", s, output.status)
-    } else {
-        Ok(())
-    }
+    child::run(log, cmd, "cargo build").context("Compiling your crate to WebAssembly")?;
+    Ok(())
 }
 
 /// Run `cargo build --tests` targetting `wasm32-unknown-unknown`.
-pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
-    let output = {
-        let mut cmd = Command::new("cargo");
-        cmd.current_dir(path).arg("build").arg("--tests");
-        if !debug {
-            cmd.arg("--release");
-        }
-        cmd.arg("--target").arg("wasm32-unknown-unknown");
-        cmd.output()?
-    };
-
-    if !output.status.success() {
-        let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Compilation of your program failed", s, output.status)
-    } else {
-        Ok(())
+pub fn cargo_build_wasm_tests(
+    log: &Logger,
+    path: &Path,
+    debug: bool,
+) -> Result<(), failure::Error> {
+    let mut cmd = Command::new("cargo");
+    cmd.current_dir(path).arg("build").arg("--tests");
+    if !debug {
+        cmd.arg("--release");
     }
+    cmd.arg("--target").arg("wasm32-unknown-unknown");
+    child::run(log, cmd, "cargo build").context("Compilation of your program failed")?;
+    Ok(())
 }

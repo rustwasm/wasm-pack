@@ -8,7 +8,7 @@ use PBAR;
 
 /// Executes the 'npm pack' command on the 'pkg' directory
 /// which creates a tarball that can be published to the NPM registry
-pub fn pack(path: Option<PathBuf>, log: &Logger) -> result::Result<(), Error> {
+pub fn pack(path: Option<PathBuf>, log: &Logger) -> result::Result<(), failure::Error> {
     let crate_path = set_crate_path(path)?;
 
     info!(&log, "Packing up the npm package...");
@@ -18,7 +18,7 @@ pub fn pack(path: Option<PathBuf>, log: &Logger) -> result::Result<(), Error> {
             &crate_path, &crate_path
         ),
     })?;
-    npm::npm_pack(&pkg_directory.to_string_lossy())?;
+    npm::npm_pack(log, &pkg_directory.to_string_lossy())?;
     info!(
         &log,
         "Your package is located at {:#?}",
