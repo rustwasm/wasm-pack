@@ -5,6 +5,7 @@ use binaries::{
 };
 use command::build::BuildMode;
 use error::Error;
+use failure;
 use slog::Logger;
 use std::path::{Path, PathBuf};
 use target;
@@ -15,7 +16,7 @@ pub fn get_or_install_chromedriver(
     log: &Logger,
     crate_path: &Path,
     mode: BuildMode,
-) -> Result<PathBuf, Error> {
+) -> Result<PathBuf, failure::Error> {
     match (mode, bin_path(log, crate_path, "chromedriver")) {
         (_, Some(path)) => Ok(path),
         (BuildMode::Normal, None) => install_chromedriver(crate_path),
@@ -24,7 +25,8 @@ pub fn get_or_install_chromedriver(
             "No crate-local `chromedriver` binary found, and could not find a global \
              `chromedriver` on the `$PATH`. Not installing `chromedriver` because of noinstall \
              mode.",
-        )),
+        )
+        .into()),
     }
 }
 
@@ -52,7 +54,7 @@ fn get_chromedriver_url() -> Result<String, Error> {
 }
 
 /// Download and install a pre-built `chromedriver` binary.
-pub fn install_chromedriver(crate_path: &Path) -> Result<PathBuf, Error> {
+pub fn install_chromedriver(crate_path: &Path) -> Result<PathBuf, failure::Error> {
     let url = get_chromedriver_url()?;
     install_binaries_from_zip_at_url(crate_path, &url, Some("chromedriver"))?;
     let chromedriver = get_local_chromedriver_path(crate_path);
@@ -66,7 +68,7 @@ pub fn get_or_install_geckodriver(
     log: &Logger,
     crate_path: &Path,
     mode: BuildMode,
-) -> Result<PathBuf, Error> {
+) -> Result<PathBuf, failure::Error> {
     match (mode, bin_path(log, crate_path, "geckodriver")) {
         (_, Some(path)) => Ok(path),
         (BuildMode::Normal, None) => install_geckodriver(crate_path),
@@ -74,7 +76,8 @@ pub fn get_or_install_geckodriver(
         (BuildMode::Noinstall, None) => Err(Error::crate_config(
             "No crate-local `geckodriver` binary found, and could not find a global `geckodriver` \
              on the `$PATH`. Not installing `geckodriver` because of noinstall mode.",
-        )),
+        )
+        .into()),
     }
 }
 
@@ -107,7 +110,7 @@ fn get_local_geckodriver_path(crate_path: &Path) -> PathBuf {
 }
 
 /// Download and install a pre-built `geckodriver` binary.
-pub fn install_geckodriver(crate_path: &Path) -> Result<PathBuf, Error> {
+pub fn install_geckodriver(crate_path: &Path) -> Result<PathBuf, failure::Error> {
     let url = get_geckodriver_url()?;
 
     if url.ends_with("tar.gz") {

@@ -12,7 +12,7 @@ use std::str;
 use PBAR;
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
-pub fn check_rustc_version(step: &Step) -> Result<String, Error> {
+pub fn check_rustc_version(step: &Step) -> Result<String, failure::Error> {
     let msg = format!("{}Checking `rustc` version...", emoji::CRAB);
     PBAR.step(step, &msg);
     let local_minor_version = rustc_minor_version();
@@ -25,14 +25,14 @@ pub fn check_rustc_version(step: &Step) -> Result<String, Error> {
                   mv.to_string()
                 ),
                 local_minor_version: mv.to_string(),
-              })
+              }.into())
             } else {
               Ok(mv.to_string())
             }
       },
       None => Err(Error::RustcMissing {
         message: "We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher.".to_string(),
-      }),
+      }.into()),
     }
 }
 

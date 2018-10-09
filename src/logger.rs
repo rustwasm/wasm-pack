@@ -1,7 +1,7 @@
 //! Logging facilities for `wasm-pack`.
 
 use command::Command;
-use error::Error;
+use failure;
 use slog::{Drain, Level, Logger};
 use slog_async::Async;
 use slog_term::{FullFormat, PlainDecorator};
@@ -9,7 +9,7 @@ use std::fs::OpenOptions;
 use std::path::PathBuf;
 
 /// Create the logger for wasm-pack that will output any info warning or errors we encounter
-pub fn new(cmd: &Command, verbosity: u8) -> Result<Logger, Error> {
+pub fn new(cmd: &Command, verbosity: u8) -> Result<Logger, failure::Error> {
     let log_path = log_file_path(&cmd);
     let file = OpenOptions::new()
         .create(true)

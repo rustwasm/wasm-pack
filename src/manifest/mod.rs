@@ -12,6 +12,7 @@ use self::npm::{
 };
 use emoji;
 use error::Error;
+use failure;
 use progressbar::Step;
 use serde_json;
 use toml;
@@ -76,13 +77,14 @@ struct CargoLib {
     crate_type: Option<Vec<String>>,
 }
 
-fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
+fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
     let manifest_path = path.join("Cargo.toml");
     if !manifest_path.is_file() {
         return Err(Error::crate_config(&format!(
             "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
             path.display()
-        )));
+        ))
+        .into());
     }
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
@@ -214,7 +216,7 @@ pub fn write_package_json(
     disable_dts: bool,
     target: &str,
     step: &Step,
-) -> Result<(), Error> {
+) -> Result<(), failure::Error> {
     let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
     PBAR.step(step, &msg);
@@ -235,19 +237,19 @@ pub fn write_package_json(
 }
 
 /// Get the crate name for the crate at the given path.
-pub fn get_crate_name(path: &Path) -> Result<String, Error> {
+pub fn get_crate_name(path: &Path) -> Result<String, failure::Error> {
     Ok(read_cargo_toml(path)?.package.name)
 }
 
 /// Check that the crate the given path is properly configured.
-pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), Error> {
+pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), failure::Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
     PBAR.step(&step, &msg);
     check_crate_type(path)?;
     Ok(())
 }
 
-fn check_crate_type(path: &Path) -> Result<(), Error> {
+fn check_crate_type(path: &Path) -> Result<(), failure::Error> {
     if read_cargo_toml(path)?.lib.map_or(false, |lib| {
         lib.crate_type
             .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
@@ -259,5 +261,5 @@ fn check_crate_type(path: &Path) -> Result<(), Error> {
        Cargo.toml file:\n\n\
        [lib]\n\
        crate-type = [\"cdylib\", \"rlib\"]"
-    ))
+    ).into())
 }
