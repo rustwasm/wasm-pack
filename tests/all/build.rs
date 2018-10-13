@@ -24,6 +24,7 @@ fn build_in_non_crate_directory_doesnt_panic() {
 #[test]
 fn it_should_build_js_hello_world_example() {
     let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
     let cli = Cli::from_iter_safe(vec![
         "wasm-pack",
         "build",
