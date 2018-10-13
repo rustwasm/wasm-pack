@@ -237,8 +237,9 @@ fn it_format_out_dir_on_windows() {
         "build",
         &fixture.path.display().to_string(),
     ])
-    let result = command::run_wasm_pack(cli.cmd, &logger);
-    assert!(result.is_ok(), "js_hello_world example should pass");
+    let logger = logger::new(&cli.cmd, 1).unwrap();
+    let _result =
+        command::run_wasm_pack(cli.cmd, &logger).expect("js_hello_world example should pass");
 
     let wasm_pack_log = utils::file::read_file(&fixture.path.join("wasm-pack.log")).unwrap();
     assert!(
