@@ -46,6 +46,24 @@ pub enum Error {
         local_minor_version: String,
     },
 
+    #[fail(display = "{}", _0)]
+    /// An error in parsing your wasm-pack version.
+    WasmPackMissing {
+        /// Error message
+        message: String,
+    },
+
+    #[fail(display = "{}", _0)]
+    /// An error from having an older wasm-pack version.
+    WasmPackVersion {
+        /// Error message
+        message: String,
+        /// Local version of wasm-pack
+        local_version: String,
+        /// Latest version of wasm-pack
+        latest_version: String,
+    },
+
     /// An error invoking another CLI tool.
     #[fail(
         display = "Process exited with {}: {}.\n\nstdout:{}\n\nstderr:\n\n{}",
@@ -163,6 +181,14 @@ impl Error {
               message: _,
               local_minor_version: _,
             } => "Your rustc version is not supported. Please install version 1.30.0 or higher.",
+            Error::WasmPackMissing {
+                message: _,
+            } => "We can't figure out what your wasm-pack version is, make sure the installation path is correct.",
+            Error::WasmPackVersion {
+                message: _,
+                local_version: _,
+                latest_version: _,
+            } => "There's a newer version of wasm-pack available, the new version is: , you are using: ",
             Error::Cli {
                 message: _,
                 stdout: _,

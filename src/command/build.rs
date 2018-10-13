@@ -160,6 +160,7 @@ impl Build {
         match &mode {
             BuildMode::Normal => steps![
                 step_check_rustc_version,
+                step_check_wasm_pack_version,
                 step_check_crate_config,
                 step_add_wasm_target,
                 step_build_wasm,
@@ -171,6 +172,7 @@ impl Build {
             ],
             BuildMode::Noinstall => steps![
                 step_check_rustc_version,
+                step_check_wasm_pack_version,
                 step_check_crate_config,
                 step_build_wasm,
                 step_create_dir,
@@ -196,6 +198,18 @@ impl Build {
         info!(&log, "Checking rustc version...");
         let version = build::check_rustc_version(step)?;
         let msg = format!("rustc version is {}.", version);
+        info!(&log, "{}", &msg);
+        Ok(())
+    }
+
+    fn step_check_wasm_pack_version(
+        &mut self,
+        step: &Step,
+        log: &Logger,
+    ) -> Result<(), failure::Error> {
+        info!(&log, "Checking wasm-pack version...");
+        let version = build::check_wasm_pack_version(step)?;
+        let msg = format!("wasm-pack version is: {:?}.", version);
         info!(&log, "{}", &msg);
         Ok(())
     }

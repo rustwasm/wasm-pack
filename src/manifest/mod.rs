@@ -10,13 +10,24 @@ use std::path::Path;
 use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
+use curl::easy;
 use emoji;
 use error::Error;
 use failure;
 use progressbar::Step;
 use serde_json;
 use toml;
+
 use PBAR;
+
+struct Collector(Vec<u8>);
+
+impl easy::Handler for Collector {
+    fn write(&mut self, data: &[u8]) -> Result<usize, easy::WriteError> {
+        self.0.extend_from_slice(data);
+        Ok(data.len())
+    }
+}
 
 #[derive(Debug, Deserialize)]
 struct CargoManifest {
@@ -75,6 +86,39 @@ struct DetailedCargoDependency {
 struct CargoLib {
     #[serde(rename = "crate-type")]
     crate_type: Option<Vec<String>>,
+}
+
+/// Struct for crates.io api, currently checking wasm-pack latest version
+#[derive(Deserialize, Debug)]
+pub struct Crate {
+    #[serde(rename = "crate")]
+    crt: CrateInformation,
+}
+
+#[derive(Deserialize, Debug)]
+struct CrateInformation {
+    max_version: String,
+}
+
+impl Crate {
+    /// Call to the crates.io api and return the latest version of `wasm-pack`
+    pub fn return_wasm_pack_latest_version() -> String {
+        let crt = Crate::check_wasm_pack_latest_version();
+        crt.crt.max_version
+    }
+
+    fn check_wasm_pack_latest_version() -> Crate {
+        let mut easy = easy::Easy2::new(Collector(Vec::new()));
+        easy.get(true).unwrap();
+        easy.url("https://crates.io/api/v1/crates/wasm-pack")
+            .unwrap();
+        easy.perform().unwrap();
+
+        let contents = easy.get_ref();
+        let result = String::from_utf8_lossy(&contents.0);
+
+        serde_json::from_str(result.into_owned().as_str()).unwrap()
+    }
 }
 
 fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {

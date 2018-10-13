@@ -4,6 +4,7 @@ use child;
 use emoji;
 use error::Error;
 use failure::ResultExt;
+use manifest::Crate;
 use progressbar::Step;
 use slog::Logger;
 use std::path::Path;
@@ -36,6 +37,26 @@ pub fn check_rustc_version(step: &Step) -> Result<String, failure::Error> {
     }
 }
 
+/// Checks if `wasm-pack` is updated to the latest version
+pub fn check_wasm_pack_version(step: &Step) -> Result<(), failure::Error> {
+    let msg = format!("{}Checking `wasm-pack` version...", emoji::PACKAGE);
+    PBAR.step(step, &msg);
+    let wasm_pack_local_version = wasm_pack_local_version();
+    let wasm_pack_latest_version = Crate::return_wasm_pack_latest_version();
+    match wasm_pack_local_version {
+        Some(lv) => {
+            if !(lv == wasm_pack_latest_version) {
+                Ok(PBAR.info(&format!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}", wasm_pack_latest_version, lv)))
+            } else {
+                Ok(())
+            }
+        },
+        None => Err(Error::WasmPackMissing {
+            message: "We can't figure out what your wasm-pack version is, make sure the installation path is correct.".to_string(),
+        }.into()),
+    }
+}
+
 // from https://github.com/alexcrichton/proc-macro2/blob/79e40a113b51836f33214c6d00228934b41bd4ad/build.rs#L44-L61
 fn rustc_minor_version() -> Option<u32> {
     macro_rules! otry {
@@ -53,6 +74,29 @@ fn rustc_minor_version() -> Option<u32> {
         return None;
     }
     otry!(pieces.next()).parse().ok()
+}
+
+fn wasm_pack_local_version() -> Option<String> {
+    macro_rules! otry {
+        ($e:expr) => {
+            match $e {
+                Some(e) => e,
+                None => return None,
+            }
+        };
+    }
+
+    let output = otry!(Command::new("wasm-pack").arg("--version").output().ok());
+    let version = otry!(str::from_utf8(&output.stdout).ok());
+    let mut pieces = version.split(' ');
+    if pieces.next() != Some("wasm-pack") {
+        return None;
+    }
+    otry!(pieces.next())
+        .to_string()
+        .trim()
+        .parse::<String>()
+        .ok()
 }
 
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
