@@ -7,6 +7,7 @@ use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use failure::Error;
 use indicatif::HumanDuration;
+use license;
 use lockfile::Lockfile;
 use manifest;
 use progressbar::Step;
@@ -209,6 +210,7 @@ impl Build {
                 step_create_dir,
                 step_create_json,
                 step_copy_readme,
+                step_copy_license,
                 step_install_wasm_bindgen,
                 step_run_wasm_bindgen,
             ],
@@ -219,6 +221,7 @@ impl Build {
                 step_create_dir,
                 step_create_json,
                 step_copy_readme,
+                step_copy_license,
                 step_run_wasm_bindgen
             ],
             BuildMode::Force => steps![
@@ -226,6 +229,7 @@ impl Build {
                 step_create_dir,
                 step_create_json,
                 step_copy_readme,
+                step_copy_license,
                 step_run_wasm_bindgen
             ],
         }
@@ -300,7 +304,18 @@ impl Build {
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_copy_license(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
+        info!(&log, "Copying license from crate...");
+        license::copy_from_crate(&self.crate_path, &self.out_dir, step)?;
+        info!(&log, "Copied license from crate to {:#?}.", &self.out_dir);
+        Ok(())
+    }
+
+    fn step_install_wasm_bindgen(
+        &mut self,
+        step: &Step,
+        log: &Logger,
+    ) -> Result<(), failure::Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;

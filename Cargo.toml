@@ -19,6 +19,7 @@ failure = "0.1.2"
 flate2 = "1.0.2"
 hex = "0.3"
 human-panic = "1.0.1"
+glob = "0.2"
 indicatif = "0.9.0"
 lazy_static = "1.1.0"
 openssl = { version = '0.10.11', optional = true }

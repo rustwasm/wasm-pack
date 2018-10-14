@@ -10,6 +10,7 @@ extern crate dirs;
 extern crate failure;
 extern crate flate2;
 extern crate hex;
+extern crate glob;
 extern crate indicatif;
 #[macro_use]
 extern crate lazy_static;
@@ -36,6 +37,8 @@ pub mod build;
 pub mod child;
 pub mod command;
 pub mod emoji;
+pub mod error;
+pub mod license;
 pub mod lockfile;
 pub mod logger;
 pub mod manifest;
