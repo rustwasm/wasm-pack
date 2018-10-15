@@ -1,7 +1,6 @@
 [package]
 name = "binary-install"
 version = "0.1.0"
-authors = ["Jesper Håkansson <jesper@jesperh.se>"]
 
 [dependencies]
 curl = "0.4.13"
