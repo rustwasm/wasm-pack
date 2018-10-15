@@ -1,8 +1,8 @@
+use binary_install;
 use std::env;
 use std::fs;
 use tempfile;
 use utils::fixture;
-use wasm_pack::binaries;
 use wasm_pack::command::{self, build, test, Command};
 use wasm_pack::logger;
 
@@ -116,7 +116,7 @@ fn it_can_find_a_webdriver_on_path() {
     fixture.install_local_geckodriver();
 
     let geckodriver_dir = tempfile::TempDir::new().unwrap();
-    let local_geckodriver = binaries::local_bin_path(&fixture.path, "geckodriver");
+    let local_geckodriver = binary_install::path::local_bin_path(&fixture.path, "geckodriver");
     fs::copy(
         &local_geckodriver,
         geckodriver_dir

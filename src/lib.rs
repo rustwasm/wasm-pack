@@ -19,6 +19,7 @@ extern crate serde_json;
 extern crate structopt;
 #[macro_use]
 extern crate slog;
+extern crate binary_install;
 extern crate slog_async;
 extern crate slog_term;
 extern crate tar;
@@ -26,7 +27,6 @@ extern crate toml;
 extern crate which;
 extern crate zip;
 
-pub mod binaries;
 pub mod bindgen;
 pub mod build;
 pub mod child;

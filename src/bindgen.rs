@@ -1,6 +1,9 @@
 //! Functionality related to installing and running `wasm-bindgen`.
 
-use binaries::{self, bin_path, install_binaries_from_targz_at_url};
+use binary_install::{
+    install_binaries_from_targz_at_url,
+    path::{bin_path, local_bin_path},
+};
 use child;
 use emoji;
 use error::Error;
@@ -102,7 +105,7 @@ pub fn cargo_install_wasm_bindgen(
         .arg(crate_path);
 
     child::run(logger, cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
-    assert!(binaries::local_bin_path(crate_path, "wasm-bindgen").is_file());
+    assert!(local_bin_path(crate_path, "wasm-bindgen").is_file());
     Ok(())
 }
 

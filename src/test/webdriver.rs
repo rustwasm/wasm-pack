@@ -1,7 +1,8 @@
 //! Getting WebDriver client binaries.
 
-use binaries::{
-    self, bin_path, install_binaries_from_targz_at_url, install_binaries_from_zip_at_url,
+use binary_install::{
+    install_binaries_from_targz_at_url, install_binaries_from_zip_at_url,
+    path::{bin_path, local_bin_path},
 };
 use command::build::BuildMode;
 use error::Error;
@@ -31,7 +32,7 @@ pub fn get_or_install_chromedriver(
 }
 
 fn get_local_chromedriver_path(crate_path: &Path) -> PathBuf {
-    binaries::local_bin_path(crate_path, "chromedriver")
+    local_bin_path(crate_path, "chromedriver")
 }
 
 fn get_chromedriver_url() -> Result<String, Error> {
@@ -106,7 +107,7 @@ fn get_geckodriver_url() -> Result<String, Error> {
 }
 
 fn get_local_geckodriver_path(crate_path: &Path) -> PathBuf {
-    binaries::local_bin_path(crate_path, "geckodriver")
+    local_bin_path(crate_path, "geckodriver")
 }
 
 /// Download and install a pre-built `geckodriver` binary.

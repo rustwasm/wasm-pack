@@ -1,4 +1,5 @@
 use super::logger::null_logger;
+use binary_install;
 use std::env;
 use std::fs;
 use std::io;
@@ -138,9 +139,9 @@ impl Fixture {
         static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
 
         let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
-        let shared_wasm_bindgen = wasm_pack::binaries::local_bin_path(&tests, "wasm-bindgen");
+        let shared_wasm_bindgen = binary_install::path::local_bin_path(&tests, "wasm-bindgen");
         let shared_wasm_bindgen_test_runner =
-            wasm_pack::binaries::local_bin_path(&tests, "wasm-bindgen-test-runner");
+            binary_install::path::local_bin_path(&tests, "wasm-bindgen-test-runner");
 
         INSTALL_WASM_BINDGEN.call_once(|| {
             if shared_wasm_bindgen.is_file() {
@@ -163,17 +164,17 @@ impl Fixture {
         assert!(shared_wasm_bindgen.is_file());
         assert!(shared_wasm_bindgen_test_runner.is_file());
 
-        wasm_pack::binaries::ensure_local_bin_dir(&self.path).unwrap();
+        binary_install::path::ensure_local_bin_dir(&self.path).unwrap();
 
         hard_link_or_copy(
             &shared_wasm_bindgen,
-            wasm_pack::binaries::local_bin_path(&self.path, "wasm-bindgen"),
+            binary_install::path::local_bin_path(&self.path, "wasm-bindgen"),
         )
         .expect("could not copy `wasm-bindgen` to fixture directory");
 
         hard_link_or_copy(
             &shared_wasm_bindgen_test_runner,
-            wasm_pack::binaries::local_bin_path(&self.path, "wasm-bindgen-test-runner"),
+            binary_install::path::local_bin_path(&self.path, "wasm-bindgen-test-runner"),
         )
         .expect("could not copy `wasm-bindgen-test` to fixture directory");
 
@@ -189,10 +190,10 @@ impl Fixture {
 
         let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
 
-        wasm_pack::binaries::ensure_local_bin_dir(&tests)
+        binary_install::path::ensure_local_bin_dir(&tests)
             .expect("could not create fixture's `bin` directory");
 
-        let geckodriver = wasm_pack::binaries::local_bin_path(&tests, "geckodriver");
+        let geckodriver = binary_install::path::local_bin_path(&tests, "geckodriver");
 
         FETCH_GECKODRIVER.call_once(|| {
             if geckodriver.is_file() {
@@ -203,12 +204,12 @@ impl Fixture {
             assert!(geckodriver.is_file());
         });
 
-        wasm_pack::binaries::ensure_local_bin_dir(&self.path)
+        binary_install::path::ensure_local_bin_dir(&self.path)
             .expect("could not create fixture's `bin` directory");
 
         hard_link_or_copy(
             &geckodriver,
-            wasm_pack::binaries::local_bin_path(&self.path, "geckodriver"),
+            binary_install::path::local_bin_path(&self.path, "geckodriver"),
         )
         .expect("could not copy `geckodriver` to fixture directory");
 
@@ -224,10 +225,10 @@ impl Fixture {
 
         let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
 
-        wasm_pack::binaries::ensure_local_bin_dir(&tests)
+        binary_install::path::ensure_local_bin_dir(&tests)
             .expect("could not create fixture's `bin` directory");
 
-        let chromedriver = wasm_pack::binaries::local_bin_path(&tests, "chromedriver");
+        let chromedriver = binary_install::path::local_bin_path(&tests, "chromedriver");
 
         FETCH_CHROMEDRIVER.call_once(|| {
             if chromedriver.is_file() {
@@ -238,12 +239,12 @@ impl Fixture {
             assert!(chromedriver.is_file());
         });
 
-        wasm_pack::binaries::ensure_local_bin_dir(&self.path)
+        binary_install::path::ensure_local_bin_dir(&self.path)
             .expect("could not create fixture's `bin` directory");
 
         hard_link_or_copy(
             &chromedriver,
-            wasm_pack::binaries::local_bin_path(&self.path, "chromedriver"),
+            binary_install::path::local_bin_path(&self.path, "chromedriver"),
         )
         .expect("could not copy `chromedriver` to fixture directory");
 
