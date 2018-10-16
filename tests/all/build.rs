@@ -34,6 +34,7 @@ fn it_should_build_js_hello_world_example() {
         &fixture.path.display().to_string(),
     ])
     .unwrap();
+<<<<<<< HEAD
     fixture.run(cli.cmd).unwrap();
 }
 
@@ -138,6 +139,11 @@ fn it_should_build_nested_project_with_transitive_dependencies() {
     ])
     .unwrap();
     fixture.run(cli.cmd).unwrap();
+=======
+    let logger = logger::new(&cli.cmd, cli.verbosity).unwrap();
+    command::run_wasm_pack(cli.cmd, &logger)
+        .expect("running wasm-pack in a js-hello-world directory should succeed.");
+>>>>>>> bugfix(command/build): passing test case
 }
 
 #[test]
@@ -237,9 +243,15 @@ fn it_format_out_dir_on_windows() {
         "build",
         &fixture.path.display().to_string(),
     ])
+<<<<<<< HEAD
     let logger = logger::new(&cli.cmd, 1).unwrap();
     let _result =
         command::run_wasm_pack(cli.cmd, &logger).expect("js_hello_world example should pass");
+=======
+    .unwrap();
+    let result = command::run_wasm_pack(cli.cmd, &logger);
+    assert!(result.is_ok(), "js_hello_world example should pass");
+>>>>>>> bugfix(command/build): passing test case
 
     let wasm_pack_log = utils::file::read_file(&fixture.path.join("wasm-pack.log")).unwrap();
     assert!(
