@@ -32,9 +32,6 @@ fn it_should_build_js_hello_world_example() {
     ])
     .unwrap();
     let logger = logger::new(&cli.cmd, cli.verbosity).unwrap();
-    let result = command::run_wasm_pack(cli.cmd, &logger);
-    assert!(
-        result.is_ok(),
-        "running wasm-pack in a js-hello-world directory should succeed.",
-    );
+    command::run_wasm_pack(cli.cmd, &logger)
+        .expect("running wasm-pack in a js-hello-world directory should succeed.");
 }

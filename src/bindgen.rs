@@ -5,6 +5,7 @@ use emoji;
 use error::Error;
 use progressbar::Step;
 use slog::Logger;
+use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use target;
@@ -126,10 +127,17 @@ pub fn wasm_bindgen_build(
     let out_dir = out_dir.to_str().unwrap();
 
     if let Some(wasm_bindgen_path) = wasm_bindgen_path(log, path) {
-        let wasm_path = format!(
-            "target/wasm32-unknown-unknown/{}/{}.wasm",
-            release_or_debug, binary_name
-        );
+        let target_path = match env::var("CARGO_TARGET_DIR") {
+            Ok(path) => PathBuf::from(&path),
+            Err(_) => PathBuf::from("target"),
+        };
+        let mut wasm_path = target_path
+            .join("wasm32-unknown-unknown")
+            .join(release_or_debug)
+            .join(binary_name);
+        wasm_path.set_extension("wasm");
+        let wasm_path = wasm_path.display().to_string();
+
         let dts_arg = if disable_dts {
             "--no-typescript"
         } else {
