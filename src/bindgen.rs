@@ -1,11 +1,11 @@
 //! Functionality related to installing and running `wasm-bindgen`.
 
 use binaries::{self, bin_path, install_binaries_from_targz_at_url};
+use cargo_metadata;
 use emoji;
 use error::Error;
 use progressbar::Step;
 use slog::Logger;
-use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use target;
@@ -127,11 +127,11 @@ pub fn wasm_bindgen_build(
     let out_dir = out_dir.to_str().unwrap();
 
     if let Some(wasm_bindgen_path) = wasm_bindgen_path(log, path) {
-        let target_path = match env::var("CARGO_TARGET_DIR") {
-            Ok(path) => PathBuf::from(&path),
-            Err(_) => PathBuf::from("target"),
-        };
-        let mut wasm_path = target_path
+        let manifest = path.join("Cargo.toml");
+        let target_path = cargo_metadata::metadata(Some(&manifest))
+            .unwrap()
+            .target_directory;
+        let mut wasm_path = PathBuf::from(&target_path)
             .join("wasm32-unknown-unknown")
             .join(release_or_debug)
             .join(binary_name);
