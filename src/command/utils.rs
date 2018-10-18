@@ -1,7 +1,7 @@
 //! Utility functions for commands.
 
 use emoji;
-use error::Error;
+use failure;
 use progressbar::Step;
 use std::fs;
 use std::io;
@@ -20,7 +20,7 @@ pub fn set_crate_path(path: Option<PathBuf>) -> io::Result<PathBuf> {
 }
 
 /// Construct our `pkg` directory in the crate.
-pub fn create_pkg_dir(out_dir: &Path, step: &Step) -> Result<(), Error> {
+pub fn create_pkg_dir(out_dir: &Path, step: &Step) -> Result<(), failure::Error> {
     let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
     PBAR.step(step, &msg);
     fs::create_dir_all(&out_dir)?;

@@ -1,3 +1,4 @@
+use super::logger::null_logger;
 use std::env;
 use std::fs;
 use std::io;
@@ -6,9 +7,8 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::{Once, ONCE_INIT};
 use std::thread;
-use wasm_pack;
-
 use tempfile::TempDir;
+use wasm_pack;
 
 fn hard_link_or_copy<P1: AsRef<Path>, P2: AsRef<Path>>(from: P1, to: P2) -> io::Result<()> {
     let from = from.as_ref();
@@ -151,7 +151,11 @@ impl Fixture {
             const WASM_BINDGEN_VERSION: &str = "0.2.21";
             wasm_pack::bindgen::download_prebuilt_wasm_bindgen(&tests, WASM_BINDGEN_VERSION)
                 .or_else(|_| {
-                    wasm_pack::bindgen::cargo_install_wasm_bindgen(&tests, WASM_BINDGEN_VERSION)
+                    wasm_pack::bindgen::cargo_install_wasm_bindgen(
+                        &null_logger(),
+                        &tests,
+                        WASM_BINDGEN_VERSION,
+                    )
                 })
                 .unwrap();
         });

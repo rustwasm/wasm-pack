@@ -12,6 +12,7 @@ use self::npm::{
 };
 use emoji;
 use error::Error;
+use failure;
 use progressbar::Step;
 use serde_json;
 use toml;
@@ -38,22 +39,23 @@ struct CargoPackage {
 
 impl CargoPackage {
     fn check_optional_fields(&self) {
-        let warn_fmt = |field| {
-            format!(
-                "Field '{}' is missing from Cargo.toml. It is not necessary, but recommended",
-                field
-            )
-        };
-
+        let mut messages = vec![];
         if self.description.is_none() {
-            PBAR.warn(&warn_fmt("description"));
+            messages.push("description");
         }
         if self.repository.is_none() {
-            PBAR.warn(&warn_fmt("repository"));
+            messages.push("repository");
         }
         if self.license.is_none() {
-            PBAR.warn(&warn_fmt("license"));
+            messages.push("license");
         }
+
+        match messages.len() {
+            1 => PBAR.info(&format!("Optional field missing from Cargo.toml: '{}'. This is not necessary, but recommended", messages[0])),
+            2 => PBAR.info(&format!("Optional fields missing from Cargo.toml: '{}', '{}'. These are not necessary, but recommended", messages[0], messages[1])),
+            3 => PBAR.info(&format!("Optional fields missing from Cargo.toml: '{}', '{}', and '{}'. These are not necessary, but recommended", messages[0], messages[1], messages[2])),
+            _ => ()
+        };
     }
 }
 
@@ -75,14 +77,14 @@ struct CargoLib {
     crate_type: Option<Vec<String>>,
 }
 
-fn read_cargo_toml(path: &Path) -> Result<CargoManifest, Error> {
+fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
     let manifest_path = path.join("Cargo.toml");
     if !manifest_path.is_file() {
-        return Error::crate_config(&format!(
+        return Err(Error::crate_config(&format!(
             "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
             path.display()
         ))
-        .map(|_| unreachable!());
+        .into());
     }
     let mut cargo_file = File::open(manifest_path)?;
     let mut cargo_contents = String::new();
@@ -214,7 +216,7 @@ pub fn write_package_json(
     disable_dts: bool,
     target: &str,
     step: &Step,
-) -> Result<(), Error> {
+) -> Result<(), failure::Error> {
     let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
     PBAR.step(step, &msg);
@@ -235,29 +237,29 @@ pub fn write_package_json(
 }
 
 /// Get the crate name for the crate at the given path.
-pub fn get_crate_name(path: &Path) -> Result<String, Error> {
+pub fn get_crate_name(path: &Path) -> Result<String, failure::Error> {
     Ok(read_cargo_toml(path)?.package.name)
 }
 
 /// Check that the crate the given path is properly configured.
-pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), Error> {
+pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), failure::Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
     PBAR.step(&step, &msg);
     check_crate_type(path)?;
     Ok(())
 }
 
-fn check_crate_type(path: &Path) -> Result<(), Error> {
+fn check_crate_type(path: &Path) -> Result<(), failure::Error> {
     if read_cargo_toml(path)?.lib.map_or(false, |lib| {
         lib.crate_type
             .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
     }) {
         return Ok(());
     }
-    Error::crate_config(
+    Err(Error::crate_config(
       "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
        Cargo.toml file:\n\n\
        [lib]\n\
        crate-type = [\"cdylib\", \"rlib\"]"
-    )
+    ).into())
 }

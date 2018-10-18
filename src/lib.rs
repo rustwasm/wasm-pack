@@ -29,6 +29,7 @@ extern crate zip;
 pub mod binaries;
 pub mod bindgen;
 pub mod build;
+pub mod child;
 pub mod command;
 pub mod emoji;
 pub mod error;

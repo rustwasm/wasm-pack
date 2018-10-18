@@ -23,10 +23,10 @@ struct Package {
 
 impl Lockfile {
     /// Read the `Cargo.lock` file for the crate at the given path.
-    pub fn new(crate_path: &Path) -> Result<Lockfile, Error> {
+    pub fn new(crate_path: &Path) -> Result<Lockfile, failure::Error> {
         let lock_path = get_lockfile_path(crate_path)?;
         let lockfile = fs::read_to_string(lock_path)?;
-        toml::from_str(&lockfile).map_err(Error::from)
+        toml::from_str(&lockfile).map_err(|err| Error::from(err).into())
     }
 
     /// Get the version of `wasm-bindgen` dependency used in the `Cargo.lock`.
@@ -36,7 +36,7 @@ impl Lockfile {
 
     /// Like `wasm_bindgen_version`, except it returns an error instead of
     /// `None`.
-    pub fn require_wasm_bindgen(&self) -> Result<&str, Error> {
+    pub fn require_wasm_bindgen(&self) -> Result<&str, failure::Error> {
         self.wasm_bindgen_version().ok_or_else(|| {
             let message = format!(
                 "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
@@ -44,7 +44,7 @@ impl Lockfile {
                  wasm-bindgen = \"0.2\"",
                 style("wasm-bindgen").bold().dim(),
             );
-            Error::CrateConfig { message }
+            Error::CrateConfig { message }.into()
         })
     }
 
@@ -63,7 +63,7 @@ impl Lockfile {
 
 /// Given the path to the crate that we are buliding, return a `PathBuf`
 /// containing the location of the lock file, by finding the workspace root.
-fn get_lockfile_path(crate_path: &Path) -> Result<PathBuf, Error> {
+fn get_lockfile_path(crate_path: &Path) -> Result<PathBuf, failure::Error> {
     // Identify the crate's root directory, or return an error.
     let manifest = crate_path.join("Cargo.toml");
     let crate_root = cargo_metadata::metadata(Some(&manifest))
@@ -77,7 +77,8 @@ fn get_lockfile_path(crate_path: &Path) -> Result<PathBuf, Error> {
     if !lockfile_path.is_file() {
         Err(Error::CrateConfig {
             message: format!("Could not find lockfile at {:?}", lockfile_path),
-        })
+        }
+        .into())
     } else {
         Ok(lockfile_path)
     }

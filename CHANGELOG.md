@@ -1,5 +1,71 @@
 # Changelog
 
+## 🌄 0.5.1
+
+- ### 🤕 Fixes
+
+  - **Child Process and output management - [fitzgen], [issue/287] [pull/392]**
+
+    Not exactly a "fix", but definitely a huge improvment in how child processes and their
+    output are handled by `wasm-pack`. Ever sat at a long prompt from `wasm-pack` and
+    wondered what was happening? No longer! Did `wasm-pack` eat your test output- no more!
+
+    [issue/287]: https://github.com/rustwasm/wasm-pack/issues/287
+    [pull/392]: https://github.com/rustwasm/wasm-pack/pull/392
+
+  - **Less scary missing field  messages - [mstallmo], [issue/393] [pull/394]**
+
+    After watching a livestream of someone using `wasm-pack`, [fitzgen] noted that folks
+    seemed pretty alarmed by the loud warning about missing optional manifest fields.
+    As a result, we are now downgrading those messages from WARN to INFO, and consolidating
+    them on a single line.
+
+    [issue/393]: https://github.com/rustwasm/wasm-pack/issues/393
+    [pull/394]: https://github.com/rustwasm/wasm-pack/pull/394
+  
+  - **Add `exit_status` to CLI errors - [konstin], [issue/291] [pull/387]**
+
+    We'd been hiding these- but we shouldn't have been!
+
+    [konstin]: https://github.com/konstin
+    [issue/291]: https://github.com/rustwasm/wasm-pack/issues/291
+    [pull/387]: https://github.com/rustwasm/wasm-pack/pull/387
+
+  - **Remove lingering forced nightly usage - [alexcrichton], [pull/383]**
+
+    In 0.5.0 we removed all forced nightly usage as we depend on `~1.30` which is now
+    available on both nightly and beta channels! We had a bit of a race condition with 
+    that PR and the `wasm-pack test` PR, and missed a few as a result! This removes all
+    lingering forced nightly, which only affected the `wasm-pack test` command.
+
+    [pull/383]: https://github.com/rustwasm/wasm-pack/pull/383
+
+  - **Fix `wasm-bindgen-test` dependency error message - [fitzgen], [issue/377] [pull/378]**
+
+    The error message about missing the `wasm-bindgen-test` dependency errantly stated
+    that the user was missing a `wasm-bindgen` dependency! We've fixed it to correctly
+    state the missing dependency now.
+
+    [issue/377]: https://github.com/rustwasm/wasm-pack/issues/377
+    [pull/378]: https://github.com/rustwasm/wasm-pack/pull/378
+
+  - **Fix prerequisites links in docs - [fitzgen], [pull/376]**
+
+    [pull/376]: https://github.com/rustwasm/wasm-pack/pull/376
+
+- ### 🛠️ Maintenance
+
+  - **Leverage `failure::Error` consistently - [drager], [issue/280] [pull/401]**
+
+    This PR finally makes it so that `wasm-pack` is handling errors in a consistent
+    way across the codebase. 
+
+    [drager]: https://github.com/drager
+    [issue/280]: https://github.com/rustwasm/wasm-pack/issues/280
+    [pull/401]: https://github.com/rustwasm/wasm-pack/pull/401
+
+  
+
 ## ☀️ 0.5.0
 
 - ### ✨ Features

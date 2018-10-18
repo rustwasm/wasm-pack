@@ -2,7 +2,8 @@
 
 pub mod webdriver;
 
-use error::Error;
+use child;
+use failure::{self, ResultExt};
 use slog::Logger;
 use std::ffi::OsStr;
 use std::path::Path;
@@ -15,7 +16,7 @@ pub fn cargo_test_wasm<I, K, V>(
     release: bool,
     log: &Logger,
     envs: I,
-) -> Result<(), Error>
+) -> Result<(), failure::Error>
 where
     I: IntoIterator<Item = (K, V)>,
     K: AsRef<OsStr>,
@@ -35,17 +36,13 @@ where
             cmd.arg("--release");
         }
         cmd.arg("--target").arg("wasm32-unknown-unknown");
-        cmd.output()?
+        child::run(log, cmd, "cargo test")
+            .context("Running Wasm tests with wasm-bindgen-test failed")?
     };
 
-    if !output.status.success() {
-        let s = String::from_utf8_lossy(&output.stderr);
-        Error::cli("Running wasm tests failed", s, output.status)
-    } else {
-        for line in String::from_utf8_lossy(&output.stdout).lines() {
-            info!(log, "test output: {}", line);
-            println!("{}", line);
-        }
-        Ok(())
+    for line in output.lines() {
+        info!(log, "test output: {}", line);
+        println!("{}", line);
     }
+    Ok(())
 }

@@ -138,7 +138,7 @@ pub fn install_binaries_from_targz_at_url<'a, I>(
     crate_path: &Path,
     url: &str,
     binaries: I,
-) -> Result<(), Error>
+) -> Result<(), failure::Error>
 where
     I: IntoIterator<Item = &'a str>,
 {
@@ -175,7 +175,8 @@ where
                 .map(|s| s.to_string_lossy())
                 .collect::<Vec<_>>()
                 .join(", "),
-        )))
+        ))
+        .into())
     }
 }
 
@@ -186,7 +187,7 @@ pub fn install_binaries_from_zip_at_url<'a, I>(
     crate_path: &Path,
     url: &str,
     binaries: I,
-) -> Result<(), Error>
+) -> Result<(), failure::Error>
 where
     I: IntoIterator<Item = &'a str>,
 {
@@ -226,7 +227,8 @@ where
                 .map(|s| s.to_string_lossy())
                 .collect::<Vec<_>>()
                 .join(", "),
-        )))
+        ))
+        .into())
     }
 }
 
