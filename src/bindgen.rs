@@ -8,11 +8,8 @@ use failure::{self, ResultExt};
 use manifest::CrateData;
 use progressbar::Step;
 use slog::Logger;
-<<<<<<< HEAD
 use std::fs;
-=======
 use std::env;
->>>>>>> bugfix(command/build): passing test case
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use target;
