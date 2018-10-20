@@ -20,3 +20,18 @@ fn build_in_non_crate_directory_doesnt_panic() {
     let err_msg = result.unwrap_err().to_string();
     assert!(err_msg.contains("missing a `Cargo.toml`"));
 }
+
+#[test]
+fn it_should_build_js_hello_world_example() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+    let cli = Cli::from_iter_safe(vec![
+        "wasm-pack",
+        "build",
+        &fixture.path.display().to_string(),
+    ])
+    .unwrap();
+    let logger = logger::new(&cli.cmd, cli.verbosity).unwrap();
+    command::run_wasm_pack(cli.cmd, &logger)
+        .expect("running wasm-pack in a js-hello-world directory should succeed.");
+}
