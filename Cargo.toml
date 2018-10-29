@@ -10,7 +10,8 @@ categories = ["wasm"]
 documentation = "https://rustwasm.github.io/wasm-pack/"
 
 [workspace]
-members = [".", "binary-install"]
+members = ["binary-install"]
+exclude = ["target"]
 
 [dependencies]
 atty = "0.2.11"
