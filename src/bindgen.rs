@@ -4,6 +4,7 @@ use binary_install::{
     install_binaries_from_targz_at_url,
     path::{bin_path, local_bin_path},
 };
+use cargo_metadata;
 use child;
 use emoji;
 use error::Error;
@@ -130,10 +131,17 @@ pub fn wasm_bindgen_build(
     let out_dir = out_dir.to_str().unwrap();
 
     if let Some(wasm_bindgen_path) = wasm_bindgen_path(log, path) {
-        let wasm_path = format!(
-            "target/wasm32-unknown-unknown/{}/{}.wasm",
-            release_or_debug, binary_name
-        );
+        let manifest = path.join("Cargo.toml");
+        let target_path = cargo_metadata::metadata(Some(&manifest))
+            .unwrap()
+            .target_directory;
+        let mut wasm_path = PathBuf::from(&target_path)
+            .join("wasm32-unknown-unknown")
+            .join(release_or_debug)
+            .join(binary_name);
+        wasm_path.set_extension("wasm");
+        let wasm_path = wasm_path.display().to_string();
+
         let dts_arg = if disable_dts {
             "--no-typescript"
         } else {
