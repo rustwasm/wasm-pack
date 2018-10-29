@@ -49,10 +49,7 @@ pub enum Error {
     /// An error invoking another CLI tool.
     #[fail(
         display = "Process exited with {}: {}.\n\nstdout:{}\n\nstderr:\n\n{}",
-        exit_status,
-        message,
-        stdout,
-        stderr
+        exit_status, message, stdout, stderr
     )]
     Cli {
         /// Error message.
