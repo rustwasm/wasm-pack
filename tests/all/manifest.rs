@@ -83,9 +83,9 @@ fn it_creates_a_package_json_default_path() {
         "js_hello_world.d.ts",
         "js_hello_world.js",
     ]
-        .iter()
-        .map(|&s| String::from(s))
-        .collect();
+    .iter()
+    .map(|&s| String::from(s))
+    .collect();
     assert_eq!(actual_files, expected_files);
 }
 
@@ -109,9 +109,9 @@ fn it_creates_a_package_json_provided_path() {
         "js_hello_world.d.ts",
         "js_hello_world.js",
     ]
-        .iter()
-        .map(|&s| String::from(s))
-        .collect();
+    .iter()
+    .map(|&s| String::from(s))
+    .collect();
     assert_eq!(actual_files, expected_files);
 }
 
@@ -121,17 +121,15 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     let out_dir = fixture.path.join("pkg");
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    assert!(
-        manifest::write_package_json(
-            &fixture.path,
-            &out_dir,
-            &Some("test".to_string()),
-            false,
-            "",
-            &step
-        )
-        .is_ok()
-    );
+    assert!(manifest::write_package_json(
+        &fixture.path,
+        &out_dir,
+        &Some("test".to_string()),
+        false,
+        "",
+        &step
+    )
+    .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::manifest::read_package_json(&fixture.path, &out_dir).is_ok());
@@ -145,9 +143,9 @@ fn it_creates_a_package_json_provided_path_with_scope() {
         "js_hello_world.d.ts",
         "js_hello_world.js",
     ]
-        .iter()
-        .map(|&s| String::from(s))
-        .collect();
+    .iter()
+    .map(|&s| String::from(s))
+    .collect();
     assert_eq!(actual_files, expected_files);
 }
 
@@ -180,9 +178,9 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
         "js_hello_world_bg.js",
         "js_hello_world.d.ts",
     ]
-        .iter()
-        .map(|&s| String::from(s))
-        .collect();
+    .iter()
+    .map(|&s| String::from(s))
+    .collect();
     assert_eq!(actual_files, expected_files);
 }
 
@@ -192,10 +190,15 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
     let out_dir = fixture.path.join("pkg");
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    assert!(
-        manifest::write_package_json(&fixture.path, &out_dir, &None, false, "no-modules", &step)
-            .is_ok()
-    );
+    assert!(manifest::write_package_json(
+        &fixture.path,
+        &out_dir,
+        &None,
+        false,
+        "no-modules",
+        &step
+    )
+    .is_ok());
     let package_json_path = &out_dir.join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
     utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
@@ -215,9 +218,9 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
         "js_hello_world.js",
         "js_hello_world.d.ts",
     ]
-        .iter()
-        .map(|&s| String::from(s))
-        .collect();
+    .iter()
+    .map(|&s| String::from(s))
+    .collect();
     assert_eq!(actual_files, expected_files);
 }
 

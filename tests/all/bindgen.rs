@@ -11,20 +11,18 @@ fn can_download_prebuilt_wasm_bindgen() {
     use std::env;
     let dir = tempfile::TempDir::new().unwrap();
     bindgen::download_prebuilt_wasm_bindgen(dir.path(), "0.2.21").unwrap();
-    assert!(
-        dir.path()
-            .join("bin")
-            .join("wasm-bindgen")
-            .with_extension(env::consts::EXE_EXTENSION)
-            .is_file()
-    );
-    assert!(
-        dir.path()
-            .join("bin")
-            .join("wasm-bindgen-test-runner")
-            .with_extension(env::consts::EXE_EXTENSION)
-            .is_file()
-    );
+    assert!(dir
+        .path()
+        .join("bin")
+        .join("wasm-bindgen")
+        .with_extension(env::consts::EXE_EXTENSION)
+        .is_file());
+    assert!(dir
+        .path()
+        .join("bin")
+        .join("wasm-bindgen-test-runner")
+        .with_extension(env::consts::EXE_EXTENSION)
+        .is_file());
 }
 
 #[test]

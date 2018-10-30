@@ -81,7 +81,7 @@ pub struct BuildOptions {
     pub disable_dts: bool,
 
     #[structopt(long = "target", short = "t", default_value = "browser")]
-    /// Sets the target environment. [possible values: browser, nodejs]
+    /// Sets the target environment. [possible values: browser, nodejs, no-modules]
     pub target: String,
 
     #[structopt(long = "debug")]
