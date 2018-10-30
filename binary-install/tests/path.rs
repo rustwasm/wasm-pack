@@ -6,7 +6,10 @@ extern crate slog_term;
 
 use binary_install::path::{bin_path, ensure_local_bin_dir, local_bin_path};
 use slog::Drain;
-use std::path::Path;
+use std::env::current_dir;
+use std::fs;
+use std::io;
+use std::path::{Path, PathBuf};
 
 fn logger() -> slog::Logger {
     let decorator = slog_term::TermDecorator::new().build();
@@ -15,8 +18,13 @@ fn logger() -> slog::Logger {
     slog::Logger::root(drain, o!())
 }
 
+fn get_tests_bin_path() -> PathBuf {
+    let path = current_dir().unwrap();
+    path.join("tests/bin")
+}
+
 #[test]
-fn it_should_get_local_bin_path() {
+fn get_local_bin_path_should_return_a_path() {
     let crate_path = Path::new("");
 
     let expected_path = Path::new("bin/wasm-bindgen");
@@ -28,7 +36,7 @@ fn it_should_get_local_bin_path() {
 
 #[test]
 #[cfg(target_os = "windows")]
-fn it_should_get_local_bin_path_with_exe_for_windows() {
+fn get_local_bin_path_should_return_with_exe_for_windows() {
     let crate_path = Path::new("");
 
     let expected_path = Path::new("bin/wasm-bindgen.exe");
@@ -39,32 +47,33 @@ fn it_should_get_local_bin_path_with_exe_for_windows() {
 }
 
 #[test]
-fn it_should_ensure_local_bin_dir_returns_ok_for_folder_that_exists() {
-    let crate_path = Path::new("random_folder");
+fn ensure_local_bin_dir_should_return_ok_for_folder_that_exists() {
+    let crate_path = get_tests_bin_path();
 
-    let result = ensure_local_bin_dir(crate_path);
+    fs::create_dir_all(crate_path.to_owned()).unwrap();
+
+    let result = ensure_local_bin_dir(&crate_path);
 
     assert!(result.is_ok());
+
+    fs::remove_dir_all(crate_path).unwrap();
 }
 
 #[test]
-fn it_should_return_some_for_bin_path_that_exists() {
-    let crate_path = Path::new("/usr/bin");
-    let bin = "ls";
+fn ensure_local_bin_dir_should_create_folder_if_it_doesnt_exist() {
+    let crate_path = get_tests_bin_path();
 
-    let result = bin_path(&logger(), crate_path, bin);
-    let expected_bin = Path::new("/usr/bin/ls");
+    // Make sure that the folder doesn't exist
+    // before we call ensure_local_bin_dir();
+    let dir = fs::read_dir(crate_path.to_owned());
+    let dir_error = dir.err().unwrap();
+    assert_eq!(dir_error.kind(), io::ErrorKind::NotFound);
 
-    assert!(result.is_some());
-    assert_eq!(result.unwrap(), expected_bin);
-}
+    let result = ensure_local_bin_dir(&crate_path);
 
-#[test]
-fn it_should_return_none_for_bin_path_that_does_not_exists() {
-    let crate_path = Path::new("random_folder");
-    let bin = "wasm-bindgen";
+    assert!(result.is_ok());
 
-    let result = bin_path(&logger(), crate_path, bin);
-
-    assert!(result.is_none());
+    // Make sure that the directory actually exists.
+    let dir = fs::read_dir(crate_path.to_owned());
+    assert!(dir.is_ok());
 }
