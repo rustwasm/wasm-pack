@@ -68,7 +68,7 @@ pub fn copy_from_crate(path: &Path, out_dir: &Path, step: &Step) -> Result<(), f
             }
         }
         None => {
-            PBAR.step(step, "No LICENSE found in Cargo.toml skipping...");
+            PBAR.step(step, "No LICENSE found in Cargo.toml, skipping...");
         }
     };
 
