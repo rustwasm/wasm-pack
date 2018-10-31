@@ -65,16 +65,10 @@ pub enum Error {
     },
 
     /// An error invoking another CLI tool.
-    #[fail(
-        display = "Process exited with {}: {}.\n\nstdout:{}\n\nstderr:\n\n{}",
-        exit_status,
-        message,
-        stdout,
-        stderr
-    )]
+    #[fail(display = "`{}` exited with {}", tool, exit_status)]
     Cli {
         /// Error message.
-        message: String,
+        tool: String,
         /// The underlying CLI's `stdout` output.
         stdout: String,
         /// The underlying CLI's `stderr` output.
@@ -122,9 +116,9 @@ pub enum Error {
 
 impl Error {
     /// Construct a CLI error.
-    pub fn cli(message: &str, stdout: Cow<str>, stderr: Cow<str>, exit_status: ExitStatus) -> Self {
+    pub fn cli(tool: &str, stdout: Cow<str>, stderr: Cow<str>, exit_status: ExitStatus) -> Self {
         Error::Cli {
-            message: message.to_string(),
+            tool: tool.to_string(),
             stdout: stdout.to_string(),
             stderr: stderr.to_string(),
             exit_status,
@@ -190,7 +184,7 @@ impl Error {
                 latest_version: _,
             } => "There's a newer version of wasm-pack available, the new version is: , you are using: ",
             Error::Cli {
-                message: _,
+                tool: _,
                 stdout: _,
                 stderr: _,
                 exit_status: _,

@@ -16,7 +16,7 @@ mod installer;
 fn main() {
     setup_panic!();
     if let Err(e) = run() {
-        eprintln!("{}", e);
+        eprintln!("Error: {}", e);
         for cause in e.iter_causes() {
             eprintln!("Caused by: {}", cause);
         }
