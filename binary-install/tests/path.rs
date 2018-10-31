@@ -24,7 +24,7 @@ fn get_tests_bin_path() -> PathBuf {
 }
 
 #[test]
-#[cfg(not(target_ = "wasm32"))]
+#[cfg(not(target_os = "windows"))]
 fn get_local_bin_path_should_return_a_path() {
     let crate_path = Path::new("");
 
