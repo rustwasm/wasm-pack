@@ -1,7 +1,16 @@
+use failure::Error;
 use std::env;
 use utils::fixture;
-use wasm_pack::command::{self, build, test, Command};
-use wasm_pack::logger;
+use wasm_pack::command::{build, test, Command};
+
+fn assert_err<T>(result: Result<T, Error>, msg: &str) -> Error {
+    let error = result.err().expect("should have failed");
+    for e in error.iter_chain() {
+        println!("err: {}", e);
+    }
+    assert!(error.iter_chain().any(|e| e.to_string().contains(msg)));
+    error
+}
 
 #[test]
 fn it_can_run_node_tests() {
@@ -89,11 +98,7 @@ fn it_can_run_failing_tests() {
         mode: build::BuildMode::Noinstall,
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-    assert!(
-        command::run_wasm_pack(cmd, &logger).is_err(),
-        "failing tests should return Err"
-    );
+    assert_err(fixture.run(cmd), "Running Wasm tests with wasm-bindgen-test failed");
 }
 
 #[test]
@@ -147,11 +152,7 @@ fn it_requires_node_or_a_browser() {
         // Note: not setting node or any browser to true here.
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-    assert!(
-        command::run_wasm_pack(cmd, &logger).is_err(),
-        "need to enable node or browser testing"
-    );
+    assert_err(fixture.run(cmd), "Must specify at least one of");
 }
 
 #[test]
@@ -166,11 +167,7 @@ fn the_headless_flag_requires_a_browser() {
         headless: true,
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-    assert!(
-        command::run_wasm_pack(cmd, &logger).is_err(),
-        "running headless tests in node doesn't make sense"
-    );
+    assert_err(fixture.run(cmd), "only applies to browser tests");
 }
 
 #[test]
@@ -208,13 +205,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
         mode: build::BuildMode::Noinstall,
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-
-    let result = command::run_wasm_pack(cmd, &logger);
-    assert!(
-        result.is_err(),
-        "running tests without wasm-bindgen-test won't work"
-    );
+    let error = assert_err(fixture.run(cmd), "Ensure that you have");
 
     // Test that the error message has two occurrences of "wasm-bindgen-test" in
     // it. I am surprised to learn there is no `str` method to count
@@ -239,7 +230,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
     // the output to a text file, then the escape codes go away, so I can't
     // figure out which exact escape codes are even used here.
 
-    let err_msg = result.unwrap_err().to_string();
+    let err_msg = error.to_string();
     let first = err_msg.find("wasm-bindgen-test");
     assert!(first.is_some());
     let second = err_msg.rfind("wasm-bindgen-test");
