@@ -1,6 +1,7 @@
 //! Implementation of the `wasm-pack test` command.
 
 use super::build::BuildMode;
+use binaries::Cache;
 use bindgen;
 use build;
 use command::utils::set_crate_path;
@@ -81,6 +82,7 @@ pub struct TestOptions {
 /// A configured `wasm-pack test` command.
 pub struct Test {
     crate_path: PathBuf,
+    cache: Cache,
     node: bool,
     mode: BuildMode,
     firefox: bool,
@@ -139,6 +141,7 @@ impl Test {
         }
 
         Ok(Test {
+            cache: Cache::new()?,
             crate_path,
             node,
             mode,
@@ -152,6 +155,11 @@ impl Test {
             release,
             test_runner_path: None,
         })
+    }
+
+    /// Configures the cache that this test command uses
+    pub fn set_cache(&mut self, cache: Cache) {
+        self.cache = cache;
     }
 
     /// Execute this test command.
@@ -303,16 +311,15 @@ impl Test {
             }
         };
 
-        bindgen::install_wasm_bindgen(
-            &self.crate_path,
+        let dl = bindgen::install_wasm_bindgen(
+            &self.cache,
             &bindgen_version,
             install_permitted,
             step,
             log,
         )?;
 
-        self.test_runner_path = Some(bindgen::wasm_bindgen_test_runner_path(log, &self.crate_path)
-            .expect("if installing wasm-bindgen succeeded, then we should have wasm-bindgen-test-runner too"));
+        self.test_runner_path = Some(dl.binary("wasm-bindgen-test-runner"));
 
         info!(&log, "Getting wasm-bindgen-cli was successful.");
         Ok(())
@@ -335,13 +342,12 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_chromedriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
+    fn step_get_chromedriver(&mut self, step: &Step, _log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting chromedriver...");
         assert!(self.chrome && self.chromedriver.is_none());
 
         self.chromedriver = Some(webdriver::get_or_install_chromedriver(
-            log,
-            &self.crate_path,
+            &self.cache,
             self.mode,
         )?);
         Ok(())
@@ -378,13 +384,12 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_geckodriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
+    fn step_get_geckodriver(&mut self, step: &Step, _log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting geckodriver...");
         assert!(self.firefox && self.geckodriver.is_none());
 
         self.geckodriver = Some(webdriver::get_or_install_geckodriver(
-            log,
-            &self.crate_path,
+            &self.cache,
             self.mode,
         )?);
         Ok(())
@@ -421,11 +426,11 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_safaridriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
+    fn step_get_safaridriver(&mut self, step: &Step, _log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting safaridriver...");
         assert!(self.safari && self.safaridriver.is_none());
 
-        self.safaridriver = Some(webdriver::get_safaridriver(log, &self.crate_path)?);
+        self.safaridriver = Some(webdriver::get_safaridriver()?);
         Ok(())
     }
 

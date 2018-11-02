@@ -1,247 +1,257 @@
 //! Utilities for finding and installing binaries that we depend on.
 
 use curl;
-use error::Error;
-use failure;
+use dirs;
+use failure::{Error, ResultExt};
 use flate2;
-use slog::Logger;
+use hex;
+use siphasher::sip::SipHasher13;
 use std::collections::HashSet;
+use std::env;
 use std::ffi;
 use std::fs;
+use std::hash::{Hash, Hasher};
 use std::io;
 use std::path::{Path, PathBuf};
 use tar;
-use target;
-use which::which;
 use zip;
 
-/// Get the path for a crate's directory of locally-installed binaries.
-///
-/// This does not check whether or ensure that the directory exists.
-pub fn local_bin_dir(crate_path: &Path) -> PathBuf {
-    crate_path.join("bin")
+/// Global cache for wasm-pack, currently containing binaries downloaded from
+/// urls like wasm-bindgen and such.
+pub struct Cache {
+    destination: PathBuf,
 }
 
-/// Ensure that the crate's directory for locally-installed binaries exists.
-pub fn ensure_local_bin_dir(crate_path: &Path) -> io::Result<()> {
-    fs::create_dir_all(local_bin_dir(crate_path))
+/// Representation of a downloaded tarball/zip
+pub struct Download {
+    root: PathBuf,
 }
 
-/// Get the path for where `bin` would be if we have a crate-local install for
-/// it.
-///
-/// This does *not* check whether there is a file at that path or not.
-///
-/// This will automatically add the `.exe` extension for windows.
-pub fn local_bin_path(crate_path: &Path, bin: &str) -> PathBuf {
-    let mut p = local_bin_dir(crate_path).join(bin);
-    if target::WINDOWS {
-        p.set_extension("exe");
+impl Cache {
+    /// Returns the global cache directory, as inferred from env vars and such.
+    ///
+    /// This function may return an error if a cache directory cannot be
+    /// determined.
+    pub fn new() -> Result<Cache, Error> {
+        let destination = dirs::cache_dir()
+            .map(|p| p.join("wasm-pack"))
+            .or_else(|| {
+                let home = dirs::home_dir()?;
+                Some(home.join(".wasm-pack"))
+            })
+            .ok_or_else(|| format_err!("couldn't find your home directory, is $HOME not set?"))?;
+        Ok(Cache::at(&destination))
     }
-    p
-}
 
-/// Get the local (at `$CRATE/bin/$BIN`; preferred) or global (on `$PATH`) path
-/// for the given binary.
-///
-/// If this function returns `Some(path)`, then a file at that path exists (or
-/// at least existed when we checked! In general, we aren't really worried about
-/// racing with an uninstall of a tool that we rely on.)
-pub fn bin_path(log: &Logger, crate_path: &Path, bin: &str) -> Option<PathBuf> {
-    assert!(!bin.ends_with(".exe"));
-    debug!(log, "Searching for {} binary...", bin);
-
-    // Return the path to the local binary, if it exists.
-    let local_path = |crate_path: &Path| -> Option<PathBuf> {
-        let p = local_bin_path(crate_path, bin);
-        debug!(log, "Checking for local {} binary at {}", bin, p.display());
-        if p.is_file() {
-            Some(p)
-        } else {
-            None
+    /// Creates a new cache specifically at a particular directory, useful in
+    /// testing and such.
+    pub fn at(path: &Path) -> Cache {
+        Cache {
+            destination: path.to_path_buf(),
         }
-    };
+    }
 
-    // Return the path to the global binary, if it exists.
-    let global_path = || -> Option<PathBuf> {
-        debug!(log, "Looking for global {} binary on $PATH", bin);
-        if let Ok(p) = which(bin) {
-            Some(p)
-        } else {
-            None
+    /// Joins a path to the destination of this cache, returning the result
+    pub fn join(&self, path: &Path) -> PathBuf {
+        self.destination.join(path)
+    }
+
+    /// Downloads a tarball or zip file from the specified url, extracting it
+    /// locally and returning the directory that the contents were extracted
+    /// into.
+    ///
+    /// Note that this function requries that the contents of `url` never change
+    /// as the contents of the url are globally cached on the system and never
+    /// invalidated.
+    ///
+    /// The `name` is a human-readable name used to go into the folder name of
+    /// the destination, and `binaries` is a list of binaries expected to be at
+    /// the url. If the URL's extraction doesn't contain all the binaries this
+    /// function will return an error.
+    pub fn download(
+        &self,
+        install_permitted: bool,
+        name: &str,
+        binaries: &[&str],
+        url: &str,
+    ) -> Result<Option<Download>, Error> {
+        let mut hasher = SipHasher13::new();
+        url.hash(&mut hasher);
+        let result = hasher.finish();
+        let hex = hex::encode(&[
+            (result >> 0) as u8,
+            (result >> 8) as u8,
+            (result >> 16) as u8,
+            (result >> 24) as u8,
+            (result >> 32) as u8,
+            (result >> 40) as u8,
+            (result >> 48) as u8,
+            (result >> 56) as u8,
+        ]);
+        let dirname = format!("{}-{}", name, hex);
+
+        let destination = self.destination.join(&dirname);
+        if destination.exists() {
+            return Ok(Some(Download { root: destination }));
         }
-    };
 
-    local_path(crate_path)
-        .or_else(global_path)
-        .map(|p| {
-            let p = p.canonicalize().unwrap_or(p);
-            debug!(log, "Using {} binary at {}", bin, p.display());
-            p
-        })
-        .or_else(|| {
-            debug!(log, "Could not find {} binary.", bin);
-            None
-        })
+        if !install_permitted {
+            return Ok(None);
+        }
+
+        let data = curl(&url).with_context(|_| format!("failed to download from {}", url))?;
+
+        // Extract everything in a temporary directory in case we're ctrl-c'd.
+        // Don't want to leave around corrupted data!
+        let temp = self.destination.join(&format!(".{}", dirname));
+        drop(fs::remove_dir_all(&temp));
+        fs::create_dir_all(&temp)?;
+
+        if url.ends_with(".tar.gz") {
+            self.extract_tarball(&data, &temp, binaries)
+                .with_context(|_| format!("failed to extract tarball from {}", url))?;
+        } else if url.ends_with(".zip") {
+            self.extract_zip(&data, &temp, binaries)
+                .with_context(|_| format!("failed to extract zip from {}", url))?;
+        } else {
+            // panic instead of runtime error as it's a static violation to
+            // download a different kind of url, all urls should be encoded into
+            // the binary anyway
+            panic!("don't know how to extract {}", url)
+        }
+
+        // Now that everything is ready move this over to our destination and
+        // we're good to go.
+        fs::rename(&temp, &destination)?;
+        Ok(Some(Download { root: destination }))
+    }
+
+    fn extract_tarball(&self, tarball: &[u8], dst: &Path, binaries: &[&str]) -> Result<(), Error> {
+        let mut binaries: HashSet<_> = binaries.into_iter().map(ffi::OsStr::new).collect();
+        let mut archive = tar::Archive::new(flate2::read::GzDecoder::new(tarball));
+
+        for entry in archive.entries()? {
+            let mut entry = entry?;
+
+            let dest = match entry.path()?.file_stem() {
+                Some(f) if binaries.contains(f) => {
+                    binaries.remove(f);
+                    dst.join(entry.path()?.file_name().unwrap())
+                }
+                _ => continue,
+            };
+
+            entry.unpack(dest)?;
+        }
+
+        if !binaries.is_empty() {
+            bail!(
+                "the tarball was missing expected executables: {}",
+                binaries
+                    .into_iter()
+                    .map(|s| s.to_string_lossy())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            )
+        }
+
+        Ok(())
+    }
+
+    fn extract_zip(&self, zip: &[u8], dst: &Path, binaries: &[&str]) -> Result<(), Error> {
+        let mut binaries: HashSet<_> = binaries.into_iter().map(ffi::OsStr::new).collect();
+
+        let data = io::Cursor::new(zip);
+        let mut zip = zip::ZipArchive::new(data)?;
+
+        for i in 0..zip.len() {
+            let mut entry = zip.by_index(i).unwrap();
+            let entry_path = entry.sanitized_name();
+            match entry_path.file_stem() {
+                Some(f) if binaries.contains(f) => {
+                    binaries.remove(f);
+                    let mut dest = bin_open_options()
+                        .write(true)
+                        .create_new(true)
+                        .open(dst.join(entry_path.file_name().unwrap()))?;
+                    io::copy(&mut entry, &mut dest)?;
+                }
+                _ => continue,
+            };
+        }
+
+        if !binaries.is_empty() {
+            bail!(
+                "the zip was missing expected executables: {}",
+                binaries
+                    .into_iter()
+                    .map(|s| s.to_string_lossy())
+                    .collect::<Vec<_>>()
+                    .join(", "),
+            )
+        }
+
+        return Ok(());
+
+        #[cfg(unix)]
+        fn bin_open_options() -> fs::OpenOptions {
+            use std::os::unix::fs::OpenOptionsExt;
+
+            let mut opts = fs::OpenOptions::new();
+            opts.mode(0o755);
+            opts
+        }
+
+        #[cfg(not(unix))]
+        fn bin_open_options() -> fs::OpenOptions {
+            fs::OpenOptions::new()
+        }
+    }
 }
 
-fn with_url_context<T, E>(url: &str, r: Result<T, E>) -> Result<T, impl failure::Fail>
-where
-    Result<T, E>: failure::ResultExt<T, E>,
-{
-    use failure::ResultExt;
-    r.with_context(|_| format!("when requesting {}", url))
+impl Download {
+    /// Manually constructs a download at the specified path
+    pub fn at(path: &Path) -> Download {
+        Download {
+            root: path.to_path_buf(),
+        }
+    }
+
+    /// Returns the path to the binary `name` within this download
+    pub fn binary(&self, name: &str) -> PathBuf {
+        let ret = self
+            .root
+            .join(name)
+            .with_extension(env::consts::EXE_EXTENSION);
+        assert!(ret.exists(), "binary {} doesn't exist", ret.display());
+        return ret;
+    }
 }
 
-fn transfer(
-    url: &str,
-    easy: &mut curl::easy::Easy,
-    data: &mut Vec<u8>,
-) -> Result<(), failure::Error> {
-    let mut transfer = easy.transfer();
-    with_url_context(
-        url,
-        transfer.write_function(|part| {
-            data.extend_from_slice(part);
-            Ok(part.len())
-        }),
-    )?;
-    with_url_context(url, transfer.perform())?;
-    Ok(())
-}
-
-fn curl(url: &str) -> Result<Vec<u8>, failure::Error> {
+fn curl(url: &str) -> Result<Vec<u8>, Error> {
     let mut data = Vec::new();
 
     let mut easy = curl::easy::Easy::new();
-    with_url_context(url, easy.follow_location(true))?;
-    with_url_context(url, easy.url(url))?;
-    transfer(url, &mut easy, &mut data)?;
+    easy.follow_location(true)?;
+    easy.url(url)?;
+    easy.get(true)?;
+    {
+        let mut transfer = easy.transfer();
+        transfer.write_function(|part| {
+            data.extend_from_slice(part);
+            Ok(part.len())
+        })?;
+        transfer.perform()?;
+    }
 
-    let status_code = with_url_context(url, easy.response_code())?;
+    let status_code = easy.response_code()?;
     if 200 <= status_code && status_code < 300 {
         Ok(data)
     } else {
-        Err(Error::http(&format!(
+        bail!(
             "received a bad HTTP status code ({}) when requesting {}",
-            status_code, url
-        ))
-        .into())
+            status_code,
+            url
+        )
     }
-}
-
-/// Download the `.tar.gz` file at the given URL and unpack the given binaries
-/// from it into the given crate.
-///
-/// Upon success, every `$BIN` in `binaries` will be at `$CRATE/bin/$BIN`.
-pub fn install_binaries_from_targz_at_url<'a, I>(
-    crate_path: &Path,
-    url: &str,
-    binaries: I,
-) -> Result<(), failure::Error>
-where
-    I: IntoIterator<Item = &'a str>,
-{
-    let mut binaries: HashSet<_> = binaries.into_iter().map(ffi::OsStr::new).collect();
-
-    let tarball = curl(&url).map_err(|e| Error::http(&e.to_string()))?;
-    let mut archive = tar::Archive::new(flate2::read::GzDecoder::new(&tarball[..]));
-
-    ensure_local_bin_dir(crate_path)?;
-    let bin = local_bin_dir(crate_path);
-
-    for entry in archive.entries()? {
-        let mut entry = entry?;
-
-        let dest = match entry.path()?.file_stem() {
-            Some(f) if binaries.contains(f) => {
-                binaries.remove(f);
-                bin.join(entry.path()?.file_name().unwrap())
-            }
-            _ => continue,
-        };
-
-        entry.unpack(dest)?;
-    }
-
-    if binaries.is_empty() {
-        Ok(())
-    } else {
-        Err(Error::archive(&format!(
-            "the tarball at {} was missing expected executables: {}",
-            url,
-            binaries
-                .into_iter()
-                .map(|s| s.to_string_lossy())
-                .collect::<Vec<_>>()
-                .join(", "),
-        ))
-        .into())
-    }
-}
-
-/// Install binaries from within the given zip at the given URL.
-///
-/// Upon success, the binaries will be at the `$CRATE/bin/$BIN` path.
-pub fn install_binaries_from_zip_at_url<'a, I>(
-    crate_path: &Path,
-    url: &str,
-    binaries: I,
-) -> Result<(), failure::Error>
-where
-    I: IntoIterator<Item = &'a str>,
-{
-    let mut binaries: HashSet<_> = binaries.into_iter().map(ffi::OsStr::new).collect();
-
-    let data = curl(&url).map_err(|e| Error::http(&e.to_string()))?;
-    let data = io::Cursor::new(data);
-    let mut zip = zip::ZipArchive::new(data)?;
-
-    ensure_local_bin_dir(crate_path)?;
-    let bin = local_bin_dir(crate_path);
-
-    for i in 0..zip.len() {
-        let mut entry = zip.by_index(i).unwrap();
-        let entry_path = entry.sanitized_name();
-        match entry_path.file_stem() {
-            Some(f) if binaries.contains(f) => {
-                binaries.remove(f);
-                let mut dest = bin_open_options()
-                    .write(true)
-                    .create_new(true)
-                    .open(bin.join(entry_path.file_name().unwrap()))?;
-                io::copy(&mut entry, &mut dest)?;
-            }
-            _ => continue,
-        };
-    }
-
-    if binaries.is_empty() {
-        Ok(())
-    } else {
-        Err(Error::archive(&format!(
-            "the zip at {} was missing expected executables: {}",
-            url,
-            binaries
-                .into_iter()
-                .map(|s| s.to_string_lossy())
-                .collect::<Vec<_>>()
-                .join(", "),
-        ))
-        .into())
-    }
-}
-
-#[cfg(unix)]
-fn bin_open_options() -> fs::OpenOptions {
-    use std::os::unix::fs::OpenOptionsExt;
-
-    let mut opts = fs::OpenOptions::new();
-    opts.mode(0o755);
-    opts
-}
-
-#[cfg(not(unix))]
-fn bin_open_options() -> fs::OpenOptions {
-    fs::OpenOptions::new()
 }
