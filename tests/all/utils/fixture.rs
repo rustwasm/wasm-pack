@@ -4,7 +4,7 @@ use std::fs;
 use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::{Once, ONCE_INIT};
+use std::sync::{MutexGuard, Once, ONCE_INIT};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
@@ -208,6 +208,7 @@ impl Fixture {
         let logger = wasm_pack::logger::new(&cmd, 3)?;
         match cmd {
             wasm_pack::command::Command::Test(cmd) => {
+                let _lock = self.lock();
                 let mut test = wasm_pack::command::test::Test::try_from_opts(cmd)?;
                 test.set_cache(self.cache());
                 test.run(&logger)
@@ -219,6 +220,14 @@ impl Fixture {
             }
             _ => unreachable!(),
         }
+    }
+
+    pub fn lock(&self) -> MutexGuard<'static, ()> {
+        use std::sync::Mutex;
+        lazy_static! {
+            static ref ONE_TEST_AT_A_TIME: Mutex<()> = Mutex::new(());
+        }
+        ONE_TEST_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner())
     }
 }
 

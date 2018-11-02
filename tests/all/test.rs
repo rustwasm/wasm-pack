@@ -98,7 +98,10 @@ fn it_can_run_failing_tests() {
         mode: build::BuildMode::Noinstall,
         ..Default::default()
     });
-    assert_err(fixture.run(cmd), "Running Wasm tests with wasm-bindgen-test failed");
+    assert_err(
+        fixture.run(cmd),
+        "Running Wasm tests with wasm-bindgen-test failed",
+    );
 }
 
 #[test]
@@ -120,6 +123,8 @@ fn it_can_find_a_webdriver_on_path() {
     paths.insert(0, local_geckodriver.parent().unwrap().to_path_buf());
     paths.insert(0, local_wasm_bindgen.parent().unwrap().to_path_buf());
     let path = env::join_paths(paths).unwrap();
+
+    let _lock = fixture.lock();
 
     let mut me = env::current_exe().unwrap();
     me.pop();
