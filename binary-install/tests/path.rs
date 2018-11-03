@@ -6,7 +6,7 @@ extern crate slog_term;
 
 use binary_install::path::{bin_path, ensure_local_bin_dir, local_bin_path};
 use slog::Drain;
-use std::env::current_dir;
+use std::env;
 use std::fs;
 use std::io;
 use std::path::{Path, PathBuf};
@@ -19,7 +19,7 @@ fn logger() -> slog::Logger {
 }
 
 fn get_tests_bin_path() -> PathBuf {
-    let path = current_dir().unwrap();
+    let path = env::temp_dir();
     path.join("tests")
 }
 
