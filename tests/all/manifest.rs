@@ -62,7 +62,10 @@ fn it_creates_a_package_json_default_path() {
     let out_dir = fixture.path.join("pkg");
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    assert!(manifest::write_package_json(&fixture.path, &out_dir, &None, false, "", &step).is_ok());
+    assert!(
+        manifest::write_package_json(&fixture.path, &out_dir, &None, &None, false, "", &step)
+            .is_ok()
+    );
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::manifest::read_package_json(&fixture.path, &out_dir).is_ok());
@@ -95,7 +98,10 @@ fn it_creates_a_package_json_provided_path() {
     let out_dir = fixture.path.join("pkg");
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    assert!(manifest::write_package_json(&fixture.path, &out_dir, &None, false, "", &step).is_ok());
+    assert!(
+        manifest::write_package_json(&fixture.path, &out_dir, &None, &None, false, "", &step)
+            .is_ok()
+    );
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
     utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
@@ -124,6 +130,7 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     assert!(manifest::write_package_json(
         &fixture.path,
         &out_dir,
+        &None,
         &Some("test".to_string()),
         false,
         "",
@@ -150,15 +157,56 @@ fn it_creates_a_package_json_provided_path_with_scope() {
 }
 
 #[test]
+fn it_creates_a_package_json_provided_path_with_package_name() {
+    let fixture = fixture::js_hello_world();
+    let out_dir = fixture.path.join("pkg");
+    let step = wasm_pack::progressbar::Step::new(1);
+    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    assert!(manifest::write_package_json(
+        &fixture.path,
+        &out_dir,
+        &Some("custom-package-name".to_string()),
+        &None,
+        false,
+        "",
+        &step
+    )
+    .is_ok());
+    let package_json_path = &fixture.path.join("pkg").join("package.json");
+    assert!(fs::metadata(package_json_path).is_ok());
+    assert!(utils::manifest::read_package_json(&fixture.path, &out_dir).is_ok());
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(pkg.name, "custom-package-name");
+    assert_eq!(pkg.module, "js_hello_world.js");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> = [
+        "js_hello_world_bg.wasm",
+        "js_hello_world.d.ts",
+        "js_hello_world.js",
+    ]
+    .iter()
+    .map(|&s| String::from(s))
+    .collect();
+    assert_eq!(actual_files, expected_files);
+}
+
+#[test]
 fn it_creates_a_pkg_json_with_correct_files_on_node() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    assert!(
-        manifest::write_package_json(&fixture.path, &out_dir, &None, false, "nodejs", &step)
-            .is_ok()
-    );
+    assert!(manifest::write_package_json(
+        &fixture.path,
+        &out_dir,
+        &None,
+        &None,
+        false,
+        "nodejs",
+        &step
+    )
+    .is_ok());
     let package_json_path = &out_dir.join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
     utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
@@ -193,6 +241,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
     assert!(manifest::write_package_json(
         &fixture.path,
         &out_dir,
+        &None,
         &None,
         false,
         "no-modules",
@@ -230,7 +279,10 @@ fn it_creates_a_pkg_json_in_out_dir() {
     let out_dir = fixture.path.join("./custom/out");
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    assert!(manifest::write_package_json(&fixture.path, &out_dir, &None, false, "", &step).is_ok());
+    assert!(
+        manifest::write_package_json(&fixture.path, &out_dir, &None, &None, false, "", &step)
+            .is_ok()
+    );
 
     let package_json_path = &fixture.path.join(&out_dir).join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
@@ -243,7 +295,10 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     let out_dir = fixture.path.join("pkg");
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    assert!(manifest::write_package_json(&fixture.path, &out_dir, &None, true, "", &step).is_ok());
+    assert!(
+        manifest::write_package_json(&fixture.path, &out_dir, &None, &None, true, "", &step)
+            .is_ok()
+    );
     let package_json_path = &out_dir.join("package.json");
     assert!(fs::metadata(package_json_path).is_ok());
     assert!(utils::manifest::read_package_json(&fixture.path, &out_dir).is_ok());

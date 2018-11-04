@@ -47,7 +47,7 @@ wasm-pack build --target nodejs
 
 ## Scope
 
-The init command also accepts an optional `--scope` argument. This will scope
+The `build` command also accepts an optional `--scope` argument. This will scope
 your package name, which is useful if your package name might conflict with
 something in the public registry. For example:
 
@@ -60,6 +60,20 @@ This command would create a `package.json` file for a package called
 the npm documentation [here][npm-scope-documentation].
 
 [npm-scope-documentation]: https://docs.npmjs.com/misc/scope
+
+## Package Name
+
+The `build` command also accepts an optional `--package-name` argument. This
+flag allows you to override the default package name, which is the same as your
+crate's package name. This argument can be used in conjunction with `--scope`.
+For example:
+
+```
+wasm-pack build examples/js-hello-world --scope test --package-name custom-name
+```
+
+This command would create a `package.json` file for a package called
+`@test/custom-name`.
 
 ## Mode
 

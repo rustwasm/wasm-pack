@@ -95,7 +95,12 @@ fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
 }
 
 impl CargoManifest {
-    fn into_commonjs(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+    fn into_commonjs(
+        mut self,
+        package_name: &Option<String>,
+        scope: &Option<String>,
+        disable_dts: bool,
+    ) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
@@ -103,6 +108,10 @@ impl CargoManifest {
 
         let js_bg_file = format!("{}_bg.js", filename);
         files.push(js_bg_file.to_string());
+
+        if let Some(s) = package_name {
+            self.package.name = s.to_string();
+        }
 
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
@@ -134,7 +143,12 @@ impl CargoManifest {
         })
     }
 
-    fn into_esmodules(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+    fn into_esmodules(
+        mut self,
+        package_name: &Option<String>,
+        scope: &Option<String>,
+        disable_dts: bool,
+    ) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
@@ -147,6 +161,10 @@ impl CargoManifest {
         } else {
             None
         };
+
+        if let Some(s) = package_name {
+            self.package.name = s.to_string();
+        }
 
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
@@ -171,7 +189,12 @@ impl CargoManifest {
         })
     }
 
-    fn into_nomodules(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+    fn into_nomodules(
+        mut self,
+        package_name: &Option<String>,
+        scope: &Option<String>,
+        disable_dts: bool,
+    ) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
         let js_file = format!("{}.js", filename);
@@ -184,6 +207,10 @@ impl CargoManifest {
         } else {
             None
         };
+
+        if let Some(s) = package_name {
+            self.package.name = s.to_string();
+        }
 
         if let Some(s) = scope {
             self.package.name = format!("@{}/{}", s, self.package.name);
@@ -212,6 +239,7 @@ impl CargoManifest {
 pub fn write_package_json(
     path: &Path,
     out_dir: &Path,
+    package_name: &Option<String>,
     scope: &Option<String>,
     disable_dts: bool,
     target: &str,
@@ -224,11 +252,11 @@ pub fn write_package_json(
     let mut pkg_file = File::create(pkg_file_path)?;
     let crate_data = read_cargo_toml(path)?;
     let npm_data = if target == "nodejs" {
-        crate_data.into_commonjs(scope, disable_dts)
+        crate_data.into_commonjs(package_name, scope, disable_dts)
     } else if target == "no-modules" {
-        crate_data.into_nomodules(scope, disable_dts)
+        crate_data.into_nomodules(package_name, scope, disable_dts)
     } else {
-        crate_data.into_esmodules(scope, disable_dts)
+        crate_data.into_esmodules(package_name, scope, disable_dts)
     };
 
     let npm_json = serde_json::to_string_pretty(&npm_data)?;

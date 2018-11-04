@@ -19,6 +19,7 @@ use PBAR;
 /// Everything required to configure and run the `wasm-pack init` command.
 pub(crate) struct Build {
     pub crate_path: PathBuf,
+    pub package_name: Option<String>,
     pub scope: Option<String>,
     pub disable_dts: bool,
     pub target: String,
@@ -67,6 +68,11 @@ pub struct BuildOptions {
     #[structopt(parse(from_os_str))]
     pub path: Option<PathBuf>,
 
+    /// The package name to apply in package.json, if specified. Omission
+    /// means we should use the crate name.
+    #[structopt(long = "package-name")]
+    pub package_name: Option<String>,
+
     /// The npm scope to use in package.json, if any.
     #[structopt(long = "scope", short = "s")]
     pub scope: Option<String>,
@@ -105,6 +111,7 @@ impl Build {
         // let build_config = manifest::xxx(&crate_path).xxx();
         Ok(Build {
             crate_path,
+            package_name: build_opts.package_name,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
@@ -242,6 +249,7 @@ impl Build {
         manifest::write_package_json(
             &self.crate_path,
             &self.out_dir,
+            &self.package_name,
             &self.scope,
             self.disable_dts,
             &self.target,
