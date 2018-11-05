@@ -20,11 +20,8 @@ extern crate serde_ignored;
 extern crate serde_json;
 #[macro_use]
 extern crate structopt;
-#[macro_use]
-extern crate slog;
 extern crate dialoguer;
-extern crate slog_async;
-extern crate slog_term;
+extern crate log;
 extern crate toml;
 extern crate walkdir;
 extern crate wasm_pack_binary_install;
@@ -36,7 +33,6 @@ pub mod command;
 pub mod emoji;
 pub mod license;
 pub mod lockfile;
-pub mod logger;
 pub mod manifest;
 pub mod npm;
 pub mod progressbar;

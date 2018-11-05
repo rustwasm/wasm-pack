@@ -6,8 +6,8 @@ use command::build::{Build, BuildOptions};
 use command::utils::{find_pkg_directory, set_crate_path};
 use dialoguer::{Confirmation, Input, Select};
 use failure::Error;
+use log::info;
 use npm;
-use slog::Logger;
 use std::path::PathBuf;
 use std::result;
 use PBAR;
@@ -18,12 +18,11 @@ pub fn publish(
     _target: String,
     path: Option<PathBuf>,
     access: Option<Access>,
-    log: &Logger,
 ) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path)?;
 
-    info!(&log, "Publishing the npm package...");
-    info!(&log, "npm info located in the npm debug log");
+    info!("Publishing the npm package...");
+    info!("npm info located in the npm debug log");
 
     let pkg_directory = match find_pkg_directory(&crate_path) {
         Some(path) => Ok(path),
@@ -53,7 +52,7 @@ pub fn publish(
                     ..Default::default()
                 };
                 Build::try_from_opts(build_opts)
-                    .and_then(|mut build| build.run(&log))
+                    .and_then(|mut build| build.run())
                     .map(|()| crate_path.join(out_dir))
                     .map_err(|_| {
                         format_err!(
@@ -73,8 +72,8 @@ pub fn publish(
             }
         }
     }?;
-    npm::npm_publish(log, &pkg_directory.to_string_lossy(), access)?;
-    info!(&log, "Published your package!");
+    npm::npm_publish(&pkg_directory.to_string_lossy(), access)?;
+    info!("Published your package!");
 
     PBAR.message("💥  published your package!");
     Ok(())

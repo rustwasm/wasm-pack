@@ -4,7 +4,7 @@
 //! properly logged and their output is logged as well.
 
 use failure::Error;
-use slog::Logger;
+use log::info;
 use std::{
     io::{self, Read},
     mem, process, string,
@@ -115,12 +115,8 @@ where
 }
 
 /// Run the given command and return its stdout.
-pub fn run(
-    logger: &Logger,
-    mut command: process::Command,
-    command_name: &str,
-) -> Result<String, Error> {
-    info!(logger, "Running {:?}", command);
+pub fn run(mut command: process::Command, command_name: &str) -> Result<String, Error> {
+    info!("Running {:?}", command);
 
     let mut child = command
         .stdout(process::Stdio::piped())
@@ -144,11 +140,11 @@ pub fn run(
         thread::spawn(move || read_and_send(stderr, stderr_send, OutputFragment::Stderr));
 
     let mut stdout = OutputAccumulator::new(|line| {
-        info!(logger, "{} (stdout): {}", command_name, line);
+        info!("{} (stdout): {}", command_name, line);
         PBAR.message(line)
     });
     let mut stderr = OutputAccumulator::new(|line| {
-        info!(logger, "{} (stderr): {}", command_name, line);
+        info!("{} (stderr): {}", command_name, line);
         PBAR.message(line)
     });
 

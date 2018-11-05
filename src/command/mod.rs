@@ -14,7 +14,7 @@ use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
 use failure::Error;
-use slog::Logger;
+use log::info;
 use std::path::PathBuf;
 use std::result;
 
@@ -87,27 +87,27 @@ pub enum Command {
 }
 
 /// Run a command with the given logger!
-pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
+pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
     let status = match command {
         Command::Build(build_opts) => {
-            info!(&log, "Running build command...");
-            Build::try_from_opts(build_opts).and_then(|mut b| b.run(&log))
+            info!("Running build command...");
+            Build::try_from_opts(build_opts).and_then(|mut b| b.run())
         }
         Command::Pack { path } => {
-            info!(&log, "Running pack command...");
-            info!(&log, "Path: {:?}", &path);
-            pack(path, &log)
+            info!("Running pack command...");
+            info!("Path: {:?}", &path);
+            pack(path)
         }
         Command::Publish {
             target,
             path,
             access,
         } => {
-            info!(&log, "Running publish command...");
-            info!(&log, "Path: {:?}", &path);
-            publish(target, path, access, &log)
+            info!("Running publish command...");
+            info!("Path: {:?}", &path);
+            publish(target, path, access)
         }
         Command::Login {
             registry,
@@ -115,20 +115,16 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
             always_auth,
             auth_type,
         } => {
-            info!(&log, "Running login command...");
+            info!("Running login command...");
             info!(
-                &log,
                 "Registry: {:?}, Scope: {:?}, Always Auth: {}, Auth Type: {:?}",
-                &registry,
-                &scope,
-                &always_auth,
-                &auth_type
+                &registry, &scope, &always_auth, &auth_type
             );
-            login(registry, scope, always_auth, auth_type, &log)
+            login(registry, scope, always_auth, auth_type)
         }
         Command::Test(test_opts) => {
-            info!(&log, "Running test command...");
-            Test::try_from_opts(test_opts).and_then(|t| t.run(&log))
+            info!("Running test command...");
+            Test::try_from_opts(test_opts).and_then(|t| t.run())
         }
     };
 
