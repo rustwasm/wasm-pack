@@ -9,7 +9,7 @@ use slog::Drain;
 use std::env;
 use std::fs;
 use std::io;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 fn logger() -> slog::Logger {
     let decorator = slog_term::TermDecorator::new().build();
@@ -26,11 +26,10 @@ fn get_tests_bin_path() -> PathBuf {
 #[test]
 #[cfg(not(target_os = "windows"))]
 fn get_local_bin_path_should_return_a_path() {
-    let crate_path = Path::new("");
+    let crate_path = get_tests_bin_path();
+    let expected_path = crate_path.join("bin/wasm-bindgen");
 
-    let expected_path = Path::new("bin/wasm-bindgen");
-
-    let result = local_bin_path(crate_path, "wasm-bindgen");
+    let result = local_bin_path(&crate_path, "wasm-bindgen");
 
     assert_eq!(expected_path, result);
 }
@@ -38,9 +37,9 @@ fn get_local_bin_path_should_return_a_path() {
 #[test]
 #[cfg(target_os = "windows")]
 fn get_local_bin_path_should_return_with_exe_for_windows() {
-    let crate_path = Path::new("");
+    let crate_path = get_tests_bin_path();
 
-    let expected_path = Path::new("bin/wasm-bindgen.exe");
+    let expected_path = crate_path.join("bin/wasm-bindgen.exe");
 
     let result = local_bin_path(crate_path, "wasm-bindgen");
 

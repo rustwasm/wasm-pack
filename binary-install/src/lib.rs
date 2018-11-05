@@ -47,8 +47,9 @@ where
     let bin = local_bin_dir(crate_path);
 
     for entry in archive.entries()? {
-        let mut entry =
-            entry.map_err(|_err| Error::archive(&format!("Invalid tarball at {}", url)))?;
+        let mut entry = entry.map_err(|err| {
+            Error::archive(&format!("Invalid tarball at {}. Inner error: {}", url, err))
+        })?;
 
         let dest = match entry.path()?.file_stem() {
             Some(f) if binaries.contains(f) => {
