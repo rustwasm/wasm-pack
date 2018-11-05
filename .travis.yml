@@ -38,8 +38,8 @@ DEPLOY_TO_GITHUB: &DEPLOY_TO_GITHUB
 matrix:
   include:
 
-  # tests pass
-  - env: JOB=test RUST_BACKTRACE=1
+  - name: Tests
+    env: RUST_BACKTRACE=1
     rust: nightly
     addons:
       firefox: latest
@@ -49,10 +49,10 @@ matrix:
     script:
     - cargo test --locked
     - rustup component add rustfmt-preview
+    - cargo fmt --version
     - cargo fmt --all -- --check
 
-  # book
-  - env: JOB=book
+  - name: Book
     rust: stable
     before_script:
     - (test -x $HOME/.cargo/bin/cargo-install-update || cargo install cargo-update)
@@ -71,8 +71,8 @@ matrix:
       on:
         branch: master
 
-  # dist linux binary
-  - env: JOB=dist-linux TARGET=x86_64-unknown-linux-musl
+  - name: Linux Binary
+    env: TARGET=x86_64-unknown-linux-musl
     rust: nightly
     before_script: rustup target add $TARGET
     script: cargo build --release --target $TARGET --locked --features vendored-openssl
@@ -82,8 +82,8 @@ matrix:
           - musl-tools
     <<: *DEPLOY_TO_GITHUB
 
-  # dist OSX binary
-  - env: JOB=dist-osx MACOSX_DEPLOYMENT_TARGET=10.7 TARGET=x86_64-apple-darwin
+  - name: macOS Binary
+    env: MACOSX_DEPLOYMENT_TARGET=10.7 TARGET=x86_64-apple-darwin
     os: osx
     rust: nightly
     script: cargo build --release --target $TARGET --locked
