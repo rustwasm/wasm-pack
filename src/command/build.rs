@@ -253,8 +253,7 @@ impl Build {
 
     fn step_create_json(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Writing a package.json...");
-        manifest::write_package_json(
-            &self.crate_data,
+        self.crate_data.write_package_json(
             &self.out_dir,
             &self.scope,
             self.disable_dts,

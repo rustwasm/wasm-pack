@@ -97,6 +97,33 @@ impl CargoManifest {
         Ok(manifest)
     }
 
+    /// Generate a package.json file inside in `./pkg`.
+    pub fn write_package_json(
+        &self,
+        out_dir: &Path,
+        scope: &Option<String>,
+        disable_dts: bool,
+        target: &str,
+        step: &Step,
+    ) -> Result<(), failure::Error> {
+        let msg = format!("{}Writing a package.json...", emoji::MEMO);
+
+        PBAR.step(step, &msg);
+        let pkg_file_path = out_dir.join("package.json");
+        let mut pkg_file = File::create(pkg_file_path)?;
+        let npm_data = if target == "nodejs" {
+            self.clone().into_commonjs(scope, disable_dts)
+        } else if target == "no-modules" {
+            self.clone().into_nomodules(scope, disable_dts)
+        } else {
+            self.clone().into_esmodules(scope, disable_dts)
+        };
+
+        let npm_json = serde_json::to_string_pretty(&npm_data)?;
+        pkg_file.write_all(npm_json.as_bytes())?;
+        Ok(())
+    }
+
     fn into_commonjs(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
@@ -208,33 +235,6 @@ impl CargoManifest {
             types: dts_file,
         })
     }
-}
-
-/// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json(
-    crate_data: &CargoManifest,
-    out_dir: &Path,
-    scope: &Option<String>,
-    disable_dts: bool,
-    target: &str,
-    step: &Step,
-) -> Result<(), failure::Error> {
-    let msg = format!("{}Writing a package.json...", emoji::MEMO);
-
-    PBAR.step(step, &msg);
-    let pkg_file_path = out_dir.join("package.json");
-    let mut pkg_file = File::create(pkg_file_path)?;
-    let npm_data = if target == "nodejs" {
-        crate_data.clone().into_commonjs(scope, disable_dts)
-    } else if target == "no-modules" {
-        crate_data.clone().into_nomodules(scope, disable_dts)
-    } else {
-        crate_data.clone().into_esmodules(scope, disable_dts)
-    };
-
-    let npm_json = serde_json::to_string_pretty(&npm_data)?;
-    pkg_file.write_all(npm_json.as_bytes())?;
-    Ok(())
 }
 
 /// Get the crate name for the crate at the given path.
