@@ -1,4 +1,3 @@
-use super::logger::null_logger;
 use std::env;
 use std::fs;
 use std::mem::ManuallyDrop;
@@ -170,7 +169,6 @@ impl Fixture {
         static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
         let cache = self.cache();
         let version = "0.2.21";
-        let log = &null_logger();
 
         let download = || {
             if let Ok(download) =
@@ -179,7 +177,7 @@ impl Fixture {
                 return Ok(download);
             }
 
-            wasm_pack::bindgen::cargo_install_wasm_bindgen(log, &cache, version, true)
+            wasm_pack::bindgen::cargo_install_wasm_bindgen(&cache, version, true)
         };
 
         // Only one thread can perform the actual download, and then afterwards
@@ -243,18 +241,17 @@ impl Fixture {
     }
 
     pub fn run(&self, cmd: wasm_pack::command::Command) -> Result<(), failure::Error> {
-        let logger = wasm_pack::logger::new(&cmd, 3)?;
         match cmd {
             wasm_pack::command::Command::Test(cmd) => {
                 let _lock = self.lock();
                 let mut test = wasm_pack::command::test::Test::try_from_opts(cmd)?;
                 test.set_cache(self.cache());
-                test.run(&logger)
+                test.run()
             }
             wasm_pack::command::Command::Build(cmd) => {
                 let mut build = wasm_pack::command::build::Build::try_from_opts(cmd)?;
                 build.set_cache(self.cache());
-                build.run(&logger)
+                build.run()
             }
             _ => unreachable!(),
         }

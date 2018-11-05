@@ -3,21 +3,21 @@
 use child;
 use command::publish::access::Access;
 use failure::{self, ResultExt};
-use slog::Logger;
+use log::info;
 
 /// The default npm registry used when we aren't working with a custom registry.
 pub const DEFAULT_NPM_REGISTRY: &'static str = "https://registry.npmjs.org/";
 
 /// Run the `npm pack` command.
-pub fn npm_pack(log: &Logger, path: &str) -> Result<(), failure::Error> {
+pub fn npm_pack(path: &str) -> Result<(), failure::Error> {
     let mut cmd = child::new_command("npm");
     cmd.current_dir(path).arg("pack");
-    child::run(log, cmd, "npm pack").context("Packaging up your code failed")?;
+    child::run(cmd, "npm pack").context("Packaging up your code failed")?;
     Ok(())
 }
 
 /// Run the `npm publish` command.
-pub fn npm_publish(log: &Logger, path: &str, access: Option<Access>) -> Result<(), failure::Error> {
+pub fn npm_publish(path: &str, access: Option<Access>) -> Result<(), failure::Error> {
     let mut cmd = child::new_command("npm");
     match access {
         Some(a) => cmd
@@ -27,13 +27,12 @@ pub fn npm_publish(log: &Logger, path: &str, access: Option<Access>) -> Result<(
         None => cmd.current_dir(path).arg("publish"),
     };
 
-    child::run(log, cmd, "npm publish").context("Publishing to npm failed")?;
+    child::run(cmd, "npm publish").context("Publishing to npm failed")?;
     Ok(())
 }
 
 /// Run the `npm login` command.
 pub fn npm_login(
-    log: &Logger,
     registry: &String,
     scope: &Option<String>,
     always_auth: bool,
@@ -58,7 +57,7 @@ pub fn npm_login(
     let mut cmd = child::new_command("npm");
     cmd.args(args);
 
-    info!(log, "Running {:?}", cmd);
+    info!("Running {:?}", cmd);
     match cmd.status()?.success() {
         true => Ok(()),
         false => bail!("Login to registry {} failed", registry),

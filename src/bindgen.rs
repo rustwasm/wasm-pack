@@ -4,9 +4,10 @@ use child;
 use command::build::BuildProfile;
 use emoji;
 use failure::{self, ResultExt};
+use log::debug;
+use log::{info, warn};
 use manifest::CrateData;
 use progressbar::Step;
-use slog::Logger;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -26,7 +27,6 @@ pub fn install_wasm_bindgen(
     version: &str,
     install_permitted: bool,
     step: &Step,
-    log: &Logger,
 ) -> Result<Download, failure::Error> {
     // If `wasm-bindgen` is installed globally and it has the right version, use
     // that. Assume that other tools are installed next to it.
@@ -34,12 +34,8 @@ pub fn install_wasm_bindgen(
     // This situation can arise if `wasm-bindgen` is already installed via
     // `cargo install`, for example.
     if let Ok(path) = which("wasm-bindgen") {
-        debug!(
-            log,
-            "found global wasm-bindgen binary at: {}",
-            path.display()
-        );
-        if wasm_bindgen_version_check(&path, version, log) {
+        debug!("found global wasm-bindgen binary at: {}", path.display());
+        if wasm_bindgen_version_check(&path, version) {
             return Ok(Download::at(path.parent().unwrap()));
         }
     }
@@ -52,14 +48,13 @@ pub fn install_wasm_bindgen(
         Ok(dl) => return Ok(dl),
         Err(e) => {
             warn!(
-                log,
                 "could not download pre-built `wasm-bindgen`: {}. Falling back to `cargo install`.",
                 e
             );
         }
     }
 
-    cargo_install_wasm_bindgen(log, &cache, version, install_permitted)
+    cargo_install_wasm_bindgen(&cache, version, install_permitted)
 }
 
 /// Downloads a precompiled copy of wasm-bindgen, if available.
@@ -102,7 +97,6 @@ fn prebuilt_url(version: &str) -> Option<String> {
 /// Use `cargo install` to install the `wasm-bindgen` CLI locally into the given
 /// crate.
 pub fn cargo_install_wasm_bindgen(
-    logger: &Logger,
     cache: &Cache,
     version: &str,
     install_permitted: bool,
@@ -132,7 +126,7 @@ pub fn cargo_install_wasm_bindgen(
         .arg("--root")
         .arg(&tmp);
 
-    child::run(logger, cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
+    child::run(cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
 
     fs::rename(&tmp, &destination)?;
     Ok(Download::at(&destination))
@@ -148,7 +142,6 @@ pub fn wasm_bindgen_build(
     target: &str,
     profile: BuildProfile,
     step: &Step,
-    log: &Logger,
 ) -> Result<(), failure::Error> {
     let msg = format!("{}Running WASM-bindgen...", emoji::RUNNER);
     PBAR.step(step, &msg);
@@ -196,15 +189,15 @@ pub fn wasm_bindgen_build(
         cmd.arg("--keep-debug");
     }
 
-    child::run(log, cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
+    child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.
-fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str, log: &Logger) -> bool {
+fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str) -> bool {
     let mut cmd = Command::new(bindgen_path);
     cmd.arg("--version");
-    child::run(log, cmd, "wasm-bindgen")
+    child::run(cmd, "wasm-bindgen")
         .map(|stdout| {
             stdout
                 .trim()
@@ -212,10 +205,8 @@ fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str, log: &L
                 .nth(1)
                 .map(|v| {
                     info!(
-                        log,
                         "Checking installed `wasm-bindgen` version == expected version: {} == {}",
-                        v,
-                        dep_version
+                        v, dep_version
                     );
                     v == dep_version
                 })
