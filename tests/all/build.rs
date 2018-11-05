@@ -80,6 +80,7 @@ fn it_should_build_crates_in_a_workspace() {
         "wasm-pack",
         "build",
         &fixture.path.join("blah").display().to_string(),
-    ]).unwrap();
+    ])
+    .unwrap();
     fixture.run(cli.cmd).unwrap();
 }
