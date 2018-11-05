@@ -18,8 +18,9 @@ use serde_json;
 use toml;
 use PBAR;
 
-#[derive(Debug, Deserialize)]
-struct CargoManifest {
+/// A parsed `Cargo.toml` manifest.
+#[derive(Clone, Debug, Deserialize)]
+pub struct CargoManifest {
     package: CargoPackage,
     dependencies: Option<HashMap<String, CargoDependency>>,
     #[serde(rename = "dev-dependencies")]
@@ -27,7 +28,7 @@ struct CargoManifest {
     lib: Option<CargoLib>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct CargoPackage {
     name: String,
     authors: Vec<String>,
@@ -59,42 +60,99 @@ impl CargoPackage {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
 enum CargoDependency {
     Simple(String),
     Detailed(DetailedCargoDependency),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct DetailedCargoDependency {
     version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct CargoLib {
     #[serde(rename = "crate-type")]
     crate_type: Option<Vec<String>>,
 }
 
-fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
-    let manifest_path = path.join("Cargo.toml");
-    if !manifest_path.is_file() {
-        return Err(Error::crate_config(&format!(
-            "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
-            path.display()
-        ))
-        .into());
-    }
-    let mut cargo_file = File::open(manifest_path)?;
-    let mut cargo_contents = String::new();
-    cargo_file.read_to_string(&mut cargo_contents)?;
-
-    let manifest: CargoManifest = toml::from_str(&cargo_contents)?;
-    Ok(manifest)
-}
-
 impl CargoManifest {
+    /// Read the `Cargo.toml` inside the crate at the given `crate_path`.
+    pub fn read(crate_path: &Path) -> Result<CargoManifest, failure::Error> {
+        let manifest_path = crate_path.join("Cargo.toml");
+        if !manifest_path.is_file() {
+            return Err(Error::crate_config(&format!(
+                "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
+                crate_path.display()
+            ))
+            .into());
+        }
+        let mut cargo_file = File::open(manifest_path)?;
+        let mut cargo_contents = String::new();
+        cargo_file.read_to_string(&mut cargo_contents)?;
+
+        let manifest: CargoManifest = toml::from_str(&cargo_contents)?;
+        Ok(manifest)
+    }
+
+    /// Generate a package.json file inside in `./pkg`.
+    pub fn write_package_json(
+        &self,
+        out_dir: &Path,
+        scope: &Option<String>,
+        disable_dts: bool,
+        target: &str,
+        step: &Step,
+    ) -> Result<(), failure::Error> {
+        let msg = format!("{}Writing a package.json...", emoji::MEMO);
+
+        PBAR.step(step, &msg);
+        let pkg_file_path = out_dir.join("package.json");
+        let mut pkg_file = File::create(pkg_file_path)?;
+        let npm_data = if target == "nodejs" {
+            self.clone().into_commonjs(scope, disable_dts)
+        } else if target == "no-modules" {
+            self.clone().into_nomodules(scope, disable_dts)
+        } else {
+            self.clone().into_esmodules(scope, disable_dts)
+        };
+
+        let npm_json = serde_json::to_string_pretty(&npm_data)?;
+        pkg_file.write_all(npm_json.as_bytes())?;
+        Ok(())
+    }
+
+    /// Get the crate name for the crate at the given path.
+    pub fn get_crate_name(&self) -> &str {
+        &self.package.name
+    }
+
+    /// Check that the crate the given path is properly configured.
+    pub fn check_crate_config(&self, step: &Step) -> Result<(), failure::Error> {
+        let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
+        PBAR.step(&step, &msg);
+        self.check_crate_type()?;
+        Ok(())
+    }
+
+    fn check_crate_type(&self) -> Result<(), failure::Error> {
+        if self.lib.as_ref().map_or(false, |lib| {
+            lib.crate_type
+                .as_ref()
+                .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
+        }) {
+            return Ok(());
+        }
+        Err(Error::crate_config(
+            "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
+             Cargo.toml file:\n\n\
+             [lib]\n\
+             crate-type = [\"cdylib\", \"rlib\"]"
+        ).into())
+    }
+
     fn into_commonjs(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
@@ -206,60 +264,4 @@ impl CargoManifest {
             types: dts_file,
         })
     }
-}
-
-/// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json(
-    path: &Path,
-    out_dir: &Path,
-    scope: &Option<String>,
-    disable_dts: bool,
-    target: &str,
-    step: &Step,
-) -> Result<(), failure::Error> {
-    let msg = format!("{}Writing a package.json...", emoji::MEMO);
-
-    PBAR.step(step, &msg);
-    let pkg_file_path = out_dir.join("package.json");
-    let mut pkg_file = File::create(pkg_file_path)?;
-    let crate_data = read_cargo_toml(path)?;
-    let npm_data = if target == "nodejs" {
-        crate_data.into_commonjs(scope, disable_dts)
-    } else if target == "no-modules" {
-        crate_data.into_nomodules(scope, disable_dts)
-    } else {
-        crate_data.into_esmodules(scope, disable_dts)
-    };
-
-    let npm_json = serde_json::to_string_pretty(&npm_data)?;
-    pkg_file.write_all(npm_json.as_bytes())?;
-    Ok(())
-}
-
-/// Get the crate name for the crate at the given path.
-pub fn get_crate_name(path: &Path) -> Result<String, failure::Error> {
-    Ok(read_cargo_toml(path)?.package.name)
-}
-
-/// Check that the crate the given path is properly configured.
-pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), failure::Error> {
-    let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
-    PBAR.step(&step, &msg);
-    check_crate_type(path)?;
-    Ok(())
-}
-
-fn check_crate_type(path: &Path) -> Result<(), failure::Error> {
-    if read_cargo_toml(path)?.lib.map_or(false, |lib| {
-        lib.crate_type
-            .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
-    }) {
-        return Ok(());
-    }
-    Err(Error::crate_config(
-      "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
-       Cargo.toml file:\n\n\
-       [lib]\n\
-       crate-type = [\"cdylib\", \"rlib\"]"
-    ).into())
 }
