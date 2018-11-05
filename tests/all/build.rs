@@ -17,10 +17,9 @@ fn build_in_non_crate_directory_doesnt_panic() {
         "running wasm-pack in a non-crate directory should fail, but it should not panic"
     );
     let err = result.unwrap_err();
-    assert!(
-        err.iter_chain()
-            .any(|e| e.to_string().contains("missing a `Cargo.toml`"))
-    );
+    assert!(err
+        .iter_chain()
+        .any(|e| e.to_string().contains("missing a `Cargo.toml`")));
 }
 
 #[test]
