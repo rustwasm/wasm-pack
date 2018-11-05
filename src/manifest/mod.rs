@@ -18,8 +18,9 @@ use serde_json;
 use toml;
 use PBAR;
 
-#[derive(Debug, Deserialize)]
-struct CargoManifest {
+/// A parsed `Cargo.toml` manifest.
+#[derive(Clone, Debug, Deserialize)]
+pub struct CargoManifest {
     package: CargoPackage,
     dependencies: Option<HashMap<String, CargoDependency>>,
     #[serde(rename = "dev-dependencies")]
@@ -27,7 +28,7 @@ struct CargoManifest {
     lib: Option<CargoLib>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct CargoPackage {
     name: String,
     authors: Vec<String>,
@@ -59,25 +60,26 @@ impl CargoPackage {
     }
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 #[serde(untagged)]
 enum CargoDependency {
     Simple(String),
     Detailed(DetailedCargoDependency),
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct DetailedCargoDependency {
     version: Option<String>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Clone, Debug, Deserialize)]
 struct CargoLib {
     #[serde(rename = "crate-type")]
     crate_type: Option<Vec<String>>,
 }
 
-fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
+/// Read the `Cargo.toml` inside the crate at the given `path`.
+pub fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
     let manifest_path = path.join("Cargo.toml");
     if !manifest_path.is_file() {
         return Err(Error::crate_config(&format!(
@@ -210,7 +212,7 @@ impl CargoManifest {
 
 /// Generate a package.json file inside in `./pkg`.
 pub fn write_package_json(
-    path: &Path,
+    crate_data: &CargoManifest,
     out_dir: &Path,
     scope: &Option<String>,
     disable_dts: bool,
@@ -222,13 +224,12 @@ pub fn write_package_json(
     PBAR.step(step, &msg);
     let pkg_file_path = out_dir.join("package.json");
     let mut pkg_file = File::create(pkg_file_path)?;
-    let crate_data = read_cargo_toml(path)?;
     let npm_data = if target == "nodejs" {
-        crate_data.into_commonjs(scope, disable_dts)
+        crate_data.clone().into_commonjs(scope, disable_dts)
     } else if target == "no-modules" {
-        crate_data.into_nomodules(scope, disable_dts)
+        crate_data.clone().into_nomodules(scope, disable_dts)
     } else {
-        crate_data.into_esmodules(scope, disable_dts)
+        crate_data.clone().into_esmodules(scope, disable_dts)
     };
 
     let npm_json = serde_json::to_string_pretty(&npm_data)?;
@@ -237,21 +238,22 @@ pub fn write_package_json(
 }
 
 /// Get the crate name for the crate at the given path.
-pub fn get_crate_name(path: &Path) -> Result<String, failure::Error> {
-    Ok(read_cargo_toml(path)?.package.name)
+pub fn get_crate_name(crate_data: &CargoManifest) -> &str {
+    &crate_data.package.name
 }
 
 /// Check that the crate the given path is properly configured.
-pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), failure::Error> {
+pub fn check_crate_config(crate_data: &CargoManifest, step: &Step) -> Result<(), failure::Error> {
     let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
     PBAR.step(&step, &msg);
-    check_crate_type(path)?;
+    check_crate_type(crate_data)?;
     Ok(())
 }
 
-fn check_crate_type(path: &Path) -> Result<(), failure::Error> {
-    if read_cargo_toml(path)?.lib.map_or(false, |lib| {
+fn check_crate_type(crate_data: &CargoManifest) -> Result<(), failure::Error> {
+    if crate_data.lib.as_ref().map_or(false, |lib| {
         lib.crate_type
+            .as_ref()
             .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
     }) {
         return Ok(());

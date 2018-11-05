@@ -21,6 +21,7 @@ use PBAR;
 #[allow(missing_docs)]
 pub struct Build {
     pub crate_path: PathBuf,
+    pub crate_data: manifest::CargoManifest,
     pub scope: Option<String>,
     pub disable_dts: bool,
     pub target: String,
@@ -104,11 +105,13 @@ impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, failure::Error> {
         let crate_path = set_crate_path(build_opts.path)?;
-        let crate_name = manifest::get_crate_name(&crate_path)?;
+        let crate_data = manifest::read_cargo_toml(&crate_path)?;
+        let crate_name = manifest::get_crate_name(&crate_data).to_string();
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
         // let build_config = manifest::xxx(&crate_path).xxx();
         Ok(Build {
             crate_path,
+            crate_data,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
@@ -213,7 +216,7 @@ impl Build {
 
     fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Checking crate configuration...");
-        manifest::check_crate_config(&self.crate_path, step)?;
+        manifest::check_crate_config(&self.crate_data, step)?;
         info!(&log, "Crate is correctly configured.");
         Ok(())
     }
@@ -251,7 +254,7 @@ impl Build {
     fn step_create_json(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Writing a package.json...");
         manifest::write_package_json(
-            &self.crate_path,
+            &self.crate_data,
             &self.out_dir,
             &self.scope,
             self.disable_dts,
@@ -298,7 +301,7 @@ impl Build {
         info!(&log, "Installing wasm-bindgen-cli was successful.");
 
         info!(&log, "Getting the crate name from the manifest...");
-        self.crate_name = manifest::get_crate_name(&self.crate_path)?;
+        self.crate_name = manifest::get_crate_name(&self.crate_data).to_string();
         info!(
             &log,
             "Got crate name {:#?} from the manifest at {:#?}.",

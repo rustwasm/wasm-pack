@@ -82,6 +82,7 @@ pub struct TestOptions {
 /// A configured `wasm-pack test` command.
 pub struct Test {
     crate_path: PathBuf,
+    crate_data: manifest::CargoManifest,
     cache: Cache,
     node: bool,
     mode: BuildMode,
@@ -116,13 +117,7 @@ impl Test {
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
-
-        // let geckodriver = get_web_driver("geckodriver", test_opts.geckodriver, test_opts.firefox)?;
-        // let chromedriver =
-        //     get_web_driver("chromedriver", test_opts.chromedriver, test_opts.chrome)?;
-        // let safaridriver =
-        //     get_web_driver("safaridriver", test_opts.safaridriver, test_opts.safari)?;
-
+        let crate_data = manifest::read_cargo_toml(&crate_path)?;
         let any_browser = chrome || firefox || safari;
 
         if !node && !any_browser {
@@ -143,6 +138,7 @@ impl Test {
         Ok(Test {
             cache: Cache::new()?,
             crate_path,
+            crate_data,
             node,
             mode,
             chrome,
@@ -248,7 +244,7 @@ impl Test {
 
     fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(log, "Checking crate configuration...");
-        manifest::check_crate_config(&self.crate_path, step)?;
+        manifest::check_crate_config(&self.crate_data, step)?;
         info!(log, "Crate is correctly configured.");
         Ok(())
     }
