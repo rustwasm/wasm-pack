@@ -117,7 +117,7 @@ impl Test {
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
-        let crate_data = manifest::read_cargo_toml(&crate_path)?;
+        let crate_data = manifest::CargoManifest::read(&crate_path)?;
         let any_browser = chrome || firefox || safari;
 
         if !node && !any_browser {

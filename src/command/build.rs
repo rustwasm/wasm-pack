@@ -105,7 +105,7 @@ impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, failure::Error> {
         let crate_path = set_crate_path(build_opts.path)?;
-        let crate_data = manifest::read_cargo_toml(&crate_path)?;
+        let crate_data = manifest::CargoManifest::read(&crate_path)?;
         let crate_name = manifest::get_crate_name(&crate_data).to_string();
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
         // let build_config = manifest::xxx(&crate_path).xxx();

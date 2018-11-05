@@ -78,25 +78,25 @@ struct CargoLib {
     crate_type: Option<Vec<String>>,
 }
 
-/// Read the `Cargo.toml` inside the crate at the given `path`.
-pub fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
-    let manifest_path = path.join("Cargo.toml");
-    if !manifest_path.is_file() {
-        return Err(Error::crate_config(&format!(
-            "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
-            path.display()
-        ))
-        .into());
-    }
-    let mut cargo_file = File::open(manifest_path)?;
-    let mut cargo_contents = String::new();
-    cargo_file.read_to_string(&mut cargo_contents)?;
-
-    let manifest: CargoManifest = toml::from_str(&cargo_contents)?;
-    Ok(manifest)
-}
-
 impl CargoManifest {
+    /// Read the `Cargo.toml` inside the crate at the given `crate_path`.
+    pub fn read(crate_path: &Path) -> Result<CargoManifest, failure::Error> {
+        let manifest_path = crate_path.join("Cargo.toml");
+        if !manifest_path.is_file() {
+            return Err(Error::crate_config(&format!(
+                "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
+                crate_path.display()
+            ))
+            .into());
+        }
+        let mut cargo_file = File::open(manifest_path)?;
+        let mut cargo_contents = String::new();
+        cargo_file.read_to_string(&mut cargo_contents)?;
+
+        let manifest: CargoManifest = toml::from_str(&cargo_contents)?;
+        Ok(manifest)
+    }
+
     fn into_commonjs(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);

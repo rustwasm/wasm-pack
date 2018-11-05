@@ -8,7 +8,7 @@ use wasm_pack::{self, manifest};
 #[test]
 fn it_gets_the_crate_name_default_path() {
     let path = &PathBuf::from(".");
-    let crate_data = manifest::read_cargo_toml(&path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&path).unwrap();
     let name = manifest::get_crate_name(&crate_data);
     assert_eq!(name, "wasm-pack");
 }
@@ -16,7 +16,7 @@ fn it_gets_the_crate_name_default_path() {
 #[test]
 fn it_gets_the_crate_name_provided_path() {
     let fixture = fixture::js_hello_world();
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     assert_eq!(manifest::get_crate_name(&crate_data), "js-hello-world");
 }
 
@@ -25,7 +25,7 @@ fn it_checks_has_cdylib_default_path() {
     let fixture = fixture::no_cdylib();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&crate_data, &step).is_err());
 }
@@ -35,7 +35,7 @@ fn it_checks_has_cdylib_provided_path() {
     let fixture = fixture::js_hello_world();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&crate_data, &step).is_ok());
 }
@@ -43,7 +43,7 @@ fn it_checks_has_cdylib_provided_path() {
 #[test]
 fn it_checks_has_cdylib_wrong_crate_type() {
     let fixture = fixture::bad_cargo_toml();
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&crate_data, &step).is_err());
 }
@@ -53,7 +53,7 @@ fn it_recognizes_a_map_during_depcheck() {
     let fixture = fixture::serde_feature();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&crate_data, &step).is_ok());
 }
@@ -62,7 +62,7 @@ fn it_recognizes_a_map_during_depcheck() {
 fn it_creates_a_package_json_default_path() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(manifest::write_package_json(&crate_data, &out_dir, &None, false, "", &step).is_ok());
@@ -96,7 +96,7 @@ fn it_creates_a_package_json_default_path() {
 fn it_creates_a_package_json_provided_path() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(manifest::write_package_json(&crate_data, &out_dir, &None, false, "", &step).is_ok());
@@ -123,7 +123,7 @@ fn it_creates_a_package_json_provided_path() {
 fn it_creates_a_package_json_provided_path_with_scope() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(
@@ -160,7 +160,7 @@ fn it_creates_a_package_json_provided_path_with_scope() {
 fn it_creates_a_pkg_json_with_correct_files_on_node() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(
@@ -195,7 +195,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
 fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(
@@ -231,7 +231,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
 fn it_creates_a_pkg_json_in_out_dir() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("./custom/out");
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(manifest::write_package_json(&crate_data, &out_dir, &None, false, "", &step).is_ok());
@@ -245,7 +245,7 @@ fn it_creates_a_pkg_json_in_out_dir() {
 fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(manifest::write_package_json(&crate_data, &out_dir, &None, true, "", &step).is_ok());
@@ -272,7 +272,7 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
 #[test]
 fn it_errors_when_wasm_bindgen_is_not_declared() {
     let fixture = fixture::bad_cargo_toml();
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&crate_data, &step).is_err());
 }
@@ -282,7 +282,7 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
     let fixture = fixture::js_hello_world();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
-    let crate_data = manifest::read_cargo_toml(&fixture.path).unwrap();
+    let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(manifest::check_crate_config(&crate_data, &step).is_ok());
 }
