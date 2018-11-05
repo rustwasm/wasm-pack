@@ -244,7 +244,7 @@ impl Test {
 
     fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(log, "Checking crate configuration...");
-        manifest::check_crate_config(&self.crate_data, step)?;
+        self.crate_data.check_crate_config(step)?;
         info!(log, "Crate is correctly configured.");
         Ok(())
     }

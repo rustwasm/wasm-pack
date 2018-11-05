@@ -27,7 +27,7 @@ fn it_checks_has_cdylib_default_path() {
     fixture.cargo_check();
     let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(manifest::check_crate_config(&crate_data, &step).is_err());
+    assert!(crate_data.check_crate_config(&step).is_err());
 }
 
 #[test]
@@ -37,7 +37,7 @@ fn it_checks_has_cdylib_provided_path() {
     fixture.cargo_check();
     let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(manifest::check_crate_config(&crate_data, &step).is_ok());
+    assert!(crate_data.check_crate_config(&step).is_ok());
 }
 
 #[test]
@@ -45,7 +45,7 @@ fn it_checks_has_cdylib_wrong_crate_type() {
     let fixture = fixture::bad_cargo_toml();
     let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(manifest::check_crate_config(&crate_data, &step).is_err());
+    assert!(crate_data.check_crate_config(&step).is_err());
 }
 
 #[test]
@@ -55,7 +55,7 @@ fn it_recognizes_a_map_during_depcheck() {
     fixture.cargo_check();
     let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(manifest::check_crate_config(&crate_data, &step).is_ok());
+    assert!(crate_data.check_crate_config(&step).is_ok());
 }
 
 #[test]
@@ -287,7 +287,7 @@ fn it_errors_when_wasm_bindgen_is_not_declared() {
     let fixture = fixture::bad_cargo_toml();
     let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(manifest::check_crate_config(&crate_data, &step).is_err());
+    assert!(crate_data.check_crate_config(&step).is_err());
 }
 
 #[test]
@@ -297,5 +297,5 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
     fixture.cargo_check();
     let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(manifest::check_crate_config(&crate_data, &step).is_ok());
+    assert!(crate_data.check_crate_config(&step).is_ok());
 }

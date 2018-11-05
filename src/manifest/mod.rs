@@ -129,6 +129,30 @@ impl CargoManifest {
         &self.package.name
     }
 
+    /// Check that the crate the given path is properly configured.
+    pub fn check_crate_config(&self, step: &Step) -> Result<(), failure::Error> {
+        let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
+        PBAR.step(&step, &msg);
+        self.check_crate_type()?;
+        Ok(())
+    }
+
+    fn check_crate_type(&self) -> Result<(), failure::Error> {
+        if self.lib.as_ref().map_or(false, |lib| {
+            lib.crate_type
+                .as_ref()
+                .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
+        }) {
+            return Ok(());
+        }
+        Err(Error::crate_config(
+            "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
+             Cargo.toml file:\n\n\
+             [lib]\n\
+             crate-type = [\"cdylib\", \"rlib\"]"
+        ).into())
+    }
+
     fn into_commonjs(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
@@ -240,28 +264,4 @@ impl CargoManifest {
             types: dts_file,
         })
     }
-}
-
-/// Check that the crate the given path is properly configured.
-pub fn check_crate_config(crate_data: &CargoManifest, step: &Step) -> Result<(), failure::Error> {
-    let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
-    PBAR.step(&step, &msg);
-    check_crate_type(crate_data)?;
-    Ok(())
-}
-
-fn check_crate_type(crate_data: &CargoManifest) -> Result<(), failure::Error> {
-    if crate_data.lib.as_ref().map_or(false, |lib| {
-        lib.crate_type
-            .as_ref()
-            .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
-    }) {
-        return Ok(());
-    }
-    Err(Error::crate_config(
-      "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
-       Cargo.toml file:\n\n\
-       [lib]\n\
-       crate-type = [\"cdylib\", \"rlib\"]"
-    ).into())
 }
