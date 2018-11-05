@@ -106,7 +106,7 @@ impl Build {
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, failure::Error> {
         let crate_path = set_crate_path(build_opts.path)?;
         let crate_data = manifest::CargoManifest::read(&crate_path)?;
-        let crate_name = manifest::get_crate_name(&crate_data).to_string();
+        let crate_name = crate_data.get_crate_name().to_string();
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
         // let build_config = manifest::xxx(&crate_path).xxx();
         Ok(Build {
@@ -300,7 +300,7 @@ impl Build {
         info!(&log, "Installing wasm-bindgen-cli was successful.");
 
         info!(&log, "Getting the crate name from the manifest...");
-        self.crate_name = manifest::get_crate_name(&self.crate_data).to_string();
+        self.crate_name = self.crate_data.get_crate_name().to_string();
         info!(
             &log,
             "Got crate name {:#?} from the manifest at {:#?}.",

@@ -9,7 +9,7 @@ use wasm_pack::{self, manifest};
 fn it_gets_the_crate_name_default_path() {
     let path = &PathBuf::from(".");
     let crate_data = manifest::CargoManifest::read(&path).unwrap();
-    let name = manifest::get_crate_name(&crate_data);
+    let name = crate_data.get_crate_name();
     assert_eq!(name, "wasm-pack");
 }
 
@@ -17,7 +17,7 @@ fn it_gets_the_crate_name_default_path() {
 fn it_gets_the_crate_name_provided_path() {
     let fixture = fixture::js_hello_world();
     let crate_data = manifest::CargoManifest::read(&fixture.path).unwrap();
-    assert_eq!(manifest::get_crate_name(&crate_data), "js-hello-world");
+    assert_eq!(crate_data.get_crate_name(), "js-hello-world");
 }
 
 #[test]

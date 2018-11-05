@@ -124,6 +124,11 @@ impl CargoManifest {
         Ok(())
     }
 
+    /// Get the crate name for the crate at the given path.
+    pub fn get_crate_name(&self) -> &str {
+        &self.package.name
+    }
+
     fn into_commonjs(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let filename = self.package.name.replace("-", "_");
         let wasm_file = format!("{}_bg.wasm", filename);
@@ -235,11 +240,6 @@ impl CargoManifest {
             types: dts_file,
         })
     }
-}
-
-/// Get the crate name for the crate at the given path.
-pub fn get_crate_name(crate_data: &CargoManifest) -> &str {
-    &crate_data.package.name
 }
 
 /// Check that the crate the given path is properly configured.
