@@ -1,5 +1,6 @@
 //! Implementation of the `wasm-pack build` command.
 
+use binaries::{Cache, Download};
 use bindgen;
 use build;
 use command::utils::{create_pkg_dir, set_crate_path};
@@ -17,7 +18,8 @@ use std::time::Instant;
 use PBAR;
 
 /// Everything required to configure and run the `wasm-pack init` command.
-pub(crate) struct Build {
+#[allow(missing_docs)]
+pub struct Build {
     pub crate_path: PathBuf,
     pub scope: Option<String>,
     pub disable_dts: bool,
@@ -27,6 +29,8 @@ pub(crate) struct Build {
     // build_config: Option<BuildConfig>,
     pub crate_name: String,
     pub out_dir: PathBuf,
+    pub bindgen: Option<Download>,
+    pub cache: Cache,
 }
 
 /// The `BuildMode` determines which mode of initialization we are running, and
@@ -113,7 +117,14 @@ impl Build {
             // build_config,
             crate_name,
             out_dir,
+            bindgen: None,
+            cache: Cache::new()?,
         })
+    }
+
+    /// Configures the global binary cache used for this build
+    pub fn set_cache(&mut self, cache: Cache) {
+        self.cache = cache;
     }
 
     /// Execute this `Build` command.
@@ -276,13 +287,14 @@ impl Build {
             BuildMode::Force => true,
             BuildMode::Noinstall => false,
         };
-        bindgen::install_wasm_bindgen(
-            &self.crate_path,
+        let bindgen = bindgen::install_wasm_bindgen(
+            &self.cache,
             &bindgen_version,
             install_permitted,
             step,
             log,
         )?;
+        self.bindgen = Some(bindgen);
         info!(&log, "Installing wasm-bindgen-cli was successful.");
 
         info!(&log, "Getting the crate name from the manifest...");
@@ -300,6 +312,7 @@ impl Build {
         info!(&log, "Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_path,
+            self.bindgen.as_ref().unwrap(),
             &self.out_dir,
             &self.crate_name,
             self.disable_dts,
