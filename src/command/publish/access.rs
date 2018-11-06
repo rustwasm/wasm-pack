@@ -1,4 +1,4 @@
-use error::Error;
+use failure::Error;
 use std::fmt;
 use std::str::FromStr;
 
@@ -19,7 +19,7 @@ impl FromStr for Access {
       "public" => Ok(Access::Public),
       "restricted" => Ok(Access::Restricted),
       "private" => Ok(Access::Restricted),
-      _ => Err(Error::Unsupported { message: format!("{} is not a supported access level. See https://docs.npmjs.com/cli/access for more information on npm package access levels.", s)}),
+      _ => bail!("{} is not a supported access level. See https://docs.npmjs.com/cli/access for more information on npm package access levels.", s),
     }
     }
 }

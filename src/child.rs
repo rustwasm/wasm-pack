@@ -3,8 +3,7 @@
 //! This module helps us ensure that all child processes that we spawn get
 //! properly logged and their output is logged as well.
 
-use error::Error;
-use failure;
+use failure::Error;
 use slog::Logger;
 use std::{
     io::{self, Read},
@@ -120,7 +119,7 @@ pub fn run(
     logger: &Logger,
     mut command: process::Command,
     command_name: &str,
-) -> Result<String, failure::Error> {
+) -> Result<String, Error> {
     info!(logger, "Running {:?}", command);
 
     let mut child = command
@@ -171,6 +170,7 @@ pub fn run(
     if exit.success() {
         return Ok(stdout);
     } else {
-        return Err(Error::cli(command_name, stdout.into(), stderr.into(), exit).into());
+        drop((stdout, stderr));
+        bail!("failed to execute `{}`: exited with {}", command_name, exit)
     }
 }
