@@ -25,9 +25,8 @@ pub struct Build {
     pub scope: Option<String>,
     pub disable_dts: bool,
     pub target: String,
-    pub debug: bool,
+    pub profile: BuildProfile,
     pub mode: BuildMode,
-    // build_config: Option<BuildConfig>,
     pub out_dir: PathBuf,
     pub bindgen: Option<Download>,
     pub cache: Cache,
@@ -64,6 +63,18 @@ impl FromStr for BuildMode {
     }
 }
 
+/// The build profile controls whether optimizations, debug info, and assertions
+/// are enabled or disabled.
+#[derive(Clone, Copy, Debug)]
+pub enum BuildProfile {
+    /// Enable assertions and debug info. Disable optimizations.
+    Dev,
+    /// Enable optimizations. Disable assertions and debug info.
+    Release,
+    /// Enable optimizations and debug info. Disable assertions.
+    Profiling,
+}
+
 /// Everything required to configure and run the `wasm-pack build` command.
 #[derive(Debug, StructOpt)]
 pub struct BuildOptions {
@@ -97,6 +108,14 @@ pub struct BuildOptions {
     /// optimizations.
     dev: bool,
 
+    #[structopt(long = "release")]
+    /// Create a release build. Enable optimizations and disable debug info.
+    release: bool,
+
+    #[structopt(long = "profiling")]
+    /// Create a profiling build. Enable optimizations and debug info.
+    profiling: bool,
+
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
@@ -110,16 +129,25 @@ impl Build {
         let crate_path = set_crate_path(build_opts.path)?;
         let crate_data = manifest::CrateData::new(&crate_path)?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
-        // let build_config = manifest::xxx(&crate_path).xxx();
+
+        let dev = build_opts.dev || build_opts.debug;
+        let profile = match (dev, build_opts.release, build_opts.profiling) {
+            (false, false, false) | (false, true, false) => BuildProfile::Release,
+            (true, false, false) => BuildProfile::Dev,
+            (false, false, true) => BuildProfile::Profiling,
+            // Unfortunately, `structopt` doesn't expose clap's `conflicts_with`
+            // functionality yet, so we have to implement it ourselves.
+            _ => bail!("Can only supply one of the --dev, --release, or --profiling flags"),
+        };
+
         Ok(Build {
             crate_path,
             crate_data,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
-            debug: build_opts.dev || build_opts.debug,
+            profile,
             mode: build_opts.mode,
-            // build_config,
             out_dir,
             bindgen: None,
             cache: Cache::new()?,
@@ -227,7 +255,7 @@ impl Build {
 
     fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Building wasm...");
-        build::cargo_build_wasm(log, &self.crate_path, self.debug, step)?;
+        build::cargo_build_wasm(log, &self.crate_path, self.profile, step)?;
 
         info!(
             &log,
@@ -302,7 +330,7 @@ impl Build {
             &self.out_dir,
             self.disable_dts,
             &self.target,
-            self.debug,
+            self.profile,
             step,
             log,
         )?;

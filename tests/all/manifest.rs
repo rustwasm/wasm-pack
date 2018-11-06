@@ -2,8 +2,10 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
 
+use structopt::StructOpt;
+
 use utils::{self, fixture};
-use wasm_pack::{self, manifest};
+use wasm_pack::{self, manifest, Cli};
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
@@ -285,4 +287,49 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
     let step = wasm_pack::progressbar::Step::new(1);
     crate_data.check_crate_config(&step).unwrap();
+}
+
+#[test]
+fn configure_wasm_bindgen_debug_incorrectly_is_error() {
+    let fixture = utils::fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "Cargo.toml",
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "whatever"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+            debug-js-glue = "not a boolean"
+            "#,
+        )
+        .hello_world_src_lib();
+
+    let cli = Cli::from_iter_safe(vec![
+        "wasm-pack",
+        "build",
+        "--dev",
+        &fixture.path.display().to_string(),
+    ])
+    .unwrap();
+
+    let result = fixture.run(cli.cmd);
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+    assert!(err.iter_chain().any(|c| c
+        .to_string()
+        .contains("package.metadata.wasm-pack.profile.dev.wasm-bindgen.debug")));
 }

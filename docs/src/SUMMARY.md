@@ -18,4 +18,5 @@
     - [`src/utils.rs`](./tutorial/template-deep-dive/src-utils-rs.md)
   - [Packaging and Publishing](./tutorial/packaging-and-publishing.md)
   - [Using your Library](./tutorial/using-your-library.md)
+- [`Cargo.toml` Configuration](./cargo-toml-configuration.md)
 - [Contributing](./contributing.md)
