@@ -21,14 +21,13 @@ use PBAR;
 #[allow(missing_docs)]
 pub struct Build {
     pub crate_path: PathBuf,
-    pub crate_data: manifest::CargoManifest,
+    pub crate_data: manifest::CrateData,
     pub scope: Option<String>,
     pub disable_dts: bool,
     pub target: String,
     pub debug: bool,
     pub mode: BuildMode,
     // build_config: Option<BuildConfig>,
-    pub crate_name: String,
     pub out_dir: PathBuf,
     pub bindgen: Option<Download>,
     pub cache: Cache,
@@ -105,8 +104,7 @@ impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, failure::Error> {
         let crate_path = set_crate_path(build_opts.path)?;
-        let crate_data = manifest::CargoManifest::read(&crate_path)?;
-        let crate_name = crate_data.get_crate_name().to_string();
+        let crate_data = manifest::CrateData::new(&crate_path)?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
         // let build_config = manifest::xxx(&crate_path).xxx();
         Ok(Build {
@@ -118,7 +116,6 @@ impl Build {
             debug: build_opts.debug,
             mode: build_opts.mode,
             // build_config,
-            crate_name,
             out_dir,
             bindgen: None,
             cache: Cache::new()?,
@@ -281,7 +278,7 @@ impl Build {
         log: &Logger,
     ) -> Result<(), failure::Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
-        let lockfile = Lockfile::new(&self.crate_path)?;
+        let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
         info!(&log, "Installing wasm-bindgen-cli...");
         let install_permitted = match self.mode {
@@ -298,25 +295,15 @@ impl Build {
         )?;
         self.bindgen = Some(bindgen);
         info!(&log, "Installing wasm-bindgen-cli was successful.");
-
-        info!(&log, "Getting the crate name from the manifest...");
-        self.crate_name = self.crate_data.get_crate_name().to_string();
-        info!(
-            &log,
-            "Got crate name {:#?} from the manifest at {:#?}.",
-            &self.crate_name,
-            &self.crate_path.join("Cargo.toml")
-        );
         Ok(())
     }
 
     fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
-            &self.crate_path,
+            &self.crate_data,
             self.bindgen.as_ref().unwrap(),
             &self.out_dir,
-            &self.crate_name,
             self.disable_dts,
             &self.target,
             self.debug,

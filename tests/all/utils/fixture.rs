@@ -277,7 +277,7 @@ pub fn no_cdylib() -> Fixture {
             authors = ["The wasm-pack developers"]
             description = "so awesome rust+wasm package"
             license = "WTFPL"
-            name = "{}"
+            name = "foo"
             repository = "https://github.com/rustwasm/wasm-pack.git"
             version = "0.1.0"
 
