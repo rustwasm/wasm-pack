@@ -171,7 +171,6 @@ pub fn run(
     if exit.success() {
         return Ok(stdout);
     } else {
-        let msg = format!("`{}` did not exit successfully", command_name);
-        return Err(Error::cli(&msg, stdout.into(), stderr.into(), exit).into());
+        return Err(Error::cli(command_name, stdout.into(), stderr.into(), exit).into());
     }
 }

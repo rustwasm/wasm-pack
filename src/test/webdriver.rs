@@ -1,41 +1,32 @@
 //! Getting WebDriver client binaries.
 
-use binary_install::{
-    install_binaries_from_targz_at_url, install_binaries_from_zip_at_url,
-    path::{bin_path, local_bin_path},
-};
+use binary_install::Cache;
 use command::build::BuildMode;
-use error::Error;
 use failure;
-use slog::Logger;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use target;
 
 /// Get the path to an existing `chromedriver`, or install it if no existing
 /// binary is found.
 pub fn get_or_install_chromedriver(
-    log: &Logger,
-    crate_path: &Path,
+    cache: &Cache,
     mode: BuildMode,
 ) -> Result<PathBuf, failure::Error> {
-    match (mode, bin_path(log, crate_path, "chromedriver")) {
-        (_, Some(path)) => Ok(path),
-        (BuildMode::Normal, None) => install_chromedriver(crate_path),
-        (BuildMode::Force, None) => install_chromedriver(crate_path),
-        (BuildMode::Noinstall, None) => Err(Error::crate_config(
-            "No crate-local `chromedriver` binary found, and could not find a global \
-             `chromedriver` on the `$PATH`. Not installing `chromedriver` because of noinstall \
-             mode.",
-        )
-        .into()),
+    if let Ok(path) = which::which("chromedriver") {
+        return Ok(path);
     }
+    let installation_allowed = match mode {
+        BuildMode::Noinstall => false,
+        _ => true,
+    };
+    install_chromedriver(cache, installation_allowed)
 }
 
-fn get_local_chromedriver_path(crate_path: &Path) -> PathBuf {
-    local_bin_path(crate_path, "chromedriver")
-}
-
-fn get_chromedriver_url() -> Result<String, Error> {
+/// Download and install a pre-built `chromedriver` binary.
+pub fn install_chromedriver(
+    cache: &Cache,
+    installation_allowed: bool,
+) -> Result<PathBuf, failure::Error> {
     let target = if target::LINUX && target::x86_64 {
         "linux64"
     } else if target::MACOS && target::x86_64 {
@@ -43,46 +34,49 @@ fn get_chromedriver_url() -> Result<String, Error> {
     } else if target::WINDOWS && target::x86 {
         "win32"
     } else {
-        return Err(Error::unsupported(
-            "geckodriver binaries are unavailable for this target",
-        ));
+        bail!("geckodriver binaries are unavailable for this target")
     };
 
-    Ok(format!(
+    let url = format!(
         "https://chromedriver.storage.googleapis.com/2.41/chromedriver_{}.zip",
         target
-    ))
-}
-
-/// Download and install a pre-built `chromedriver` binary.
-pub fn install_chromedriver(crate_path: &Path) -> Result<PathBuf, failure::Error> {
-    let url = get_chromedriver_url()?;
-    install_binaries_from_zip_at_url(crate_path, &url, Some("chromedriver"))?;
-    let chromedriver = get_local_chromedriver_path(crate_path);
-    assert!(chromedriver.is_file());
-    Ok(chromedriver)
+    );
+    match cache.download(
+        installation_allowed,
+        "chromedriver",
+        &["chromedriver"],
+        &url,
+    )? {
+        Some(dl) => Ok(dl.binary("chromedriver")),
+        None => bail!(
+            "No cached `chromedriver` binary found, and could not find a global \
+             `chromedriver` on the `$PATH`. Not installing `chromedriver` because of noinstall \
+             mode."
+        ),
+    }
 }
 
 /// Get the path to an existing `geckodriver`, or install it if no existing
 /// binary is found.
 pub fn get_or_install_geckodriver(
-    log: &Logger,
-    crate_path: &Path,
+    cache: &Cache,
     mode: BuildMode,
 ) -> Result<PathBuf, failure::Error> {
-    match (mode, bin_path(log, crate_path, "geckodriver")) {
-        (_, Some(path)) => Ok(path),
-        (BuildMode::Normal, None) => install_geckodriver(crate_path),
-        (BuildMode::Force, None) => install_geckodriver(crate_path),
-        (BuildMode::Noinstall, None) => Err(Error::crate_config(
-            "No crate-local `geckodriver` binary found, and could not find a global `geckodriver` \
-             on the `$PATH`. Not installing `geckodriver` because of noinstall mode.",
-        )
-        .into()),
+    if let Ok(path) = which::which("geckodriver") {
+        return Ok(path);
     }
+    let installation_allowed = match mode {
+        BuildMode::Noinstall => false,
+        _ => true,
+    };
+    install_geckodriver(cache, installation_allowed)
 }
 
-fn get_geckodriver_url() -> Result<String, Error> {
+/// Download and install a pre-built `geckodriver` binary.
+pub fn install_geckodriver(
+    cache: &Cache,
+    installation_allowed: bool,
+) -> Result<PathBuf, failure::Error> {
     let (target, ext) = if target::LINUX && target::x86 {
         ("linux32", "tar.gz")
     } else if target::LINUX && target::x86_64 {
@@ -94,36 +88,21 @@ fn get_geckodriver_url() -> Result<String, Error> {
     } else if target::WINDOWS && target::x86_64 {
         ("win64", "zip")
     } else {
-        return Err(Error::unsupported(
-            "geckodriver binaries are unavailable for this target",
-        ));
+        bail!("geckodriver binaries are unavailable for this target")
     };
 
-    Ok(format!(
+    let url = format!(
         "https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-{}.{}",
         target,
         ext,
-    ))
-}
-
-fn get_local_geckodriver_path(crate_path: &Path) -> PathBuf {
-    local_bin_path(crate_path, "geckodriver")
-}
-
-/// Download and install a pre-built `geckodriver` binary.
-pub fn install_geckodriver(crate_path: &Path) -> Result<PathBuf, failure::Error> {
-    let url = get_geckodriver_url()?;
-
-    if url.ends_with("tar.gz") {
-        install_binaries_from_targz_at_url(crate_path, &url, Some("geckodriver"))?;
-    } else {
-        assert!(url.ends_with("zip"));
-        install_binaries_from_zip_at_url(crate_path, &url, Some("geckodriver"))?;
+    );
+    match cache.download(installation_allowed, "geckodriver", &["geckodriver"], &url)? {
+        Some(dl) => Ok(dl.binary("geckodriver")),
+        None => bail!(
+            "No cached `geckodriver` binary found, and could not find a global `geckodriver` \
+             on the `$PATH`. Not installing `geckodriver` because of noinstall mode."
+        ),
     }
-
-    let geckodriver = get_local_geckodriver_path(crate_path);
-    assert!(geckodriver.is_file());
-    Ok(geckodriver)
 }
 
 /// Get the path to an existing `safaridriver`.
@@ -131,12 +110,9 @@ pub fn install_geckodriver(crate_path: &Path) -> Result<PathBuf, failure::Error>
 /// We can't install `safaridriver` if an existing one is not found because
 /// Apple does not provide pre-built binaries. However, `safaridriver` *should*
 /// be present by default.
-pub fn get_safaridriver(log: &Logger, crate_path: &Path) -> Result<PathBuf, Error> {
-    if let Some(p) = bin_path(log, crate_path, "safaridriver") {
-        Ok(p)
-    } else {
-        Err(Error::crate_config(
-            "could not find `safaridriver` on the `$PATH`",
-        ))
+pub fn get_safaridriver() -> Result<PathBuf, failure::Error> {
+    match which::which("safaridriver") {
+        Ok(p) => Ok(p),
+        Err(_) => bail!("could not find `safaridriver` on the `$PATH`"),
     }
 }

@@ -1,21 +1,14 @@
 use super::logger::null_logger;
-use binary_install;
+use binary_install::Cache;
 use std::env;
 use std::fs;
-use std::io;
 use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::{Once, ONCE_INIT};
+use std::sync::{MutexGuard, Once, ONCE_INIT};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
-
-fn hard_link_or_copy<P1: AsRef<Path>, P2: AsRef<Path>>(from: P1, to: P2) -> io::Result<()> {
-    let from = from.as_ref();
-    let to = to.as_ref();
-    fs::hard_link(from, to).or_else(|_| fs::copy(from, to).map(|_| ()))
-}
 
 /// A test fixture in a temporary directory.
 pub struct Fixture {
@@ -135,120 +128,63 @@ impl Fixture {
     ///
     /// Takes care not to re-install for every fixture, but only the one time
     /// for the whole test suite.
-    pub fn install_local_wasm_bindgen(&self) -> &Self {
+    pub fn install_local_wasm_bindgen(&self) -> PathBuf {
         static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
+        let cache = self.cache();
+        let version = "0.2.21";
+        let log = &null_logger();
 
-        let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
-        let shared_wasm_bindgen = binary_install::path::local_bin_path(&tests, "wasm-bindgen");
-        let shared_wasm_bindgen_test_runner =
-            binary_install::path::local_bin_path(&tests, "wasm-bindgen-test-runner");
-
-        INSTALL_WASM_BINDGEN.call_once(|| {
-            if shared_wasm_bindgen.is_file() {
-                assert!(shared_wasm_bindgen_test_runner.is_file());
-                return;
+        let download = || {
+            if let Ok(download) =
+                wasm_pack::bindgen::download_prebuilt_wasm_bindgen(&cache, version, true)
+            {
+                return Ok(download);
             }
 
-            const WASM_BINDGEN_VERSION: &str = "0.2.21";
-            wasm_pack::bindgen::download_prebuilt_wasm_bindgen(&tests, WASM_BINDGEN_VERSION)
-                .or_else(|_| {
-                    wasm_pack::bindgen::cargo_install_wasm_bindgen(
-                        &null_logger(),
-                        &tests,
-                        WASM_BINDGEN_VERSION,
-                    )
-                })
-                .unwrap();
+            wasm_pack::bindgen::cargo_install_wasm_bindgen(log, &cache, version, true)
+        };
+
+        // Only one thread can perform the actual download, and then afterwards
+        // everything will hit the cache so we can run the same path.
+        INSTALL_WASM_BINDGEN.call_once(|| {
+            download().unwrap();
         });
-
-        assert!(shared_wasm_bindgen.is_file());
-        assert!(shared_wasm_bindgen_test_runner.is_file());
-
-        binary_install::path::ensure_local_bin_dir(&self.path).unwrap();
-
-        hard_link_or_copy(
-            &shared_wasm_bindgen,
-            binary_install::path::local_bin_path(&self.path, "wasm-bindgen"),
-        )
-        .expect("could not copy `wasm-bindgen` to fixture directory");
-
-        hard_link_or_copy(
-            &shared_wasm_bindgen_test_runner,
-            binary_install::path::local_bin_path(&self.path, "wasm-bindgen-test-runner"),
-        )
-        .expect("could not copy `wasm-bindgen-test` to fixture directory");
-
-        self
+        download().unwrap().binary("wasm-bindgen")
     }
 
     /// Download `geckodriver` and return its path.
     ///
     /// Takes care to ensure that only one `geckodriver` is downloaded for the whole
     /// test suite.
-    pub fn install_local_geckodriver(&self) -> &Self {
+    pub fn install_local_geckodriver(&self) -> PathBuf {
         static FETCH_GECKODRIVER: Once = ONCE_INIT;
+        let cache = self.cache();
 
-        let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
-
-        binary_install::path::ensure_local_bin_dir(&tests)
-            .expect("could not create fixture's `bin` directory");
-
-        let geckodriver = binary_install::path::local_bin_path(&tests, "geckodriver");
-
+        // like above for synchronization
         FETCH_GECKODRIVER.call_once(|| {
-            if geckodriver.is_file() {
-                return;
-            }
-
-            wasm_pack::test::webdriver::install_geckodriver(&tests).unwrap();
-            assert!(geckodriver.is_file());
+            wasm_pack::test::webdriver::install_geckodriver(&cache, true).unwrap();
         });
-
-        binary_install::path::ensure_local_bin_dir(&self.path)
-            .expect("could not create fixture's `bin` directory");
-
-        hard_link_or_copy(
-            &geckodriver,
-            binary_install::path::local_bin_path(&self.path, "geckodriver"),
-        )
-        .expect("could not copy `geckodriver` to fixture directory");
-
-        self
+        wasm_pack::test::webdriver::install_geckodriver(&cache, true).unwrap()
     }
 
     /// Download `chromedriver` and return its path.
     ///
     /// Takes care to ensure that only one `chromedriver` is downloaded for the whole
     /// test suite.
-    pub fn install_local_chromedriver(&self) -> &Self {
+    pub fn install_local_chromedriver(&self) -> PathBuf {
         static FETCH_CHROMEDRIVER: Once = ONCE_INIT;
+        let cache = self.cache();
 
-        let tests = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests");
-
-        binary_install::path::ensure_local_bin_dir(&tests)
-            .expect("could not create fixture's `bin` directory");
-
-        let chromedriver = binary_install::path::local_bin_path(&tests, "chromedriver");
-
+        // like above for synchronization
         FETCH_CHROMEDRIVER.call_once(|| {
-            if chromedriver.is_file() {
-                return;
-            }
-
-            wasm_pack::test::webdriver::install_chromedriver(&tests).unwrap();
-            assert!(chromedriver.is_file());
+            wasm_pack::test::webdriver::install_chromedriver(&cache, true).unwrap();
         });
+        wasm_pack::test::webdriver::install_chromedriver(&cache, true).unwrap()
+    }
 
-        binary_install::path::ensure_local_bin_dir(&self.path)
-            .expect("could not create fixture's `bin` directory");
-
-        hard_link_or_copy(
-            &chromedriver,
-            binary_install::path::local_bin_path(&self.path, "chromedriver"),
-        )
-        .expect("could not copy `chromedriver` to fixture directory");
-
-        self
+    pub fn cache(&self) -> Cache {
+        let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
+        Cache::at(&target_dir.join("test_cache"))
     }
 
     /// The `step_install_wasm_bindgen` and `step_run_wasm_bindgen` steps only
@@ -266,6 +202,32 @@ impl Fixture {
             .status()
             .unwrap();
         self
+    }
+
+    pub fn run(&self, cmd: wasm_pack::command::Command) -> Result<(), failure::Error> {
+        let logger = wasm_pack::logger::new(&cmd, 3)?;
+        match cmd {
+            wasm_pack::command::Command::Test(cmd) => {
+                let _lock = self.lock();
+                let mut test = wasm_pack::command::test::Test::try_from_opts(cmd)?;
+                test.set_cache(self.cache());
+                test.run(&logger)
+            }
+            wasm_pack::command::Command::Build(cmd) => {
+                let mut build = wasm_pack::command::build::Build::try_from_opts(cmd)?;
+                build.set_cache(self.cache());
+                build.run(&logger)
+            }
+            _ => unreachable!(),
+        }
+    }
+
+    pub fn lock(&self) -> MutexGuard<'static, ()> {
+        use std::sync::Mutex;
+        lazy_static! {
+            static ref ONE_TEST_AT_A_TIME: Mutex<()> = Mutex::new(());
+        }
+        ONE_TEST_AT_A_TIME.lock().unwrap_or_else(|e| e.into_inner())
     }
 }
 
@@ -315,7 +277,7 @@ pub fn no_cdylib() -> Fixture {
             authors = ["The wasm-pack developers"]
             description = "so awesome rust+wasm package"
             license = "WTFPL"
-            name = "{}"
+            name = "foo"
             repository = "https://github.com/rustwasm/wasm-pack.git"
             version = "0.1.0"
 
@@ -384,8 +346,7 @@ pub fn wbg_test_diff_versions() -> Fixture {
                 # wasm-bindgen-test at 0.2.19, and everything should still work.
                 wasm-bindgen-test = "0.2.19"
             "#,
-        )
-        .file(
+        ).file(
             "src/lib.rs",
             r#"
                 extern crate wasm_bindgen;
@@ -394,8 +355,7 @@ pub fn wbg_test_diff_versions() -> Fixture {
                 #[wasm_bindgen]
                 pub fn one() -> u32 { 1 }
             "#,
-        )
-        .file(
+        ).file(
             "tests/node.rs",
             r#"
                 extern crate wbg_test_diff_versions;

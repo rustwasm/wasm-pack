@@ -2,51 +2,298 @@
 
 mod npm;
 
-use std::collections::HashMap;
-use std::fs::File;
-use std::io::prelude::*;
+use std::fs;
 use std::path::Path;
 
 use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
+use cargo_metadata::Metadata;
 use emoji;
-use error::Error;
-use failure;
+use failure::{Error, ResultExt};
 use progressbar::Step;
 use serde_json;
 use toml;
 use PBAR;
 
-#[derive(Debug, Deserialize)]
-struct CargoManifest {
-    package: CargoPackage,
-    dependencies: Option<HashMap<String, CargoDependency>>,
-    #[serde(rename = "dev-dependencies")]
-    dev_dependencies: Option<HashMap<String, CargoDependency>>,
-    lib: Option<CargoLib>,
+/// Store for metadata learned about a crate
+pub struct CrateData {
+    data: Metadata,
+    current_idx: usize,
+    manifest: CargoManifest,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Deserialize)]
+struct CargoManifest {
+    package: CargoPackage,
+}
+
+#[derive(Deserialize)]
 struct CargoPackage {
     name: String,
-    authors: Vec<String>,
     description: Option<String>,
-    version: String,
     license: Option<String>,
     repository: Option<String>,
 }
 
-impl CargoPackage {
+struct NpmData {
+    name: String,
+    files: Vec<String>,
+    dts_file: Option<String>,
+    main: String,
+}
+
+impl CrateData {
+    /// Reads all metadata for the crate whose manifest is inside the directory
+    /// specified by `path`.
+    pub fn new(crate_path: &Path) -> Result<CrateData, Error> {
+        let manifest_path = crate_path.join("Cargo.toml");
+        if !manifest_path.is_file() {
+            bail!(
+                "crate directory is missing a `Cargo.toml` file; is `{}` the \
+                 wrong directory?",
+                crate_path.display()
+            )
+        }
+        let manifest = fs::read_to_string(&manifest_path)
+            .with_context(|_| format!("failed to read: {}", manifest_path.display()))?;
+        let manifest: CargoManifest = toml::from_str(&manifest)
+            .with_context(|_| format!("failed to parse manifest: {}", manifest_path.display()))?;
+
+        let data =
+            cargo_metadata::metadata(Some(&manifest_path)).map_err(error_chain_to_failure)?;
+
+        let current_idx = data
+            .packages
+            .iter()
+            .position(|pkg| pkg.name == manifest.package.name)
+            .ok_or_else(|| format_err!("failed to find package in metadata"))?;
+
+        return Ok(CrateData {
+            data,
+            manifest,
+            current_idx,
+        });
+
+        fn error_chain_to_failure(err: cargo_metadata::Error) -> Error {
+            let errors = err.iter().collect::<Vec<_>>();
+            let mut err: Error = match errors.last() {
+                Some(e) => format_err!("{}", e),
+                None => return format_err!("{}", err),
+            };
+            for e in errors[..errors.len() - 1].iter().rev() {
+                err = err.context(e.to_string()).into();
+            }
+            return err;
+        }
+    }
+
+    /// Check that the crate the given path is properly configured.
+    pub fn check_crate_config(&self, step: &Step) -> Result<(), Error> {
+        let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
+        PBAR.step(&step, &msg);
+        self.check_crate_type()?;
+        Ok(())
+    }
+
+    fn check_crate_type(&self) -> Result<(), Error> {
+        let pkg = &self.data.packages[self.current_idx];
+        let any_cdylib = pkg
+            .targets
+            .iter()
+            .filter(|target| target.kind.iter().any(|k| k == "cdylib"))
+            .any(|target| target.crate_types.iter().any(|s| s == "cdylib"));
+        if any_cdylib {
+            return Ok(());
+        }
+        bail!(
+            "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
+             Cargo.toml file:\n\n\
+             [lib]\n\
+             crate-type = [\"cdylib\", \"rlib\"]"
+        )
+    }
+
+    /// Get the crate name for the crate at the given path.
+    pub fn crate_name(&self) -> String {
+        let pkg = &self.data.packages[self.current_idx];
+        match pkg
+            .targets
+            .iter()
+            .find(|t| t.kind.iter().any(|k| k == "cdylib"))
+        {
+            Some(lib) => lib.name.replace("-", "_"),
+            None => pkg.name.replace("-", "_"),
+        }
+    }
+
+    /// Returns the path to this project's target directory where artifacts are
+    /// located after a cargo build.
+    pub fn target_directory(&self) -> &Path {
+        Path::new(&self.data.target_directory)
+    }
+
+    /// Returns the path to this project's root cargo workspace directory
+    pub fn workspace_root(&self) -> &Path {
+        Path::new(&self.data.workspace_root)
+    }
+
+    /// Generate a package.json file inside in `./pkg`.
+    pub fn write_package_json(
+        &self,
+        out_dir: &Path,
+        scope: &Option<String>,
+        disable_dts: bool,
+        target: &str,
+        step: &Step,
+    ) -> Result<(), Error> {
+        let msg = format!("{}Writing a package.json...", emoji::MEMO);
+
+        PBAR.step(step, &msg);
+        let pkg_file_path = out_dir.join("package.json");
+        let npm_data = if target == "nodejs" {
+            self.to_commonjs(scope, disable_dts)
+        } else if target == "no-modules" {
+            self.to_nomodules(scope, disable_dts)
+        } else {
+            self.to_esmodules(scope, disable_dts)
+        };
+
+        let npm_json = serde_json::to_string_pretty(&npm_data)?;
+        fs::write(&pkg_file_path, npm_json)
+            .with_context(|_| format!("failed to write: {}", pkg_file_path.display()))?;
+        Ok(())
+    }
+
+    fn npm_data(
+        &self,
+        scope: &Option<String>,
+        include_commonjs_shim: bool,
+        disable_dts: bool,
+    ) -> NpmData {
+        let crate_name = self.crate_name();
+        let wasm_file = format!("{}_bg.wasm", crate_name);
+        let js_file = format!("{}.js", crate_name);
+        let mut files = vec![wasm_file];
+
+        files.push(js_file.clone());
+        if include_commonjs_shim {
+            let js_bg_file = format!("{}_bg.js", crate_name);
+            files.push(js_bg_file.to_string());
+        }
+
+        let pkg = &self.data.packages[self.current_idx];
+        let npm_name = match scope {
+            Some(s) => format!("@{}/{}", s, pkg.name),
+            None => pkg.name.clone(),
+        };
+
+        let dts_file = if !disable_dts {
+            let file = format!("{}.d.ts", crate_name);
+            files.push(file.to_string());
+            Some(file)
+        } else {
+            None
+        };
+        NpmData {
+            name: npm_name,
+            dts_file,
+            files,
+            main: js_file,
+        }
+    }
+
+    fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+        let data = self.npm_data(scope, true, disable_dts);
+        let pkg = &self.data.packages[self.current_idx];
+
+        self.check_optional_fields();
+
+        NpmPackage::CommonJSPackage(CommonJSPackage {
+            name: data.name,
+            collaborators: pkg.authors.clone(),
+            description: self.manifest.package.description.clone(),
+            version: pkg.version.clone(),
+            license: self.manifest.package.license.clone(),
+            repository: self
+                .manifest
+                .package
+                .repository
+                .clone()
+                .map(|repo_url| Repository {
+                    ty: "git".to_string(),
+                    url: repo_url,
+                }),
+            files: data.files,
+            main: data.main,
+            types: data.dts_file,
+        })
+    }
+
+    fn to_esmodules(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts);
+        let pkg = &self.data.packages[self.current_idx];
+
+        self.check_optional_fields();
+
+        NpmPackage::ESModulesPackage(ESModulesPackage {
+            name: data.name,
+            collaborators: pkg.authors.clone(),
+            description: self.manifest.package.description.clone(),
+            version: pkg.version.clone(),
+            license: self.manifest.package.license.clone(),
+            repository: self
+                .manifest
+                .package
+                .repository
+                .clone()
+                .map(|repo_url| Repository {
+                    ty: "git".to_string(),
+                    url: repo_url,
+                }),
+            files: data.files,
+            module: data.main,
+            types: data.dts_file,
+            side_effects: "false".to_string(),
+        })
+    }
+
+    fn to_nomodules(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts);
+        let pkg = &self.data.packages[self.current_idx];
+
+        self.check_optional_fields();
+
+        NpmPackage::NoModulesPackage(NoModulesPackage {
+            name: data.name,
+            collaborators: pkg.authors.clone(),
+            description: self.manifest.package.description.clone(),
+            version: pkg.version.clone(),
+            license: self.manifest.package.license.clone(),
+            repository: self
+                .manifest
+                .package
+                .repository
+                .clone()
+                .map(|repo_url| Repository {
+                    ty: "git".to_string(),
+                    url: repo_url,
+                }),
+            files: data.files,
+            browser: data.main,
+            types: data.dts_file,
+        })
+    }
+
     fn check_optional_fields(&self) {
         let mut messages = vec![];
-        if self.description.is_none() {
+        if self.manifest.package.description.is_none() {
             messages.push("description");
         }
-        if self.repository.is_none() {
+        if self.manifest.package.repository.is_none() {
             messages.push("repository");
         }
-        if self.license.is_none() {
+        if self.manifest.package.license.is_none() {
             messages.push("license");
         }
 
@@ -57,209 +304,4 @@ impl CargoPackage {
             _ => ()
         };
     }
-}
-
-#[derive(Debug, Deserialize)]
-#[serde(untagged)]
-enum CargoDependency {
-    Simple(String),
-    Detailed(DetailedCargoDependency),
-}
-
-#[derive(Debug, Deserialize)]
-struct DetailedCargoDependency {
-    version: Option<String>,
-}
-
-#[derive(Debug, Deserialize)]
-struct CargoLib {
-    #[serde(rename = "crate-type")]
-    crate_type: Option<Vec<String>>,
-}
-
-fn read_cargo_toml(path: &Path) -> Result<CargoManifest, failure::Error> {
-    let manifest_path = path.join("Cargo.toml");
-    if !manifest_path.is_file() {
-        return Err(Error::crate_config(&format!(
-            "Crate directory is missing a `Cargo.toml` file; is `{}` the wrong directory?",
-            path.display()
-        ))
-        .into());
-    }
-    let mut cargo_file = File::open(manifest_path)?;
-    let mut cargo_contents = String::new();
-    cargo_file.read_to_string(&mut cargo_contents)?;
-
-    let manifest: CargoManifest = toml::from_str(&cargo_contents)?;
-    Ok(manifest)
-}
-
-impl CargoManifest {
-    fn into_commonjs(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let filename = self.package.name.replace("-", "_");
-        let wasm_file = format!("{}_bg.wasm", filename);
-        let js_file = format!("{}.js", filename);
-        let mut files = vec![wasm_file];
-
-        let js_bg_file = format!("{}_bg.js", filename);
-        files.push(js_bg_file.to_string());
-
-        if let Some(s) = scope {
-            self.package.name = format!("@{}/{}", s, self.package.name);
-        }
-
-        let dts_file = if disable_dts == false {
-            let file = format!("{}.d.ts", filename);
-            files.push(file.to_string());
-            Some(file)
-        } else {
-            None
-        };
-
-        &self.package.check_optional_fields();
-
-        NpmPackage::CommonJSPackage(CommonJSPackage {
-            name: self.package.name,
-            collaborators: self.package.authors,
-            description: self.package.description,
-            version: self.package.version,
-            license: self.package.license,
-            repository: self.package.repository.map(|repo_url| Repository {
-                ty: "git".to_string(),
-                url: repo_url,
-            }),
-            files: files,
-            main: js_file,
-            types: dts_file,
-        })
-    }
-
-    fn into_esmodules(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let filename = self.package.name.replace("-", "_");
-        let wasm_file = format!("{}_bg.wasm", filename);
-        let js_file = format!("{}.js", filename);
-        let mut files = vec![wasm_file, js_file.clone()];
-
-        let dts_file = if disable_dts == false {
-            let file = format!("{}.d.ts", filename);
-            files.push(file.to_string());
-            Some(file)
-        } else {
-            None
-        };
-
-        if let Some(s) = scope {
-            self.package.name = format!("@{}/{}", s, self.package.name);
-        }
-
-        &self.package.check_optional_fields();
-
-        NpmPackage::ESModulesPackage(ESModulesPackage {
-            name: self.package.name,
-            collaborators: self.package.authors,
-            description: self.package.description,
-            version: self.package.version,
-            license: self.package.license,
-            repository: self.package.repository.map(|repo_url| Repository {
-                ty: "git".to_string(),
-                url: repo_url,
-            }),
-            files: files,
-            module: js_file,
-            types: dts_file,
-            side_effects: "false".to_string(),
-        })
-    }
-
-    fn into_nomodules(mut self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let filename = self.package.name.replace("-", "_");
-        let wasm_file = format!("{}_bg.wasm", filename);
-        let js_file = format!("{}.js", filename);
-        let mut files = vec![wasm_file, js_file.clone()];
-
-        let dts_file = if disable_dts == false {
-            let file = format!("{}.d.ts", filename);
-            files.push(file.to_string());
-            Some(file)
-        } else {
-            None
-        };
-
-        if let Some(s) = scope {
-            self.package.name = format!("@{}/{}", s, self.package.name);
-        }
-
-        &self.package.check_optional_fields();
-
-        NpmPackage::NoModulesPackage(NoModulesPackage {
-            name: self.package.name,
-            collaborators: self.package.authors,
-            description: self.package.description,
-            version: self.package.version,
-            license: self.package.license,
-            repository: self.package.repository.map(|repo_url| Repository {
-                ty: "git".to_string(),
-                url: repo_url,
-            }),
-            files: files,
-            browser: js_file,
-            types: dts_file,
-        })
-    }
-}
-
-/// Generate a package.json file inside in `./pkg`.
-pub fn write_package_json(
-    path: &Path,
-    out_dir: &Path,
-    scope: &Option<String>,
-    disable_dts: bool,
-    target: &str,
-    step: &Step,
-) -> Result<(), failure::Error> {
-    let msg = format!("{}Writing a package.json...", emoji::MEMO);
-
-    PBAR.step(step, &msg);
-    let pkg_file_path = out_dir.join("package.json");
-    let mut pkg_file = File::create(pkg_file_path)?;
-    let crate_data = read_cargo_toml(path)?;
-    let npm_data = if target == "nodejs" {
-        crate_data.into_commonjs(scope, disable_dts)
-    } else if target == "no-modules" {
-        crate_data.into_nomodules(scope, disable_dts)
-    } else {
-        crate_data.into_esmodules(scope, disable_dts)
-    };
-
-    let npm_json = serde_json::to_string_pretty(&npm_data)?;
-    pkg_file.write_all(npm_json.as_bytes())?;
-    Ok(())
-}
-
-/// Get the crate name for the crate at the given path.
-pub fn get_crate_name(path: &Path) -> Result<String, failure::Error> {
-    Ok(read_cargo_toml(path)?.package.name)
-}
-
-/// Check that the crate the given path is properly configured.
-pub fn check_crate_config(path: &Path, step: &Step) -> Result<(), failure::Error> {
-    let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
-    PBAR.step(&step, &msg);
-    check_crate_type(path)?;
-    Ok(())
-}
-
-fn check_crate_type(path: &Path) -> Result<(), failure::Error> {
-    if read_cargo_toml(path)?.lib.map_or(false, |lib| {
-        lib.crate_type
-            .map_or(false, |types| types.iter().any(|s| s == "cdylib"))
-    }) {
-        return Ok(());
-    }
-    Err(Error::crate_config(
-      "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
-       Cargo.toml file:\n\n\
-       [lib]\n\
-       crate-type = [\"cdylib\", \"rlib\"]"
-    ).into())
 }

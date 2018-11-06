@@ -1,10 +1,16 @@
-use binary_install;
+use failure::Error;
 use std::env;
-use std::fs;
-use tempfile;
 use utils::fixture;
-use wasm_pack::command::{self, build, test, Command};
-use wasm_pack::logger;
+use wasm_pack::command::{build, test, Command};
+
+fn assert_err<T>(result: Result<T, Error>, msg: &str) -> Error {
+    let error = result.err().expect("should have failed");
+    for e in error.iter_chain() {
+        println!("err: {}", e);
+    }
+    assert!(error.iter_chain().any(|e| e.to_string().contains(msg)));
+    error
+}
 
 #[test]
 fn it_can_run_node_tests() {
@@ -16,8 +22,7 @@ fn it_can_run_node_tests() {
         mode: build::BuildMode::Noinstall,
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-    command::run_wasm_pack(cmd, &logger).expect("should run test command OK");
+    fixture.run(cmd).unwrap();
 }
 
 #[test]
@@ -30,8 +35,7 @@ fn it_can_run_tests_with_different_wbg_test_and_wbg_versions() {
         mode: build::BuildMode::Noinstall,
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-    command::run_wasm_pack(cmd, &logger).expect("should run test command OK");
+    fixture.run(cmd).unwrap();
 }
 
 #[test]
@@ -81,8 +85,7 @@ fn it_can_run_browser_tests() {
         ..Default::default()
     });
 
-    let logger = logger::new(&cmd, 3).unwrap();
-    command::run_wasm_pack(cmd, &logger).expect("should run test command OK");
+    fixture.run(cmd).unwrap();
 }
 
 #[test]
@@ -95,10 +98,9 @@ fn it_can_run_failing_tests() {
         mode: build::BuildMode::Noinstall,
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-    assert!(
-        command::run_wasm_pack(cmd, &logger).is_err(),
-        "failing tests should return Err"
+    assert_err(
+        fixture.run(cmd),
+        "Running Wasm tests with wasm-bindgen-test failed",
     );
 }
 
@@ -111,34 +113,37 @@ fn it_can_run_failing_tests() {
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn it_can_find_a_webdriver_on_path() {
-    let fixture = fixture::wbg_test_browser();
-    fixture.install_local_wasm_bindgen();
-    fixture.install_local_geckodriver();
+    use std::process::Command;
 
-    let geckodriver_dir = tempfile::TempDir::new().unwrap();
-    let local_geckodriver = binary_install::path::local_bin_path(&fixture.path, "geckodriver");
-    fs::copy(
-        &local_geckodriver,
-        geckodriver_dir
-            .path()
-            .join(local_geckodriver.file_name().unwrap()),
-    )
-    .unwrap();
-    fs::remove_file(&local_geckodriver).unwrap();
+    let fixture = fixture::wbg_test_browser();
+    let local_geckodriver = fixture.install_local_geckodriver();
+    let local_wasm_bindgen = fixture.install_local_wasm_bindgen();
 
     let mut paths: Vec<_> = env::split_paths(&env::var("PATH").unwrap()).collect();
-    paths.insert(0, geckodriver_dir.path().into());
-    env::set_var("PATH", env::join_paths(paths).unwrap());
+    paths.insert(0, local_geckodriver.parent().unwrap().to_path_buf());
+    paths.insert(0, local_wasm_bindgen.parent().unwrap().to_path_buf());
+    let path = env::join_paths(paths).unwrap();
 
-    let cmd = Command::Test(test::TestOptions {
-        path: Some(fixture.path.clone()),
-        firefox: true,
-        headless: true,
-        mode: build::BuildMode::Noinstall,
-        ..Default::default()
-    });
-    let logger = logger::new(&cmd, 3).unwrap();
-    command::run_wasm_pack(cmd, &logger).expect("should run test command OK");
+    let _lock = fixture.lock();
+
+    let mut me = env::current_exe().unwrap();
+    me.pop();
+    me.pop();
+    me.push("wasm-pack");
+    let output = Command::new(&me)
+        .arg("test")
+        .arg("--firefox")
+        .arg("--headless")
+        .arg("--mode")
+        .arg("no-install")
+        .env("PATH", &path)
+        .arg(&fixture.path)
+        .output()
+        .unwrap();
+    println!("stdout: {}", String::from_utf8_lossy(&output.stdout));
+    println!("stderr: {}", String::from_utf8_lossy(&output.stderr));
+    println!("status: {}", output.status);
+    assert!(output.status.success());
 }
 
 #[test]
@@ -152,11 +157,7 @@ fn it_requires_node_or_a_browser() {
         // Note: not setting node or any browser to true here.
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-    assert!(
-        command::run_wasm_pack(cmd, &logger).is_err(),
-        "need to enable node or browser testing"
-    );
+    assert_err(fixture.run(cmd), "Must specify at least one of");
 }
 
 #[test]
@@ -171,11 +172,7 @@ fn the_headless_flag_requires_a_browser() {
         headless: true,
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-    assert!(
-        command::run_wasm_pack(cmd, &logger).is_err(),
-        "running headless tests in node doesn't make sense"
-    );
+    assert_err(fixture.run(cmd), "only applies to browser tests");
 }
 
 #[test]
@@ -203,8 +200,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
                 [dev-dependencies]
                 # no wasm-bindgen-test dep here!
             "#,
-        )
-        .hello_world_src_lib()
+        ).hello_world_src_lib()
         .install_local_wasm_bindgen();
 
     let cmd = Command::Test(test::TestOptions {
@@ -213,13 +209,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
         mode: build::BuildMode::Noinstall,
         ..Default::default()
     });
-    let logger = logger::new(&cmd, 3).unwrap();
-
-    let result = command::run_wasm_pack(cmd, &logger);
-    assert!(
-        result.is_err(),
-        "running tests without wasm-bindgen-test won't work"
-    );
+    let error = assert_err(fixture.run(cmd), "Ensure that you have");
 
     // Test that the error message has two occurrences of "wasm-bindgen-test" in
     // it. I am surprised to learn there is no `str` method to count
@@ -244,10 +234,53 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
     // the output to a text file, then the escape codes go away, so I can't
     // figure out which exact escape codes are even used here.
 
-    let err_msg = result.unwrap_err().to_string();
+    let err_msg = error.to_string();
     let first = err_msg.find("wasm-bindgen-test");
     assert!(first.is_some());
     let second = err_msg.rfind("wasm-bindgen-test");
     assert!(second.is_some());
     assert_ne!(first, second, "should have found two occurrences");
+}
+
+#[test]
+fn renamed_crate_name_works() {
+    let fixture = fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "0.1.0"
+                authors = []
+
+                [lib]
+                crate-type = ["cdylib"]
+                name = 'bar'
+
+                [dependencies]
+                wasm-bindgen = "=0.2.21"
+
+                [dev-dependencies]
+                wasm-bindgen-test = "=0.2.21"
+            "#,
+        ).file(
+            "src/lib.rs",
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                #[wasm_bindgen]
+                pub fn one() -> u32 { 1 }
+            "#,
+        );
+    fixture.install_local_wasm_bindgen();
+    let cmd = Command::Test(test::TestOptions {
+        path: Some(fixture.path.clone()),
+        node: true,
+        mode: build::BuildMode::Noinstall,
+        ..Default::default()
+    });
+    fixture.run(cmd).unwrap();
 }

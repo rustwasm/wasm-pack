@@ -1,5 +1,6 @@
 //! Implementation of the `wasm-pack build` command.
 
+use binary_install::{Cache, Download};
 use bindgen;
 use build;
 use command::utils::{create_pkg_dir, set_crate_path};
@@ -17,16 +18,19 @@ use std::time::Instant;
 use PBAR;
 
 /// Everything required to configure and run the `wasm-pack init` command.
-pub(crate) struct Build {
+#[allow(missing_docs)]
+pub struct Build {
     pub crate_path: PathBuf,
+    pub crate_data: manifest::CrateData,
     pub scope: Option<String>,
     pub disable_dts: bool,
     pub target: String,
     pub debug: bool,
     pub mode: BuildMode,
     // build_config: Option<BuildConfig>,
-    pub crate_name: String,
     pub out_dir: PathBuf,
+    pub bindgen: Option<Download>,
+    pub cache: Cache,
 }
 
 /// The `BuildMode` determines which mode of initialization we are running, and
@@ -100,20 +104,27 @@ impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, failure::Error> {
         let crate_path = set_crate_path(build_opts.path)?;
-        let crate_name = manifest::get_crate_name(&crate_path)?;
+        let crate_data = manifest::CrateData::new(&crate_path)?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
         // let build_config = manifest::xxx(&crate_path).xxx();
         Ok(Build {
             crate_path,
+            crate_data,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
             debug: build_opts.debug,
             mode: build_opts.mode,
             // build_config,
-            crate_name,
             out_dir,
+            bindgen: None,
+            cache: Cache::new()?,
         })
+    }
+
+    /// Configures the global binary cache used for this build
+    pub fn set_cache(&mut self, cache: Cache) {
+        self.cache = cache;
     }
 
     /// Execute this `Build` command.
@@ -202,7 +213,7 @@ impl Build {
 
     fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Checking crate configuration...");
-        manifest::check_crate_config(&self.crate_path, step)?;
+        self.crate_data.check_crate_config(step)?;
         info!(&log, "Crate is correctly configured.");
         Ok(())
     }
@@ -239,8 +250,7 @@ impl Build {
 
     fn step_create_json(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Writing a package.json...");
-        manifest::write_package_json(
-            &self.crate_path,
+        self.crate_data.write_package_json(
             &self.out_dir,
             &self.scope,
             self.disable_dts,
@@ -268,7 +278,7 @@ impl Build {
         log: &Logger,
     ) -> Result<(), failure::Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
-        let lockfile = Lockfile::new(&self.crate_path)?;
+        let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
         info!(&log, "Installing wasm-bindgen-cli...");
         let install_permitted = match self.mode {
@@ -276,32 +286,24 @@ impl Build {
             BuildMode::Force => true,
             BuildMode::Noinstall => false,
         };
-        bindgen::install_wasm_bindgen(
-            &self.crate_path,
+        let bindgen = bindgen::install_wasm_bindgen(
+            &self.cache,
             &bindgen_version,
             install_permitted,
             step,
             log,
         )?;
+        self.bindgen = Some(bindgen);
         info!(&log, "Installing wasm-bindgen-cli was successful.");
-
-        info!(&log, "Getting the crate name from the manifest...");
-        self.crate_name = manifest::get_crate_name(&self.crate_path)?;
-        info!(
-            &log,
-            "Got crate name {:#?} from the manifest at {:#?}.",
-            &self.crate_name,
-            &self.crate_path.join("Cargo.toml")
-        );
         Ok(())
     }
 
     fn step_run_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
-            &self.crate_path,
+            &self.crate_data,
+            self.bindgen.as_ref().unwrap(),
             &self.out_dir,
-            &self.crate_name,
             self.disable_dts,
             &self.target,
             self.debug,

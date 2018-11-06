@@ -1,6 +1,7 @@
 //! Implementation of the `wasm-pack test` command.
 
 use super::build::BuildMode;
+use binary_install::Cache;
 use bindgen;
 use build;
 use command::utils::set_crate_path;
@@ -81,6 +82,8 @@ pub struct TestOptions {
 /// A configured `wasm-pack test` command.
 pub struct Test {
     crate_path: PathBuf,
+    crate_data: manifest::CrateData,
+    cache: Cache,
     node: bool,
     mode: BuildMode,
     firefox: bool,
@@ -114,32 +117,26 @@ impl Test {
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
-
-        // let geckodriver = get_web_driver("geckodriver", test_opts.geckodriver, test_opts.firefox)?;
-        // let chromedriver =
-        //     get_web_driver("chromedriver", test_opts.chromedriver, test_opts.chrome)?;
-        // let safaridriver =
-        //     get_web_driver("safaridriver", test_opts.safaridriver, test_opts.safari)?;
-
+        let crate_data = manifest::CrateData::new(&crate_path)?;
         let any_browser = chrome || firefox || safari;
 
         if !node && !any_browser {
             return Err(Error::crate_config(
                 "Must specify at least one of `--node`, `--chrome`, `--firefox`, or `--safari`",
-            )
-            .into());
+            ).into());
         }
 
         if headless && !any_browser {
             return Err(Error::crate_config(
                 "The `--headless` flag only applies to browser tests. Node does not provide a UI, \
                  so it doesn't make sense to talk about a headless version of Node tests.",
-            )
-            .into());
+            ).into());
         }
 
         Ok(Test {
+            cache: Cache::new()?,
             crate_path,
+            crate_data,
             node,
             mode,
             chrome,
@@ -152,6 +149,11 @@ impl Test {
             release,
             test_runner_path: None,
         })
+    }
+
+    /// Configures the cache that this test command uses
+    pub fn set_cache(&mut self, cache: Cache) {
+        self.cache = cache;
     }
 
     /// Execute this test command.
@@ -240,7 +242,7 @@ impl Test {
 
     fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(log, "Checking crate configuration...");
-        manifest::check_crate_config(&self.crate_path, step)?;
+        self.crate_data.check_crate_config(step)?;
         info!(log, "Crate is correctly configured.");
         Ok(())
     }
@@ -270,7 +272,7 @@ impl Test {
         log: &Logger,
     ) -> Result<(), failure::Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
-        let lockfile = Lockfile::new(&self.crate_path)?;
+        let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
 
         // Unlike `wasm-bindgen` and `wasm-bindgen-cli`, `wasm-bindgen-test`
@@ -303,16 +305,15 @@ impl Test {
             }
         };
 
-        bindgen::install_wasm_bindgen(
-            &self.crate_path,
+        let dl = bindgen::install_wasm_bindgen(
+            &self.cache,
             &bindgen_version,
             install_permitted,
             step,
             log,
         )?;
 
-        self.test_runner_path = Some(bindgen::wasm_bindgen_test_runner_path(log, &self.crate_path)
-            .expect("if installing wasm-bindgen succeeded, then we should have wasm-bindgen-test-runner too"));
+        self.test_runner_path = Some(dl.binary("wasm-bindgen-test-runner"));
 
         info!(&log, "Getting wasm-bindgen-cli was successful.");
         Ok(())
@@ -335,13 +336,12 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_chromedriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
+    fn step_get_chromedriver(&mut self, step: &Step, _log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting chromedriver...");
         assert!(self.chrome && self.chromedriver.is_none());
 
         self.chromedriver = Some(webdriver::get_or_install_chromedriver(
-            log,
-            &self.crate_path,
+            &self.cache,
             self.mode,
         )?);
         Ok(())
@@ -378,13 +378,12 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_geckodriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
+    fn step_get_geckodriver(&mut self, step: &Step, _log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting geckodriver...");
         assert!(self.firefox && self.geckodriver.is_none());
 
         self.geckodriver = Some(webdriver::get_or_install_geckodriver(
-            log,
-            &self.crate_path,
+            &self.cache,
             self.mode,
         )?);
         Ok(())
@@ -421,11 +420,11 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_safaridriver(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
+    fn step_get_safaridriver(&mut self, step: &Step, _log: &Logger) -> Result<(), failure::Error> {
         PBAR.step(step, "Getting safaridriver...");
         assert!(self.safari && self.safaridriver.is_none());
 
-        self.safaridriver = Some(webdriver::get_safaridriver(log, &self.crate_path)?);
+        self.safaridriver = Some(webdriver::get_safaridriver()?);
         Ok(())
     }
 

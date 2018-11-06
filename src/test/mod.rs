@@ -22,12 +22,6 @@ where
     K: AsRef<OsStr>,
     V: AsRef<OsStr>,
 {
-    use std::sync::Mutex;
-    lazy_static! {
-        static ref ONE_TEST_AT_A_TIME: Mutex<()> = Mutex::new(());
-    }
-    let _locked = ONE_TEST_AT_A_TIME.lock().unwrap();
-
     let output = {
         let mut cmd = Command::new("cargo");
         cmd.envs(envs);
