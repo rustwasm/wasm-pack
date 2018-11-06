@@ -84,3 +84,44 @@ fn it_should_build_crates_in_a_workspace() {
     .unwrap();
     fixture.run(cli.cmd).unwrap();
 }
+
+#[test]
+fn renamed_crate_name_works() {
+    let fixture = utils::fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "0.1.0"
+                authors = []
+
+                [lib]
+                crate-type = ["cdylib"]
+                name = 'bar'
+
+                [dependencies]
+                wasm-bindgen = "=0.2.21"
+            "#,
+        )
+        .file(
+            "src/lib.rs",
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                #[wasm_bindgen]
+                pub fn one() -> u32 { 1 }
+            "#,
+        );
+    fixture.install_local_wasm_bindgen();
+    let cli = Cli::from_iter_safe(vec![
+        "wasm-pack",
+        "build",
+        &fixture.path.display().to_string(),
+    ])
+    .unwrap();
+    fixture.run(cli.cmd).unwrap();
+}

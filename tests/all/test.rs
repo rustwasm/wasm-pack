@@ -242,3 +242,47 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
     assert!(second.is_some());
     assert_ne!(first, second, "should have found two occurrences");
 }
+
+#[test]
+fn renamed_crate_name_works() {
+    let fixture = fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "0.1.0"
+                authors = []
+
+                [lib]
+                crate-type = ["cdylib"]
+                name = 'bar'
+
+                [dependencies]
+                wasm-bindgen = "=0.2.21"
+
+                [dev-dependencies]
+                wasm-bindgen-test = "=0.2.21"
+            "#,
+        )
+        .file(
+            "src/lib.rs",
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                #[wasm_bindgen]
+                pub fn one() -> u32 { 1 }
+            "#,
+        );
+    fixture.install_local_wasm_bindgen();
+    let cmd = Command::Test(test::TestOptions {
+        path: Some(fixture.path.clone()),
+        node: true,
+        mode: build::BuildMode::Noinstall,
+        ..Default::default()
+    });
+    fixture.run(cmd).unwrap();
+}

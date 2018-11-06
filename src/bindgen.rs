@@ -1,10 +1,10 @@
 //! Functionality related to installing and running `wasm-bindgen`.
 
 use binaries::{Cache, Download};
-use cargo_metadata;
 use child;
 use emoji;
 use failure::{self, ResultExt};
+use manifest::CrateData;
 use progressbar::Step;
 use slog::Logger;
 use std::fs;
@@ -140,10 +140,9 @@ pub fn cargo_install_wasm_bindgen(
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
 /// `.wasm`.
 pub fn wasm_bindgen_build(
-    path: &Path,
+    data: &CrateData,
     bindgen: &Download,
     out_dir: &Path,
-    name: &str,
     disable_dts: bool,
     target: &str,
     debug: bool,
@@ -153,21 +152,16 @@ pub fn wasm_bindgen_build(
     let msg = format!("{}Running WASM-bindgen...", emoji::RUNNER);
     PBAR.step(step, &msg);
 
-    let binary_name = name.replace("-", "_");
     let release_or_debug = if debug { "debug" } else { "release" };
 
     let out_dir = out_dir.to_str().unwrap();
 
-    let manifest = path.join("Cargo.toml");
-    let target_path = cargo_metadata::metadata(Some(&manifest))
-        .unwrap()
-        .target_directory;
-    let mut wasm_path = PathBuf::from(&target_path)
+    let wasm_path = data
+        .target_directory()
         .join("wasm32-unknown-unknown")
         .join(release_or_debug)
-        .join(binary_name);
-    wasm_path.set_extension("wasm");
-    let wasm_path = wasm_path.display().to_string();
+        .join(data.crate_name())
+        .with_extension("wasm");
 
     let dts_arg = if disable_dts {
         "--no-typescript"
@@ -181,8 +175,7 @@ pub fn wasm_bindgen_build(
     };
     let bindgen_path = bindgen.binary("wasm-bindgen");
     let mut cmd = Command::new(bindgen_path);
-    cmd.current_dir(path)
-        .arg(&wasm_path)
+    cmd.arg(&wasm_path)
         .arg("--out-dir")
         .arg(out_dir)
         .arg(dts_arg)

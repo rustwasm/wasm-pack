@@ -82,7 +82,7 @@ pub struct TestOptions {
 /// A configured `wasm-pack test` command.
 pub struct Test {
     crate_path: PathBuf,
-    crate_data: manifest::CargoManifest,
+    crate_data: manifest::CrateData,
     cache: Cache,
     node: bool,
     mode: BuildMode,
@@ -117,7 +117,7 @@ impl Test {
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
-        let crate_data = manifest::CargoManifest::read(&crate_path)?;
+        let crate_data = manifest::CrateData::new(&crate_path)?;
         let any_browser = chrome || firefox || safari;
 
         if !node && !any_browser {
@@ -274,7 +274,7 @@ impl Test {
         log: &Logger,
     ) -> Result<(), failure::Error> {
         info!(&log, "Identifying wasm-bindgen dependency...");
-        let lockfile = Lockfile::new(&self.crate_path)?;
+        let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
 
         // Unlike `wasm-bindgen` and `wasm-bindgen-cli`, `wasm-bindgen-test`
