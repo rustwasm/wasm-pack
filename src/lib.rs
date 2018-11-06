@@ -35,7 +35,6 @@ pub mod build;
 pub mod child;
 pub mod command;
 pub mod emoji;
-pub mod error;
 pub mod lockfile;
 pub mod logger;
 pub mod manifest;
