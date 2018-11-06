@@ -1,11 +1,9 @@
 //! Code related to error handling for wasm-pack
-use curl;
 use serde_json;
 use std::borrow::Cow;
 use std::io;
 use std::process::ExitStatus;
 use toml;
-use zip;
 
 /// Errors that can potentially occur in `wasm-pack`.
 #[derive(Debug, Fail)]
@@ -21,14 +19,6 @@ pub enum Error {
     /// A TOML serialization or deserialization error.
     #[fail(display = "{}", _0)]
     SerdeToml(#[cause] toml::de::Error),
-
-    #[fail(display = "{}", _0)]
-    /// A curl error.
-    Curl(#[cause] curl::Error),
-
-    #[fail(display = "{}", _0)]
-    /// An error handling zip archives.
-    Zip(#[cause] zip::result::ZipError),
 
     #[fail(display = "{}", _0)]
     /// An error in parsing your rustc version.
@@ -74,23 +64,9 @@ pub enum Error {
     },
 
     #[fail(display = "{}", message)]
-    /// An error related to an archive that we downloaded.
-    Archive {
-        /// Error message.
-        message: String,
-    },
-
-    #[fail(display = "{}", message)]
     /// Error when some operation or feature is unsupported for the current
     /// target or environment.
     Unsupported {
-        /// Error message.
-        message: String,
-    },
-
-    #[fail(display = "{}", message)]
-    /// Error related to some HTTP request.
-    Http {
         /// Error message.
         message: String,
     },
@@ -114,23 +90,9 @@ impl Error {
         }
     }
 
-    /// Construct an archive error.
-    pub fn archive(message: &str) -> Self {
-        Error::Archive {
-            message: message.to_string(),
-        }
-    }
-
     /// Construct an unsupported error.
     pub fn unsupported(message: &str) -> Self {
         Error::Unsupported {
-            message: message.to_string(),
-        }
-    }
-
-    /// Construct an http error.
-    pub fn http(message: &str) -> Self {
-        Error::Http {
             message: message.to_string(),
         }
     }
@@ -149,7 +111,6 @@ impl Error {
             Error::Io(_) => "There was an I/O error. Details:\n\n",
             Error::SerdeJson(_) => "There was an JSON error. Details:\n\n",
             Error::SerdeToml(_) => "There was an TOML error. Details:\n\n",
-            Error::Zip(_) => "There was an error handling zip files. Details:\n\n",
             Error::RustcMissing {
               message: _,
             } =>  "We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher.",
@@ -169,10 +130,7 @@ impl Error {
             Error::PkgNotFound {
                 message: _,
             } => "Unable to find the 'pkg' directory at the path, set the path as the parent of the 'pkg' directory \n\n",
-            Error::Curl(_) => "There was an error making an HTTP request with curl. Details:\n\n",
-            Error::Archive {..} => "There was an error related to an archive file. Details:\n\n",
             Error::Unsupported {..} => "There was an unsupported operation attempted. Details:\n\n",
-            Error::Http {..} => "There wasn an HTTP error. Details:\n\n",
         }.to_string()
     }
 }
@@ -183,21 +141,9 @@ impl From<io::Error> for Error {
     }
 }
 
-impl From<curl::Error> for Error {
-    fn from(e: curl::Error) -> Self {
-        Error::Curl(e)
-    }
-}
-
 impl From<serde_json::Error> for Error {
     fn from(e: serde_json::Error) -> Self {
         Error::SerdeJson(e)
-    }
-}
-
-impl From<zip::result::ZipError> for Error {
-    fn from(e: zip::result::ZipError) -> Self {
-        Error::Zip(e)
     }
 }
 

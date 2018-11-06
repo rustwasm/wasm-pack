@@ -9,19 +9,11 @@ readme = "README.md"
 categories = ["wasm"]
 documentation = "https://rustwasm.github.io/wasm-pack/"
 
-[workspace]
-members = ["binary-install"]
-exclude = ["target"]
-
 [dependencies]
 atty = "0.2.11"
 cargo_metadata = "0.6.0"
 console = "0.6.1"
-curl = "0.4.13"
-dirs = "1.0.4"
 failure = "0.1.2"
-flate2 = "1.0.2"
-hex = "0.3"
 human-panic = "1.0.1"
 indicatif = "0.9.0"
 lazy_static = "1.1.0"
@@ -30,15 +22,12 @@ parking_lot = "0.6"
 serde = "1.0.74"
 serde_derive = "1.0.74"
 serde_json = "1.0.26"
-siphasher = "0.2.3"
 slog = "2.3"
 slog-term = "2.4"
 slog-async = "2.3"
 structopt = "0.2"
-tar = "0.4.16"
 toml = "0.4"
 which = "2.0.0"
-zip = "0.4.2"
 binary-install = { version = "0.1.0", path = "./binary-install" }
 
 [dev-dependencies]

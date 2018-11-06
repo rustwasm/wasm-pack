@@ -3,14 +3,11 @@
 extern crate curl;
 #[macro_use]
 extern crate failure;
-extern crate flate2;
-#[macro_use]
-extern crate slog;
 extern crate dirs;
+extern crate flate2;
 extern crate hex;
 extern crate siphasher;
 extern crate tar;
-extern crate which;
 extern crate zip;
 
 use failure::{Error, ResultExt};
