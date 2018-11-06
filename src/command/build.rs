@@ -1,6 +1,5 @@
 //! Implementation of the `wasm-pack build` command.
 
-use binary_install::{Cache, Download};
 use bindgen;
 use build;
 use command::utils::{create_pkg_dir, set_crate_path};
@@ -15,6 +14,7 @@ use slog::Logger;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
+use wasm_pack_binary_install::{Cache, Download};
 use PBAR;
 
 /// Everything required to configure and run the `wasm-pack init` command.

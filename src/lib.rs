@@ -18,10 +18,10 @@ extern crate serde_json;
 extern crate structopt;
 #[macro_use]
 extern crate slog;
-extern crate binary_install;
 extern crate slog_async;
 extern crate slog_term;
 extern crate toml;
+extern crate wasm_pack_binary_install;
 
 pub mod bindgen;
 pub mod build;

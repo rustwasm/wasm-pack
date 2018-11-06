@@ -28,7 +28,7 @@ slog-async = "2.3"
 structopt = "0.2"
 toml = "0.4"
 which = "2.0.0"
-binary-install = { version = "0.1.0", path = "./binary-install" }
+wasm-pack-binary-install = { version = "0.1.0", path = "./binary-install" }
 
 [dev-dependencies]
 tempfile = "3"

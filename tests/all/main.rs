@@ -6,10 +6,10 @@ extern crate serde_derive;
 extern crate serde_json;
 #[macro_use]
 extern crate slog;
-extern crate binary_install;
 extern crate structopt;
 extern crate tempfile;
 extern crate wasm_pack;
+extern crate wasm_pack_binary_install;
 
 mod bindgen;
 mod build;
