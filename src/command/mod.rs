@@ -13,11 +13,10 @@ use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
-use error::Error;
+use failure::Error;
 use slog::Logger;
 use std::path::PathBuf;
 use std::result;
-use PBAR;
 
 /// The various kinds of commands that `wasm-pack` can execute.
 #[derive(Debug, StructOpt)]
@@ -84,7 +83,7 @@ pub enum Command {
 }
 
 /// Run a command with the given logger!
-pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), failure::Error> {
+pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
     let status = match command {
@@ -124,19 +123,6 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), failu
             Test::try_from_opts(test_opts).and_then(|t| t.run(&log))
         }
     };
-
-    match status {
-        Ok(_) => {}
-        Err(ref e) => {
-            error!(&log, "{}", e);
-            for c in e.iter_chain() {
-                if let Some(e) = c.downcast_ref::<Error>() {
-                    PBAR.error(e.error_type());
-                    break;
-                }
-            }
-        }
-    }
 
     // Return the actual status of the program to the main function
     status

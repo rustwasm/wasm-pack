@@ -3,7 +3,7 @@ pub mod access;
 
 use self::access::Access;
 use command::utils::{find_pkg_directory, set_crate_path};
-use error::Error;
+use failure::Error;
 use npm;
 use slog::Logger;
 use std::path::PathBuf;
@@ -16,16 +16,17 @@ pub fn publish(
     path: Option<PathBuf>,
     access: Option<Access>,
     log: &Logger,
-) -> result::Result<(), failure::Error> {
+) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path)?;
 
     info!(&log, "Publishing the npm package...");
     info!(&log, "npm info located in the npm debug log");
-    let pkg_directory = find_pkg_directory(&crate_path).ok_or(Error::PkgNotFound {
-        message: format!(
+    let pkg_directory = find_pkg_directory(&crate_path).ok_or_else(|| {
+        format_err!(
             "Unable to find the pkg directory at path '{:#?}', or in a child directory of '{:#?}'",
-            &crate_path, &crate_path
-        ),
+            &crate_path,
+            &crate_path
+        )
     })?;
 
     npm::npm_publish(log, &pkg_directory.to_string_lossy(), access)?;
