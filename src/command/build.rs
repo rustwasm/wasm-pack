@@ -89,10 +89,14 @@ pub struct BuildOptions {
     pub target: String,
 
     #[structopt(long = "debug")]
-    /// Build without --release.
+    /// Deprecated. Renamed to `--dev`.
     debug: bool,
-    // build config from manifest
-    // build_config: Option<BuildConfig>,
+
+    #[structopt(long = "dev")]
+    /// Create a development build. Enable debug info, and disable
+    /// optimizations.
+    dev: bool,
+
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
@@ -113,7 +117,7 @@ impl Build {
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
-            debug: build_opts.debug,
+            debug: build_opts.dev || build_opts.debug,
             mode: build_opts.mode,
             // build_config,
             out_dir,
