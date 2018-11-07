@@ -188,7 +188,6 @@ impl Test {
         match self.mode {
             BuildMode::Normal => steps![
                 step_check_rustc_version,
-                step_check_crate_config,
                 step_add_wasm_target,
                 step_build_tests,
                 step_install_wasm_bindgen,
@@ -213,7 +212,6 @@ impl Test {
                 step_test_safari if self.safari,
             ],
             BuildMode::Noinstall => steps![
-                step_check_crate_config,
                 step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
@@ -231,13 +229,6 @@ impl Test {
         info!(log, "Checking rustc version...");
         let _ = build::check_rustc_version(step)?;
         info!(log, "Rustc version is correct.");
-        Ok(())
-    }
-
-    fn step_check_crate_config(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(log, "Checking crate configuration...");
-        self.crate_data.check_crate_config(step)?;
-        info!(log, "Crate is correctly configured.");
         Ok(())
     }
 
