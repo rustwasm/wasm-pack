@@ -185,10 +185,7 @@ impl Build {
         PBAR.message(&format!(
             "{} Your wasm pkg is ready to publish at {}.",
             emoji::PACKAGE,
-            self.out_dir
-                .canonicalize()
-                .unwrap_or_else(|_err| self.out_dir.clone())
-                .display()
+            self.out_dir.display()
         ));
         Ok(())
     }
