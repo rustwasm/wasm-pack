@@ -10,17 +10,17 @@ fn build_in_non_crate_directory_doesnt_panic() {
         "wasm-pack",
         "build",
         &fixture.path.display().to_string(),
-    ]).unwrap();
+    ])
+    .unwrap();
     let result = fixture.run(cli.cmd);
     assert!(
         result.is_err(),
         "running wasm-pack in a non-crate directory should fail, but it should not panic"
     );
     let err = result.unwrap_err();
-    assert!(
-        err.iter_chain()
-            .any(|e| e.to_string().contains("missing a `Cargo.toml`"))
-    );
+    assert!(err
+        .iter_chain()
+        .any(|e| e.to_string().contains("missing a `Cargo.toml`")));
 }
 
 #[test]
@@ -31,7 +31,8 @@ fn it_should_build_js_hello_world_example() {
         "wasm-pack",
         "build",
         &fixture.path.display().to_string(),
-    ]).unwrap();
+    ])
+    .unwrap();
     fixture.run(cli.cmd).unwrap();
 }
 
@@ -45,7 +46,8 @@ fn it_should_build_crates_in_a_workspace() {
                 [workspace]
                 members = ["blah"]
             "#,
-        ).file(
+        )
+        .file(
             Path::new("blah").join("Cargo.toml"),
             r#"
                 [package]
@@ -62,7 +64,8 @@ fn it_should_build_crates_in_a_workspace() {
                 [dependencies]
                 wasm-bindgen = "=0.2.21"
             "#,
-        ).file(
+        )
+        .file(
             Path::new("blah").join("src").join("lib.rs"),
             r#"
                 extern crate wasm_bindgen;
@@ -77,7 +80,8 @@ fn it_should_build_crates_in_a_workspace() {
         "wasm-pack",
         "build",
         &fixture.path.join("blah").display().to_string(),
-    ]).unwrap();
+    ])
+    .unwrap();
     fixture.run(cli.cmd).unwrap();
 }
 
@@ -101,7 +105,8 @@ fn renamed_crate_name_works() {
                 [dependencies]
                 wasm-bindgen = "=0.2.21"
             "#,
-        ).file(
+        )
+        .file(
             "src/lib.rs",
             r#"
                 extern crate wasm_bindgen;
@@ -116,6 +121,7 @@ fn renamed_crate_name_works() {
         "wasm-pack",
         "build",
         &fixture.path.display().to_string(),
-    ]).unwrap();
+    ])
+    .unwrap();
     fixture.run(cli.cmd).unwrap();
 }

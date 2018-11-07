@@ -207,6 +207,8 @@ fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str, log: &L
                         dep_version
                     );
                     v == dep_version
-                }).unwrap_or(false)
-        }).unwrap_or(false)
+                })
+                .unwrap_or(false)
+        })
+        .unwrap_or(false)
 }

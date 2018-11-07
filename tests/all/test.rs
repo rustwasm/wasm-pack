@@ -200,7 +200,8 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
                 [dev-dependencies]
                 # no wasm-bindgen-test dep here!
             "#,
-        ).hello_world_src_lib()
+        )
+        .hello_world_src_lib()
         .install_local_wasm_bindgen();
 
     let cmd = Command::Test(test::TestOptions {
@@ -265,7 +266,8 @@ fn renamed_crate_name_works() {
                 [dev-dependencies]
                 wasm-bindgen-test = "=0.2.21"
             "#,
-        ).file(
+        )
+        .file(
             "src/lib.rs",
             r#"
                 extern crate wasm_bindgen;

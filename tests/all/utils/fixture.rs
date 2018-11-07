@@ -346,7 +346,8 @@ pub fn wbg_test_diff_versions() -> Fixture {
                 # wasm-bindgen-test at 0.2.19, and everything should still work.
                 wasm-bindgen-test = "0.2.19"
             "#,
-        ).file(
+        )
+        .file(
             "src/lib.rs",
             r#"
                 extern crate wasm_bindgen;
@@ -355,7 +356,8 @@ pub fn wbg_test_diff_versions() -> Fixture {
                 #[wasm_bindgen]
                 pub fn one() -> u32 { 1 }
             "#,
-        ).file(
+        )
+        .file(
             "tests/node.rs",
             r#"
                 extern crate wbg_test_diff_versions;
