@@ -9,7 +9,6 @@ use manifest::CrateData;
 use progressbar::Step;
 use slog::Logger;
 use std::fs;
-use std::env;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use target;
