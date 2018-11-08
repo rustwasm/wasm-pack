@@ -125,3 +125,16 @@ fn renamed_crate_name_works() {
     .unwrap();
     fixture.run(cli.cmd).unwrap();
 }
+
+#[test]
+fn it_should_build_nested_project_with_transitive_dependencies() {
+    let fixture = utils::fixture::transitive_dependencies();
+    fixture.install_local_wasm_bindgen();
+    let cli = Cli::from_iter_safe(vec![
+        "wasm-pack",
+        "build",
+        &fixture.path.join("main").display().to_string(),
+    ])
+    .unwrap();
+    fixture.run(cli.cmd).unwrap();
+}
