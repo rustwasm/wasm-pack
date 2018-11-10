@@ -1,5 +1,5 @@
 use command::utils::{find_pkg_directory, set_crate_path};
-use error::Error;
+use failure::Error;
 use npm;
 use slog::Logger;
 use std::path::PathBuf;
@@ -8,15 +8,16 @@ use PBAR;
 
 /// Executes the 'npm pack' command on the 'pkg' directory
 /// which creates a tarball that can be published to the NPM registry
-pub fn pack(path: Option<PathBuf>, log: &Logger) -> result::Result<(), failure::Error> {
+pub fn pack(path: Option<PathBuf>, log: &Logger) -> result::Result<(), Error> {
     let crate_path = set_crate_path(path)?;
 
     info!(&log, "Packing up the npm package...");
-    let pkg_directory = find_pkg_directory(&crate_path).ok_or(Error::PkgNotFound {
-        message: format!(
+    let pkg_directory = find_pkg_directory(&crate_path).ok_or_else(|| {
+        format_err!(
             "Unable to find the pkg directory at path {:#?}, or in a child directory of {:#?}",
-            &crate_path, &crate_path
-        ),
+            &crate_path,
+            &crate_path
+        )
     })?;
     npm::npm_pack(log, &pkg_directory.to_string_lossy())?;
     info!(

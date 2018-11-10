@@ -1,4 +1,5 @@
 use utils::fixture;
+use wasm_pack::binaries::Cache;
 use wasm_pack::test::webdriver;
 
 #[test]
@@ -9,7 +10,8 @@ use wasm_pack::test::webdriver;
 ))]
 fn can_install_chromedriver() {
     let fixture = fixture::js_hello_world();
-    assert!(webdriver::install_chromedriver(&fixture.path).is_ok());
+    let cache = Cache::at(&fixture.path);
+    assert!(webdriver::install_chromedriver(&cache, true).is_ok());
 }
 
 #[test]
@@ -22,5 +24,6 @@ fn can_install_chromedriver() {
 ))]
 fn can_install_geckodriver() {
     let fixture = fixture::js_hello_world();
-    assert!(webdriver::install_geckodriver(&fixture.path).is_ok());
+    let cache = Cache::at(&fixture.path);
+    assert!(webdriver::install_geckodriver(&cache, true).is_ok());
 }

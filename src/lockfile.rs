@@ -1,11 +1,11 @@
 //! Reading Cargo.lock lock file.
 
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
-use cargo_metadata;
 use console::style;
-use error::Error;
+use failure::{Error, ResultExt};
+use manifest::CrateData;
 use toml;
 
 /// This struct represents the contents of `Cargo.lock`.
@@ -23,10 +23,13 @@ struct Package {
 
 impl Lockfile {
     /// Read the `Cargo.lock` file for the crate at the given path.
-    pub fn new(crate_path: &Path) -> Result<Lockfile, failure::Error> {
-        let lock_path = get_lockfile_path(crate_path)?;
-        let lockfile = fs::read_to_string(lock_path)?;
-        toml::from_str(&lockfile).map_err(|err| Error::from(err).into())
+    pub fn new(crate_data: &CrateData) -> Result<Lockfile, Error> {
+        let lock_path = get_lockfile_path(crate_data)?;
+        let lockfile = fs::read_to_string(&lock_path)
+            .with_context(|_| format!("failed to read: {}", lock_path.display()))?;
+        let lockfile = toml::from_str(&lockfile)
+            .with_context(|_| format!("failed to parse: {}", lock_path.display()))?;
+        Ok(lockfile)
     }
 
     /// Get the version of `wasm-bindgen` dependency used in the `Cargo.lock`.
@@ -36,15 +39,14 @@ impl Lockfile {
 
     /// Like `wasm_bindgen_version`, except it returns an error instead of
     /// `None`.
-    pub fn require_wasm_bindgen(&self) -> Result<&str, failure::Error> {
+    pub fn require_wasm_bindgen(&self) -> Result<&str, Error> {
         self.wasm_bindgen_version().ok_or_else(|| {
-            let message = format!(
+            format_err!(
                 "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
                  [dependencies]\n\
                  wasm-bindgen = \"0.2\"",
                 style("wasm-bindgen").bold().dim(),
-            );
-            Error::CrateConfig { message }.into()
+            )
         })
     }
 
@@ -63,22 +65,12 @@ impl Lockfile {
 
 /// Given the path to the crate that we are buliding, return a `PathBuf`
 /// containing the location of the lock file, by finding the workspace root.
-fn get_lockfile_path(crate_path: &Path) -> Result<PathBuf, failure::Error> {
-    // Identify the crate's root directory, or return an error.
-    let manifest = crate_path.join("Cargo.toml");
-    let crate_root = cargo_metadata::metadata(Some(&manifest))
-        .map_err(|_| Error::CrateConfig {
-            message: String::from("Error while processing crate metadata"),
-        })?
-        .workspace_root;
+fn get_lockfile_path(crate_data: &CrateData) -> Result<PathBuf, Error> {
     // Check that a lock file can be found in the directory. Return an error
     // if it cannot, otherwise return the path buffer.
-    let lockfile_path = Path::new(&crate_root).join("Cargo.lock");
+    let lockfile_path = crate_data.workspace_root().join("Cargo.lock");
     if !lockfile_path.is_file() {
-        Err(Error::CrateConfig {
-            message: format!("Could not find lockfile at {:?}", lockfile_path),
-        }
-        .into())
+        bail!("Could not find lockfile at {:?}", lockfile_path)
     } else {
         Ok(lockfile_path)
     }
