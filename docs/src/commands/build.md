@@ -16,15 +16,28 @@ wasm-pack build examples/js-hello-world
 This path should point to a directory that contains a `Cargo.toml` file. If no
 path is given, the `build` command will run in the current directory.
 
-## Debug
+## Profile
 
-The init command accepts an optional `--debug` argument. This will build the
-output package using cargo's
-[default non-release profile][cargo-profile-sections-documentation]. Building
-this way is faster but applies few optimizations to the output, and enables
-debug assertions and other runtime correctness checks.
+The `build` command accepts an optional profile argument: one of `--dev`,
+`--profiling`, or `--release`. If none is supplied, then `--release` is used.
 
-The exact meaning of this flag may evolve as the platform matures.
+Th controls whether debug assertions are enabled, debug info is generated, and
+which (if any) optimizations are enabled.
+
+| Profile       | Debug Assertions | Debug Info | Optimizations | Notes                                 |
+|---------------|------------------|------------|---------------|---------------------------------------|
+| `--dev`       | Yes              | Yes        | No            | Useful for development and debugging. |
+| `--profiling` | No               | Yes        | Yes           | Useful when profiling and investigating performance issues. |
+| `--release`   | No               | No         | Yes           | Useful for shipping to production.    |
+
+The `--dev` profile will build the output package using cargo's [default
+non-release profile][cargo-profile-sections-documentation]. Building this way is
+faster but applies few optimizations to the output, and enables debug assertions
+and other runtime correctness checks. The `--profiling` and `--release` profiles
+use cargo's release profile, but the former enables debug info as well, which
+helps when investigating performance issues in a profiler.
+
+The exact meaning of the profile flags may evolve as the platform matures.
 
 [cargo-profile-sections-documentation]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-profile-sections
 

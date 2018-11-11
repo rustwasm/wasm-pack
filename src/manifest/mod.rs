@@ -9,9 +9,11 @@ use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
 use cargo_metadata::Metadata;
+use command::build::BuildProfile;
 use emoji;
 use failure::{Error, ResultExt};
 use progressbar::Step;
+use serde::{self, Deserialize};
 use serde_json;
 use toml;
 use PBAR;
@@ -34,6 +36,157 @@ struct CargoPackage {
     description: Option<String>,
     license: Option<String>,
     repository: Option<String>,
+
+    #[serde(default)]
+    metadata: CargoMetadata,
+}
+
+#[derive(Default, Deserialize)]
+struct CargoMetadata {
+    #[serde(default, rename = "wasm-pack")]
+    wasm_pack: CargoWasmPack,
+}
+
+#[derive(Default, Deserialize)]
+struct CargoWasmPack {
+    #[serde(default)]
+    profile: CargoWasmPackProfiles,
+}
+
+#[derive(Deserialize)]
+struct CargoWasmPackProfiles {
+    #[serde(
+        default = "CargoWasmPackProfile::default_dev",
+        deserialize_with = "CargoWasmPackProfile::deserialize_dev"
+    )]
+    dev: CargoWasmPackProfile,
+
+    #[serde(
+        default = "CargoWasmPackProfile::default_release",
+        deserialize_with = "CargoWasmPackProfile::deserialize_release"
+    )]
+    release: CargoWasmPackProfile,
+
+    #[serde(
+        default = "CargoWasmPackProfile::default_profiling",
+        deserialize_with = "CargoWasmPackProfile::deserialize_profiling"
+    )]
+    profiling: CargoWasmPackProfile,
+}
+
+impl Default for CargoWasmPackProfiles {
+    fn default() -> CargoWasmPackProfiles {
+        CargoWasmPackProfiles {
+            dev: CargoWasmPackProfile::default_dev(),
+            release: CargoWasmPackProfile::default_release(),
+            profiling: CargoWasmPackProfile::default_profiling(),
+        }
+    }
+}
+
+/// This is where configuration goes for wasm-bindgen, wasm-opt, wasm-snip, or
+/// anything else that wasm-pack runs.
+#[derive(Default, Deserialize)]
+pub struct CargoWasmPackProfile {
+    #[serde(default, rename = "wasm-bindgen")]
+    wasm_bindgen: CargoWasmPackProfileWasmBindgen,
+}
+
+#[derive(Default, Deserialize)]
+struct CargoWasmPackProfileWasmBindgen {
+    #[serde(default, rename = "debug-js-glue")]
+    debug_js_glue: Option<bool>,
+
+    #[serde(default, rename = "demangle-name-section")]
+    demangle_name_section: Option<bool>,
+
+    #[serde(default, rename = "dwarf-debug-info")]
+    dwarf_debug_info: Option<bool>,
+}
+
+impl CargoWasmPackProfile {
+    fn default_dev() -> Self {
+        CargoWasmPackProfile {
+            wasm_bindgen: CargoWasmPackProfileWasmBindgen {
+                debug_js_glue: Some(true),
+                demangle_name_section: Some(true),
+                dwarf_debug_info: Some(false),
+            },
+        }
+    }
+
+    fn default_release() -> Self {
+        CargoWasmPackProfile {
+            wasm_bindgen: CargoWasmPackProfileWasmBindgen {
+                debug_js_glue: Some(false),
+                demangle_name_section: Some(true),
+                dwarf_debug_info: Some(false),
+            },
+        }
+    }
+
+    fn default_profiling() -> Self {
+        CargoWasmPackProfile {
+            wasm_bindgen: CargoWasmPackProfileWasmBindgen {
+                debug_js_glue: Some(false),
+                demangle_name_section: Some(true),
+                dwarf_debug_info: Some(false),
+            },
+        }
+    }
+
+    fn deserialize_dev<'de, D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
+        profile.update_with_defaults(Self::default_dev());
+        Ok(profile)
+    }
+
+    fn deserialize_release<'de, D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
+        profile.update_with_defaults(Self::default_release());
+        Ok(profile)
+    }
+
+    fn deserialize_profiling<'de, D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
+        profile.update_with_defaults(Self::default_profiling());
+        Ok(profile)
+    }
+
+    fn update_with_defaults(&mut self, defaults: Self) {
+        macro_rules! d {
+            ( $( $path:ident ).* ) => {
+                self. $( $path ).* .get_or_insert(defaults. $( $path ).* .unwrap());
+            }
+        }
+        d!(wasm_bindgen.debug_js_glue);
+        d!(wasm_bindgen.demangle_name_section);
+        d!(wasm_bindgen.dwarf_debug_info);
+    }
+
+    /// Get this profile's configured `[wasm-bindgen.debug-js-glue]` value.
+    pub fn wasm_bindgen_debug_js_glue(&self) -> bool {
+        self.wasm_bindgen.debug_js_glue.unwrap()
+    }
+
+    /// Get this profile's configured `[wasm-bindgen.demangle-name-section]` value.
+    pub fn wasm_bindgen_demangle_name_section(&self) -> bool {
+        self.wasm_bindgen.demangle_name_section.unwrap()
+    }
+
+    /// Get this profile's configured `[wasm-bindgen.dwarf-debug-info]` value.
+    pub fn wasm_bindgen_dwarf_debug_info(&self) -> bool {
+        self.wasm_bindgen.dwarf_debug_info.unwrap()
+    }
 }
 
 struct NpmData {
@@ -85,6 +238,15 @@ impl CrateData {
                 err = err.context(e.to_string()).into();
             }
             return err;
+        }
+    }
+
+    /// Get the configured profile.
+    pub fn configured_profile(&self, profile: BuildProfile) -> &CargoWasmPackProfile {
+        match profile {
+            BuildProfile::Dev => &self.manifest.package.metadata.wasm_pack.profile.dev,
+            BuildProfile::Profiling => &self.manifest.package.metadata.wasm_pack.profile.profiling,
+            BuildProfile::Release => &self.manifest.package.metadata.wasm_pack.profile.release,
         }
     }
 
