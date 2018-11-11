@@ -2,6 +2,7 @@
 pub mod access;
 
 use self::access::Access;
+use command::build::{Build, BuildOptions};
 use command::utils::{find_pkg_directory, set_crate_path};
 use failure::Error;
 use npm;
@@ -21,14 +22,29 @@ pub fn publish(
 
     info!(&log, "Publishing the npm package...");
     info!(&log, "npm info located in the npm debug log");
-    let pkg_directory = find_pkg_directory(&crate_path).ok_or_else(|| {
-        format_err!(
-            "Unable to find the pkg directory at path '{:#?}', or in a child directory of '{:#?}'",
-            &crate_path,
-            &crate_path
-        )
-    })?;
 
+    let pkg_directory = match find_pkg_directory(&crate_path) {
+        Some(path) => Ok(path),
+        None => {
+            // while `wasm-pack publish`, if the pkg directory cannot be found,
+            // then try to `wasm-pack build`
+            let build_opts = BuildOptions {
+                path: Some(crate_path.clone()),
+                ..Default::default()
+            };
+            Build::try_from_opts(build_opts)
+                .and_then(|mut build| build.run(&log))
+                .map(|()| crate_path.join("pkg"))
+                .map_err(|_| {
+                    format_err!(
+                        "Unable to find the pkg directory at path '{:#?}',\
+                         or in a child directory of '{:#?}'",
+                        &crate_path,
+                        &crate_path
+                    )
+                })
+        }
+    }?;
     npm::npm_publish(log, &pkg_directory.to_string_lossy(), access)?;
     info!(&log, "Published your package!");
 

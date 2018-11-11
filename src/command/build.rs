@@ -102,12 +102,12 @@ pub struct BuildOptions {
 
     #[structopt(long = "debug")]
     /// Deprecated. Renamed to `--dev`.
-    debug: bool,
+    pub debug: bool,
 
     #[structopt(long = "dev")]
     /// Create a development build. Enable debug info, and disable
     /// optimizations.
-    dev: bool,
+    pub dev: bool,
 
     #[structopt(long = "release")]
     /// Create a release build. Enable optimizations and disable debug info.
@@ -120,6 +120,21 @@ pub struct BuildOptions {
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
+}
+
+impl Default for BuildOptions {
+    fn default() -> Self {
+        Self {
+            path: None,
+            scope: None,
+            mode: BuildMode::Normal,
+            disable_dts: false,
+            target: String::from("browser"),
+            debug: false,
+            dev: false,
+            out_dir: String::from("pkg"),
+        }
+    }
 }
 
 type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
