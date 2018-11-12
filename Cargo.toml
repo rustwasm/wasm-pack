@@ -25,6 +25,7 @@ openssl = { version = '0.10.11', optional = true }
 parking_lot = "0.6"
 serde = "1.0.74"
 serde_derive = "1.0.74"
+serde_ignored = "0.0.4"
 serde_json = "1.0.26"
 siphasher = "0.2.3"
 slog = "2.3"

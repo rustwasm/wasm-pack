@@ -15,6 +15,7 @@ use failure::{Error, ResultExt};
 use progressbar::Step;
 use serde::{self, Deserialize};
 use serde_json;
+use std::collections::BTreeSet;
 use toml;
 use PBAR;
 
@@ -210,8 +211,25 @@ impl CrateData {
         }
         let manifest = fs::read_to_string(&manifest_path)
             .with_context(|_| format!("failed to read: {}", manifest_path.display()))?;
-        let manifest: CargoManifest = toml::from_str(&manifest)
-            .with_context(|_| format!("failed to parse manifest: {}", manifest_path.display()))?;
+        let manifest = &mut toml::Deserializer::new(&manifest);
+
+        let mut unused_keys = BTreeSet::new();
+
+        let manifest: CargoManifest = serde_ignored::deserialize(manifest, |path| {
+            let path_string = path.to_string();
+
+            if path_string.contains("metadata") {
+                unused_keys.insert(path_string);
+            }
+        })
+        .with_context(|_| format!("failed to parse manifest: {}", manifest_path.display()))?;
+
+        unused_keys.iter().for_each(|path| {
+            PBAR.warn(&format!(
+                "\"{}\" is misspelled and will be ignored. Please check your Cargo.toml.",
+                path
+            ));
+        });
 
         let data =
             cargo_metadata::metadata(Some(&manifest_path)).map_err(error_chain_to_failure)?;
