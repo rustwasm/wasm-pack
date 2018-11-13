@@ -257,7 +257,7 @@ impl CrateData {
     ///
     /// # Errors
     /// Will return Err if the file (manifest_path) couldn't be read or
-    /// if deserializion of to `CargoManifest` fails.
+    /// if deserialize to `CargoManifest` fails.
     pub fn parse_crate_data(manifest_path: &Path) -> Result<ManifestAndUnsedKeys, Error> {
         let manifest = fs::read_to_string(&manifest_path)
             .with_context(|_| format!("failed to read: {}", manifest_path.display()))?;
