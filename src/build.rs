@@ -3,8 +3,6 @@
 use child;
 use emoji;
 use failure::{Error, ResultExt};
-use error::Error;
-use failure::ResultExt;
 use manifest::Crate;
 use progressbar::Step;
 use slog::Logger;
@@ -38,7 +36,7 @@ pub fn check_wasm_pack_version(step: &Step) -> Result<(), failure::Error> {
     let msg = format!("{}Checking `wasm-pack` version...", emoji::PACKAGE);
     PBAR.step(step, &msg);
     let wasm_pack_local_version = wasm_pack_local_version();
-    let wasm_pack_latest_version = Crate::return_wasm_pack_latest_version();
+    let wasm_pack_latest_version = Crate::return_wasm_pack_latest_version()?;
     match wasm_pack_local_version {
         Some(lv) => {
             if !(lv == wasm_pack_latest_version) {
@@ -47,9 +45,8 @@ pub fn check_wasm_pack_version(step: &Step) -> Result<(), failure::Error> {
                 Ok(())
             }
         },
-        None => Err(Error::WasmPackMissing {
-            message: "We can't figure out what your wasm-pack version is, make sure the installation path is correct.".to_string(),
-        }.into()),
+        None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct."),
+
     }
 }
 

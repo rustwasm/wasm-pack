@@ -213,11 +213,7 @@ impl Build {
         Ok(())
     }
 
-    fn step_check_wasm_pack_version(
-        &mut self,
-        step: &Step,
-        log: &Logger,
-    ) -> Result<(), failure::Error> {
+    fn step_check_wasm_pack_version(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Checking wasm-pack version...");
         let version = build::check_wasm_pack_version(step)?;
         let msg = format!("wasm-pack version is: {:?}.", version);

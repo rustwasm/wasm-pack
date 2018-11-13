@@ -4,7 +4,6 @@ mod npm;
 
 use std::fs;
 use std::path::Path;
-use std::collections::HashMap;
 
 use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
@@ -41,7 +40,7 @@ struct CargoManifest {
     package: CargoPackage,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 struct CargoPackage {
     name: String,
     description: Option<String>,
@@ -70,22 +69,21 @@ struct CrateInformation {
 
 impl Crate {
     /// Call to the crates.io api and return the latest version of `wasm-pack`
-    pub fn return_wasm_pack_latest_version() -> String {
-        let crt = Crate::check_wasm_pack_latest_version();
-        crt.crt.max_version
+    pub fn return_wasm_pack_latest_version() -> Result<String, Error> {
+        let crt = Crate::check_wasm_pack_latest_version()?;
+        Ok(crt.crt.max_version)
     }
 
-    fn check_wasm_pack_latest_version() -> Crate {
+    fn check_wasm_pack_latest_version() -> Result<Crate, Error> {
         let mut easy = easy::Easy2::new(Collector(Vec::new()));
-        easy.get(true).unwrap();
-        easy.url("https://crates.io/api/v1/crates/wasm-pack")
-            .unwrap();
-        easy.perform().unwrap();
+        easy.get(true)?;
+        easy.url("https://crates.io/api/v1/crates/wasm-pack")?;
+        easy.perform()?;
 
         let contents = easy.get_ref();
         let result = String::from_utf8_lossy(&contents.0);
 
-        serde_json::from_str(result.into_owned().as_str()).unwrap()
+        Ok(serde_json::from_str(result.into_owned().as_str())?)
     }
 }
 
@@ -133,8 +131,6 @@ impl CrateData {
             return err;
         }
     }
-
-
 
     /// Check that the crate the given path is properly configured.
     pub fn check_crate_config(&self, step: &Step) -> Result<(), Error> {

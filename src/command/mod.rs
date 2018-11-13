@@ -13,10 +13,12 @@ use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
+use std::sync::mpsc;
 use failure::Error;
 use slog::Logger;
 use std::path::PathBuf;
 use std::result;
+use std::thread;
 
 /// The various kinds of commands that `wasm-pack` can execute.
 #[derive(Debug, StructOpt)]
@@ -82,6 +84,15 @@ pub enum Command {
     Test(TestOptions),
 }
 
+/// Spawn a thread for wasm-pack version
+fn background_check_for_updates() -> mpsc::Receiver<(String, String)> {
+    let (sender, receiver) = mpsc::channel();
+
+    let _detached_thread = thread::spawn(move || {
+
+    });
+}
+
 /// Run a command with the given logger!
 pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
@@ -89,6 +100,7 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
     let status = match command {
         Command::Build(build_opts) => {
             info!(&log, "Running build command...");
+            // Add the background_check_for_updates() here
             Build::try_from_opts(build_opts).and_then(|mut b| b.run(&log))
         }
         Command::Pack { path } => {
