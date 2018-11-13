@@ -292,6 +292,48 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
 #[test]
 fn configure_wasm_bindgen_debug_incorrectly_is_error() {
     let fixture = utils::fixture::Fixture::new();
+    fixture.readme().hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "whatever"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+            debug-js-glue = "not a boolean"
+            "#,
+    );
+
+    let cli = Cli::from_iter_safe(vec![
+        "wasm-pack",
+        "build",
+        "--dev",
+        &fixture.path.display().to_string(),
+    ])
+    .unwrap();
+
+    let result = fixture.run(cli.cmd);
+    assert!(result.is_err());
+
+    let err = result.unwrap_err();
+    assert!(err.iter_chain().any(|c| c
+        .to_string()
+        .contains("package.metadata.wasm-pack.profile.dev.wasm-bindgen.debug")));
+}
+
+#[test]
+fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
+    let fixture = utils::fixture::Fixture::new();
     fixture
         .readme()
         .file(
@@ -311,25 +353,17 @@ fn configure_wasm_bindgen_debug_incorrectly_is_error() {
             [dependencies]
             wasm-bindgen = "0.2"
 
-            [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
-            debug-js-glue = "not a boolean"
+            [package.metadata.wasmpack.profile.dev.wasm-bindgen]
+            debug-js-glue = true
             "#,
         )
         .hello_world_src_lib();
 
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        "--dev",
-        &fixture.path.display().to_string(),
-    ])
-    .unwrap();
+    let result = manifest::CrateData::parse_crate_data(&fixture.path.join("Cargo.toml"));
 
-    let result = fixture.run(cli.cmd);
-    assert!(result.is_err());
+    assert!(result.is_ok());
 
-    let err = result.unwrap_err();
-    assert!(err.iter_chain().any(|c| c
-        .to_string()
-        .contains("package.metadata.wasm-pack.profile.dev.wasm-bindgen.debug")));
+    let manifest::ManifestAndUnsedKeys { unused_keys, .. } = result.unwrap();
+
+    assert!(unused_keys.contains("package.metadata.wasmpack"));
 }
