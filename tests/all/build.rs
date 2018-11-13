@@ -1,3 +1,4 @@
+use std::fs;
 use std::path::Path;
 use structopt::StructOpt;
 use utils;
@@ -138,4 +139,93 @@ fn it_should_build_nested_project_with_transitive_dependencies() {
     ])
     .unwrap();
     fixture.run(cli.cmd).unwrap();
+}
+
+#[test]
+fn build_different_profiles() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+
+    for profile in ["--dev", "--debug", "--profiling", "--release"]
+        .iter()
+        .cloned()
+    {
+        let cli = Cli::from_iter_safe(vec![
+            "wasm-pack",
+            "build",
+            profile,
+            &fixture.path.display().to_string(),
+        ])
+        .unwrap();
+        fixture.run(cli.cmd).unwrap();
+    }
+}
+
+#[test]
+fn build_with_and_without_wasm_bindgen_debug() {
+    for debug in [true, false].iter().cloned() {
+        let fixture = utils::fixture::Fixture::new();
+        fixture
+            .readme()
+            .file(
+                "Cargo.toml",
+                format!(
+                    r#"
+                    [package]
+                    authors = ["The wasm-pack developers"]
+                    description = "so awesome rust+wasm package"
+                    license = "WTFPL"
+                    name = "whatever"
+                    repository = "https://github.com/rustwasm/wasm-pack.git"
+                    version = "0.1.0"
+
+                    [lib]
+                    crate-type = ["cdylib"]
+
+                    [dependencies]
+                    wasm-bindgen = "0.2"
+
+                    [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+                    debug-js-glue = {}
+                    "#,
+                    debug
+                ),
+            )
+            .file(
+                "src/lib.rs",
+                r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                #[wasm_bindgen]
+                pub struct MyThing {}
+
+                #[wasm_bindgen]
+                impl MyThing {
+                    pub fn new() -> MyThing {
+                        MyThing {}
+                    }
+
+                    pub fn take(self) {}
+                }
+                "#,
+            );
+
+        let cli = Cli::from_iter_safe(vec![
+            "wasm-pack",
+            "build",
+            "--dev",
+            &fixture.path.display().to_string(),
+        ])
+        .unwrap();
+
+        fixture.run(cli.cmd).unwrap();
+
+        let contents = fs::read_to_string(fixture.path.join("pkg/whatever.js")).unwrap();
+        assert_eq!(
+            contents.contains("throw new Error('Attempt to use a moved value')"),
+            debug,
+            "Should only contain moved value assertions when debug assertions are enabled"
+        );
+    }
 }

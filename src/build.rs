@@ -1,6 +1,7 @@
 //! Building a Rust crate into a `.wasm` binary.
 
 use child;
+use command::build::BuildProfile;
 use emoji;
 use failure::{Error, ResultExt};
 use manifest::Crate;
@@ -105,13 +106,32 @@ pub fn rustup_add_wasm_target(log: &Logger, step: &Step) -> Result<(), Error> {
 }
 
 /// Run `cargo build` targetting `wasm32-unknown-unknown`.
-pub fn cargo_build_wasm(log: &Logger, path: &Path, debug: bool, step: &Step) -> Result<(), Error> {
+pub fn cargo_build_wasm(
+    log: &Logger,
+    path: &Path,
+    profile: BuildProfile,
+    step: &Step,
+) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
-    if !debug {
-        cmd.arg("--release");
+    match profile {
+        BuildProfile::Profiling => {
+            // Once there are DWARF debug info consumers, force enable debug
+            // info, because builds that use the release cargo profile disables
+            // debug info.
+            //
+            // cmd.env("RUSTFLAGS", "-g");
+            cmd.arg("--release");
+        }
+        BuildProfile::Release => {
+            cmd.arg("--release");
+        }
+        BuildProfile::Dev => {
+            // Plain cargo builds use the dev cargo profile, which includes
+            // debug info by default.
+        }
     }
     cmd.arg("--target").arg("wasm32-unknown-unknown");
     child::run(log, cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
