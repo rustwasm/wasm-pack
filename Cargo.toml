@@ -1,13 +1,13 @@
 [package]
-name = "wasm-pack"
-description = "pack up the wasm and publish it to npm!"
-version = "0.5.1"
 authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
-repository = "https://github.com/ashleygwilliams/wasm-pack.git"
-license = "MIT/Apache-2.0"
-readme = "README.md"
 categories = ["wasm"]
+description = "pack up the wasm and publish it to npm!"
 documentation = "https://rustwasm.github.io/wasm-pack/"
+license = "MIT/Apache-2.0"
+name = "wasm-pack"
+readme = "README.md"
+repository = "https://github.com/ashleygwilliams/wasm-pack.git"
+version = "0.5.1"
 
 [dependencies]
 atty = "0.2.11"
@@ -21,7 +21,6 @@ hex = "0.3"
 human-panic = "1.0.1"
 indicatif = "0.9.0"
 lazy_static = "1.1.0"
-openssl = { version = '0.10.11', optional = true }
 parking_lot = "0.6"
 serde = "1.0.74"
 serde_derive = "1.0.74"
@@ -29,16 +28,21 @@ serde_ignored = "0.0.4"
 serde_json = "1.0.26"
 siphasher = "0.2.3"
 slog = "2.3"
-slog-term = "2.4"
 slog-async = "2.3"
+slog-term = "2.4"
+strsim = "0.8.0"
 structopt = "0.2"
 tar = "0.4.16"
 toml = "0.4"
 which = "2.0.0"
 zip = "0.4.2"
 
+[dependencies.openssl]
+optional = true
+version = "0.10.11"
+
 [dev-dependencies]
 tempfile = "3"
 
 [features]
-vendored-openssl = ['openssl/vendored']
+vendored-openssl = ["openssl/vendored"]

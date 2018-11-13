@@ -16,8 +16,11 @@ use progressbar::Step;
 use serde::{self, Deserialize};
 use serde_json;
 use std::collections::BTreeSet;
+use strsim::levenshtein;
 use toml;
 use PBAR;
+
+const WASM_PACK_METADATA_KEY: &'static str = "package.metadata.wasm-pack";
 
 /// Store for metadata learned about a crate
 pub struct CrateData {
@@ -202,6 +205,7 @@ struct NpmData {
 pub struct ManifestAndUnsedKeys {
     pub manifest: CargoManifest,
     pub unused_keys: BTreeSet<String>,
+    pub has_possible_typo: bool,
 }
 
 impl CrateData {
@@ -220,12 +224,10 @@ impl CrateData {
         let data =
             cargo_metadata::metadata(Some(&manifest_path)).map_err(error_chain_to_failure)?;
 
-        let ManifestAndUnsedKeys {
-            manifest,
-            unused_keys,
-        } = CrateData::parse_crate_data(&manifest_path)?;
-        CrateData::warn_for_unused_keys(&unused_keys);
+        let manifest_and_keys = CrateData::parse_crate_data(&manifest_path)?;
+        CrateData::warn_for_unused_keys(&manifest_and_keys);
 
+        let manifest = manifest_and_keys.manifest;
         let current_idx = data
             .packages
             .iter()
@@ -264,11 +266,17 @@ impl CrateData {
         let manifest = &mut toml::Deserializer::new(&manifest);
 
         let mut unused_keys = BTreeSet::new();
+        let mut has_possible_typo = false;
+        let levenshtein_threshold = 1;
 
         let manifest: CargoManifest = serde_ignored::deserialize(manifest, |path| {
             let path_string = path.to_string();
 
-            if path_string.contains("metadata") {
+            if levenshtein(WASM_PACK_METADATA_KEY, &path_string) == levenshtein_threshold {
+                has_possible_typo = true;
+            }
+
+            if path_string.contains(WASM_PACK_METADATA_KEY) {
                 unused_keys.insert(path_string);
             }
         })
@@ -277,13 +285,20 @@ impl CrateData {
         Ok(ManifestAndUnsedKeys {
             manifest,
             unused_keys,
+            has_possible_typo,
         })
     }
 
     /// Iterating through all the passed `unused_keys` and output
     /// a warning for each unknown key.
-    pub fn warn_for_unused_keys(unused_keys: &BTreeSet<String>) {
-        unused_keys.iter().for_each(|path| {
+    pub fn warn_for_unused_keys(manifest_and_keys: &ManifestAndUnsedKeys) {
+        if manifest_and_keys.has_possible_typo {
+            PBAR.warn(&format!(
+                "It's possible that you misspelled the \"{}\" setting in your Cargo.toml.",
+                WASM_PACK_METADATA_KEY
+            ));
+        }
+        manifest_and_keys.unused_keys.iter().for_each(|path| {
             PBAR.warn(&format!(
                 "\"{}\" is a unknown key and will be ignored. Please check your Cargo.toml.",
                 path

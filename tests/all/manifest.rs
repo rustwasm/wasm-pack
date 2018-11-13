@@ -353,7 +353,8 @@ fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
             [dependencies]
             wasm-bindgen = "0.2"
 
-            [package.metadata.wasmpack.profile.dev.wasm-bindgen]
+            # Note: production is not valid.
+            [package.metadata.wasm-pack.profile.production.wasm-bindgen]
             debug-js-glue = true
             "#,
         )
@@ -365,5 +366,5 @@ fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
 
     let manifest::ManifestAndUnsedKeys { unused_keys, .. } = result.unwrap();
 
-    assert!(unused_keys.contains("package.metadata.wasmpack"));
+    assert!(unused_keys.contains("package.metadata.wasm-pack.profile.production"));
 }
