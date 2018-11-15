@@ -286,3 +286,51 @@ fn renamed_crate_name_works() {
     });
     fixture.run(cmd).unwrap();
 }
+
+#[test]
+fn cdylib_not_required() {
+    let fixture = fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "0.1.0"
+                authors = []
+
+                [dependencies]
+                wasm-bindgen = "=0.2.21"
+
+                [dev-dependencies]
+                wasm-bindgen-test = "=0.2.21"
+            "#,
+        )
+        .file(
+            "src/lib.rs",
+            r#"
+                pub fn foo() -> u32 { 1 }
+            "#,
+        )
+        .file(
+            "tests/foo.rs",
+            r#"
+                extern crate wasm_bindgen_test;
+                use wasm_bindgen_test::*;
+
+                #[wasm_bindgen_test]
+                fn smoke() {
+                    foo::foo();
+                }
+            "#,
+        );
+    fixture.install_local_wasm_bindgen();
+    let cmd = Command::Test(test::TestOptions {
+        path: Some(fixture.path.clone()),
+        node: true,
+        mode: build::BuildMode::Noinstall,
+        ..Default::default()
+    });
+    fixture.run(cmd).unwrap();
+}

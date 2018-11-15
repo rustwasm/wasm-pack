@@ -437,3 +437,156 @@ pub fn wbg_test_node() -> Fixture {
         );
     fixture
 }
+
+pub fn transitive_dependencies() -> Fixture {
+    fn project_main_fixture(fixture: &mut Fixture) {
+        fixture.file(PathBuf::from("main/README"), "# Main Fixture\n");
+        fixture.file(
+            PathBuf::from("main/Cargo.toml"),
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "main_project"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "=0.2.21"
+            project_a = { path = "../project_a" }
+            project_b = { path = "../project_b" }
+
+            [dev-dependencies]
+            wasm-bindgen-test = "=0.2.21"
+        "#,
+        );
+        fixture.file(
+            PathBuf::from("main/src/lib.rs"),
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                // Import the `window.alert` function from the Web.
+                #[wasm_bindgen]
+                extern {
+                    fn alert(s: &str);
+                }
+
+                // Export a `greet` function from Rust to JavaScript, that alerts a
+                // hello message.
+                #[wasm_bindgen]
+                pub fn greet(name: &str) {
+                    alert(&format!("Hello, {}!", name));
+                }
+            "#,
+        );
+    }
+
+    fn project_a_fixture(fixture: &mut Fixture) {
+        fixture.file(
+            PathBuf::from("project_a/README"),
+            "# Project Alpha Fixture\n",
+        );
+        fixture.file(
+            PathBuf::from("project_a/Cargo.toml"),
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "project_a"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "=0.2.21"
+            project_b = { path = "../project_b" }
+
+            [dev-dependencies]
+            wasm-bindgen-test = "=0.2.21"
+        "#,
+        );
+        fixture.file(
+            PathBuf::from("project_a/src/lib.rs"),
+            r#"
+                extern crate wasm_bindgen;
+                // extern crate project_b;
+                use wasm_bindgen::prelude::*;
+
+                // Import the `window.alert` function from the Web.
+                #[wasm_bindgen]
+                extern {
+                    fn alert(s: &str);
+                }
+
+                // Export a `greet` function from Rust to JavaScript, that alerts a
+                // hello message.
+                #[wasm_bindgen]
+                pub fn greet(name: &str) {
+                    alert(&format!("Hello, {}!", name));
+                }
+            "#,
+        );
+    }
+
+    fn project_b_fixture(fixture: &mut Fixture) {
+        fixture.file(
+            PathBuf::from("project_b/README"),
+            "# Project Beta Fixture\n",
+        );
+        fixture.file(
+            PathBuf::from("project_b/Cargo.toml"),
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "project_b"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "=0.2.21"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "=0.2.21"
+        "#,
+        );
+        fixture.file(
+            PathBuf::from("project_b/src/lib.rs"),
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                // Import the `window.alert` function from the Web.
+                #[wasm_bindgen]
+                extern {
+                    fn alert(s: &str);
+                }
+
+                // Export a `greet` function from Rust to JavaScript, that alerts a
+                // hello message.
+                #[wasm_bindgen]
+                pub fn greet(name: &str) {
+                    alert(&format!("Hello, {}!", name));
+                }
+            "#,
+        );
+    }
+
+    let mut fixture = Fixture::new();
+    project_b_fixture(&mut fixture);
+    project_a_fixture(&mut fixture);
+    project_main_fixture(&mut fixture);
+    fixture
+}

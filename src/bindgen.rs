@@ -1,6 +1,7 @@
 //! Functionality related to installing and running `wasm-bindgen`.
 
 use child;
+use command::build::BuildProfile;
 use emoji;
 use failure::{self, ResultExt};
 use manifest::CrateData;
@@ -145,14 +146,17 @@ pub fn wasm_bindgen_build(
     out_dir: &Path,
     disable_dts: bool,
     target: &str,
-    debug: bool,
+    profile: BuildProfile,
     step: &Step,
     log: &Logger,
 ) -> Result<(), failure::Error> {
     let msg = format!("{}Running WASM-bindgen...", emoji::RUNNER);
     PBAR.step(step, &msg);
 
-    let release_or_debug = if debug { "debug" } else { "release" };
+    let release_or_debug = match profile {
+        BuildProfile::Release | BuildProfile::Profiling => "release",
+        BuildProfile::Dev => "debug",
+    };
 
     let out_dir = out_dir.to_str().unwrap();
 
@@ -181,8 +185,15 @@ pub fn wasm_bindgen_build(
         .arg(dts_arg)
         .arg(target_arg);
 
-    if debug {
+    let profile = data.configured_profile(profile);
+    if profile.wasm_bindgen_debug_js_glue() {
         cmd.arg("--debug");
+    }
+    if !profile.wasm_bindgen_demangle_name_section() {
+        cmd.arg("--no-demangle");
+    }
+    if profile.wasm_bindgen_dwarf_debug_info() {
+        cmd.arg("--keep-debug");
     }
 
     child::run(log, cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
