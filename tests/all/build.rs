@@ -227,6 +227,8 @@ fn build_with_and_without_wasm_bindgen_debug() {
             "Should only contain moved value assertions when debug assertions are enabled"
         );
     }
+}
+
 #[cfg(target_os = "windows")]
 #[test]
 fn it_format_out_dir_on_windows() {
@@ -242,7 +244,7 @@ fn it_format_out_dir_on_windows() {
 
     let wasm_pack_log = utils::file::read_file(&fixture.path.join("wasm-pack.log")).unwrap();
     assert!(
-        wasm_pack_log.contains(r"Your wasm pkg is ready to publish at \\?\C:\Users\"),
+        wasm_pack_log.contains(r"Your wasm pkg is ready to publish at c:\Users\"),
         "directories in wasm-pack.log should be well formatted",
     );
 }
