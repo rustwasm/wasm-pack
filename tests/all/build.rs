@@ -244,6 +244,14 @@ fn it_format_out_dir_on_windows() {
 
     let wasm_pack_log = utils::file::read_file(&fixture.path.join("wasm-pack.log")).unwrap();
     assert!(
+        wasm_pack_log.contains("INFO"),
+        "wasm-pack.log should contains INFO message"
+    );
+    assert!(
+        wasm_pack_log.contains("Your wasm pkg is ready to publish at"),
+        "wasm-pack.log should contains publish message"
+    );
+    assert!(
         wasm_pack_log.contains(r"Your wasm pkg is ready to publish at C:\Users\"),
         "directories in wasm-pack.log should be well formatted",
     );
