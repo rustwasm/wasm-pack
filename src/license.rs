@@ -6,16 +6,9 @@ use std::path::Path;
 
 use emoji;
 use glob::glob;
-use manifest;
+use manifest::CrateData;
 use progressbar::Step;
 use PBAR;
-
-fn get_license(path: &Path) -> Option<String> {
-    match manifest::get_crate_license(path) {
-        Ok(license) => license,
-        Err(_) => None,
-    }
-}
 
 fn glob_license_files(path: &Path) -> Result<Vec<String>, failure::Error> {
     let mut license_files: Vec<String> = Vec::new();
@@ -33,7 +26,12 @@ fn glob_license_files(path: &Path) -> Result<Vec<String>, failure::Error> {
 }
 
 /// Copy the crate's license into the `pkg` directory.
-pub fn copy_from_crate(path: &Path, out_dir: &Path, step: &Step) -> Result<(), failure::Error> {
+pub fn copy_from_crate(
+    crate_data: &CrateData,
+    path: &Path,
+    out_dir: &Path,
+    step: &Step,
+) -> Result<(), failure::Error> {
     assert!(
         fs::metadata(path).ok().map_or(false, |m| m.is_dir()),
         "crate directory should exist"
@@ -44,7 +42,7 @@ pub fn copy_from_crate(path: &Path, out_dir: &Path, step: &Step) -> Result<(), f
         "crate's pkg directory should exist"
     );
 
-    match get_license(path) {
+    match crate_data.crate_license() {
         Some(_) => {
             let msg = format!("{}Copying over your LICENSE...", emoji::DANCERS);
             PBAR.step(step, &msg);

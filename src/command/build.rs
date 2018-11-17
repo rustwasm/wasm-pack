@@ -306,7 +306,7 @@ impl Build {
 
     fn step_copy_license(&mut self, step: &Step, log: &Logger) -> Result<(), failure::Error> {
         info!(&log, "Copying license from crate...");
-        license::copy_from_crate(&self.crate_path, &self.out_dir, step)?;
+        license::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir, step)?;
         info!(&log, "Copied license from crate to {:#?}.", &self.out_dir);
         Ok(())
     }

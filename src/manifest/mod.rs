@@ -289,6 +289,11 @@ impl CrateData {
         }
     }
 
+    /// Get the license for the crate at the given path.
+    pub fn crate_license(&self) -> &Option<String> {
+        &self.manifest.package.license
+    }
+
     /// Returns the path to this project's target directory where artifacts are
     /// located after a cargo build.
     pub fn target_directory(&self) -> &Path {

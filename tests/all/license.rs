@@ -5,15 +5,17 @@ use std::fs;
 
 use utils::{self, fixture};
 use wasm_pack::license;
+use wasm_pack::manifest::CrateData;
 
 #[test]
 fn it_copies_a_license_default_path() {
     let fixture = fixture::single_license();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
+    let crate_data = CrateData::new(&fixture.path);
 
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(license::copy_from_crate(&fixture.path, &out_dir, &step).is_ok());
+    assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir, &step).is_ok());
 
     let crate_license_path = fixture.path.join("LICENSE-WTFPL");
     let pkg_license_path = out_dir.join("LICENSE-WTFPL");
@@ -36,9 +38,10 @@ fn it_copies_a_license_provied_path() {
     let fixture = fixture::single_license();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
+    let crate_data = CrateData::new(&fixture.path);
 
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(license::copy_from_crate(&fixture.path, &out_dir, &step).is_ok());
+    assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir, &step).is_ok());
     let crate_license_path = fixture.path.join("LICENSE-WTFPL");
     let pkg_license_path = out_dir.join("LICENSE-WTFPL");
     println!(
@@ -59,9 +62,10 @@ fn it_copies_all_licenses_default_path() {
     let fixture = fixture::dual_license();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
+    let crate_data = CrateData::new(&fixture.path);
 
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(license::copy_from_crate(&fixture.path, &out_dir, &step).is_ok());
+    assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir, &step).is_ok());
 
     let crate_license_path = fixture.path.join("LICENSE-WTFPL");
     let pkg_license_path = out_dir.join("LICENSE-WTFPL");
@@ -94,9 +98,10 @@ fn it_copies_all_licenses_provided_path() {
     let fixture = fixture::dual_license();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
+    let crate_data = CrateData::new(&fixture.path);
 
     let step = wasm_pack::progressbar::Step::new(1);
-    assert!(license::copy_from_crate(&fixture.path, &out_dir, &step).is_ok());
+    assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir, &step).is_ok());
 
     let crate_license_path = fixture.path.join("LICENSE-WTFPL");
     let pkg_license_path = out_dir.join("LICENSE-WTFPL");
