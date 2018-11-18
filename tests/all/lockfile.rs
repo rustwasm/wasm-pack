@@ -1,11 +1,13 @@
 use utils::fixture;
 use wasm_pack::lockfile::Lockfile;
+use wasm_pack::manifest::CrateData;
 
 #[test]
 fn it_gets_wasm_bindgen_version() {
     let fixture = fixture::js_hello_world();
     fixture.cargo_check();
-    let lock = Lockfile::new(&fixture.path).unwrap();
+    let data = CrateData::new(&fixture.path).unwrap();
+    let lock = Lockfile::new(&data).unwrap();
     assert_eq!(lock.wasm_bindgen_version(), Some("0.2.21"),);
 }
 
@@ -13,7 +15,8 @@ fn it_gets_wasm_bindgen_version() {
 fn it_gets_wasm_bindgen_test_version() {
     let fixture = fixture::wbg_test_node();
     fixture.cargo_check();
-    let lock = Lockfile::new(&fixture.path).unwrap();
+    let data = CrateData::new(&fixture.path).unwrap();
+    let lock = Lockfile::new(&data).unwrap();
     assert_eq!(lock.wasm_bindgen_test_version(), Some("0.2.21"),);
 }
 
@@ -57,7 +60,8 @@ fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
             "#,
         );
     fixture.cargo_check();
-    let lock = Lockfile::new(&fixture.path.join("blah")).unwrap();
+    let data = CrateData::new(&fixture.path.join("blah")).unwrap();
+    let lock = Lockfile::new(&data).unwrap();
     assert_eq!(lock.wasm_bindgen_version(), Some("0.2.21"),);
 }
 
@@ -124,6 +128,7 @@ fn it_gets_wasm_bindgen_version_from_dependencies() {
             "#,
         );
     fixture.cargo_check();
-    let lock = Lockfile::new(&fixture.path.join("parent")).unwrap();
+    let data = CrateData::new(&fixture.path.join("parent")).unwrap();
+    let lock = Lockfile::new(&data).unwrap();
     assert_eq!(lock.wasm_bindgen_version(), Some("0.2.21"),);
 }

@@ -1,9 +1,9 @@
 //! Building a Rust crate into a `.wasm` binary.
 
 use child;
+use command::build::BuildProfile;
 use emoji;
-use error::Error;
-use failure::ResultExt;
+use failure::{Error, ResultExt};
 use manifest::Crate;
 use progressbar::Step;
 use slog::Logger;
@@ -13,47 +13,35 @@ use std::str;
 use PBAR;
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
-pub fn check_rustc_version(step: &Step) -> Result<String, failure::Error> {
+pub fn check_rustc_version(step: &Step) -> Result<String, Error> {
     let msg = format!("{}Checking `rustc` version...", emoji::CRAB);
     PBAR.step(step, &msg);
     let local_minor_version = rustc_minor_version();
     match local_minor_version {
         Some(mv) => {
             if mv < 30 {
-              return Err(Error::RustcVersion {
-                message: format!(
-                  "Your version of Rust, '1.{}', is not supported. Please install Rust version 1.30.0 or higher.",
-                  mv.to_string()
-                ),
-                local_minor_version: mv.to_string(),
-              }.into())
+                bail!(
+                    "Your version of Rust, '1.{}', is not supported. Please install Rust version 1.30.0 or higher.",
+                    mv.to_string()
+                )
             } else {
-              Ok(mv.to_string())
+                Ok(mv.to_string())
             }
-      },
-      None => Err(Error::RustcMissing {
-        message: "We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher.".to_string(),
-      }.into()),
+        },
+        None => bail!("We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher."),
     }
 }
 
 /// Checks if `wasm-pack` is updated to the latest version
-pub fn check_wasm_pack_version(step: &Step) -> Result<(), failure::Error> {
-    let msg = format!("{}Checking `wasm-pack` version...", emoji::PACKAGE);
-    PBAR.step(step, &msg);
-    let wasm_pack_local_version = wasm_pack_local_version();
-    let wasm_pack_latest_version = Crate::return_wasm_pack_latest_version();
-    match wasm_pack_local_version {
-        Some(lv) => {
-            if !(lv == wasm_pack_latest_version) {
-                Ok(PBAR.info(&format!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}", wasm_pack_latest_version, lv)))
-            } else {
-                Ok(())
+pub fn check_wasm_pack_versions() -> Result<(String, String), Error> {
+    match wasm_pack_local_version() {
+        Some(local) => {
+            match Crate::return_wasm_pack_latest_version() {
+                Some(latest) => Ok((local, latest)),
+                None => Ok((local, "".to_string()))
             }
         },
-        None => Err(Error::WasmPackMissing {
-            message: "We can't figure out what your wasm-pack version is, make sure the installation path is correct.".to_string(),
-        }.into()),
+        None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")
     }
 }
 
@@ -101,7 +89,7 @@ fn wasm_pack_local_version() -> Option<String> {
 
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
 /// current toolchain
-pub fn rustup_add_wasm_target(log: &Logger, step: &Step) -> Result<(), failure::Error> {
+pub fn rustup_add_wasm_target(log: &Logger, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Adding WASM target...", emoji::TARGET);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("rustup");
@@ -115,27 +103,37 @@ pub fn rustup_add_wasm_target(log: &Logger, step: &Step) -> Result<(), failure::
 pub fn cargo_build_wasm(
     log: &Logger,
     path: &Path,
-    debug: bool,
+    profile: BuildProfile,
     step: &Step,
-) -> Result<(), failure::Error> {
+) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
-    if !debug {
-        cmd.arg("--release");
+    match profile {
+        BuildProfile::Profiling => {
+            // Once there are DWARF debug info consumers, force enable debug
+            // info, because builds that use the release cargo profile disables
+            // debug info.
+            //
+            // cmd.env("RUSTFLAGS", "-g");
+            cmd.arg("--release");
+        }
+        BuildProfile::Release => {
+            cmd.arg("--release");
+        }
+        BuildProfile::Dev => {
+            // Plain cargo builds use the dev cargo profile, which includes
+            // debug info by default.
+        }
     }
     cmd.arg("--target").arg("wasm32-unknown-unknown");
-    child::run(log, cmd, "cargo build").context("Compiling your crate to WebAssembly")?;
+    child::run(log, cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }
 
 /// Run `cargo build --tests` targetting `wasm32-unknown-unknown`.
-pub fn cargo_build_wasm_tests(
-    log: &Logger,
-    path: &Path,
-    debug: bool,
-) -> Result<(), failure::Error> {
+pub fn cargo_build_wasm_tests(log: &Logger, path: &Path, debug: bool) -> Result<(), Error> {
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--tests");
     if !debug {

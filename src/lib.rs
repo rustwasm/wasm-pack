@@ -5,20 +5,25 @@
 extern crate cargo_metadata;
 extern crate console;
 extern crate curl;
+extern crate dirs;
 #[macro_use]
 extern crate failure;
 extern crate flate2;
+extern crate hex;
 extern crate indicatif;
 #[macro_use]
 extern crate lazy_static;
 extern crate parking_lot;
+extern crate serde;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_json;
+extern crate siphasher;
 #[macro_use]
 extern crate structopt;
 #[macro_use]
 extern crate slog;
+extern crate chrono;
 extern crate slog_async;
 extern crate slog_term;
 extern crate tar;
@@ -32,7 +37,6 @@ pub mod build;
 pub mod child;
 pub mod command;
 pub mod emoji;
-pub mod error;
 pub mod lockfile;
 pub mod logger;
 pub mod manifest;
