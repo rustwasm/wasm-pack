@@ -33,21 +33,15 @@ pub fn check_rustc_version(step: &Step) -> Result<String, Error> {
 }
 
 /// Checks if `wasm-pack` is updated to the latest version
-pub fn check_wasm_pack_version(step: &Step) -> Result<(), failure::Error> {
-    let msg = format!("{}Checking `wasm-pack` version...", emoji::PACKAGE);
-    PBAR.step(step, &msg);
-    let wasm_pack_local_version = wasm_pack_local_version();
-    let wasm_pack_latest_version = Crate::return_wasm_pack_latest_version()?;
-    match wasm_pack_local_version {
-        Some(lv) => {
-            if !(lv == wasm_pack_latest_version) {
-                Ok(PBAR.info(&format!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}", wasm_pack_latest_version, lv)))
-            } else {
-                Ok(())
+pub fn check_wasm_pack_versions() -> Result<(String, String), Error> {
+    match wasm_pack_local_version() {
+        Some(local) => {
+            match Crate::return_wasm_pack_latest_version() {
+                Some(latest) => Ok((local, latest)),
+                None => Ok((local, "".to_string()))
             }
         },
-        None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct."),
-
+        None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")
     }
 }
 

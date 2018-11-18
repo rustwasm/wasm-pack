@@ -13,11 +13,11 @@ use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
-use std::sync::mpsc;
 use failure::Error;
 use slog::Logger;
 use std::path::PathBuf;
 use std::result;
+use std::sync::mpsc;
 use std::thread;
 
 /// The various kinds of commands that `wasm-pack` can execute.
@@ -84,23 +84,30 @@ pub enum Command {
     Test(TestOptions),
 }
 
-/// Spawn a thread for wasm-pack version
+/// Spawn a thread for wasm-pack version check
 fn background_check_for_updates() -> mpsc::Receiver<(String, String)> {
     let (sender, receiver) = mpsc::channel();
-
     let _detached_thread = thread::spawn(move || {
-
+        if let Ok((local, latest)) = Build::return_wasm_pack_versions() {
+            if !local.is_empty() && !latest.is_empty() && local != latest {
+                sender.send((local, latest)).unwrap();
+            }
+        }
     });
+
+    receiver
 }
 
 /// Run a command with the given logger!
 pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
+
+    let update_available = background_check_for_updates();
+
     let status = match command {
         Command::Build(build_opts) => {
             info!(&log, "Running build command...");
-            // Add the background_check_for_updates() here
             Build::try_from_opts(build_opts).and_then(|mut b| b.run(&log))
         }
         Command::Pack { path } => {
@@ -135,6 +142,10 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
             Test::try_from_opts(test_opts).and_then(|t| t.run(&log))
         }
     };
+
+    if let Ok(update_available) = update_available.try_recv() {
+        println!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}", update_available.1, update_available.0);
+    }
 
     // Return the actual status of the program to the main function
     status

@@ -23,6 +23,7 @@ extern crate siphasher;
 extern crate structopt;
 #[macro_use]
 extern crate slog;
+extern crate chrono;
 extern crate slog_async;
 extern crate slog_term;
 extern crate tar;
