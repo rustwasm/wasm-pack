@@ -6,9 +6,12 @@ use emoji;
 use failure::{Error, ResultExt};
 use progressbar::Step;
 use slog::Logger;
+use std::io::Write;
 use std::path::Path;
 use std::process::Command;
+use std::fs::File;
 use std::str;
+use tempfile;
 use PBAR;
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
@@ -55,6 +58,26 @@ fn rustc_minor_version() -> Option<u32> {
 pub fn rustup_add_wasm_target(log: &Logger, step: &Step) -> Result<(), Error> {
     let msg = format!("{}Adding WASM target...", emoji::TARGET);
     PBAR.step(step, &msg);
+
+    // Checking wether we can already compile to wasm with the rustc
+    // we have in scope.
+    let dir = tempfile::TempDir::new()?;
+    let p = dir.path().join("main.rs");
+    {
+        let mut f = File::create(&p)?;
+        writeln!(f, "fn main(){{}}")?;
+    }
+    match Command::new("rustc")
+        .arg("--target")
+        .arg("wasm32-unknown-unknown")
+        .arg(p.to_str().unwrap())
+        .status()
+    {
+        Ok(ref e) if e.success() => return Ok(()),
+        _ => {}
+    }
+
+    // If not, using rustup to add it.
     let mut cmd = Command::new("rustup");
     cmd.arg("target").arg("add").arg("wasm32-unknown-unknown");
     child::run(log, cmd, "rustup")
