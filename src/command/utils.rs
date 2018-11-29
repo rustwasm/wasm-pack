@@ -18,6 +18,7 @@ pub fn create_pkg_dir(out_dir: &Path, step: &Step) -> Result<(), failure::Error>
     let msg = format!("{}Creating a pkg directory...", emoji::FOLDER);
     PBAR.step(step, &msg);
     fs::create_dir_all(&out_dir)?;
+    fs::write(out_dir.join(".gitignore"), "*")?;
     Ok(())
 }
 
