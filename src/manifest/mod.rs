@@ -134,27 +134,30 @@ impl Crate {
     /// Returns latest wasm-pack version
     pub fn return_wasm_pack_latest_version() -> Option<String> {
         let current_time = chrono::offset::Local::now();
-        if let Some(contents) = Crate::return_wasm_pack_file() {
-            let (created, version) = Crate::return_stamp_file_values(&contents);
-
-            if current_time.signed_duration_since(created).num_hours() > 24 {
-                return Crate::return_api_call_result(current_time);
-            } else {
-                return Some(version);
-            }
-        } else {
-            return Crate::return_api_call_result(current_time);
-        }
+        Crate::return_wasm_pack_file().and_then(|contents| {
+            let last_updated = Crate::return_stamp_file_value(&contents, "created")
+                .and_then(|t| Some(DateTime::parse_from_str(t.as_str(), "%+").unwrap()));
+            let version = Crate::return_stamp_file_value(&contents, "version").and_then(|v| {
+                if current_time
+                    .signed_duration_since(last_updated.unwrap())
+                    .num_hours()
+                    > 24
+                {
+                    return Crate::return_api_call_result(current_time);
+                } else {
+                    return Some(v);
+                }
+            });
+            version
+        });
+        return Crate::return_api_call_result(current_time);
     }
 
     fn return_api_call_result(current_time: DateTime<offset::Local>) -> Option<String> {
-        match Crate::call_for_wasm_pack_version() {
-            Some(version) => {
-                Crate::override_stamp_file(current_time, &version);
-                return Some(version);
-            }
-            None => return None,
-        }
+        Crate::call_for_wasm_pack_version().and_then(|v| {
+            Crate::override_stamp_file(current_time, &v);
+            Some(v)
+        })
     }
 
     fn override_stamp_file(current_time: DateTime<offset::Local>, version: &String) {
@@ -182,7 +185,6 @@ impl Crate {
             if let Ok(file) = fs::read_to_string(path.with_extension("stamp")) {
                 return Some(file);
             }
-            return None;
         }
         None
     }
@@ -194,27 +196,15 @@ impl Crate {
         None
     }
 
-    fn return_stamp_file_values(file: &String) -> (DateTime<offset::FixedOffset>, String) {
+    fn return_stamp_file_value(file: &String, word: &str) -> Option<String> {
         let created = file
             .lines()
-            .find(|line| line.starts_with("created"))
-            .unwrap()
-            .split_whitespace()
-            .nth(1)
-            .unwrap();
+            .find(|line| line.starts_with(word))
+            .and_then(|l| l.split_whitespace().nth(1));
 
-        let last_updated = DateTime::parse_from_str(created, "%+").unwrap();
+        let value = created.map(|s| s.to_string());
 
-        let version = file
-            .lines()
-            .find(|line| line.starts_with("version"))
-            .unwrap()
-            .split_whitespace()
-            .nth(1)
-            .unwrap()
-            .to_string();
-
-        (last_updated, version)
+        value
     }
 
     /// Call to the crates.io api and return the latest version of `wasm-pack`
