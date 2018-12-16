@@ -68,6 +68,7 @@ pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
     step: &Step,
+    extra_options: &Vec<String>,
 ) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
@@ -91,6 +92,7 @@ pub fn cargo_build_wasm(
         }
     }
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+    cmd.args(extra_options);
     child::run(log, cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }

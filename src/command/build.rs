@@ -31,6 +31,7 @@ pub struct Build {
     pub out_dir: PathBuf,
     pub bindgen: Option<Download>,
     pub cache: Cache,
+    pub extra_options: Vec<String>,
 }
 
 /// The `BuildMode` determines which mode of initialization we are running, and
@@ -120,6 +121,10 @@ pub struct BuildOptions {
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
+
+    #[structopt(last = true)]
+    /// List of extra options to pass to `cargo build`
+    pub extra_options: Vec<String>,
 }
 
 impl Default for BuildOptions {
@@ -135,6 +140,7 @@ impl Default for BuildOptions {
             release: false,
             profiling: false,
             out_dir: String::new(),
+            extra_options: Vec::new(),
         }
     }
 }
@@ -175,6 +181,7 @@ impl Build {
             out_dir,
             bindgen: None,
             cache: Cache::new()?,
+            extra_options: build_opts.extra_options,
         })
     }
 
@@ -283,7 +290,13 @@ impl Build {
 
     fn step_build_wasm(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
         info!(&log, "Building wasm...");
-        build::cargo_build_wasm(log, &self.crate_path, self.profile, step)?;
+        build::cargo_build_wasm(
+            log,
+            &self.crate_path,
+            self.profile,
+            step,
+            &self.extra_options,
+        )?;
 
         info!(
             &log,
