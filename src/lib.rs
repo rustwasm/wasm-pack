@@ -6,6 +6,7 @@ extern crate cargo_metadata;
 extern crate console;
 extern crate curl;
 extern crate dirs;
+extern crate strsim;
 #[macro_use]
 extern crate failure;
 extern crate flate2;
@@ -18,6 +19,7 @@ extern crate parking_lot;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_ignored;
 extern crate serde_json;
 extern crate siphasher;
 #[macro_use]
