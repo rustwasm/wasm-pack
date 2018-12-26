@@ -5,6 +5,7 @@
 extern crate cargo_metadata;
 extern crate console;
 extern crate curl;
+extern crate dialoguer;
 extern crate dirs;
 extern crate strsim;
 #[macro_use]

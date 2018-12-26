@@ -4,6 +4,7 @@ pub mod access;
 use self::access::Access;
 use command::build::{Build, BuildOptions};
 use command::utils::{find_pkg_directory, set_crate_path};
+use dialoguer::{Confirmation, Input};
 use failure::Error;
 use npm;
 use slog::Logger;
@@ -28,21 +29,46 @@ pub fn publish(
         None => {
             // while `wasm-pack publish`, if the pkg directory cannot be found,
             // then try to `wasm-pack build`
-            let build_opts = BuildOptions {
-                path: Some(crate_path.clone()),
-                ..Default::default()
-            };
-            Build::try_from_opts(build_opts)
-                .and_then(|mut build| build.run(&log))
-                .map(|()| crate_path.join("pkg"))
-                .map_err(|_| {
-                    format_err!(
-                        "Unable to find the pkg directory at path '{:#?}',\
-                         or in a child directory of '{:#?}'",
-                        &crate_path,
-                        &crate_path
-                    )
-                })
+            if Confirmation::new()
+                .with_text("Your npm package hasn't be built, build it?")
+                .interact()?
+            {
+                let out_dir = Input::new()
+                    .with_prompt("out_dir")
+                    .default("pkg".to_string())
+                    .show_default(true)
+                    .interact()?;
+                let target = Input::new()
+                    .with_prompt("target")
+                    .default("browser".to_string())
+                    .show_default(true)
+                    .interact()?
+                    .to_string();
+                let build_opts = BuildOptions {
+                    path: Some(crate_path.clone()),
+                    target,
+                    out_dir: out_dir.clone(),
+                    ..Default::default()
+                };
+                Build::try_from_opts(build_opts)
+                    .and_then(|mut build| build.run(&log))
+                    .map(|()| crate_path.join(out_dir))
+                    .map_err(|_| {
+                        format_err!(
+                            "Unable to find the pkg directory at path '{:#?}',\
+                             or in a child directory of '{:#?}'",
+                            &crate_path,
+                            &crate_path
+                        )
+                    })
+            } else {
+                bail!(
+                    "Unable to find the pkg directory at path '{:#?}',\
+                     or in a child directory of '{:#?}'",
+                    &crate_path,
+                    &crate_path
+                )
+            }
         }
     }?;
     npm::npm_publish(log, &pkg_directory.to_string_lossy(), access)?;
