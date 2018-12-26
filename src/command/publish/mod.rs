@@ -15,6 +15,7 @@ use PBAR;
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry
 pub fn publish(
+    target: String,
     path: Option<PathBuf>,
     access: Option<Access>,
     log: &Logger,
@@ -40,7 +41,7 @@ pub fn publish(
                     .interact()?;
                 let target = Input::new()
                     .with_prompt("target")
-                    .default("browser".to_string())
+                    .default(target)
                     .show_default(true)
                     .interact()?
                     .to_string();

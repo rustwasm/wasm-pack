@@ -111,11 +111,11 @@ pub struct BuildOptions {
 
     #[structopt(long = "release")]
     /// Create a release build. Enable optimizations and disable debug info.
-    release: bool,
+    pub release: bool,
 
     #[structopt(long = "profiling")]
     /// Create a profiling build. Enable optimizations and debug info.
-    profiling: bool,
+    pub profiling: bool,
 
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
@@ -129,10 +129,12 @@ impl Default for BuildOptions {
             scope: None,
             mode: BuildMode::Normal,
             disable_dts: false,
-            target: String::from("browser"),
+            target: String::new(),
             debug: false,
             dev: false,
-            out_dir: String::from("pkg"),
+            release: false,
+            profiling: false,
+            out_dir: String::new(),
         }
     }
 }

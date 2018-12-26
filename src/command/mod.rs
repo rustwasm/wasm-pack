@@ -36,6 +36,10 @@ pub enum Command {
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish!
     Publish {
+        #[structopt(long = "target", short = "t", default_value = "browser")]
+        /// Sets the target environment. [possible values: browser, nodejs, no-modules]
+        target: String,
+
         /// The access level for the package to be published
         #[structopt(long = "access", short = "a")]
         access: Option<Access>,
@@ -96,10 +100,14 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
             info!(&log, "Path: {:?}", &path);
             pack(path, &log)
         }
-        Command::Publish { path, access } => {
+        Command::Publish {
+            target,
+            path,
+            access,
+        } => {
             info!(&log, "Running publish command...");
             info!(&log, "Path: {:?}", &path);
-            publish(path, access, &log)
+            publish(target, path, access, &log)
         }
         Command::Login {
             registry,
