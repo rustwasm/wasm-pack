@@ -12,7 +12,16 @@ use PBAR;
 
 fn glob_license_files(path: &Path) -> Result<Vec<String>, failure::Error> {
     let mut license_files: Vec<String> = Vec::new();
-    for entry in glob(path.join("LICENSE*").to_str().unwrap())? {
+    let path_string = match path.join("LICENSE*").to_str() {
+        Some(path_string) => path_string.to_owned(),
+        None => {
+            return Err(format_err!(
+                "Could not convert joined license path to String"
+            ));
+        }
+    };
+
+    for entry in glob(&path_string)? {
         match entry {
             Ok(globed_path) => {
                 let file_name = match globed_path.file_name() {
@@ -20,10 +29,10 @@ fn glob_license_files(path: &Path) -> Result<Vec<String>, failure::Error> {
                     None => return Err(format_err!("Could not get file name from path")),
                 };
                 let file_name_string = match file_name.to_str() {
-                    Some(file_name_string) => file_name_string,
-                    None => return Err(format_err!("Could not convert filename to string")),
+                    Some(file_name_string) => file_name_string.to_owned(),
+                    None => return Err(format_err!("Could not convert filename to String")),
                 };
-                license_files.push(String::from(file_name_string));
+                license_files.push(file_name_string);
             }
             Err(e) => println!("{:?}", e),
         }
