@@ -38,6 +38,7 @@ structopt = "0.2"
 tar = "0.4.16"
 toml = "0.4"
 which = "2.0.0"
+walkdir = "2"
 zip = "0.5.0"
 
 [dev-dependencies]

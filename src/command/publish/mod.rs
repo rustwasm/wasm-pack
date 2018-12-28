@@ -4,7 +4,7 @@ pub mod access;
 use self::access::Access;
 use command::build::{Build, BuildOptions};
 use command::utils::{find_pkg_directory, set_crate_path};
-use dialoguer::{Confirmation, Input};
+use dialoguer::{Confirmation, Input, Select};
 use failure::Error;
 use npm;
 use slog::Logger;
@@ -15,7 +15,7 @@ use PBAR;
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry
 pub fn publish(
-    target: String,
+    _target: String,
     path: Option<PathBuf>,
     access: Option<Access>,
     log: &Logger,
@@ -31,18 +31,19 @@ pub fn publish(
             // while `wasm-pack publish`, if the pkg directory cannot be found,
             // then try to `wasm-pack build`
             if Confirmation::new()
-                .with_text("Your npm package hasn't be built, build it?")
+                .with_text("Your package hasn't been built, build it?")
                 .interact()?
             {
                 let out_dir = Input::new()
-                    .with_prompt("out_dir")
-                    .default("pkg".to_string())
-                    .show_default(true)
+                    .with_prompt("out_dir[default: pkg]")
+                    .default(".".to_string())
+                    .show_default(false)
                     .interact()?;
-                let target = Input::new()
-                    .with_prompt("target")
-                    .default(target)
-                    .show_default(true)
+                let out_dir = format!("{}/pkg", out_dir);
+                let target = Select::new()
+                    .with_prompt("target[default: browser]")
+                    .items(&["browser", "nodejs", "no-modules"])
+                    .default(0)
                     .interact()?
                     .to_string();
                 let build_opts = BuildOptions {

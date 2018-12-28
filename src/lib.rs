@@ -31,6 +31,7 @@ extern crate slog_async;
 extern crate slog_term;
 extern crate tar;
 extern crate toml;
+extern crate walkdir;
 extern crate which;
 extern crate zip;
 
