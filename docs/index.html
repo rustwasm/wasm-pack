@@ -2,6 +2,7 @@
 <head>
   <meta charset="utf-8">
   <title>wasm-pack</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" rel="stylesheet">
   <link rel="stylesheet" href="./public/custom.css" />
   <link rel="apple-touch-icon" sizes="180x180" href="./apple-touch-icon.png">
@@ -51,6 +52,58 @@
         </div>
       </div>
     </header>
+    <hr/>
+    <section id="build">
+      <div class="container">
+        <h2>Build it with wasm-pack!</h2>
+        <div class="row">
+          <div class="four columns">
+            <header>
+              <img src="./public/img/webpack.jpeg" alt="webpack" />
+              <h4>Hybrid Applications with Webpack</h4>
+            </header>
+            <p>
+              Develop a WebAssembly module alongside any JavaScript project
+              that leverages Webpack. Edit your Rust and watch your WebAssembly
+              compile and reload as you work- a great way to start exploring
+              WebAssembly in a JavaScript application you already work on!
+            </p>
+            <a href="#" class="button">Learn More</a>
+          </div>
+          <div class="four columns">
+            <header>
+              <img src="./public/img/npm-packages.png" alt="npm packages" />
+              <h4>npm Packages for the Broswer and Node.js</h4>
+            </header>
+            <p>
+              Leverage the power and breadth of the Rust ecosystem by compiling
+              and publishing packages from these source languages as WebAssembly
+              to the npm Registry- or write your own! Surgically replace hotpaths
+              in your JavaScript or Node.js application with WebAssembly modules-
+              using the same tools you use for your JavaScript dependencies!
+            </p>
+            <a href="#" class="button">Learn More</a>
+          </div>
+          <div class="four columns">
+            <header>
+              <img src="./public/img/wasmbinaries.png" alt="webpack" />
+              <h4>Standalone WASM binaries</h4>
+            </header>
+            <p>
+              No registry? <br/> No bundler?<br/> No problem!<br/>
+            </p>
+            <p>
+              wasm-pack plays well with others but is also happy to generate
+              standalone binaries for consumption in the browser.
+            </p>
+            <a href="#" class="button">Learn More</a>
+          </div>
+        </div>
+      </div>
+    </section>
+    <footer>
+      <p>Maintained by <a href="">Ashley Williams</a> and the <a href="">Rust-WebAssembly Working Group</a>. Found a typo? <a href="">File an issue!<a/></p>
+    </footer>
   </div>
 </div>
 <script type="text/javascript" src="installer/wasm-pack.js"></script>
