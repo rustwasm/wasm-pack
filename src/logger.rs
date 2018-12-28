@@ -38,7 +38,11 @@ fn log_file_path(cmd: &Command) -> PathBuf {
     let path = match cmd {
         Command::Build(build_opts) => &build_opts.path,
         Command::Pack { path } => path,
-        Command::Publish { path, access: _ } => path,
+        Command::Publish {
+            target: _,
+            path,
+            access: _,
+        } => path,
         Command::Test(test_opts) => &test_opts.path,
         Command::Login { .. } => &None,
     };

@@ -102,24 +102,41 @@ pub struct BuildOptions {
 
     #[structopt(long = "debug")]
     /// Deprecated. Renamed to `--dev`.
-    debug: bool,
+    pub debug: bool,
 
     #[structopt(long = "dev")]
     /// Create a development build. Enable debug info, and disable
     /// optimizations.
-    dev: bool,
+    pub dev: bool,
 
     #[structopt(long = "release")]
     /// Create a release build. Enable optimizations and disable debug info.
-    release: bool,
+    pub release: bool,
 
     #[structopt(long = "profiling")]
     /// Create a profiling build. Enable optimizations and debug info.
-    profiling: bool,
+    pub profiling: bool,
 
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
+}
+
+impl Default for BuildOptions {
+    fn default() -> Self {
+        Self {
+            path: None,
+            scope: None,
+            mode: BuildMode::Normal,
+            disable_dts: false,
+            target: String::new(),
+            debug: false,
+            dev: false,
+            release: false,
+            profiling: false,
+            out_dir: String::new(),
+        }
+    }
 }
 
 type BuildStep = fn(&mut Build, &Step, &Logger) -> Result<(), Error>;
@@ -177,15 +194,16 @@ impl Build {
         info!(&log, "Done in {}.", &duration);
         info!(
             &log,
-            "Your wasm pkg is ready to publish at {:#?}.", &self.out_dir
+            "Your wasm pkg is ready to publish at {}.",
+            self.out_dir.display()
         );
 
         PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
 
         PBAR.message(&format!(
-            "{} Your wasm pkg is ready to publish at {:#?}.",
+            "{} Your wasm pkg is ready to publish at {}.",
             emoji::PACKAGE,
-            self.out_dir.canonicalize().unwrap_or(self.out_dir.clone())
+            self.out_dir.display()
         ));
         Ok(())
     }

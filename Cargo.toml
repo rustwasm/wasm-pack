@@ -13,6 +13,7 @@ documentation = "https://rustwasm.github.io/wasm-pack/"
 atty = "0.2.11"
 cargo_metadata = "0.6.0"
 console = "0.6.1"
+dialoguer = "0.3.0"
 failure = "0.1.2"
 human-panic = "1.0.1"
 glob = "0.2"
@@ -32,6 +33,7 @@ structopt = "0.2"
 toml = "0.4"
 which = "2.0.0"
 wasm-pack-binary-install = { version = "0.1.0", path = "./binary-install" }
+walkdir = "2"
 
 [dev-dependencies]
 tempfile = "3"
