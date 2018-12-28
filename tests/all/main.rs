@@ -13,6 +13,7 @@ extern crate wasm_pack_binary_install;
 
 mod bindgen;
 mod build;
+mod license;
 mod lockfile;
 mod manifest;
 mod readme;

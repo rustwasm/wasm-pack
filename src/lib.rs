@@ -4,8 +4,10 @@
 
 extern crate cargo_metadata;
 extern crate console;
+extern crate strsim;
 #[macro_use]
 extern crate failure;
+extern crate glob;
 extern crate indicatif;
 extern crate which;
 #[macro_use]
@@ -14,6 +16,7 @@ extern crate parking_lot;
 extern crate serde;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_ignored;
 extern crate serde_json;
 #[macro_use]
 extern crate structopt;
@@ -29,6 +32,7 @@ pub mod build;
 pub mod child;
 pub mod command;
 pub mod emoji;
+pub mod license;
 pub mod lockfile;
 pub mod logger;
 pub mod manifest;

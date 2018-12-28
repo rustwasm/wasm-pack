@@ -68,6 +68,44 @@ impl Fixture {
         )
     }
 
+    /// Add `WTFPL LICENSE` file to the fixture.
+    pub fn wtfpl_license(&self) -> &Self {
+        self.file(
+            "LICENSE-WTFPL",
+            r#"
+                DO WHATEVER YOU WANT TO PUBLIC LICENSE
+                    Version 2, December 2004
+
+                Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+
+                Everyone is permitted to copy and distribute verbatim or modified
+                copies of this license document, and changing it is allowed as long
+                as the name is changed.
+
+                DO WHATEVER YOU WANT TO PUBLIC LICENSE
+                TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+                0. You just DO WHATEVER YOU WANT TO.
+            "#,
+        )
+    }
+
+    /// Add `MIT LICENSE` file to the fixture.
+    pub fn mit_license(&self) -> &Self {
+        self.file(
+            "LICENSE-MIT",
+            r#"
+                Copyright <YEAR> <COPYRIGHT HOLDER>
+
+                Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+                The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+                THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+            "#,
+        )
+    }
+
     /// Add a `Cargo.toml` with a correctly configured `wasm-bindgen`
     /// dependency, `wasm-bindgen-test` dev-dependency, and `crate-type =
     /// ["cdylib"]`.
@@ -588,5 +626,26 @@ pub fn transitive_dependencies() -> Fixture {
     project_b_fixture(&mut fixture);
     project_a_fixture(&mut fixture);
     project_main_fixture(&mut fixture);
+    fixture
+}
+
+pub fn single_license() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("single_license")
+        .wtfpl_license()
+        .hello_world_src_lib();
+    fixture
+}
+
+pub fn dual_license() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("dual_license")
+        .wtfpl_license()
+        .mit_license()
+        .hello_world_src_lib();
     fixture
 }

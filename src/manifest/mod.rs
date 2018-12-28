@@ -15,8 +15,12 @@ use failure::{Error, ResultExt};
 use progressbar::Step;
 use serde::{self, Deserialize};
 use serde_json;
+use std::collections::BTreeSet;
+use strsim::levenshtein;
 use toml;
 use PBAR;
+
+const WASM_PACK_METADATA_KEY: &'static str = "package.metadata.wasm-pack";
 
 /// Store for metadata learned about a crate
 pub struct CrateData {
@@ -25,8 +29,9 @@ pub struct CrateData {
     manifest: CargoManifest,
 }
 
+#[doc(hidden)]
 #[derive(Deserialize)]
-struct CargoManifest {
+pub struct CargoManifest {
     package: CargoPackage,
 }
 
@@ -196,6 +201,12 @@ struct NpmData {
     main: String,
 }
 
+#[doc(hidden)]
+pub struct ManifestAndUnsedKeys {
+    pub manifest: CargoManifest,
+    pub unused_keys: BTreeSet<String>,
+}
+
 impl CrateData {
     /// Reads all metadata for the crate whose manifest is inside the directory
     /// specified by `path`.
@@ -208,14 +219,14 @@ impl CrateData {
                 crate_path.display()
             )
         }
-        let manifest = fs::read_to_string(&manifest_path)
-            .with_context(|_| format!("failed to read: {}", manifest_path.display()))?;
-        let manifest: CargoManifest = toml::from_str(&manifest)
-            .with_context(|_| format!("failed to parse manifest: {}", manifest_path.display()))?;
 
         let data =
             cargo_metadata::metadata(Some(&manifest_path)).map_err(error_chain_to_failure)?;
 
+        let manifest_and_keys = CrateData::parse_crate_data(&manifest_path)?;
+        CrateData::warn_for_unused_keys(&manifest_and_keys);
+
+        let manifest = manifest_and_keys.manifest;
         let current_idx = data
             .packages
             .iter()
@@ -239,6 +250,50 @@ impl CrateData {
             }
             return err;
         }
+    }
+
+    /// Read the `manifest_path` file and deserializes it using the toml Deserializer.
+    /// Returns a Result containing `ManifestAndUnsedKeys` which contains `CargoManifest`
+    /// and a `BTreeSet<String>` containing the unused keys from the parsed file.
+    ///
+    /// # Errors
+    /// Will return Err if the file (manifest_path) couldn't be read or
+    /// if deserialize to `CargoManifest` fails.
+    pub fn parse_crate_data(manifest_path: &Path) -> Result<ManifestAndUnsedKeys, Error> {
+        let manifest = fs::read_to_string(&manifest_path)
+            .with_context(|_| format!("failed to read: {}", manifest_path.display()))?;
+        let manifest = &mut toml::Deserializer::new(&manifest);
+
+        let mut unused_keys = BTreeSet::new();
+        let levenshtein_threshold = 1;
+
+        let manifest: CargoManifest = serde_ignored::deserialize(manifest, |path| {
+            let path_string = path.to_string();
+
+            if path_string.starts_with("package.metadata")
+                && (path_string.contains("wasm-pack")
+                    || levenshtein(WASM_PACK_METADATA_KEY, &path_string) <= levenshtein_threshold)
+            {
+                unused_keys.insert(path_string);
+            }
+        })
+        .with_context(|_| format!("failed to parse manifest: {}", manifest_path.display()))?;
+
+        Ok(ManifestAndUnsedKeys {
+            manifest,
+            unused_keys,
+        })
+    }
+
+    /// Iterating through all the passed `unused_keys` and output
+    /// a warning for each unknown key.
+    pub fn warn_for_unused_keys(manifest_and_keys: &ManifestAndUnsedKeys) {
+        manifest_and_keys.unused_keys.iter().for_each(|path| {
+            PBAR.warn(&format!(
+                "\"{}\" is a unknown key and will be ignored. Please check your Cargo.toml.",
+                path
+            ));
+        });
     }
 
     /// Get the configured profile.
@@ -287,6 +342,11 @@ impl CrateData {
             Some(lib) => lib.name.replace("-", "_"),
             None => pkg.name.replace("-", "_"),
         }
+    }
+
+    /// Get the license for the crate at the given path.
+    pub fn crate_license(&self) -> &Option<String> {
+        &self.manifest.package.license
     }
 
     /// Returns the path to this project's target directory where artifacts are
