@@ -96,3 +96,48 @@
 a {
   color: #6556EC;
 }
+
+img {
+  width: 100%;
+}
+
+.button {
+  display: block;
+}
+
+div header {
+  min-height: 270px;
+  font-weight: 400;
+}
+
+footer {
+  background-color: #6556EC;
+  color: white;
+  margin: 50px 0 0 0;
+  padding: 20px 0 5px;
+  text-align: center;
+}
+
+footer a {
+  color: white;
+}
+
+@media only screen and (min-width: 800px) { 
+  #build .columns {
+    position: relative;
+    min-height: 550px;
+  }
+
+  #build a.button {
+    width: 100%;
+    position: absolute;
+    bottom: 0;
+  }
+}
+
+@media only screen and (max-width: 800px) {
+  #build .columns {
+    padding: 40px 0;
+    border-top: solid rgb(187, 187, 187) 1px;
+  }
+}
