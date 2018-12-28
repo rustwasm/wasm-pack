@@ -5,6 +5,7 @@ use failure;
 use progressbar::Step;
 use std::fs;
 use std::path::{Path, PathBuf};
+use walkdir::WalkDir;
 use PBAR;
 
 /// If an explicit path is given, then use it, otherwise assume the current
@@ -29,11 +30,10 @@ pub fn find_pkg_directory(path: &Path) -> Option<PathBuf> {
         return Some(path.to_owned());
     }
 
-    path.read_dir().ok().and_then(|entries| {
-        entries
-            .filter_map(|x| x.ok().map(|v| v.path()))
-            .find(|x| is_pkg_directory(&x))
-    })
+    WalkDir::new(path)
+        .into_iter()
+        .filter_map(|x| x.ok().map(|e| e.into_path()))
+        .find(|x| is_pkg_directory(&x))
 }
 
 fn is_pkg_directory(path: &Path) -> bool {
