@@ -1,6 +1,6 @@
 use tempfile;
-use wasm_pack::binaries::Cache;
 use wasm_pack::bindgen;
+use wasm_pack_binary_install::Cache;
 
 #[test]
 #[cfg(any(

@@ -8,7 +8,7 @@ use std::sync::{MutexGuard, Once, ONCE_INIT};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
-use wasm_pack::binaries::Cache;
+use wasm_pack_binary_install::Cache;
 
 /// A test fixture in a temporary directory.
 pub struct Fixture {

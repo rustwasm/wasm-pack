@@ -4,16 +4,12 @@
 
 extern crate cargo_metadata;
 extern crate console;
-extern crate curl;
-extern crate dialoguer;
-extern crate dirs;
 extern crate strsim;
 #[macro_use]
 extern crate failure;
-extern crate flate2;
 extern crate glob;
-extern crate hex;
 extern crate indicatif;
+extern crate which;
 #[macro_use]
 extern crate lazy_static;
 extern crate parking_lot;
@@ -22,20 +18,17 @@ extern crate serde;
 extern crate serde_derive;
 extern crate serde_ignored;
 extern crate serde_json;
-extern crate siphasher;
 #[macro_use]
 extern crate structopt;
 #[macro_use]
 extern crate slog;
+extern crate dialoguer;
 extern crate slog_async;
 extern crate slog_term;
-extern crate tar;
 extern crate toml;
 extern crate walkdir;
-extern crate which;
-extern crate zip;
+extern crate wasm_pack_binary_install;
 
-pub mod binaries;
 pub mod bindgen;
 pub mod build;
 pub mod child;

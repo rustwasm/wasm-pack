@@ -1,6 +1,6 @@
 use utils::fixture;
-use wasm_pack::binaries::Cache;
 use wasm_pack::test::webdriver;
+use wasm_pack_binary_install::Cache;
 
 #[test]
 #[cfg(any(

@@ -1,0 +1,13 @@
+[package]
+name = "wasm-pack-binary-install"
+version = "0.1.0"
+
+[dependencies]
+curl = "0.4.13"
+dirs = "1.0.4"
+failure = "0.1.2"
+flate2 = "1.0.2"
+hex = "0.3"
+siphasher = "0.2.3"
+tar = "0.4.16"
+zip = "0.5.0"

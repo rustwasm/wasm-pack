@@ -1,10 +1,16 @@
 //! Utilities for finding and installing binaries that we depend on.
 
-use curl;
-use dirs;
+extern crate curl;
+#[macro_use]
+extern crate failure;
+extern crate dirs;
+extern crate flate2;
+extern crate hex;
+extern crate siphasher;
+extern crate tar;
+extern crate zip;
+
 use failure::{Error, ResultExt};
-use flate2;
-use hex;
 use siphasher::sip::SipHasher13;
 use std::collections::HashSet;
 use std::env;
@@ -13,8 +19,6 @@ use std::fs;
 use std::hash::{Hash, Hasher};
 use std::io;
 use std::path::{Path, PathBuf};
-use tar;
-use zip;
 
 /// Global cache for wasm-pack, currently containing binaries downloaded from
 /// urls like wasm-bindgen and such.
@@ -38,8 +42,7 @@ impl Cache {
             .or_else(|| {
                 let home = dirs::home_dir()?;
                 Some(home.join(".wasm-pack"))
-            })
-            .ok_or_else(|| format_err!("couldn't find your home directory, is $HOME not set?"))?;
+            }).ok_or_else(|| format_err!("couldn't find your home directory, is $HOME not set?"))?;
         Ok(Cache::at(&destination))
     }
 
