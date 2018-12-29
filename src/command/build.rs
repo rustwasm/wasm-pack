@@ -220,7 +220,7 @@ impl Build {
         Ok(())
     }
 
-    fn get_process_steps(mode: &BuildMode) -> Vec<(&'static str, BuildStep)> {
+    fn get_process_steps(mode: BuildMode) -> Vec<(&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {

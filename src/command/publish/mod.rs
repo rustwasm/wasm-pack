@@ -15,7 +15,7 @@ use PBAR;
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry
 pub fn publish(
-    _target: String,
+    _target: &str,
     path: Option<PathBuf>,
     access: Option<Access>,
 ) -> result::Result<(), Error> {

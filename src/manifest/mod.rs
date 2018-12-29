@@ -1,5 +1,7 @@
 //! Reading and writing Cargo.toml and package.json manifests.
 
+#![allow(clippy::new_ret_no_self, clippy::needless_pass_by_value)]
+
 mod npm;
 
 use std::fs;
@@ -20,7 +22,7 @@ use strsim::levenshtein;
 use toml;
 use PBAR;
 
-const WASM_PACK_METADATA_KEY: &'static str = "package.metadata.wasm-pack";
+const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
 
 /// Store for metadata learned about a crate
 pub struct CrateData {
@@ -145,7 +147,7 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_dev());
+        profile.update_with_defaults(&Self::default_dev());
         Ok(profile)
     }
 
@@ -154,7 +156,7 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_release());
+        profile.update_with_defaults(&Self::default_release());
         Ok(profile)
     }
 
@@ -163,11 +165,11 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_profiling());
+        profile.update_with_defaults(&Self::default_profiling());
         Ok(profile)
     }
 
-    fn update_with_defaults(&mut self, defaults: Self) {
+    fn update_with_defaults(&mut self, defaults: &Self) {
         macro_rules! d {
             ( $( $path:ident ).* ) => {
                 self. $( $path ).* .get_or_insert(defaults. $( $path ).* .unwrap());
@@ -248,7 +250,7 @@ impl CrateData {
             for e in errors[..errors.len() - 1].iter().rev() {
                 err = err.context(e.to_string()).into();
             }
-            return err;
+            err
         }
     }
 

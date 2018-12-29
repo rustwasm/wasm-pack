@@ -6,7 +6,7 @@ use failure::{self, ResultExt};
 use log::info;
 
 /// The default npm registry used when we aren't working with a custom registry.
-pub const DEFAULT_NPM_REGISTRY: &'static str = "https://registry.npmjs.org/";
+pub const DEFAULT_NPM_REGISTRY: &str = "https://registry.npmjs.org/";
 
 /// Run the `npm pack` command.
 pub fn npm_pack(path: &str) -> Result<(), failure::Error> {
@@ -33,7 +33,7 @@ pub fn npm_publish(path: &str, access: Option<Access>) -> Result<(), failure::Er
 
 /// Run the `npm login` command.
 pub fn npm_login(
-    registry: &String,
+    registry: &str,
     scope: &Option<String>,
     always_auth: bool,
     auth_type: &Option<String>,
