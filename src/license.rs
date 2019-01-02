@@ -12,12 +12,27 @@ use PBAR;
 
 fn glob_license_files(path: &Path) -> Result<Vec<String>, failure::Error> {
     let mut license_files: Vec<String> = Vec::new();
-    for entry in glob(path.join("LICENSE*").to_str().unwrap())? {
+    let path_string = match path.join("LICENSE*").to_str() {
+        Some(path_string) => path_string.to_owned(),
+        None => {
+            return Err(format_err!(
+                "Could not convert joined license path to String"
+            ));
+        }
+    };
+
+    for entry in glob(&path_string)? {
         match entry {
             Ok(globed_path) => {
-                license_files.push(String::from(
-                    globed_path.file_name().unwrap().to_str().unwrap(),
-                ));
+                let file_name = match globed_path.file_name() {
+                    Some(file_name) => file_name,
+                    None => return Err(format_err!("Could not get file name from path")),
+                };
+                let file_name_string = match file_name.to_str() {
+                    Some(file_name_string) => file_name_string.to_owned(),
+                    None => return Err(format_err!("Could not convert filename to String")),
+                };
+                license_files.push(file_name_string);
             }
             Err(e) => println!("{:?}", e),
         }
@@ -50,14 +65,14 @@ pub fn copy_from_crate(
 
             match license_files {
                 Ok(files) => {
-                    if files.len() == 0 {
+                    if files.is_empty() {
                         PBAR.info("License key is set in Cargo.toml but no LICENSE file(s) were found; Please add the LICENSE file(s) to your project directory");
                         return Ok(());
                     }
                     for license_file in files {
                         let crate_license_path = path.join(&license_file);
                         let new_license_path = out_dir.join(&license_file);
-                        if let Err(_) = fs::copy(&crate_license_path, &new_license_path) {
+                        if fs::copy(&crate_license_path, &new_license_path).is_err() {
                             PBAR.info("origin crate has no LICENSE");
                         }
                     }
