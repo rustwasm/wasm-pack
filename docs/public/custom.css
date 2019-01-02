@@ -24,6 +24,7 @@
   position: relative;
   float: left;
   margin-bottom: 0;
+  bottom: -5px;
 }
 
 .navbar-logo a img {
