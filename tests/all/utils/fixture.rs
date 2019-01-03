@@ -235,6 +235,8 @@ impl Fixture {
             .arg("check")
             .arg("--target")
             .arg("wasm32-unknown-unknown")
+            .arg("--color")
+            .arg("always")
             .stdout(Stdio::null())
             .stderr(Stdio::null())
             .status()

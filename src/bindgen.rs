@@ -130,7 +130,9 @@ pub fn cargo_install_wasm_bindgen(
         .arg("--version")
         .arg(version)
         .arg("--root")
-        .arg(&tmp);
+        .arg(&tmp)
+        .arg("--color")
+        .arg("always");
 
     child::run(logger, cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
 

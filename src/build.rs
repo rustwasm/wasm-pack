@@ -91,6 +91,7 @@ pub fn cargo_build_wasm(
         }
     }
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+    cmd.arg("--color").arg("always");
     child::run(log, cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }
@@ -103,6 +104,7 @@ pub fn cargo_build_wasm_tests(log: &Logger, path: &Path, debug: bool) -> Result<
         cmd.arg("--release");
     }
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+    cmd.arg("--color").arg("always");
     child::run(log, cmd, "cargo build").context("Compilation of your program failed")?;
     Ok(())
 }

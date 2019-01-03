@@ -30,6 +30,7 @@ where
             cmd.arg("--release");
         }
         cmd.arg("--target").arg("wasm32-unknown-unknown");
+        cmd.arg("--color").arg("always");
         child::run(log, cmd, "cargo test")
             .context("Running Wasm tests with wasm-bindgen-test failed")?
     };
