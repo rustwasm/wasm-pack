@@ -1,7 +1,7 @@
 # pack and publish
 
 The `publish` and `pack` commands interact with the pkg directory that's 
-created when you run `wasm-pack init`. The `pack` command creates a tarball
+created when you run `wasm-pack build`. The `pack` command creates a tarball
 from the pkg directory and the `publish` command creates a tarball from the 
 pkg directory __and__ publishes it to the NPM registry. 
 
