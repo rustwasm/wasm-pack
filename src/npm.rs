@@ -3,6 +3,8 @@
 use child;
 use command::publish::access::Access;
 use failure::{self, ResultExt};
+use log::info;
+
 use std::process::{Command, Stdio};
 
 /// The default npm registry used when we aren't working with a custom registry.
@@ -63,7 +65,7 @@ pub fn npm_login(
     let mut cmd = Command::new("npm");
     cmd.args(args);
 
-    info!(log, "Running {:?}", cmd);
+    info!("Running {:?}", cmd);
     match cmd.status()?.success() {
         true => Ok(()),
         false => bail!("Login to registry {} failed", registry),
