@@ -62,12 +62,14 @@ pub fn npm_login(
         args.push_str(&format!(" --auth_type={}", auth_type));
     }
 
+    // Interactively ask user for npm login info.
+    //  (child::run does not support interactive input)
     let mut cmd = Command::new("npm");
-    cmd.arg("login")
-        .arg(args)
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit());
-    child::run(log, cmd, "npm login")
-        .with_context(|_| format!("Login to registry {} failed", registry))?;
-    Ok(())
+    cmd.arg("login").arg(args);
+
+    info!(log, "Running {:?}", cmd);
+    match cmd.status()?.success() {
+        true => Ok(()),
+        false => bail!("Login to registry {} failed", registry),
+    }
 }
