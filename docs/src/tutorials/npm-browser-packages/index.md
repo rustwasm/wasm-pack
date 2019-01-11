@@ -1,6 +1,7 @@
-# Tutorial
+# npm Browser Package Tutorial
 
-The goal of this tutorial is to introduce you to the `wasm-pack` workflow.
+The goal of this tutorial is to introduce you to the `wasm-pack` workflow by building a small npm
+package designed to be used in a broswer application.
 
 This tutorial is aimed at folks who are both beginners to WebAssembly and Rust- you don't need
 much Rust knowledge to complete this tutorial.
