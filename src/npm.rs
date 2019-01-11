@@ -46,26 +46,24 @@ pub fn npm_login(
     always_auth: bool,
     auth_type: &Option<String>,
 ) -> Result<(), failure::Error> {
-    let mut args = String::new();
-
-    args.push_str(&format!("--registry={}", registry));
+    let mut args = vec![format!("login"), format!("--registry={}", registry)];
 
     if let Some(scope) = scope {
-        args.push_str(&format!(" --scope={}", scope));
+        args.push(format!("--scope={}", scope));
     }
 
     if always_auth == true {
-        args.push_str(" --always_auth");
+        args.push(format!("--always_auth"));
     }
 
     if let Some(auth_type) = auth_type {
-        args.push_str(&format!(" --auth_type={}", auth_type));
+        args.push(format!("--auth_type={}", auth_type));
     }
 
     // Interactively ask user for npm login info.
     //  (child::run does not support interactive input)
     let mut cmd = Command::new("npm");
-    cmd.arg("login").arg(args);
+    cmd.args(args);
 
     info!(log, "Running {:?}", cmd);
     match cmd.status()?.success() {
