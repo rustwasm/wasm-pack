@@ -88,7 +88,7 @@ pub struct BuildOptions {
     pub scope: Option<String>,
 
     #[structopt(long = "mode", short = "m", default_value = "normal")]
-    /// Sets steps to be run. [possible values: no-install, normal]
+    /// Sets steps to be run. [possible values: no-install, normal, force]
     pub mode: BuildMode,
 
     #[structopt(long = "no-typescript")]
@@ -157,6 +157,12 @@ impl Build {
             // functionality yet, so we have to implement it ourselves.
             _ => bail!("Can only supply one of the --dev, --release, or --profiling flags"),
         };
+
+        // `possible_values` in clap isn't supported by `structopt`
+        let possible_targets = ["browser", "nodejs", "no-modules"];
+        if !possible_targets.contains(&build_opts.target.as_str()) {
+            bail!("Supported targets: browser, nodejs, no-modules");
+        }
 
         Ok(Build {
             crate_path,
