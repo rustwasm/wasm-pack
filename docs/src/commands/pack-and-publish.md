@@ -1,9 +1,9 @@
 # pack and publish
 
-The `publish` and `pack` commands interact with the pkg directory that's 
+The `publish` and `pack` commands interact with the pkg directory that's
 created when you run `wasm-pack build`. The `pack` command creates a tarball
-from the pkg directory and the `publish` command creates a tarball from the 
-pkg directory __and__ publishes it to the NPM registry. 
+from the pkg directory and the `publish` command creates a tarball from the
+pkg directory __and__ publishes it to the NPM registry.
 
 Underneath, these commands use `npm pack` and `npm publish`. You can read
 more about these in the NPM documentation:
@@ -11,8 +11,8 @@ more about these in the NPM documentation:
 - [`npm pack`](https://docs.npmjs.com/cli/pack)
 - [`npm publish`](https://docs.npmjs.com/cli/publish)
 
-Both these commands take the path to the pkg directory as the first argument. 
-You can either set the argument directly to the pkg directory or to the parent 
+Both these commands take the path to the pkg directory as the first argument.
+You can either set the argument directly to the pkg directory or to the parent
 of the pkg directory:
 
 ```
