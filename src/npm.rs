@@ -4,14 +4,13 @@ use child;
 use command::publish::access::Access;
 use failure::{self, ResultExt};
 use slog::Logger;
-use std::process::Command;
 
 /// The default npm registry used when we aren't working with a custom registry.
 pub const DEFAULT_NPM_REGISTRY: &'static str = "https://registry.npmjs.org/";
 
 /// Run the `npm pack` command.
 pub fn npm_pack(log: &Logger, path: &str) -> Result<(), failure::Error> {
-    let mut cmd = Command::new("npm");
+    let mut cmd = child::new_command("npm");
     cmd.current_dir(path).arg("pack");
     child::run(log, cmd, "npm pack").context("Packaging up your code failed")?;
     Ok(())
@@ -19,7 +18,7 @@ pub fn npm_pack(log: &Logger, path: &str) -> Result<(), failure::Error> {
 
 /// Run the `npm publish` command.
 pub fn npm_publish(log: &Logger, path: &str, access: Option<Access>) -> Result<(), failure::Error> {
-    let mut cmd = Command::new("npm");
+    let mut cmd = child::new_command("npm");
     match access {
         Some(a) => cmd
             .current_dir(path)
@@ -56,7 +55,7 @@ pub fn npm_login(
 
     // Interactively ask user for npm login info.
     //  (child::run does not support interactive input)
-    let mut cmd = Command::new("npm");
+    let mut cmd = child::new_command("npm");
     cmd.args(args);
 
     info!(log, "Running {:?}", cmd);
