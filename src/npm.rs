@@ -4,7 +4,7 @@ use child;
 use command::publish::access::Access;
 use failure::{self, ResultExt};
 use slog::Logger;
-use std::process::{Command, Stdio};
+use std::process::Command;
 
 /// The default npm registry used when we aren't working with a custom registry.
 pub const DEFAULT_NPM_REGISTRY: &'static str = "https://registry.npmjs.org/";
@@ -24,14 +24,8 @@ pub fn npm_publish(log: &Logger, path: &str, access: Option<Access>) -> Result<(
         Some(a) => cmd
             .current_dir(path)
             .arg("publish")
-            .arg(&format!("{}", a.to_string()))
-            .stdin(Stdio::inherit())
-            .stdout(Stdio::inherit()),
-        None => cmd
-            .current_dir(path)
-            .arg("publish")
-            .stdin(Stdio::inherit())
-            .stdout(Stdio::inherit()),
+            .arg(&format!("{}", a.to_string())),
+        None => cmd.current_dir(path).arg("publish"),
     };
 
     child::run(log, cmd, "npm publish").context("Publishing to npm failed")?;
@@ -52,7 +46,7 @@ pub fn npm_login(
         args.push(format!("--scope={}", scope));
     }
 
-    if always_auth == true {
+    if always_auth {
         args.push(format!("--always_auth"));
     }
 
