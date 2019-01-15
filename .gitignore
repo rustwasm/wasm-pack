@@ -6,4 +6,3 @@ wasm-pack.log
 /build-installer
 docs/book
 docs/installer
-binary-install/Cargo.lock
