@@ -38,14 +38,15 @@ This project requires Rust 1.30.0 or later.
 
 ## 📝 Logging
 
-We generate a `wasm-pack.log` file if `wasm-pack` errors on you, and you can
-customize the log verbosity using the verbosity flag.
+`wasm-pack` uses [`env_logger`] to produces logs when `wasm-pack` runs.
 
-| Verbosity     | Result                                              |
-| ------------- |-----------------------------------------------------|
-| -v            | All Info, Warn, and Errors are logged               |
-| -vv           | All Debug, Info, Warn, and Errors are logged        |
-| -vvv          | All Trace, Debug, Info, Warn, and Errors are logged |
+To configure your log level, use the `RUST_LOG` environment variable. For example:
+
+```
+RUST_LOG=info wasm-pack build
+```
+
+[`env_logger`]: https://crates.io/crates/env_logger
 
 ## 👯 Contributing
 
