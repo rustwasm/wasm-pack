@@ -1,6 +1,7 @@
 //! Implementation of the `wasm-pack test` command.
 
 use super::build::BuildMode;
+use binary_install::Cache;
 use bindgen;
 use build;
 use command::utils::set_crate_path;
@@ -15,7 +16,6 @@ use progressbar::Step;
 use std::path::PathBuf;
 use std::time::Instant;
 use test::{self, webdriver};
-use wasm_pack_binary_install::Cache;
 use PBAR;
 
 #[derive(Debug, Default, StructOpt)]
@@ -132,7 +132,7 @@ impl Test {
         }
 
         Ok(Test {
-            cache: Cache::new()?,
+            cache: Cache::new("wasm_pack")?,
             crate_path,
             crate_data,
             node,

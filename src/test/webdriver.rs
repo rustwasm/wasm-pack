@@ -1,10 +1,10 @@
 //! Getting WebDriver client binaries.
 
+use binary_install::Cache;
 use command::build::BuildMode;
 use failure;
 use std::path::PathBuf;
 use target;
-use wasm_pack_binary_install::Cache;
 
 /// Get the path to an existing `chromedriver`, or install it if no existing
 /// binary is found.

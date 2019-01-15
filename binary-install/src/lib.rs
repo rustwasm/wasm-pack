@@ -36,13 +36,15 @@ impl Cache {
     ///
     /// This function may return an error if a cache directory cannot be
     /// determined.
-    pub fn new() -> Result<Cache, Error> {
+    pub fn new(name: &str) -> Result<Cache, Error> {
+        let cache_name = format!(".{}", name);
         let destination = dirs::cache_dir()
-            .map(|p| p.join("wasm-pack"))
+            .map(|p| p.join(&cache_name))
             .or_else(|| {
                 let home = dirs::home_dir()?;
-                Some(home.join(".wasm-pack"))
-            }).ok_or_else(|| format_err!("couldn't find your home directory, is $HOME not set?"))?;
+                Some(home.join(&cache_name))
+            })
+            .ok_or_else(|| format_err!("couldn't find your home directory, is $HOME not set?"))?;
         Ok(Cache::at(&destination))
     }
 
