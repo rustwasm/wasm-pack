@@ -228,3 +228,19 @@ fn build_with_and_without_wasm_bindgen_debug() {
         );
     }
 }
+
+#[test]
+fn build_with_arbitrary_cargo_options() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+
+    let cli = Cli::from_iter_safe(vec![
+        "wasm-pack",
+        "build",
+        &fixture.path.display().to_string(),
+        "--",
+        "--no-default-features",
+    ])
+    .unwrap();
+    fixture.run(cli.cmd).unwrap();
+}
