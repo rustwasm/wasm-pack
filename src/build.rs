@@ -61,7 +61,12 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
 }
 
 /// Run `cargo build` targetting `wasm32-unknown-unknown`.
-pub fn cargo_build_wasm(path: &Path, profile: BuildProfile, step: &Step) -> Result<(), Error> {
+pub fn cargo_build_wasm(
+    path: &Path,
+    profile: BuildProfile,
+    step: &Step,
+    extra_options: &Vec<String>,
+) -> Result<(), Error> {
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("cargo");
@@ -84,6 +89,7 @@ pub fn cargo_build_wasm(path: &Path, profile: BuildProfile, step: &Step) -> Resu
         }
     }
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+    cmd.args(extra_options);
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }
