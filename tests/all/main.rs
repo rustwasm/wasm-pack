@@ -3,11 +3,11 @@ extern crate failure;
 extern crate lazy_static;
 #[macro_use]
 extern crate serde_derive;
+extern crate binary_install;
 extern crate serde_json;
 extern crate structopt;
 extern crate tempfile;
 extern crate wasm_pack;
-extern crate wasm_pack_binary_install;
 
 mod bindgen;
 mod build;

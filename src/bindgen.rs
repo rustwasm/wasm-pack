@@ -1,5 +1,6 @@
 //! Functionality related to installing and running `wasm-bindgen`.
 
+use binary_install::{Cache, Download};
 use child;
 use command::build::BuildProfile;
 use emoji;
@@ -12,7 +13,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use target;
-use wasm_pack_binary_install::{Cache, Download};
 use which::which;
 use PBAR;
 
