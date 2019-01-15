@@ -229,26 +229,6 @@ fn build_with_and_without_wasm_bindgen_debug() {
     }
 }
 
-#[cfg(target_os = "windows")]
-#[test]
-fn it_format_out_dir_on_windows() {
-    let fixture = utils::fixture::js_hello_world();
-    fixture.install_local_wasm_bindgen();
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        &fixture.path.display().to_string(),
-    ])
-    .unwrap();
-    fixture.run(cli.cmd).unwrap();
-
-    let wasm_pack_log = utils::file::read_file(&fixture.path.join("wasm-pack.log")).unwrap();
-    assert!(
-        wasm_pack_log.contains(r"Your wasm pkg is ready to publish at C:\"),
-        "directories in wasm-pack.log should be well formatted",
-    );
-}
-
 #[test]
 fn build_with_arbitrary_cargo_options() {
     let fixture = utils::fixture::js_hello_world();
