@@ -9,11 +9,6 @@ readme = "README.md"
 categories = ["wasm"]
 documentation = "https://rustwasm.github.io/wasm-pack/"
 
-[workspace]
-members = [
-    "./binary-install",
-]
-
 [dependencies]
 atty = "0.2.11"
 cargo_metadata = "0.6.0"
