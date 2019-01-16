@@ -51,6 +51,9 @@ matrix:
     - rustup component add rustfmt-preview
     - cargo fmt --version
     - cargo fmt --all -- --check
+    - rustup component add clippy-preview
+    - cargo clippy --version
+    - cargo clippy
 
   - name: Book
     rust: stable
