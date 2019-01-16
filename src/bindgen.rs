@@ -101,9 +101,19 @@ pub fn cargo_install_wasm_bindgen(
     version: &str,
     install_permitted: bool,
 ) -> Result<Download, failure::Error> {
+    debug!(
+        "Attempting to use a `cargo install`ed version of `wasm-bindgen={}`",
+        version
+    );
+
     let dirname = format!("wasm-bindgen-cargo-install-{}", version);
     let destination = cache.join(dirname.as_ref());
     if destination.exists() {
+        debug!(
+            "`cargo install`ed `wasm-bindgen={}` already exists at {}",
+            version,
+            destination.display()
+        );
         return Ok(Download::at(&destination));
     }
 
@@ -115,7 +125,12 @@ pub fn cargo_install_wasm_bindgen(
     // and ensure we don't accidentally use stale files in the future
     let tmp = cache.join(format!(".{}", dirname).as_ref());
     drop(fs::remove_dir_all(&tmp));
-    fs::create_dir_all(&tmp)?;
+    debug!(
+        "cargo installing wasm-bindgen to tempdir: {}",
+        tmp.display()
+    );
+    fs::create_dir_all(&tmp)
+        .context("failed to create temp dir for `cargo install wasm-bindgen`")?;
 
     let mut cmd = Command::new("cargo");
     cmd.arg("install")
@@ -170,7 +185,7 @@ pub fn wasm_bindgen_build(
         "no-modules" => "--no-modules",
         _ => "--browser",
     };
-    let bindgen_path = bindgen.binary("wasm-bindgen");
+    let bindgen_path = bindgen.binary("wasm-bindgen")?;
     let mut cmd = Command::new(bindgen_path);
     cmd.arg(&wasm_path)
         .arg("--out-dir")

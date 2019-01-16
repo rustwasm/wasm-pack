@@ -6,6 +6,7 @@ extern crate failure;
 extern crate dirs;
 extern crate flate2;
 extern crate hex;
+extern crate is_executable;
 extern crate siphasher;
 extern crate tar;
 extern crate zip;
@@ -223,13 +224,22 @@ impl Download {
     }
 
     /// Returns the path to the binary `name` within this download
-    pub fn binary(&self, name: &str) -> PathBuf {
+    pub fn binary(&self, name: &str) -> Result<PathBuf, Error> {
+        use is_executable::IsExecutable;
+
         let ret = self
             .root
             .join(name)
             .with_extension(env::consts::EXE_EXTENSION);
-        assert!(ret.exists(), "binary {} doesn't exist", ret.display());
-        return ret;
+
+        if !ret.is_file() {
+            bail!("{} binary does not exist", ret.display());
+        }
+        if !ret.is_executable() {
+            bail!("{} is not executable", ret.display());
+        }
+
+        Ok(ret)
     }
 }
 
