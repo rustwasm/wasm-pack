@@ -32,7 +32,7 @@
 
     Currently, you can only configure things related to the above-mentioned build profiles. To learn more, 
     [check out the documentation][profile-config-docs]. It leverages the `package.metadata.wasm-pack` key in your
-    `Carol.toml`, and looks like this:
+    `Cargo.toml`, and looks like this:
 
     ```toml
     # Cargo.toml
