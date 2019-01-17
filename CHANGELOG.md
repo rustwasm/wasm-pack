@@ -1,5 +1,25 @@
 # Changelog
 
+## 🌤️ 0.6.1
+
+- ### 🤕 Fixes
+
+  - **Correct look up location for `wasm-bindgen` when it's installed via `cargo install` - [fitzgen], [pull/504]**
+
+    Sometimes, when a `wasm-bindgen` binary is not available, or if `wasm-pack` is being run on an architecture that
+    `wasm-bindgen` doesn't produce binaries for, instead of downloading a pre-built binary, `wasm-pack` will install 
+    `wasm-bindgen` using `cargo install`. This is a great and flexible back up!
+
+    However, due to the last release's recent refactor to use a global cache, we overlooked the `cargo install` case
+    and did not look for `wasm-bindgen` in the appropriate location. As a result, this led to a bug where `wasm-pack`
+    would panic.
+
+    We've fixed the lookup for the `cargo install`'d `wasm-bindgen` by moving the `cargo-install`'d version to global
+    cache location for `wasm-pack` once it's successfully built. We also eliminated the panic in favor of 
+    propagating an error. Thanks for your bug reports and sorry about the mistake!
+
+    [pull/504]: https://github.com/rustwasm/wasm-pack/pull/504
+
 ## 🌅 0.6.0
 
 - ### ✨ Features

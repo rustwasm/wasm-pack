@@ -1,7 +1,7 @@
 [package]
 name = "wasm-pack"
 description = "📦✨ your favorite rust -> wasm workflow tool!"
-version = "0.6.0"
+version = "0.6.1"
 authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
 repository = "https://github.com/ashleygwilliams/wasm-pack.git"
 license = "MIT/Apache-2.0"
