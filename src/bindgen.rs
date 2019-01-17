@@ -128,24 +128,6 @@ pub fn cargo_install_wasm_bindgen(
 
     let tmp_dirname = cargo_install_to_tmp_dir(&cargo_install_dirname, &cargo_install_cache_dirname, version)?;
 
-    // `cargo install` will put the installed binaries in `$root/bin/*`, but we
-    // just want them in `$root/*` directly (which matches how the tarballs are
-    // laid out, and where the rest of our code expects them to be). So we do a
-    // little renaming here.
-    for f in ["wasm-bindgen", "wasm-bindgen-test-runner"].iter().cloned() {
-        let from = tmp_dirname
-            .join("bin")
-            .join(f)
-            .with_extension(env::consts::EXE_EXTENSION);
-        let to = tmp_dirname.join(from.file_name().unwrap());
-        fs::rename(&from, &to).with_context(|_| {
-            format!(
-                "failed to move {} to {} for `cargo install`ed `wasm-bindgen`",
-                from.display(),
-                to.display()
-            )
-        })?;
-    }
 
     // Remove destination directory if already exists,
     // e.g. if only the bindgen binary does not exist.
@@ -186,7 +168,31 @@ fn cargo_install_to_tmp_dir(bin_dirname: &str, cache_root_dirname: &PathBuf, ver
         .arg(&tmp);
 
     child::run(cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
+    move_up_from_rootbin_to_root(&tmp)?;
     Ok(tmp)
+}
+
+
+    // `cargo install` will put the installed binaries in `$root/bin/*`, but we
+    // just want them in `$root/*` directly (which matches how the tarballs are
+    // laid out, and where the rest of our code expects them to be). So we do a
+    // little renaming here.
+fn move_up_from_rootbin_to_root(tmp_dirname: &PathBuf) -> Result<(), failure::Error>{
+    for f in ["wasm-bindgen", "wasm-bindgen-test-runner"].iter().cloned() {
+        let from = tmp_dirname
+            .join("bin")
+            .join(f)
+            .with_extension(env::consts::EXE_EXTENSION);
+        let to = tmp_dirname.join(from.file_name().unwrap());
+        fs::rename(&from, &to).with_context(|_| {
+            format!(
+                "failed to move {} to {} for `cargo install`ed `wasm-bindgen`",
+                from.display(),
+                to.display()
+            )
+        })?;
+    }
+  Ok(())
 }
 
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
