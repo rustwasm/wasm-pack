@@ -23,6 +23,7 @@ extern crate structopt;
 extern crate binary_install;
 extern crate dialoguer;
 extern crate log;
+extern crate tempfile;
 extern crate toml;
 extern crate walkdir;
 

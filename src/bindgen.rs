@@ -14,6 +14,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use target;
+use tempfile::TempDir;
 use which::which;
 use PBAR;
 
@@ -130,7 +131,7 @@ pub fn cargo_install_wasm_bindgen(
     }
 
     // If so, we cargo install wasm_bindgen to a temp directory
-    let tmp_dirname = cargo_install_to_tmp_dir(
+    let tmpdir = cargo_install_to_tmp_dir(
         &cargo_install_dirname,
         &cargo_install_cache_dirname,
         version,
@@ -140,7 +141,10 @@ pub fn cargo_install_wasm_bindgen(
     remove_existing_cache_dir(&cargo_install_cache_dirname)?;
 
     // Finally, move the `tmp` cargo-install directory to the cache directory
-    fs::rename(&tmp_dirname, &cargo_install_cache_dirname)?;
+    fs::rename(&tmpdir, &cargo_install_cache_dirname)?;
+
+    // And delete the temporary directory
+    tmpdir.close()?;
 
     // We return the path to the binary in the cache directory
     Ok(destination_dl)
@@ -166,12 +170,12 @@ fn cargo_install_to_tmp_dir(
     bin_dirname: &str,
     cache_root_dirname: &PathBuf,
     version: &str,
-) -> Result<PathBuf, failure::Error> {
-    let tmp = cache_root_dirname.join(format!(".{}", bin_dirname));
+) -> Result<TempDir, failure::Error> {
+    let tmp = TempDir::new_in(cache_root_dirname.join(format!(".{}", bin_dirname)))?;
     drop(fs::remove_dir_all(&tmp));
     debug!(
         "cargo installing wasm-bindgen to tempdir: {}",
-        tmp.display()
+        tmp.path().display()
     );
     fs::create_dir_all(&tmp)
         .context("failed to create temp dir for `cargo install wasm-bindgen`")?;
@@ -183,10 +187,10 @@ fn cargo_install_to_tmp_dir(
         .arg("--version")
         .arg(version)
         .arg("--root")
-        .arg(&tmp);
+        .arg(&tmp.path());
 
     child::run(cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
-    move_up_from_rootbin_to_root(&tmp)?;
+    move_up_from_rootbin_to_root(&tmp.path())?;
     Ok(tmp)
 }
 
@@ -194,7 +198,7 @@ fn cargo_install_to_tmp_dir(
 // just want them in `$root/*` directly (which matches how the tarballs are
 // laid out, and where the rest of our code expects them to be). So we do a
 // little renaming here.
-fn move_up_from_rootbin_to_root(tmp_dirname: &PathBuf) -> Result<(), failure::Error> {
+fn move_up_from_rootbin_to_root(tmp_dirname: &Path) -> Result<(), failure::Error> {
     for f in ["wasm-bindgen", "wasm-bindgen-test-runner"].iter().cloned() {
         let from = tmp_dirname
             .join("bin")
