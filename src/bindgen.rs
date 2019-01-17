@@ -132,21 +132,26 @@ pub fn cargo_install_wasm_bindgen(
         version,
     )?;
 
-    // Remove destination directory if already exists,
-    // e.g. if only the bindgen binary does not exist.
-    if cargo_install_cache_dirname.exists() {
-        fs::remove_dir_all(&cargo_install_cache_dirname).with_context(|_| {
-            format!(
-                "failed to remove existing bindgen cache directory: {}",
-                cargo_install_cache_dirname.display()
-            )
-        })?;
-    }
+    remove_existing_cache_dir(&cargo_install_cache_dirname)?;
 
     // Finally, move the `tmp` directory into our binary cache.
     fs::rename(&tmp_dirname, &cargo_install_cache_dirname)?;
 
     Ok(destination_dl)
+}
+
+// Remove destination directory if already exists,
+// e.g. if only the bindgen binary does not exist.
+fn remove_existing_cache_dir(cache_dir: &PathBuf) -> Result<(), failure::Error> {
+    if cache_dir.exists() {
+        fs::remove_dir_all(cache_dir).with_context(|_| {
+            format!(
+                "failed to remove existing bindgen cache directory: {}",
+                cache_dir.display()
+            )
+        })?;
+    }
+    Ok(())
 }
 
 // Run `cargo install` to a temporary location to handle ctrl-c gracefully
