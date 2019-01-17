@@ -107,9 +107,9 @@ pub fn cargo_install_wasm_bindgen(
         version
     );
 
-    let dirname = format!("wasm-bindgen-cargo-install-{}", version);
-    let destination = cache.join(dirname.as_ref());
-    let destination_dl = Download::at(&destination);
+    let cargo_install_dirname = format!("wasm-bindgen-cargo-install-{}", version);
+    let cargo_install_cache_dirname = cache.join(cargo_install_dirname.as_ref());
+    let destination_dl = Download::at(&cargo_install_cache_dirname);
 
     if let Ok(bindgen_path) = destination_dl.binary("wasm-bindgen") {
         debug!(
@@ -124,9 +124,48 @@ pub fn cargo_install_wasm_bindgen(
         bail!("wasm-bindgen v{} is not installed!", version)
     }
 
-    // Run `cargo install` to a temporary location to handle ctrl-c gracefully
-    // and ensure we don't accidentally use stale files in the future
-    let tmp = cache.join(format!(".{}", dirname).as_ref());
+    let tmp_dirname = cargo_install_to_tmp_dir(&cargo_install_dirname, &cargo_install_cache_dirname, version)?;
+
+    // `cargo install` will put the installed binaries in `$root/bin/*`, but we
+    // just want them in `$root/*` directly (which matches how the tarballs are
+    // laid out, and where the rest of our code expects them to be). So we do a
+    // little renaming here.
+    for f in ["wasm-bindgen", "wasm-bindgen-test-runner"].iter().cloned() {
+        let from = tmp_dirname
+            .join("bin")
+            .join(f)
+            .with_extension(env::consts::EXE_EXTENSION);
+        let to = tmp_dirname.join(from.file_name().unwrap());
+        fs::rename(&from, &to).with_context(|_| {
+            format!(
+                "failed to move {} to {} for `cargo install`ed `wasm-bindgen`",
+                from.display(),
+                to.display()
+            )
+        })?;
+    }
+
+    // Remove destination directory if already exists,
+    // e.g. if only the bindgen binary does not exist.
+    if cargo_install_cache_dirname.exists() {
+        fs::remove_dir_all(&cargo_install_cache_dirname).with_context(|_| {
+            format!(
+                "failed to remove existing bindgen cache directory: {}",
+                cargo_install_cache_dirname.display()
+            )
+        })?;
+    }
+
+    // Finally, move the `tmp` directory into our binary cache.
+    fs::rename(&tmp_dirname, &cargo_install_cache_dirname)?;
+
+    Ok(destination_dl)
+}
+
+// Run `cargo install` to a temporary location to handle ctrl-c gracefully
+// and ensure we don't accidentally use stale files in the future
+fn cargo_install_to_tmp_dir(bin_dirname: &str, cache_root_dirname: &PathBuf, version: &str) -> Result<PathBuf, failure::Error> {
+    let tmp = cache_root_dirname.join(format!(".{}", bin_dirname));
     drop(fs::remove_dir_all(&tmp));
     debug!(
         "cargo installing wasm-bindgen to tempdir: {}",
@@ -145,41 +184,7 @@ pub fn cargo_install_wasm_bindgen(
         .arg(&tmp);
 
     child::run(cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
-
-    // `cargo install` will put the installed binaries in `$root/bin/*`, but we
-    // just want them in `$root/*` directly (which matches how the tarballs are
-    // laid out, and where the rest of our code expects them to be). So we do a
-    // little renaming here.
-    for f in ["wasm-bindgen", "wasm-bindgen-test-runner"].iter().cloned() {
-        let from = tmp
-            .join("bin")
-            .join(f)
-            .with_extension(env::consts::EXE_EXTENSION);
-        let to = tmp.join(from.file_name().unwrap());
-        fs::rename(&from, &to).with_context(|_| {
-            format!(
-                "failed to move {} to {} for `cargo install`ed `wasm-bindgen`",
-                from.display(),
-                to.display()
-            )
-        })?;
-    }
-
-    // Remove destination directory if already exists,
-    // e.g. if only the bindgen binary does not exist.
-    if destination.exists() {
-        fs::remove_dir_all(&destination).with_context(|_| {
-            format!(
-                "failed to remove existing bindgen cache directory: {}",
-                destination.display()
-            )
-        })?;
-    }
-
-    // Finally, move the `tmp` directory into our binary cache.
-    fs::rename(&tmp, &destination)?;
-
-    Ok(destination_dl)
+    Ok(tmp)
 }
 
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
