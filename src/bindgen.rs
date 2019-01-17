@@ -109,13 +109,15 @@ pub fn cargo_install_wasm_bindgen(
 
     let dirname = format!("wasm-bindgen-cargo-install-{}", version);
     let destination = cache.join(dirname.as_ref());
-    if destination.exists() {
+    let destination_dl = Download::at(&destination);
+
+    if let Ok(bindgen_path) = destination_dl.binary("wasm-bindgen") {
         debug!(
             "`cargo install`ed `wasm-bindgen={}` already exists at {}",
             version,
-            destination.display()
+            bindgen_path.display()
         );
-        return Ok(Download::at(&destination));
+        return Ok(destination_dl);
     }
 
     if !install_permitted {
@@ -163,10 +165,21 @@ pub fn cargo_install_wasm_bindgen(
         })?;
     }
 
+    // Remove destination directory if already exists,
+    // e.g. if only the bindgen binary does not exist.
+    if destination.exists() {
+        fs::remove_dir_all(&destination).with_context(|_| {
+            format!(
+                "failed to remove existing bindgen cache directory: {}",
+                destination.display()
+            )
+        })?;
+    }
+
     // Finally, move the `tmp` directory into our binary cache.
     fs::rename(&tmp, &destination)?;
 
-    Ok(Download::at(&destination))
+    Ok(destination_dl)
 }
 
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
