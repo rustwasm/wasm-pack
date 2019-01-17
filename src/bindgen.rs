@@ -131,20 +131,13 @@ pub fn cargo_install_wasm_bindgen(
     }
 
     // If so, we cargo install wasm_bindgen to a temp directory
-    let tmpdir = cargo_install_to_tmp_dir(
-        &cargo_install_dirname,
-        &cargo_install_cache_dirname,
-        version,
-    )?;
+    let tmpdir = cargo_install_to_tmp_dir(version)?;
 
     // We check if a cache directory for wasm-bindgen already exists, if so, we remove it
     remove_existing_cache_dir(&cargo_install_cache_dirname)?;
 
     // Finally, move the `tmp` cargo-install directory to the cache directory
     fs::rename(&tmpdir, &cargo_install_cache_dirname)?;
-
-    // And delete the temporary directory
-    tmpdir.close()?;
 
     // We return the path to the binary in the cache directory
     Ok(destination_dl)
@@ -166,13 +159,8 @@ fn remove_existing_cache_dir(cache_dir: &PathBuf) -> Result<(), failure::Error> 
 
 // Run `cargo install` to a temporary location to handle ctrl-c gracefully
 // and ensure we don't accidentally use stale files in the future
-fn cargo_install_to_tmp_dir(
-    bin_dirname: &str,
-    cache_root_dirname: &PathBuf,
-    version: &str,
-) -> Result<TempDir, failure::Error> {
-    let tmp = TempDir::new_in(cache_root_dirname.join(format!(".{}", bin_dirname)))?;
-    drop(fs::remove_dir_all(&tmp));
+fn cargo_install_to_tmp_dir(version: &str) -> Result<TempDir, failure::Error> {
+    let tmp = TempDir::new()?;
     debug!(
         "cargo installing wasm-bindgen to tempdir: {}",
         tmp.path().display()
