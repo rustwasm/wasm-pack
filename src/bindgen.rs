@@ -126,8 +126,11 @@ pub fn cargo_install_wasm_bindgen(
         bail!("wasm-bindgen v{} is not installed!", version)
     }
 
-    let tmp_dirname = cargo_install_to_tmp_dir(&cargo_install_dirname, &cargo_install_cache_dirname, version)?;
-
+    let tmp_dirname = cargo_install_to_tmp_dir(
+        &cargo_install_dirname,
+        &cargo_install_cache_dirname,
+        version,
+    )?;
 
     // Remove destination directory if already exists,
     // e.g. if only the bindgen binary does not exist.
@@ -148,7 +151,11 @@ pub fn cargo_install_wasm_bindgen(
 
 // Run `cargo install` to a temporary location to handle ctrl-c gracefully
 // and ensure we don't accidentally use stale files in the future
-fn cargo_install_to_tmp_dir(bin_dirname: &str, cache_root_dirname: &PathBuf, version: &str) -> Result<PathBuf, failure::Error> {
+fn cargo_install_to_tmp_dir(
+    bin_dirname: &str,
+    cache_root_dirname: &PathBuf,
+    version: &str,
+) -> Result<PathBuf, failure::Error> {
     let tmp = cache_root_dirname.join(format!(".{}", bin_dirname));
     drop(fs::remove_dir_all(&tmp));
     debug!(
@@ -172,12 +179,11 @@ fn cargo_install_to_tmp_dir(bin_dirname: &str, cache_root_dirname: &PathBuf, ver
     Ok(tmp)
 }
 
-
-    // `cargo install` will put the installed binaries in `$root/bin/*`, but we
-    // just want them in `$root/*` directly (which matches how the tarballs are
-    // laid out, and where the rest of our code expects them to be). So we do a
-    // little renaming here.
-fn move_up_from_rootbin_to_root(tmp_dirname: &PathBuf) -> Result<(), failure::Error>{
+// `cargo install` will put the installed binaries in `$root/bin/*`, but we
+// just want them in `$root/*` directly (which matches how the tarballs are
+// laid out, and where the rest of our code expects them to be). So we do a
+// little renaming here.
+fn move_up_from_rootbin_to_root(tmp_dirname: &PathBuf) -> Result<(), failure::Error> {
     for f in ["wasm-bindgen", "wasm-bindgen-test-runner"].iter().cloned() {
         let from = tmp_dirname
             .join("bin")
@@ -192,7 +198,7 @@ fn move_up_from_rootbin_to_root(tmp_dirname: &PathBuf) -> Result<(), failure::Er
             )
         })?;
     }
-  Ok(())
+    Ok(())
 }
 
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
