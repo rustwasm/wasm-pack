@@ -44,6 +44,7 @@ pub fn install_wasm_bindgen(
     let msg = format!("{}Installing wasm-bindgen...", emoji::DOWN_ARROW);
     PBAR.step(step, &msg);
 
+    // Otherwise, attempt to install wasm_bindgen using a pre-built binary
     let dl = download_prebuilt_wasm_bindgen(&cache, version, install_permitted);
     match dl {
         Ok(dl) => return Ok(dl),
@@ -55,6 +56,7 @@ pub fn install_wasm_bindgen(
         }
     }
 
+    // Finally, if all else fails, install wasm_bindgen using cargo
     cargo_install_wasm_bindgen(&cache, version, install_permitted)
 }
 
