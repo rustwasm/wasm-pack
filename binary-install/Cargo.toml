@@ -4,7 +4,7 @@ description = "install a binary from a path to a global cache"
 authors = ["The wasm-pack team"]
 repository = "https://github.com/rustwasm/wasm-pack/tree/master/binary-install"
 license = "MIT/Apache-2.0"
-version = "0.0.1"
+version = "0.0.2"
 documentation = "https://docs.rs/binary-install"
 readme = "./README.md"
 

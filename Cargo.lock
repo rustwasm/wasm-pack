@@ -75,7 +75,7 @@ dependencies = [
 
 [[package]]
 name = "binary-install"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "curl 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
  "dirs 1.0.4 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -1250,7 +1250,7 @@ name = "wasm-pack"
 version = "0.6.0"
 dependencies = [
  "atty 0.2.11 (registry+https://github.com/rust-lang/crates.io-index)",
- "binary-install 0.0.1",
+ "binary-install 0.0.2",
  "cargo_metadata 0.6.4 (registry+https://github.com/rust-lang/crates.io-index)",
  "console 0.6.2 (registry+https://github.com/rust-lang/crates.io-index)",
  "curl 0.4.19 (registry+https://github.com/rust-lang/crates.io-index)",
