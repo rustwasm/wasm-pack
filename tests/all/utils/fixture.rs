@@ -185,7 +185,7 @@ impl Fixture {
         INSTALL_WASM_BINDGEN.call_once(|| {
             download().unwrap();
         });
-        download().unwrap().binary("wasm-bindgen")
+        download().unwrap().binary("wasm-bindgen").unwrap()
     }
 
     /// Download `geckodriver` and return its path.
