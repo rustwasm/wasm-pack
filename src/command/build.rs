@@ -192,7 +192,7 @@ impl Build {
 
     /// Execute this `Build` command.
     pub fn run(&mut self) -> Result<(), Error> {
-        let process_steps = Build::get_process_steps(&self.mode);
+        let process_steps = Build::get_process_steps(self.mode);
 
         let mut step_counter = Step::new(process_steps.len());
 

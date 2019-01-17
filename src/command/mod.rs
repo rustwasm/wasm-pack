@@ -107,7 +107,7 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
         } => {
             info!("Running publish command...");
             info!("Path: {:?}", &path);
-            publish(target, path, access)
+            publish(&target, path, access)
         }
         Command::Login {
             registry,
