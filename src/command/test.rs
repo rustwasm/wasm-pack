@@ -132,7 +132,7 @@ impl Test {
         }
 
         Ok(Test {
-            cache: Cache::new("wasm_pack")?,
+            cache: Cache::new("wasm-pack")?,
             crate_path,
             crate_data,
             node,

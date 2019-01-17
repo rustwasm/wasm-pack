@@ -21,8 +21,7 @@ use std::hash::{Hash, Hasher};
 use std::io;
 use std::path::{Path, PathBuf};
 
-/// Global cache for wasm-pack, currently containing binaries downloaded from
-/// urls like wasm-bindgen and such.
+/// Global cache currently containing binaries downloaded from urls
 pub struct Cache {
     destination: PathBuf,
 }
@@ -40,8 +39,8 @@ impl Cache {
     pub fn new(name: &str) -> Result<Cache, Error> {
         let home_dir_cache_name = format!(".{}", name);
 
-        // create a dir called `wasm_pack` in the standard cache dir of the
-        // host, otherwise create a dir called `.wasm-pack` in the host's
+        // create a dir called `<name>` in the standard cache dir of the
+        // host, otherwise create a dir called `.<name>` in the host's
         // user home directory
         let destination = dirs::cache_dir()
             .map(|p| p.join(&name))

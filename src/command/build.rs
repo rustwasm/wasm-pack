@@ -180,7 +180,7 @@ impl Build {
             mode: build_opts.mode,
             out_dir,
             bindgen: None,
-            cache: Cache::new("wasm_pack")?,
+            cache: Cache::new("wasm-pack")?,
             extra_options: build_opts.extra_options,
         })
     }
