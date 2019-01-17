@@ -113,6 +113,7 @@ pub fn cargo_install_wasm_bindgen(
     let cargo_install_cache_dirname = cache.join(cargo_install_dirname.as_ref());
     let destination_dl = Download::at(&cargo_install_cache_dirname);
 
+    // First, we check if a cargo installed wasm-bindgen at the correct version exists
     if let Ok(bindgen_path) = destination_dl.binary("wasm-bindgen") {
         debug!(
             "`cargo install`ed `wasm-bindgen={}` already exists at {}",
@@ -122,21 +123,26 @@ pub fn cargo_install_wasm_bindgen(
         return Ok(destination_dl);
     }
 
+    // If it does not, we check if we are allowed to install things
     if !install_permitted {
+        //If not, we bail
         bail!("wasm-bindgen v{} is not installed!", version)
     }
 
+    // If so, we cargo install wasm_bindgen to a temp directory
     let tmp_dirname = cargo_install_to_tmp_dir(
         &cargo_install_dirname,
         &cargo_install_cache_dirname,
         version,
     )?;
 
+    // We check if a cache directory for wasm-bindgen already exists, if so, we remove it
     remove_existing_cache_dir(&cargo_install_cache_dirname)?;
 
-    // Finally, move the `tmp` directory into our binary cache.
+    // Finally, move the `tmp` cargo-install directory to the cache directory
     fs::rename(&tmp_dirname, &cargo_install_cache_dirname)?;
 
+    // We return the path to the binary in the cache directory
     Ok(destination_dl)
 }
 
