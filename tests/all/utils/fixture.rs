@@ -1,3 +1,7 @@
+<<<<<<< HEAD
+=======
+use binary_install::Cache;
+>>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
 use std::env;
 use std::fs;
 use std::mem::ManuallyDrop;
@@ -7,7 +11,6 @@ use std::sync::{MutexGuard, Once, ONCE_INIT};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
-use wasm_pack_binary_install::Cache;
 
 /// A test fixture in a temporary directory.
 pub struct Fixture {
@@ -185,7 +188,7 @@ impl Fixture {
         INSTALL_WASM_BINDGEN.call_once(|| {
             download().unwrap();
         });
-        download().unwrap().binary("wasm-bindgen")
+        download().unwrap().binary("wasm-bindgen").unwrap()
     }
 
     /// Download `geckodriver` and return its path.

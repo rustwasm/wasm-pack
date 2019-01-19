@@ -1,10 +1,10 @@
 //! Getting WebDriver client binaries.
 
+use binary_install::Cache;
 use command::build::BuildMode;
 use failure;
 use std::path::PathBuf;
 use target;
-use wasm_pack_binary_install::Cache;
 
 /// Get the path to an existing `chromedriver`, or install it if no existing
 /// binary is found.
@@ -47,7 +47,7 @@ pub fn install_chromedriver(
         &["chromedriver"],
         &url,
     )? {
-        Some(dl) => Ok(dl.binary("chromedriver")),
+        Some(dl) => Ok(dl.binary("chromedriver")?),
         None => bail!(
             "No cached `chromedriver` binary found, and could not find a global \
              `chromedriver` on the `$PATH`. Not installing `chromedriver` because of noinstall \
@@ -97,7 +97,7 @@ pub fn install_geckodriver(
         ext,
     );
     match cache.download(installation_allowed, "geckodriver", &["geckodriver"], &url)? {
-        Some(dl) => Ok(dl.binary("geckodriver")),
+        Some(dl) => Ok(dl.binary("geckodriver")?),
         None => bail!(
             "No cached `geckodriver` binary found, and could not find a global `geckodriver` \
              on the `$PATH`. Not installing `geckodriver` because of noinstall mode."

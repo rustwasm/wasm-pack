@@ -1,5 +1,6 @@
 //! Implementation of the `wasm-pack build` command.
 
+use binary_install::{Cache, Download};
 use bindgen;
 use build;
 use command::utils::{create_pkg_dir, set_crate_path};
@@ -15,7 +16,6 @@ use readme;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
-use wasm_pack_binary_install::{Cache, Download};
 use PBAR;
 
 /// Everything required to configure and run the `wasm-pack init` command.
@@ -31,6 +31,7 @@ pub struct Build {
     pub out_dir: PathBuf,
     pub bindgen: Option<Download>,
     pub cache: Cache,
+    pub extra_options: Vec<String>,
 }
 
 /// The `BuildMode` determines which mode of initialization we are running, and
@@ -120,6 +121,10 @@ pub struct BuildOptions {
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
+
+    #[structopt(last = true)]
+    /// List of extra options to pass to `cargo build`
+    pub extra_options: Vec<String>,
 }
 
 impl Default for BuildOptions {
@@ -135,6 +140,7 @@ impl Default for BuildOptions {
             release: false,
             profiling: false,
             out_dir: String::new(),
+            extra_options: Vec::new(),
         }
     }
 }
@@ -174,7 +180,8 @@ impl Build {
             mode: build_opts.mode,
             out_dir,
             bindgen: None,
-            cache: Cache::new()?,
+            cache: Cache::new("wasm_pack")?,
+            extra_options: build_opts.extra_options,
         })
     }
 
@@ -282,7 +289,11 @@ impl Build {
 
     fn step_build_wasm(&mut self, step: &Step) -> Result<(), Error> {
         info!("Building wasm...");
+<<<<<<< HEAD
         build::cargo_build_wasm(&self.crate_path, self.profile, step)?;
+=======
+        build::cargo_build_wasm(&self.crate_path, self.profile, step, &self.extra_options)?;
+>>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
 
         info!(
             "wasm built at {:#?}.",

@@ -20,11 +20,14 @@ extern crate serde_ignored;
 extern crate serde_json;
 #[macro_use]
 extern crate structopt;
+<<<<<<< HEAD
+=======
+extern crate binary_install;
+>>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
 extern crate dialoguer;
 extern crate log;
 extern crate toml;
 extern crate walkdir;
-extern crate wasm_pack_binary_install;
 
 pub mod bindgen;
 pub mod build;
