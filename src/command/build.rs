@@ -289,11 +289,7 @@ impl Build {
 
     fn step_build_wasm(&mut self, step: &Step) -> Result<(), Error> {
         info!("Building wasm...");
-<<<<<<< HEAD
-        build::cargo_build_wasm(&self.crate_path, self.profile, step)?;
-=======
         build::cargo_build_wasm(&self.crate_path, self.profile, step, &self.extra_options)?;
->>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
 
         info!(
             "wasm built at {:#?}.",

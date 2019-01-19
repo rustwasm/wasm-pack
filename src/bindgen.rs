@@ -9,10 +9,7 @@ use log::debug;
 use log::{info, warn};
 use manifest::CrateData;
 use progressbar::Step;
-<<<<<<< HEAD
-=======
 use std::env;
->>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -146,8 +143,6 @@ pub fn cargo_install_wasm_bindgen(
         .arg(&tmp);
 
     child::run(cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
-<<<<<<< HEAD
-=======
 
     // `cargo install` will put the installed binaries in `$root/bin/*`, but we
     // just want them in `$root/*` directly (which matches how the tarballs are
@@ -167,7 +162,6 @@ pub fn cargo_install_wasm_bindgen(
             )
         })?;
     }
->>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
 
     // Finally, move the `tmp` directory into our binary cache.
     fs::rename(&tmp, &destination)?;
