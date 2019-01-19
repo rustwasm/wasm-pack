@@ -13,13 +13,13 @@ We will discuss:
 
 ## 1. Defining `set_panic_hook`
 
-```
+```rust
 use cfg_if::cfg_if;
 ```
 
 This allows us to write `cfg_if!` instead of `cfg_if::cfg_if!`, identically to the line in `src/lib.rs`.
 
-```
+```rust
 cfg_if! {
     if #[cfg(feature = "console_error_panic_hook")] {
         extern crate console_error_panic_hook;
@@ -35,14 +35,14 @@ As described in the preceding section, the macro `cfg_if!` evaluates the `if` st
 
 The entire macro block will either be replaced with the statements in the `if` block or with those in the `else` block. These two cases are now described in turn:
 
-```
+```rust
 extern crate console_error_panic_hook;
 pub use self::console_error_panic_hook::set_once as set_panic_hook;
 ```
 
 Due to the `use` statement, the function `self::console_error_panic_hook::set_once` can now be accessed more conveniently as `set_panic_hook`. Due to `pub`, this function will be publicly accessible outside of the `utils` module as `utils::set_panic_hook`.
 
-```
+```rust
 #[inline]
 pub fn set_panic_hook() {}
 ```
