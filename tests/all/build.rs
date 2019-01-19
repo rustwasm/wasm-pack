@@ -17,7 +17,6 @@ fn build_in_non_crate_directory_doesnt_panic() {
 #[test]
 fn it_should_build_js_hello_world_example() {
     let fixture = utils::fixture::js_hello_world();
-    fixture.install_local_wasm_bindgen();
     fixture.wasm_pack().arg("build").assert().success();
 }
 
@@ -47,7 +46,7 @@ fn it_should_build_crates_in_a_workspace() {
                 crate-type = ["cdylib"]
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
             "#,
         )
         .file(
@@ -87,7 +86,7 @@ fn renamed_crate_name_works() {
                 name = 'bar'
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
             "#,
         )
         .file(
