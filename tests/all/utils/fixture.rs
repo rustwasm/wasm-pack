@@ -218,9 +218,14 @@ impl Fixture {
         wasm_pack::test::webdriver::install_chromedriver(&cache, true).unwrap()
     }
 
+    pub fn cache_dir(&self) -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join("test_cache")
+    }
+
     pub fn cache(&self) -> Cache {
-        let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
-        Cache::at(&target_dir.join("test_cache"))
+        Cache::at(&self.cache_dir())
     }
 
     /// The `step_install_wasm_bindgen` and `step_run_wasm_bindgen` steps only
@@ -255,6 +260,16 @@ impl Fixture {
             }
             _ => unreachable!(),
         }
+    }
+
+    /// Get a `wasm-pack` command configured to run in this fixure's temp
+    /// directory and using the test cache.
+    pub fn wasm_pack(&self) -> Command {
+        use assert_cmd::prelude::*;
+        let mut cmd = Command::main_binary().unwrap();
+        cmd.current_dir(&self.path);
+        cmd.env("WASM_PACK_CACHE", self.cache_dir());
+        cmd
     }
 
     pub fn lock(&self) -> MutexGuard<'static, ()> {

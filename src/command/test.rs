@@ -4,6 +4,7 @@ use super::build::BuildMode;
 use binary_install::Cache;
 use bindgen;
 use build;
+use cache;
 use command::utils::set_crate_path;
 use console::style;
 use emoji;
@@ -132,7 +133,7 @@ impl Test {
         }
 
         Ok(Test {
-            cache: Cache::new("wasm_pack")?,
+            cache: cache::get_wasm_pack_cache()?,
             crate_path,
             crate_data,
             node,

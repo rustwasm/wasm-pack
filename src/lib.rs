@@ -28,6 +28,7 @@ extern crate walkdir;
 
 pub mod bindgen;
 pub mod build;
+pub mod cache;
 pub mod child;
 pub mod command;
 pub mod emoji;

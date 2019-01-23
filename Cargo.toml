@@ -38,6 +38,8 @@ binary-install = { version = "0.0.1", path = "./binary-install" }
 walkdir = "2"
 
 [dev-dependencies]
+assert_cmd = "0.10.2"
+predicates = "1.0.0"
 tempfile = "3"
 
 [features]
