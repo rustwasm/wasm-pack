@@ -43,6 +43,13 @@ impl ProgressOutput {
 
         let mut spinner = self.spinner.write();
         *spinner = Self::progressbar(message);
+
+        if !atty::is(atty::Stream::Stderr) {
+            // `indicatif` won't print any output if `stderr` is not a tty, so
+            // to ensure that our output is still emitted, we print it manually
+            // here.
+            eprintln!("{}", message)
+        }
     }
 
     fn add_message(&self, msg: &str) {

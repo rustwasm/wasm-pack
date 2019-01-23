@@ -3,6 +3,7 @@
 use binary_install::{Cache, Download};
 use bindgen;
 use build;
+use cache;
 use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use failure::Error;
@@ -180,7 +181,7 @@ impl Build {
             mode: build_opts.mode,
             out_dir,
             bindgen: None,
-            cache: Cache::new("wasm_pack")?,
+            cache: cache::get_wasm_pack_cache()?,
             extra_options: build_opts.extra_options,
         })
     }
