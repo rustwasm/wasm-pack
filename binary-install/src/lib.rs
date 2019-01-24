@@ -23,7 +23,7 @@ use std::path::{Path, PathBuf};
 
 /// Global cache currently containing binaries downloaded from urls
 pub struct Cache {
-    destination: PathBuf,
+    pub destination: PathBuf,
 }
 
 /// Representation of a downloaded tarball/zip

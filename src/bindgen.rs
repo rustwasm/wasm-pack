@@ -136,6 +136,7 @@ pub fn cargo_install_wasm_bindgen(
     // We check if a cache directory for wasm-bindgen already exists, if so, we remove it
     remove_existing_cache_dir(&cargo_install_cache_dirname)?;
 
+    assert!(&cache.destination.exists());
     // Finally, move the `tmp` cargo-install directory to the cache directory
     fs::rename(&tmpdir, &cargo_install_cache_dirname)?;
 
