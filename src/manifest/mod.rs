@@ -294,7 +294,7 @@ impl CrateData {
     pub fn warn_for_unused_keys(manifest_and_keys: &ManifestAndUnsedKeys) {
         manifest_and_keys.unused_keys.iter().for_each(|path| {
             PBAR.warn(&format!(
-                "\"{}\" is a unknown key and will be ignored. Please check your Cargo.toml.",
+                "\"{}\" is an unknown key and will be ignored. Please check your Cargo.toml.",
                 path
             ));
         });
