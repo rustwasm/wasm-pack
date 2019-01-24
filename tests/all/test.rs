@@ -1,4 +1,6 @@
+use assert_cmd::prelude::*;
 use failure::Error;
+use predicates::prelude::*;
 use std::env;
 use utils::fixture;
 use wasm_pack::command::{build, test, Command};
@@ -333,4 +335,44 @@ fn cdylib_not_required() {
         ..Default::default()
     });
     fixture.run(cmd).unwrap();
+}
+
+#[test]
+fn test_output_is_printed_once() {
+    let fixture = fixture::Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("wbg-test-node")
+        .hello_world_src_lib()
+        .file(
+            "tests/node.rs",
+            r#"
+                extern crate wasm_bindgen;
+                extern crate wasm_bindgen_test;
+                use wasm_bindgen::prelude::*;
+                use wasm_bindgen_test::*;
+
+                #[wasm_bindgen]
+                extern {
+                    #[wasm_bindgen(js_namespace = console)]
+                    fn log(s: &str);
+                }
+
+                #[wasm_bindgen_test]
+                fn pass() {
+                    log("YABBA DABBA DOO");
+                    assert_eq!(1, 2);
+                }
+            "#,
+        );
+
+    fixture
+        .wasm_pack()
+        .arg("test")
+        .arg("--node")
+        .assert()
+        .stderr(predicate::function(|err: &str| {
+            err.matches("YABBA DABBA DOO").count() == 1
+        }))
+        .failure();
 }
