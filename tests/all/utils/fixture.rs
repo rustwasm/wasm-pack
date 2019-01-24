@@ -278,23 +278,6 @@ impl Fixture {
         self
     }
 
-    pub fn run(&self, cmd: wasm_pack::command::Command) -> Result<(), failure::Error> {
-        match cmd {
-            wasm_pack::command::Command::Test(cmd) => {
-                let _lock = self.lock();
-                let mut test = wasm_pack::command::test::Test::try_from_opts(cmd)?;
-                test.set_cache(self.cache());
-                test.run()
-            }
-            wasm_pack::command::Command::Build(cmd) => {
-                let mut build = wasm_pack::command::build::Build::try_from_opts(cmd)?;
-                build.set_cache(self.cache());
-                build.run()
-            }
-            _ => unreachable!(),
-        }
-    }
-
     /// Get a `wasm-pack` command configured to run in this fixure's temp
     /// directory and using the test cache.
     pub fn wasm_pack(&self) -> Command {

@@ -1,11 +1,9 @@
+use assert_cmd::prelude::*;
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
-
-use structopt::StructOpt;
-
 use utils::{self, fixture};
-use wasm_pack::{self, license, manifest, readme, Cli};
+use wasm_pack::{self, license, manifest, readme};
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
@@ -370,22 +368,15 @@ fn configure_wasm_bindgen_debug_incorrectly_is_error() {
             debug-js-glue = "not a boolean"
             "#,
     );
-
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        "--dev",
-        &fixture.path.display().to_string(),
-    ])
-    .unwrap();
-
-    let result = fixture.run(cli.cmd);
-    assert!(result.is_err());
-
-    let err = result.unwrap_err();
-    assert!(err.iter_chain().any(|c| c
-        .to_string()
-        .contains("package.metadata.wasm-pack.profile.dev.wasm-bindgen.debug")));
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--dev")
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains(
+            "package.metadata.wasm-pack.profile.dev.wasm-bindgen.debug",
+        ));
 }
 
 #[test]
@@ -415,15 +406,17 @@ fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
             debug-js-glue = true
             "#,
         )
-        .hello_world_src_lib();
-
-    let result = manifest::CrateData::parse_crate_data(&fixture.path.join("Cargo.toml"));
-
-    assert!(result.is_ok());
-
-    let manifest::ManifestAndUnsedKeys { unused_keys, .. } = result.unwrap();
-
-    assert!(unused_keys.contains("package.metadata.wasm-pack.profile.production"));
+        .hello_world_src_lib()
+        .install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .assert()
+        .success()
+        .stdout(predicates::str::contains(
+            "[WARN]: \"package.metadata.wasm-pack.profile.production\" is an unknown key and will \
+             be ignored. Please check your Cargo.toml."
+        ));
 }
 
 #[test]

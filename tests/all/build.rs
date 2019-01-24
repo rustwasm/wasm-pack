@@ -1,40 +1,24 @@
+use assert_cmd::prelude::*;
 use std::fs;
 use std::path::Path;
-use structopt::StructOpt;
 use utils;
-use wasm_pack::Cli;
 
 #[test]
 fn build_in_non_crate_directory_doesnt_panic() {
     let fixture = utils::fixture::not_a_crate();
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        &fixture.path.display().to_string(),
-    ])
-    .unwrap();
-    let result = fixture.run(cli.cmd);
-    assert!(
-        result.is_err(),
-        "running wasm-pack in a non-crate directory should fail, but it should not panic"
-    );
-    let err = result.unwrap_err();
-    assert!(err
-        .iter_chain()
-        .any(|e| e.to_string().contains("missing a `Cargo.toml`")));
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains("missing a `Cargo.toml`"));
 }
 
 #[test]
 fn it_should_build_js_hello_world_example() {
     let fixture = utils::fixture::js_hello_world();
     fixture.install_local_wasm_bindgen();
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        &fixture.path.display().to_string(),
-    ])
-    .unwrap();
-    fixture.run(cli.cmd).unwrap();
+    fixture.wasm_pack().arg("build").assert().success();
 }
 
 #[test]
@@ -75,15 +59,14 @@ fn it_should_build_crates_in_a_workspace() {
                 #[wasm_bindgen]
                 pub fn hello() -> u32 { 42 }
             "#,
-        );
-    fixture.install_local_wasm_bindgen();
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        &fixture.path.join("blah").display().to_string(),
-    ])
-    .unwrap();
-    fixture.run(cli.cmd).unwrap();
+        )
+        .install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .current_dir(&fixture.path.join("blah"))
+        .arg("build")
+        .assert()
+        .success();
 }
 
 #[test]
@@ -116,28 +99,21 @@ fn renamed_crate_name_works() {
                 #[wasm_bindgen]
                 pub fn one() -> u32 { 1 }
             "#,
-        );
-    fixture.install_local_wasm_bindgen();
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        &fixture.path.display().to_string(),
-    ])
-    .unwrap();
-    fixture.run(cli.cmd).unwrap();
+        )
+        .install_local_wasm_bindgen();
+    fixture.wasm_pack().arg("build").assert().success();
 }
 
 #[test]
 fn it_should_build_nested_project_with_transitive_dependencies() {
     let fixture = utils::fixture::transitive_dependencies();
     fixture.install_local_wasm_bindgen();
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        &fixture.path.join("main").display().to_string(),
-    ])
-    .unwrap();
-    fixture.run(cli.cmd).unwrap();
+    fixture
+        .wasm_pack()
+        .current_dir(fixture.path.join("main"))
+        .arg("build")
+        .assert()
+        .success();
 }
 
 #[test]
@@ -149,14 +125,12 @@ fn build_different_profiles() {
         .iter()
         .cloned()
     {
-        let cli = Cli::from_iter_safe(vec![
-            "wasm-pack",
-            "build",
-            profile,
-            &fixture.path.display().to_string(),
-        ])
-        .unwrap();
-        fixture.run(cli.cmd).unwrap();
+        fixture
+            .wasm_pack()
+            .arg("build")
+            .arg(profile)
+            .assert()
+            .success();
     }
 }
 
@@ -208,17 +182,15 @@ fn build_with_and_without_wasm_bindgen_debug() {
                     pub fn take(self) {}
                 }
                 "#,
-            );
+            )
+            .install_local_wasm_bindgen();
 
-        let cli = Cli::from_iter_safe(vec![
-            "wasm-pack",
-            "build",
-            "--dev",
-            &fixture.path.display().to_string(),
-        ])
-        .unwrap();
-
-        fixture.run(cli.cmd).unwrap();
+        fixture
+            .wasm_pack()
+            .arg("build")
+            .arg("--dev")
+            .assert()
+            .success();
 
         let contents = fs::read_to_string(fixture.path.join("pkg/whatever.js")).unwrap();
         assert_eq!(
@@ -233,14 +205,11 @@ fn build_with_and_without_wasm_bindgen_debug() {
 fn build_with_arbitrary_cargo_options() {
     let fixture = utils::fixture::js_hello_world();
     fixture.install_local_wasm_bindgen();
-
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        &fixture.path.display().to_string(),
-        "--",
-        "--no-default-features",
-    ])
-    .unwrap();
-    fixture.run(cli.cmd).unwrap();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--")
+        .arg("--no-default-features")
+        .assert()
+        .success();
 }
