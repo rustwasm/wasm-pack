@@ -25,7 +25,7 @@ pub struct Build {
     pub crate_data: manifest::CrateData,
     pub scope: Option<String>,
     pub disable_dts: bool,
-    pub target: String,
+    pub targets: Vec<String>,
     pub profile: BuildProfile,
     pub mode: BuildMode,
     pub out_dir: PathBuf,
@@ -99,7 +99,7 @@ pub struct BuildOptions {
 
     #[structopt(long = "target", short = "t", default_value = "browser")]
     /// Sets the target environment. [possible values: browser, nodejs, no-modules]
-    pub target: String,
+    pub target: Vec<String>,
 
     #[structopt(long = "debug")]
     /// Deprecated. Renamed to `--dev`.
@@ -134,7 +134,7 @@ impl Default for BuildOptions {
             scope: None,
             mode: BuildMode::Normal,
             disable_dts: false,
-            target: String::new(),
+            target: vec![],
             debug: false,
             dev: false,
             release: false,
@@ -166,8 +166,10 @@ impl Build {
 
         // `possible_values` in clap isn't supported by `structopt`
         let possible_targets = ["browser", "nodejs", "no-modules"];
-        if !possible_targets.contains(&build_opts.target.as_str()) {
-            bail!("Supported targets: browser, nodejs, no-modules");
+        for target in &build_opts.target {
+            if !possible_targets.contains(&target.as_str()) {
+                bail!("Supported targets: browser, nodejs, no-modules");
+            }
         }
 
         Ok(Build {
@@ -175,7 +177,7 @@ impl Build {
             crate_data,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
-            target: build_opts.target,
+            targets: build_opts.target,
             profile,
             mode: build_opts.mode,
             out_dir,
@@ -315,7 +317,7 @@ impl Build {
             &self.out_dir,
             &self.scope,
             self.disable_dts,
-            &self.target,
+            &self.targets.iter().map(|n| n.as_ref()).collect::<Vec<_>>(),
             step,
         )?;
         info!(
@@ -358,15 +360,17 @@ impl Build {
 
     fn step_run_wasm_bindgen(&mut self, step: &Step) -> Result<(), Error> {
         info!("Building the wasm bindings...");
-        bindgen::wasm_bindgen_build(
-            &self.crate_data,
-            self.bindgen.as_ref().unwrap(),
-            &self.out_dir,
-            self.disable_dts,
-            &self.target,
-            self.profile,
-            step,
-        )?;
+        for target in &self.targets {
+            bindgen::wasm_bindgen_build(
+                &self.crate_data,
+                self.bindgen.as_ref().unwrap(),
+                &self.out_dir,
+                self.disable_dts,
+                target,
+                self.profile,
+                step,
+            )?;
+        }
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())
     }

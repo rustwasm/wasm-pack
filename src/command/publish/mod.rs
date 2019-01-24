@@ -47,7 +47,7 @@ pub fn publish(
                     .to_string();
                 let build_opts = BuildOptions {
                     path: Some(crate_path.clone()),
-                    target,
+                    target: vec![target],
                     out_dir: out_dir.clone(),
                     ..Default::default()
                 };

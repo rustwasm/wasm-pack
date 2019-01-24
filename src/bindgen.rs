@@ -189,6 +189,7 @@ pub fn wasm_bindgen_build(
     };
 
     let out_dir = out_dir.to_str().unwrap();
+    let out_name = &[data.crate_name(), target.to_owned()].join("_");
 
     let wasm_path = data
         .target_directory()
@@ -212,6 +213,8 @@ pub fn wasm_bindgen_build(
     cmd.arg(&wasm_path)
         .arg("--out-dir")
         .arg(out_dir)
+        .arg("--out-name")
+        .arg(out_name)
         .arg(dts_arg)
         .arg(target_arg);
 

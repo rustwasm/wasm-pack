@@ -5,9 +5,7 @@ mod npm;
 use std::fs;
 use std::path::Path;
 
-use self::npm::{
-    repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
-};
+use self::npm::NpmPackage;
 use cargo_metadata::Metadata;
 use command::build::BuildProfile;
 use emoji;
@@ -366,22 +364,32 @@ impl CrateData {
         out_dir: &Path,
         scope: &Option<String>,
         disable_dts: bool,
-        target: &str,
+        targets: &[&str],
         step: &Step,
     ) -> Result<(), Error> {
         let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
         PBAR.step(step, &msg);
         let pkg_file_path = out_dir.join("package.json");
-        let npm_data = if target == "nodejs" {
-            self.to_commonjs(scope, disable_dts)
-        } else if target == "no-modules" {
-            self.to_nomodules(scope, disable_dts)
-        } else {
-            self.to_esmodules(scope, disable_dts)
-        };
+        let mut npm_package = self.to_base_package(scope, disable_dts, targets[0]);
+        for target in targets {
+            if target == &"nodejs" {
+                let mut npm_data = self.npm_data(scope, false, disable_dts, target);
+                npm_package.main = Some(npm_data.main);
+                npm_package.files.append(&mut npm_data.files);
+            } else if target == &"no-modules" {
+                let mut npm_data = self.npm_data(scope, false, disable_dts, target);
+                npm_package.browser = Some(npm_data.main.clone());
+                npm_package.files.append(&mut npm_data.files);
+            } else {
+                let mut npm_data = self.npm_data(scope, false, disable_dts, target);
+                npm_package.module = Some(npm_data.main.clone());
+                npm_package.side_effects = Some("false".to_string());
+                npm_package.files.append(&mut npm_data.files);
+            }
+        }
 
-        let npm_json = serde_json::to_string_pretty(&npm_data)?;
+        let npm_json = serde_json::to_string_pretty(&npm_package)?;
         fs::write(&pkg_file_path, npm_json)
             .with_context(|_| format!("failed to write: {}", pkg_file_path.display()))?;
         Ok(())
@@ -392,15 +400,16 @@ impl CrateData {
         scope: &Option<String>,
         include_commonjs_shim: bool,
         disable_dts: bool,
+        target: &str,
     ) -> NpmData {
         let crate_name = self.crate_name();
-        let wasm_file = format!("{}_bg.wasm", crate_name);
-        let js_file = format!("{}.js", crate_name);
+        let wasm_file = format!("{}_{}_bg.wasm", crate_name, target);
+        let js_file = format!("{}_{}.js", crate_name, target);
         let mut files = vec![wasm_file];
 
         files.push(js_file.clone());
         if include_commonjs_shim {
-            let js_bg_file = format!("{}_bg.js", crate_name);
+            let js_bg_file = format!("{}_{}_bg.js", crate_name, target);
             files.push(js_bg_file.to_string());
         }
 
@@ -411,7 +420,7 @@ impl CrateData {
         };
 
         let dts_file = if !disable_dts {
-            let file = format!("{}.d.ts", crate_name);
+            let file = format!("{}_{}.d.ts", crate_name, target);
             files.push(file.to_string());
             Some(file)
         } else {
@@ -425,86 +434,18 @@ impl CrateData {
         }
     }
 
-    fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, true, disable_dts);
+    fn to_base_package(
+        &self,
+        scope: &Option<String>,
+        disable_dts: bool,
+        target: &str,
+    ) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts, target);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
 
-        NpmPackage::CommonJSPackage(CommonJSPackage {
-            name: data.name,
-            collaborators: pkg.authors.clone(),
-            description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
-            repository: self
-                .manifest
-                .package
-                .repository
-                .clone()
-                .map(|repo_url| Repository {
-                    ty: "git".to_string(),
-                    url: repo_url,
-                }),
-            files: data.files,
-            main: data.main,
-            types: data.dts_file,
-        })
-    }
-
-    fn to_esmodules(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts);
-        let pkg = &self.data.packages[self.current_idx];
-
-        self.check_optional_fields();
-
-        NpmPackage::ESModulesPackage(ESModulesPackage {
-            name: data.name,
-            collaborators: pkg.authors.clone(),
-            description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
-            repository: self
-                .manifest
-                .package
-                .repository
-                .clone()
-                .map(|repo_url| Repository {
-                    ty: "git".to_string(),
-                    url: repo_url,
-                }),
-            files: data.files,
-            module: data.main,
-            types: data.dts_file,
-            side_effects: "false".to_string(),
-        })
-    }
-
-    fn to_nomodules(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts);
-        let pkg = &self.data.packages[self.current_idx];
-
-        self.check_optional_fields();
-
-        NpmPackage::NoModulesPackage(NoModulesPackage {
-            name: data.name,
-            collaborators: pkg.authors.clone(),
-            description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
-            repository: self
-                .manifest
-                .package
-                .repository
-                .clone()
-                .map(|repo_url| Repository {
-                    ty: "git".to_string(),
-                    url: repo_url,
-                }),
-            files: data.files,
-            browser: data.main,
-            types: data.dts_file,
-        })
+        NpmPackage::base(data, &pkg, &self.manifest)
     }
 
     fn check_optional_fields(&self) {
