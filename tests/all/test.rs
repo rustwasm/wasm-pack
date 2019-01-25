@@ -178,7 +178,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
                 crate-type = ["cdylib"]
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
 
                 [dev-dependencies]
                 # no wasm-bindgen-test dep here!
@@ -218,10 +218,10 @@ fn renamed_crate_name_works() {
                 name = 'bar'
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
 
                 [dev-dependencies]
-                wasm-bindgen-test = "=0.2.21"
+                wasm-bindgen-test = "0.2"
             "#,
         )
         .file(
@@ -258,10 +258,10 @@ fn cdylib_not_required() {
                 authors = []
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
 
                 [dev-dependencies]
-                wasm-bindgen-test = "=0.2.21"
+                wasm-bindgen-test = "0.2"
             "#,
         )
         .file(

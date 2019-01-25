@@ -47,7 +47,7 @@ fn it_should_build_crates_in_a_workspace() {
                 crate-type = ["cdylib"]
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
             "#,
         )
         .file(
@@ -87,7 +87,7 @@ fn renamed_crate_name_works() {
                 name = 'bar'
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
             "#,
         )
         .file(
