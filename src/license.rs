@@ -57,8 +57,8 @@ pub fn copy_from_crate(
         "crate's pkg directory should exist"
     );
 
-    match crate_data.crate_license() {
-        Some(_) => {
+    match (crate_data.crate_license(), crate_data.crate_license_file()) {
+        (Some(_), _) => {
             let msg = format!("{}Copying over your LICENSE...", emoji::DANCERS);
             PBAR.step(step, &msg);
             let license_files = glob_license_files(path);
@@ -80,7 +80,14 @@ pub fn copy_from_crate(
                 Err(_) => PBAR.info("origin crate has no LICENSE"),
             }
         }
-        None => {
+        (None, Some(license_file)) => {
+            let crate_license_path = path.join(&license_file);
+            let new_license_path = out_dir.join(&license_file);
+            if fs::copy(&crate_license_path, &new_license_path).is_err() {
+                PBAR.info("origin crate has no LICENSE");
+            }
+        }
+        (None, None) => {
             PBAR.step(step, "No LICENSE found in Cargo.toml, skipping...");
         }
     };
