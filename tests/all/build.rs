@@ -3,7 +3,6 @@ use std::fs;
 use std::path::Path;
 use utils;
 use wasm_pack::Cli;
-use assert_cmd::prelude::*;
 
 #[test]
 fn build_in_non_crate_directory_doesnt_panic() {
@@ -19,11 +18,7 @@ fn build_in_non_crate_directory_doesnt_panic() {
 #[test]
 fn it_should_build_js_hello_world_example() {
     let fixture = utils::fixture::js_hello_world();
-    fixture
-        .wasm_pack()
-        .arg("build")
-        .assert()
-        .success();
+    fixture.wasm_pack().arg("build").assert().success();
 }
 
 #[test]
