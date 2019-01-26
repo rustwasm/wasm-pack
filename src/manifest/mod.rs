@@ -40,6 +40,7 @@ struct CargoPackage {
     name: String,
     description: Option<String>,
     license: Option<String>,
+    #[serde(rename = "license-file")]
     license_file: Option<String>,
     repository: Option<String>,
 
