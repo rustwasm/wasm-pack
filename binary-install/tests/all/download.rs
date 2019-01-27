@@ -1,10 +1,11 @@
 use binary_install::Download;
 use std::fs::OpenOptions;
-use std::os::unix::fs::OpenOptionsExt;
 
 #[test]
 #[cfg(unix)]
-fn it_returns_binary_name() {
+fn it_returns_binary_name_for_unix() {
+    use std::os::unix::fs::OpenOptionsExt;
+
     let binary_name = "wasm-pack";
 
     let dir = tempfile::TempDir::new().unwrap();
