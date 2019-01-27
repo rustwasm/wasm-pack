@@ -78,6 +78,10 @@ pub struct TestOptions {
     #[structopt(long = "release", short = "r")]
     /// Build with the release profile.
     pub release: bool,
+
+    #[structopt(last = true)]
+    /// List of extra options to pass to `cargo test`
+    pub extra_options: Vec<String>,
 }
 
 /// A configured `wasm-pack test` command.
@@ -96,6 +100,7 @@ pub struct Test {
     headless: bool,
     release: bool,
     test_runner_path: Option<PathBuf>,
+    extra_options: Vec<String>
 }
 
 type TestStep = fn(&mut Test, &Step) -> Result<(), Error>;
@@ -115,6 +120,7 @@ impl Test {
             geckodriver,
             safari,
             safaridriver,
+            extra_options,
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
@@ -147,6 +153,7 @@ impl Test {
             headless,
             release,
             test_runner_path: None,
+            extra_options,
         })
     }
 
@@ -213,7 +220,6 @@ impl Test {
                 step_test_safari if self.safari,
             ],
             BuildMode::Noinstall => steps![
-                step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
                 step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
@@ -237,18 +243,6 @@ impl Test {
         info!("Adding wasm-target...");
         build::rustup_add_wasm_target(step)?;
         info!("Adding wasm-target was successful.");
-        Ok(())
-    }
-
-    fn step_build_tests(&mut self, step: &Step) -> Result<(), Error> {
-        info!("Compiling tests to wasm...");
-
-        let msg = format!("{}Compiling tests to WASM...", emoji::CYCLONE);
-        PBAR.step(step, &msg);
-
-        build::cargo_build_wasm_tests(&self.crate_path, !self.release)?;
-
-        info!("Finished compiling tests to wasm.");
         Ok(())
     }
 
@@ -306,6 +300,7 @@ impl Test {
                 "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER",
                 &self.test_runner_path.as_ref().unwrap(),
             )),
+            &self.extra_options
         )?;
         info!("Finished running tests in node.");
         Ok(())
@@ -349,7 +344,7 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 
@@ -391,7 +386,7 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 
@@ -430,7 +425,7 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 }

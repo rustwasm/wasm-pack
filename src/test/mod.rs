@@ -10,7 +10,12 @@ use std::process::Command;
 
 /// Run `cargo test` with the `nightly` toolchain and targeting
 /// `wasm32-unknown-unknown`.
-pub fn cargo_test_wasm<I, K, V>(path: &Path, release: bool, envs: I) -> Result<(), failure::Error>
+pub fn cargo_test_wasm<I, K, V>(
+    path: &Path,
+    release: bool,
+    envs: I,
+    extra_options: &Vec<String>,
+) -> Result<(), failure::Error>
 where
     I: IntoIterator<Item = (K, V)>,
     K: AsRef<OsStr>,
@@ -23,6 +28,7 @@ where
         cmd.arg("--release");
     }
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+    cmd.args(extra_options);
     child::run(cmd, "cargo test").context("Running Wasm tests with wasm-bindgen-test failed")?;
 
     // NB: `child::run` took care of ensuring that test output gets printed.

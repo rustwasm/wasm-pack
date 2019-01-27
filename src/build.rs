@@ -93,15 +93,3 @@ pub fn cargo_build_wasm(
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }
-
-/// Run `cargo build --tests` targetting `wasm32-unknown-unknown`.
-pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
-    let mut cmd = Command::new("cargo");
-    cmd.current_dir(path).arg("build").arg("--tests");
-    if !debug {
-        cmd.arg("--release");
-    }
-    cmd.arg("--target").arg("wasm32-unknown-unknown");
-    child::run(cmd, "cargo build").context("Compilation of your program failed")?;
-    Ok(())
-}
