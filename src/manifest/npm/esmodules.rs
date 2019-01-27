@@ -16,6 +16,8 @@ pub struct ESModulesPackage {
     pub files: Vec<String>,
     pub module: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub homepage: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<String>,
     #[serde(rename = "sideEffects")]
     pub side_effects: String,
