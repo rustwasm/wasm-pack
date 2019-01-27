@@ -280,6 +280,63 @@ fn it_errors_when_wasm_bindgen_is_not_declared() {
 }
 
 #[test]
+fn it_sets_homepage_field_if_available_in_cargo_toml() {
+    // When 'homepage' is available
+    let fixture = utils::fixture::Fixture::new();
+    fixture.hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "homepage-field-test"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+            homepage = "https://rustwasm.github.io/wasm-pack/"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "=0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "=0.2"
+        "#,
+    );
+
+    let out_dir = fixture.path.join("pkg");
+    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+
+    let step = wasm_pack::progressbar::Step::new(2);
+    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    crate_data
+        .write_package_json(&out_dir, &None, true, "", &step)
+        .unwrap();
+
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(
+        pkg.homepage,
+        Some("https://rustwasm.github.io/wasm-pack/".to_string()),
+    );
+
+    // When 'homepage' is unavailable
+    let fixture = fixture::js_hello_world();
+    let out_dir = fixture.path.join("pkg");
+    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+
+    let step = wasm_pack::progressbar::Step::new(2);
+    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    crate_data
+        .write_package_json(&out_dir, &None, true, "", &step)
+        .unwrap();
+
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(pkg.homepage, None);
+}
+
+#[test]
 fn it_does_not_error_when_wasm_bindgen_is_declared() {
     let fixture = fixture::js_hello_world();
     // Ensure that there is a `Cargo.lock`.

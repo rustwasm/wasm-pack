@@ -23,6 +23,7 @@ pub struct NpmPackage {
     pub types: String,
     #[serde(default = "default_none", rename = "sideEffects")]
     pub side_effects: String,
+    pub homepage: Option<String>,
 }
 
 fn default_none() -> String {
