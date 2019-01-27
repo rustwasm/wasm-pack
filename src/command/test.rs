@@ -197,7 +197,7 @@ impl Test {
             BuildMode::Normal => steps![
                 step_check_rustc_version,
                 step_add_wasm_target,
-                                step_build_tests,
+                step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
                 step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
@@ -220,7 +220,7 @@ impl Test {
                 step_test_safari if self.safari,
             ],
             BuildMode::Noinstall => steps![
-            step_build_tests,
+                step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
                 step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
