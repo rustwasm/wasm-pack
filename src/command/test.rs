@@ -197,6 +197,7 @@ impl Test {
             BuildMode::Normal => steps![
                 step_check_rustc_version,
                 step_add_wasm_target,
+                                step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
                 step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
@@ -208,6 +209,7 @@ impl Test {
             ],
             BuildMode::Force => steps![
                 step_add_wasm_target,
+                step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
                 step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
@@ -218,6 +220,7 @@ impl Test {
                 step_test_safari if self.safari,
             ],
             BuildMode::Noinstall => steps![
+            step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
                 step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
@@ -241,6 +244,18 @@ impl Test {
         info!("Adding wasm-target...");
         build::rustup_add_wasm_target(step)?;
         info!("Adding wasm-target was successful.");
+        Ok(())
+    }
+
+    fn step_build_tests(&mut self, step: &Step) -> Result<(), Error> {
+        info!("Compiling tests to wasm...");
+
+        let msg = format!("{}Compiling tests to WASM...", emoji::CYCLONE);
+        PBAR.step(step, &msg);
+
+        build::cargo_build_wasm_tests(&self.crate_path, !self.release)?;
+
+        info!("Finished compiling tests to wasm.");
         Ok(())
     }
 
