@@ -70,6 +70,9 @@ pub fn cargo_build_wasm(
     let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("cargo");
+    if cfg!(not(windows)) {
+        cmd.arg("--color").arg("always");
+    }
     cmd.current_dir(path).arg("build").arg("--lib");
     match profile {
         BuildProfile::Profiling => {
@@ -97,6 +100,9 @@ pub fn cargo_build_wasm(
 /// Run `cargo build --tests` targetting `wasm32-unknown-unknown`.
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
     let mut cmd = Command::new("cargo");
+    if cfg!(not(windows)) {
+        cmd.arg("--color").arg("always");
+    }
     cmd.current_dir(path).arg("build").arg("--tests");
     if !debug {
         cmd.arg("--release");

@@ -134,6 +134,9 @@ pub fn cargo_install_wasm_bindgen(
         .context("failed to create temp dir for `cargo install wasm-bindgen`")?;
 
     let mut cmd = Command::new("cargo");
+    if cfg!(not(windows)) {
+        cmd.arg("--color").arg("always");
+    }
     cmd.arg("install")
         .arg("--force")
         .arg("wasm-bindgen-cli")
