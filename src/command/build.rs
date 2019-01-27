@@ -239,29 +239,29 @@ impl Build {
                 step_add_wasm_target,
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
                 step_install_wasm_bindgen,
                 step_run_wasm_bindgen,
+                step_create_json,
             ],
             BuildMode::Noinstall => steps![
                 step_check_rustc_version,
                 step_check_crate_config,
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
-                step_run_wasm_bindgen
+                step_run_wasm_bindgen,
+                step_create_json,
             ],
             BuildMode::Force => steps![
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
-                step_run_wasm_bindgen
+                step_run_wasm_bindgen,
+                step_create_json,
             ],
         }
     }

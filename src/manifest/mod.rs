@@ -374,11 +374,11 @@ impl CrateData {
         PBAR.step(step, &msg);
         let pkg_file_path = out_dir.join("package.json");
         let npm_data = if target == "nodejs" {
-            self.to_commonjs(scope, disable_dts)
+            self.to_commonjs(scope, disable_dts, out_dir)
         } else if target == "no-modules" {
-            self.to_nomodules(scope, disable_dts)
+            self.to_nomodules(scope, disable_dts, out_dir)
         } else {
-            self.to_esmodules(scope, disable_dts)
+            self.to_esmodules(scope, disable_dts, out_dir)
         };
 
         let npm_json = serde_json::to_string_pretty(&npm_data)?;
@@ -392,6 +392,7 @@ impl CrateData {
         scope: &Option<String>,
         include_commonjs_shim: bool,
         disable_dts: bool,
+        out_dir: &Path,
     ) -> NpmData {
         let crate_name = self.crate_name();
         let wasm_file = format!("{}_bg.wasm", crate_name);
@@ -417,6 +418,23 @@ impl CrateData {
         } else {
             None
         };
+
+        let readme_file = out_dir.join("README.md");
+        if readme_file.is_file() {
+            files.push("README.md".to_string());
+        }
+
+        if let Ok(entries) = fs::read_dir(out_dir) {
+            let file_names = entries
+                .filter_map(|e| e.ok())
+                .filter(|e| e.metadata().map(|m| m.is_file()).unwrap_or(false))
+                .filter_map(|e| e.file_name().into_string().ok())
+                .filter(|f| f.starts_with("LICENSE"));
+            for file_name in file_names {
+                files.push(file_name);
+            }
+        }
+
         NpmData {
             name: npm_name,
             dts_file,
@@ -425,8 +443,8 @@ impl CrateData {
         }
     }
 
-    fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, true, disable_dts);
+    fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
+        let data = self.npm_data(scope, true, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -452,8 +470,13 @@ impl CrateData {
         })
     }
 
-    fn to_esmodules(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts);
+    fn to_esmodules(
+        &self,
+        scope: &Option<String>,
+        disable_dts: bool,
+        out_dir: &Path,
+    ) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -480,8 +503,13 @@ impl CrateData {
         })
     }
 
-    fn to_nomodules(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts);
+    fn to_nomodules(
+        &self,
+        scope: &Option<String>,
+        disable_dts: bool,
+        out_dir: &Path,
+    ) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
