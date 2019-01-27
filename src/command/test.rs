@@ -100,7 +100,7 @@ pub struct Test {
     headless: bool,
     release: bool,
     test_runner_path: Option<PathBuf>,
-    extra_options: Vec<String>
+    extra_options: Vec<String>,
 }
 
 type TestStep = fn(&mut Test, &Step) -> Result<(), Error>;
@@ -197,7 +197,6 @@ impl Test {
             BuildMode::Normal => steps![
                 step_check_rustc_version,
                 step_add_wasm_target,
-                step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
                 step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
@@ -209,7 +208,6 @@ impl Test {
             ],
             BuildMode::Force => steps![
                 step_add_wasm_target,
-                step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
                 step_get_chromedriver if self.chrome && self.chromedriver.is_none(),
@@ -300,7 +298,7 @@ impl Test {
                 "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER",
                 &self.test_runner_path.as_ref().unwrap(),
             )),
-            &self.extra_options
+            &self.extra_options,
         )?;
         info!("Finished running tests in node.");
         Ok(())
