@@ -52,3 +52,5 @@ Here's an example of running only tests that contain the world "apple".
 ```
 wasm-pack test --firefox --headless -- --manifest-path=crates/my-workspace-crate/Cargo.toml apple
 ```
+
+`cargo test -h` for a list of all options that you can pass through.
