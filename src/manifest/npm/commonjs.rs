@@ -16,5 +16,7 @@ pub struct CommonJSPackage {
     pub files: Vec<String>,
     pub main: String,
     #[serde(skip_serializing_if = "Option::is_none")]
+    pub homepage: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<String>,
 }

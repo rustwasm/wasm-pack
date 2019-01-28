@@ -43,6 +43,7 @@ struct CargoPackage {
     #[serde(rename = "license-file")]
     license_file: Option<String>,
     repository: Option<String>,
+    homepage: Option<String>,
 
     #[serde(default)]
     metadata: CargoMetadata,
@@ -201,6 +202,7 @@ struct NpmData {
     files: Vec<String>,
     dts_file: Option<String>,
     main: String,
+    homepage: Option<String>, // https://docs.npmjs.com/files/package.json#homepage
 }
 
 #[doc(hidden)]
@@ -429,6 +431,7 @@ impl CrateData {
             dts_file,
             files,
             main: js_file,
+            homepage: self.manifest.package.homepage.clone(),
         }
     }
 
@@ -464,6 +467,7 @@ impl CrateData {
                 }),
             files: data.files,
             main: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
         })
     }
@@ -491,6 +495,7 @@ impl CrateData {
                 }),
             files: data.files,
             module: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
             side_effects: "false".to_string(),
         })
@@ -519,6 +524,7 @@ impl CrateData {
                 }),
             files: data.files,
             browser: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
         })
     }
