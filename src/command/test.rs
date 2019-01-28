@@ -78,6 +78,10 @@ pub struct TestOptions {
     #[structopt(long = "release", short = "r")]
     /// Build with the release profile.
     pub release: bool,
+
+    #[structopt(last = true)]
+    /// List of extra options to pass to `cargo test`
+    pub extra_options: Vec<String>,
 }
 
 /// A configured `wasm-pack test` command.
@@ -96,6 +100,7 @@ pub struct Test {
     headless: bool,
     release: bool,
     test_runner_path: Option<PathBuf>,
+    extra_options: Vec<String>,
 }
 
 type TestStep = fn(&mut Test, &Step) -> Result<(), Error>;
@@ -115,6 +120,7 @@ impl Test {
             geckodriver,
             safari,
             safaridriver,
+            extra_options,
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
@@ -147,6 +153,7 @@ impl Test {
             headless,
             release,
             test_runner_path: None,
+            extra_options,
         })
     }
 
@@ -306,6 +313,7 @@ impl Test {
                 "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER",
                 &self.test_runner_path.as_ref().unwrap(),
             )),
+            &self.extra_options,
         )?;
         info!("Finished running tests in node.");
         Ok(())
@@ -349,7 +357,7 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 
@@ -391,7 +399,7 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 
@@ -430,7 +438,7 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 }

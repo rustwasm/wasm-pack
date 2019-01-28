@@ -59,7 +59,7 @@ wasm-pack build --target nodejs
 | Option    | Description                                                                                                     |
 |-----------|-----------------------------------------------------------------------------------------------------------------|
 | `nodejs`  | Outputs JS that uses CommonJS modules, for use with a `require` statement. `main` key in `package.json`. |
-| `nomodules`  | Outputs JS that use no modules. `browser` key in `package.json`. |
+| `no-modules`  | Outputs JS that use no modules. `browser` key in `package.json`. |
 | `browser` | Outputs JS that uses ES6 modules, primarily for use with `import` statements and/or bundlers such as `webpack`. `module` key in `package.json`. `sideEffects: false` by default. |
 
 ## Scope
