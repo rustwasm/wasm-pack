@@ -40,6 +40,8 @@ struct CargoPackage {
     name: String,
     description: Option<String>,
     license: Option<String>,
+    #[serde(rename = "license-file")]
+    license_file: Option<String>,
     repository: Option<String>,
 
     #[serde(default)]
@@ -349,6 +351,11 @@ impl CrateData {
         &self.manifest.package.license
     }
 
+    /// Get the license file path for the crate at the given path.
+    pub fn crate_license_file(&self) -> &Option<String> {
+        &self.manifest.package.license_file
+    }
+
     /// Returns the path to this project's target directory where artifacts are
     /// located after a cargo build.
     pub fn target_directory(&self) -> &Path {
@@ -425,6 +432,15 @@ impl CrateData {
         }
     }
 
+    fn license(&self) -> Option<String> {
+        self.manifest.package.license.clone().or_else(|| {
+            self.manifest.package.license_file.clone().map(|file| {
+                // When license is written in file: https://docs.npmjs.com/files/package.json#license
+                format!("SEE LICENSE IN {}", file)
+            })
+        })
+    }
+
     fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
         let data = self.npm_data(scope, true, disable_dts);
         let pkg = &self.data.packages[self.current_idx];
@@ -436,7 +452,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
@@ -463,7 +479,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
@@ -491,7 +507,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
