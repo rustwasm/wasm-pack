@@ -14,7 +14,7 @@ pub fn cargo_test_wasm<I, K, V>(
     path: &Path,
     release: bool,
     envs: I,
-    extra_options: &Vec<String>,
+    extra_options: &[String],
 ) -> Result<(), failure::Error>
 where
     I: IntoIterator<Item = (K, V)>,
