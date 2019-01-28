@@ -32,11 +32,7 @@
 
     Currently, you can only configure things related to the above-mentioned build profiles. To learn more, 
     [check out the documentation][profile-config-docs]. It leverages the `package.metadata.wasm-pack` key in your
-<<<<<<< HEAD
     `Carol.toml`, and looks like this:
-=======
-    `Cargo.toml`, and looks like this:
->>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
 
     ```toml
     # Cargo.toml
@@ -66,8 +62,6 @@
 
     [pull/439]: https://github.com/rustwasm/wasm-pack/pull/439
 
-<<<<<<< HEAD
-=======
   - **Add an option to pass an arbitrary set of arguments to `cargo build` - [torkve], [issue/455] [pull/461]**
 
     As an integrated build tool, `wasm-pack` orchestrates many secondary command line tools to build your package
@@ -89,7 +83,6 @@
     [pull/461]: https://github.com/rustwasm/wasm-pack/pull/461
 
 
->>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
   - **Pre-build before wasm-pack publish - [csmoe], [issue/438] [pull/444]**
 
     Previously, if you ran `wasm-pack publish` before you had successfully run `wasm-pack build`,
@@ -280,14 +273,9 @@
     build times dramatically!
 
     This pattern has been very beneficial to `wasm-pack` and is potentially something that could be beneficial to other
-<<<<<<< HEAD
-    projects! As a result, we've refactored it out into a crate and will be considering publishing it in the near future!
-
-=======
     projects! As a result, we've refactored it out into a crate and have published it as it's own crate, [`binary-install`].
 
     [`binary-install`]: https://crates.io/crates/binary-install
->>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
     [drager]: https://github.com/drager
     [issue/384]: https://github.com/rustwasm/wasm-pack/issues/384
     [pull/415]: https://github.com/rustwasm/wasm-pack/pull/415
@@ -310,11 +298,7 @@
 
     This is a very fun one since it fixes one of the original issues filed by `ag_dubs` at the very beginning of `wasm-pack`
     development. In a rush to implement a POC tool, `ag_dubs` noted for posterity that the `Cargo.toml` was being read 
-<<<<<<< HEAD
-    mulitple times (twice), when it did not need to be. Thanks to `fitzgen` now it's read only once! A minor performance
-=======
     multiple times (twice), when it did not need to be. Thanks to `fitzgen` now it's read only once! A minor performance
->>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
     improvement in the scheme of things, but a nice one :)
 
     [issue/25]: https://github.com/rustwasm/wasm-pack/issues/25
@@ -341,11 +325,7 @@
 
 - ### 📖 Documentation
 
-<<<<<<< HEAD
-  - **Complete template deep dive docs - [danwilhem], [issue/345] [issue/346] [pull/490]**
-=======
   - **Complete template deep dive docs - [danwilhelm], [issue/345] [issue/346] [pull/490]**
->>>>>>> dbc5a3655dbe15f6db472b21b83a9a1b7e60dffa
 
     In a rush to publish a release, `ag_dubs` left some "Coming soon!" comments on most pages
     of the "Template Deep Dive" docs. These docs help walk new users through the boilerplate
