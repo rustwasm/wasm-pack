@@ -51,10 +51,9 @@ end of your command, and all the arguments you want to pass to cargo should go a
 
 ## Running only some tests
 
-Are your test suite grows it may become unrealistic to need to run all of your tests in a browser when you're
-really only debugging one or a few of them.
+When debugging a specific issue, you may find yourself wanting to run a subset of tests, instead of your entire suite of tests.
 
-Here are a few examples of how to run a subset of your tests.
+Here are a few examples of how to run a subset of your tests:
 
 ```
 # Example directory structure
