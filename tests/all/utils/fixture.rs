@@ -137,6 +137,39 @@ impl Fixture {
         )
     }
 
+    /// Add a `Cargo.toml` with a correctly configured `wasm-bindgen`
+    /// dependency, `wasm-bindgen-test` dev-dependency, and `crate-type =
+    /// ["cdylib"]`.
+    ///
+    /// `name` is the crate's name.
+    /// `license_file` is license file path
+    pub fn cargo_toml_with_license_file(&self, name: &str, license_file: &str) -> &Self {
+        self.file(
+            "Cargo.toml",
+            &format!(
+                r#"
+                    [package]
+                    authors = ["The wasm-pack developers"]
+                    description = "so awesome rust+wasm package"
+                    name = "{}"
+                    license-file = "{}"
+                    repository = "https://github.com/rustwasm/wasm-pack.git"
+                    version = "0.1.0"
+
+                    [lib]
+                    crate-type = ["cdylib"]
+
+                    [dependencies]
+                    wasm-bindgen = "=0.2.21"
+
+                    [dev-dependencies]
+                    wasm-bindgen-test = "=0.2.21"
+                "#,
+                name, license_file
+            ),
+        )
+    }
+
     /// Add a `src/lib.rs` file that contains a "hello world" program.
     pub fn hello_world_src_lib(&self) -> &Self {
         self.file(
@@ -658,6 +691,16 @@ pub fn dual_license() -> Fixture {
         .cargo_toml("dual_license")
         .wtfpl_license()
         .mit_license()
+        .hello_world_src_lib();
+    fixture
+}
+
+pub fn non_standard_license(license_file: &str) -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml_with_license_file("dual_license", license_file)
+        .file(license_file, "license file for test")
         .hello_world_src_lib();
     fixture
 }

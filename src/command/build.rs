@@ -19,7 +19,7 @@ use std::str::FromStr;
 use std::time::Instant;
 use PBAR;
 
-/// Everything required to configure and run the `wasm-pack init` command.
+/// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]
 pub struct Build {
     pub crate_path: PathBuf,

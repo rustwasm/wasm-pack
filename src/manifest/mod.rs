@@ -40,7 +40,10 @@ struct CargoPackage {
     name: String,
     description: Option<String>,
     license: Option<String>,
+    #[serde(rename = "license-file")]
+    license_file: Option<String>,
     repository: Option<String>,
+    homepage: Option<String>,
 
     #[serde(default)]
     metadata: CargoMetadata,
@@ -199,6 +202,7 @@ struct NpmData {
     files: Vec<String>,
     dts_file: Option<String>,
     main: String,
+    homepage: Option<String>, // https://docs.npmjs.com/files/package.json#homepage
 }
 
 #[doc(hidden)]
@@ -349,6 +353,11 @@ impl CrateData {
         &self.manifest.package.license
     }
 
+    /// Get the license file path for the crate at the given path.
+    pub fn crate_license_file(&self) -> &Option<String> {
+        &self.manifest.package.license_file
+    }
+
     /// Returns the path to this project's target directory where artifacts are
     /// located after a cargo build.
     pub fn target_directory(&self) -> &Path {
@@ -440,7 +449,17 @@ impl CrateData {
             dts_file,
             files,
             main: js_file,
+            homepage: self.manifest.package.homepage.clone(),
         }
+    }
+
+    fn license(&self) -> Option<String> {
+        self.manifest.package.license.clone().or_else(|| {
+            self.manifest.package.license_file.clone().map(|file| {
+                // When license is written in file: https://docs.npmjs.com/files/package.json#license
+                format!("SEE LICENSE IN {}", file)
+            })
+        })
     }
 
     fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
@@ -454,7 +473,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
@@ -466,6 +485,7 @@ impl CrateData {
                 }),
             files: data.files,
             main: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
         })
     }
@@ -486,7 +506,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
@@ -498,6 +518,7 @@ impl CrateData {
                 }),
             files: data.files,
             module: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
             side_effects: "false".to_string(),
         })
@@ -519,7 +540,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
@@ -531,6 +552,7 @@ impl CrateData {
                 }),
             files: data.files,
             browser: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
         })
     }
