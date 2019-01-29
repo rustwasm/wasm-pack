@@ -47,10 +47,38 @@ supported in wasm-pack.
 To use them you should add standalone `--` argument at the very
 end of your command, and all the arguments you want to pass to cargo should go after.
 
-Here's an example of running only tests that contain the world "apple".
-
-```
-wasm-pack test --firefox --headless -- --manifest-path=crates/my-workspace-crate/Cargo.toml apple
-```
-
 `cargo test -h` for a list of all options that you can pass through.
+
+## Running only some tests
+
+When debugging a specific issue, you may find yourself wanting to run a subset of tests, instead of your entire suite of tests.
+
+Here are a few examples of how to run a subset of your tests:
+
+```
+# Example directory structure
+$ tree crates/foo
+├── Cargo.toml
+├── README.md
+├── src
+│   ├── diff
+│   │   ├── diff_test_case.rs
+│   │   └── mod.rs
+│   ├── lib.rs
+└── tests
+    ├── diff_patch.rs
+```
+
+```
+# Run all tests in tests/diff_patch.rs
+wasm-pack test crates/foo --firefox --headless -- --tests diff_patch
+
+# Run all tests in tests/diff_patch.rs that contain the word "replace"
+wasm-pack test crates/foo --firefox --headless -- --tests diff_patch replace
+
+# Run all tests inside of a `tests` module inside of src/lib/diff.rs
+wasm-pack test crates/foo --firefox --headless -- --lib diff::tests
+
+# Same as the above, but only if they contain the word replace
+wasm-pack test crates/foo --firefox --headless -- --lib diff::tests::replace
+```
