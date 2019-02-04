@@ -38,7 +38,7 @@ pub fn install_chromedriver(
     };
 
     let url = format!(
-        "https://chromedriver.storage.googleapis.com/2.45/chromedriver_{}.zip",
+        "https://chromedriver.storage.googleapis.com/2.46/chromedriver_{}.zip",
         target
     );
     match cache.download(
@@ -92,7 +92,7 @@ pub fn install_geckodriver(
     };
 
     let url = format!(
-        "https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-{}.{}",
+        "https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-{}.{}",
         target,
         ext,
     );
