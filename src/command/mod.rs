@@ -50,7 +50,7 @@ pub enum Command {
     },
 
     #[structopt(name = "login", alias = "adduser", alias = "add-user")]
-    /// 👤  Add a registry user account! (aliases: adduser, add-user)
+    /// 👤  Add a npm registry user account! (aliases: adduser, add-user)
     Login {
         #[structopt(long = "registry", short = "r")]
         /// Default: 'https://registry.npmjs.org/'.
