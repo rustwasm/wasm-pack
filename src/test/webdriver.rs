@@ -31,14 +31,14 @@ pub fn install_chromedriver(
         "linux64"
     } else if target::MACOS && target::x86_64 {
         "mac64"
-    } else if target::WINDOWS && target::x86 {
+    } else if target::WINDOWS {
         "win32"
     } else {
-        bail!("geckodriver binaries are unavailable for this target")
+        bail!("chromedriver binaries are unavailable for this target")
     };
 
     let url = format!(
-        "https://chromedriver.storage.googleapis.com/2.41/chromedriver_{}.zip",
+        "https://chromedriver.storage.googleapis.com/2.46/chromedriver_{}.zip",
         target
     );
     match cache.download(
@@ -92,7 +92,7 @@ pub fn install_geckodriver(
     };
 
     let url = format!(
-        "https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-{}.{}",
+        "https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-{}.{}",
         target,
         ext,
     );
