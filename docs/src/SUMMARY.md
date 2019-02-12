@@ -16,6 +16,7 @@
     - [`Cargo.toml`](./tutorial/template-deep-dive/cargo-toml.md)
     - [`src/lib.rs`](./tutorial/template-deep-dive/src-lib-rs.md)
     - [`src/utils.rs`](./tutorial/template-deep-dive/src-utils-rs.md)
+    - [`wee_alloc`](./tutorial/template-deep-dive/wee_alloc.md)
   - [Packaging and Publishing](./tutorial/packaging-and-publishing.md)
   - [Using your Library](./tutorial/using-your-library.md)
 - [`Cargo.toml` Configuration](./cargo-toml-configuration.md)
