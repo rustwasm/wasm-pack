@@ -2,25 +2,12 @@
 
 use console::style;
 use emoji;
-use indicatif::{ProgressBar, ProgressStyle};
-use parking_lot::RwLock;
 use std::fmt;
 
 /// Synchronized progress bar and status message printing.
-pub struct ProgressOutput {
-    spinner: RwLock<ProgressBar>,
-    messages: RwLock<String>,
-}
+pub struct ProgressOutput;
 
 impl ProgressOutput {
-    /// Construct a new `ProgressOutput`.
-    pub fn new() -> Self {
-        Self {
-            spinner: RwLock::new(ProgressBar::new_spinner()),
-            messages: RwLock::new(String::from("")),
-        }
-    }
-
     /// Inform the user that the given `step` is being executed, with details in
     /// `message`.
     pub fn step(&self, step: &Step, message: &str) {
@@ -28,35 +15,13 @@ impl ProgressOutput {
         self.message(&msg)
     }
 
-    fn finish(&self) {
-        let spinner = self.spinner.read();
-        spinner.finish();
-
-        let mut message = self.messages.write();
-        print!("{}", *message);
-        message.clear();
-    }
-
     /// Print the given message.
     pub fn message(&self, message: &str) {
-        self.finish();
-
-        let mut spinner = self.spinner.write();
-        *spinner = Self::progressbar(message);
-
-        if !atty::is(atty::Stream::Stderr) {
-            // `indicatif` won't print any output if `stderr` is not a tty, so
-            // to ensure that our output is still emitted, we print it manually
-            // here.
-            eprintln!("{}", message)
-        }
+        eprintln!("  {}", message);
     }
 
     fn add_message(&self, msg: &str) {
-        let mut message = self.messages.write();
-        message.push_str("  ");
-        message.push_str(msg);
-        message.push('\n');
+        println!("{}", msg);
     }
 
     /// Add an informational message.
@@ -91,23 +56,6 @@ impl ProgressOutput {
         );
         self.add_message(&err);
     }
-
-    fn progressbar(msg: &str) -> ProgressBar {
-        let pb = ProgressBar::new_spinner();
-        pb.enable_steady_tick(200);
-        pb.set_style(
-            ProgressStyle::default_spinner()
-                .tick_chars("/|\\- ")
-                .template("{spinner:.dim.bold} {wide_msg}"),
-        );
-        pb.set_message(&msg);
-        pb
-    }
-
-    /// After having built up a series of messages, print all of them out.
-    pub fn done(&self) {
-        self.finish();
-    }
 }
 
 /// For processes that can be broken down into N fractional steps, with messages
@@ -137,14 +85,8 @@ impl fmt::Display for Step {
     }
 }
 
-impl Drop for ProgressOutput {
-    fn drop(&mut self) {
-        self.done();
-    }
-}
-
 impl Default for ProgressOutput {
     fn default() -> Self {
-        Self::new()
+        ProgressOutput
     }
 }

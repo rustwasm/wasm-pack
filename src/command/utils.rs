@@ -5,6 +5,7 @@ use failure;
 use progressbar::Step;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use walkdir::WalkDir;
 use PBAR;
 
@@ -38,4 +39,15 @@ pub fn find_pkg_directory(path: &Path) -> Option<PathBuf> {
 
 fn is_pkg_directory(path: &Path) -> bool {
     path.exists() && path.is_dir() && path.ends_with("pkg")
+}
+
+/// Render a `Duration` to a form suitable for display on a console
+pub fn elapsed(duration: Duration) -> String {
+    let secs = duration.as_secs();
+
+    if secs >= 60 {
+        format!("{}m {:02}s", secs / 60, secs % 60)
+    } else {
+        format!("{}.{:02}s", secs, duration.subsec_nanos() / 10_000_000)
+    }
 }

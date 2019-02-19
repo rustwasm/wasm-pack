@@ -9,7 +9,6 @@ use command::utils::set_crate_path;
 use console::style;
 use emoji;
 use failure::Error;
-use indicatif::HumanDuration;
 use lockfile::Lockfile;
 use log::info;
 use manifest;
@@ -172,7 +171,7 @@ impl Test {
             process_step(&mut self, &step_counter)?;
             step_counter.inc();
         }
-        let duration = HumanDuration(started.elapsed());
+        let duration = crate::command::utils::elapsed(started.elapsed());
         info!("Done in {}.", &duration);
 
         Ok(())

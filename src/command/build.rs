@@ -7,7 +7,6 @@ use cache;
 use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use failure::Error;
-use indicatif::HumanDuration;
 use license;
 use lockfile::Lockfile;
 use log::info;
@@ -236,7 +235,7 @@ impl Build {
             step_counter.inc();
         }
 
-        let duration = HumanDuration(started.elapsed());
+        let duration = crate::command::utils::elapsed(started.elapsed());
         info!("Done in {}.", &duration);
         info!(
             "Your wasm pkg is ready to publish at {}.",
