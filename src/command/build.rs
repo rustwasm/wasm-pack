@@ -3,6 +3,7 @@
 use binary_install::{Cache, Download};
 use bindgen;
 use build;
+use cache;
 use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use failure::Error;
@@ -18,7 +19,7 @@ use std::str::FromStr;
 use std::time::Instant;
 use PBAR;
 
-/// Everything required to configure and run the `wasm-pack init` command.
+/// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]
 pub struct Build {
     pub crate_path: PathBuf,
@@ -180,7 +181,7 @@ impl Build {
             mode: build_opts.mode,
             out_dir,
             bindgen: None,
-            cache: Cache::new("wasm_pack")?,
+            cache: cache::get_wasm_pack_cache()?,
             extra_options: build_opts.extra_options,
         })
     }
@@ -238,29 +239,29 @@ impl Build {
                 step_add_wasm_target,
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
                 step_install_wasm_bindgen,
                 step_run_wasm_bindgen,
+                step_create_json,
             ],
             BuildMode::Noinstall => steps![
                 step_check_rustc_version,
                 step_check_crate_config,
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
-                step_run_wasm_bindgen
+                step_run_wasm_bindgen,
+                step_create_json,
             ],
             BuildMode::Force => steps![
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
-                step_run_wasm_bindgen
+                step_run_wasm_bindgen,
+                step_create_json,
             ],
         }
     }

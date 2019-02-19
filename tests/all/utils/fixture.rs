@@ -137,6 +137,39 @@ impl Fixture {
         )
     }
 
+    /// Add a `Cargo.toml` with a correctly configured `wasm-bindgen`
+    /// dependency, `wasm-bindgen-test` dev-dependency, and `crate-type =
+    /// ["cdylib"]`.
+    ///
+    /// `name` is the crate's name.
+    /// `license_file` is license file path
+    pub fn cargo_toml_with_license_file(&self, name: &str, license_file: &str) -> &Self {
+        self.file(
+            "Cargo.toml",
+            &format!(
+                r#"
+                    [package]
+                    authors = ["The wasm-pack developers"]
+                    description = "so awesome rust+wasm package"
+                    name = "{}"
+                    license-file = "{}"
+                    repository = "https://github.com/rustwasm/wasm-pack.git"
+                    version = "0.1.0"
+
+                    [lib]
+                    crate-type = ["cdylib"]
+
+                    [dependencies]
+                    wasm-bindgen = "=0.2.21"
+
+                    [dev-dependencies]
+                    wasm-bindgen-test = "=0.2.21"
+                "#,
+                name, license_file
+            ),
+        )
+    }
+
     /// Add a `src/lib.rs` file that contains a "hello world" program.
     pub fn hello_world_src_lib(&self) -> &Self {
         self.file(
@@ -218,9 +251,14 @@ impl Fixture {
         wasm_pack::test::webdriver::install_chromedriver(&cache, true).unwrap()
     }
 
+    pub fn cache_dir(&self) -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join("test_cache")
+    }
+
     pub fn cache(&self) -> Cache {
-        let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
-        Cache::at(&target_dir.join("test_cache"))
+        Cache::at(&self.cache_dir())
     }
 
     /// The `step_install_wasm_bindgen` and `step_run_wasm_bindgen` steps only
@@ -240,21 +278,14 @@ impl Fixture {
         self
     }
 
-    pub fn run(&self, cmd: wasm_pack::command::Command) -> Result<(), failure::Error> {
-        match cmd {
-            wasm_pack::command::Command::Test(cmd) => {
-                let _lock = self.lock();
-                let mut test = wasm_pack::command::test::Test::try_from_opts(cmd)?;
-                test.set_cache(self.cache());
-                test.run()
-            }
-            wasm_pack::command::Command::Build(cmd) => {
-                let mut build = wasm_pack::command::build::Build::try_from_opts(cmd)?;
-                build.set_cache(self.cache());
-                build.run()
-            }
-            _ => unreachable!(),
-        }
+    /// Get a `wasm-pack` command configured to run in this fixure's temp
+    /// directory and using the test cache.
+    pub fn wasm_pack(&self) -> Command {
+        use assert_cmd::prelude::*;
+        let mut cmd = Command::main_binary().unwrap();
+        cmd.current_dir(&self.path);
+        cmd.env("WASM_PACK_CACHE", self.cache_dir());
+        cmd
     }
 
     pub fn lock(&self) -> MutexGuard<'static, ()> {
@@ -643,6 +674,16 @@ pub fn dual_license() -> Fixture {
         .cargo_toml("dual_license")
         .wtfpl_license()
         .mit_license()
+        .hello_world_src_lib();
+    fixture
+}
+
+pub fn non_standard_license(license_file: &str) -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml_with_license_file("dual_license", license_file)
+        .file(license_file, "license file for test")
         .hello_world_src_lib();
     fixture
 }
