@@ -278,64 +278,69 @@ fn hashed_dirname(url: &str, name: &str) -> String {
     format!("{}-{}", name, hex)
 }
 
-#[test]
-fn it_returns_same_hash_for_same_name_and_url() {
-    let name = "wasm-pack";
-    let url = "http://localhost:7878/wasm-pack-v0.6.0.tar.gz";
+#[cfg(test)]
+mod tests {
+    use super::*;
 
-    let first = hashed_dirname(url, name);
-    let second = hashed_dirname(url, name);
+    #[test]
+    fn it_returns_same_hash_for_same_name_and_url() {
+        let name = "wasm-pack";
+        let url = "http://localhost:7878/wasm-pack-v0.6.0.tar.gz";
 
-    assert!(!first.is_empty());
-    assert!(!second.is_empty());
-    assert_eq!(first, second);
-}
+        let first = hashed_dirname(url, name);
+        let second = hashed_dirname(url, name);
 
-#[test]
-fn it_returns_different_hashes_for_different_urls() {
-    let name = "wasm-pack";
-    let url = "http://localhost:7878/wasm-pack-v0.5.1.tar.gz";
-    let second_url = "http://localhost:7878/wasm-pack-v0.6.0.tar.gz";
+        assert!(!first.is_empty());
+        assert!(!second.is_empty());
+        assert_eq!(first, second);
+    }
 
-    let first = hashed_dirname(url, name);
-    let second = hashed_dirname(second_url, name);
+    #[test]
+    fn it_returns_different_hashes_for_different_urls() {
+        let name = "wasm-pack";
+        let url = "http://localhost:7878/wasm-pack-v0.5.1.tar.gz";
+        let second_url = "http://localhost:7878/wasm-pack-v0.6.0.tar.gz";
 
-    assert_ne!(first, second);
-}
+        let first = hashed_dirname(url, name);
+        let second = hashed_dirname(second_url, name);
 
-#[test]
-fn it_returns_cache_dir() {
-    let name = "wasm-pack";
-    let cache = Cache::new(name);
+        assert_ne!(first, second);
+    }
 
-    let expected = dirs::cache_dir()
-        .unwrap()
-        .join(PathBuf::from(".".to_owned() + name));
+    #[test]
+    fn it_returns_cache_dir() {
+        let name = "wasm-pack";
+        let cache = Cache::new(name);
 
-    assert!(cache.is_ok());
-    assert_eq!(cache.unwrap().destination, expected);
-}
+        let expected = dirs::cache_dir()
+            .unwrap()
+            .join(PathBuf::from(".".to_owned() + name));
 
-#[test]
-fn it_returns_destination_if_binary_already_exists() {
-    use std::fs;
+        assert!(cache.is_ok());
+        assert_eq!(cache.unwrap().destination, expected);
+    }
 
-    let binary_name = "wasm-pack";
-    let binaries = vec![binary_name];
+    #[test]
+    fn it_returns_destination_if_binary_already_exists() {
+        use std::fs;
 
-    let dir = tempfile::TempDir::new().unwrap();
-    let cache = Cache::at(dir.path());
-    let url = &format!("{}/{}.tar.gz", "http://localhost:7878", binary_name);
+        let binary_name = "wasm-pack";
+        let binaries = vec![binary_name];
 
-    let dirname = hashed_dirname(&url, &binary_name);
-    let full_path = dir.path().join(dirname);
+        let dir = tempfile::TempDir::new().unwrap();
+        let cache = Cache::at(dir.path());
+        let url = &format!("{}/{}.tar.gz", "http://localhost:7878", binary_name);
 
-    // Create temporary directory and binary to simulate that
-    // a cached binary already exists.
-    fs::create_dir_all(full_path).unwrap();
+        let dirname = hashed_dirname(&url, &binary_name);
+        let full_path = dir.path().join(dirname);
 
-    let dl = cache.download(true, binary_name, &binaries, url);
+        // Create temporary directory and binary to simulate that
+        // a cached binary already exists.
+        fs::create_dir_all(full_path).unwrap();
 
-    assert!(dl.is_ok());
-    assert!(dl.unwrap().is_some())
+        let dl = cache.download(true, binary_name, &binaries, url);
+
+        assert!(dl.is_ok());
+        assert!(dl.unwrap().is_some())
+    }
 }

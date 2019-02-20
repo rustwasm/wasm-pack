@@ -47,14 +47,10 @@ matrix:
     install:
       - *INSTALL_NODE_VIA_NVM
     script:
-    - cargo test --locked
+    - cargo test --all --locked
     - rustup component add rustfmt-preview
     - cargo fmt --version
     - cargo fmt --all -- --check
-    - cd binary-install
-    - cargo test
-    - cargo fmt --all -- --check
-    - cd ..
 
   - name: Book
     rust: stable
