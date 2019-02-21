@@ -1,6 +1,6 @@
 # Run The Code
 
-The Rust Webpack template is designed for creating monorepo-style Web applications with 
+The Rust Webpack template is designed for creating monorepo-style Web applications with
 Rust-generated WebAssembly and Webpack without publishing your wasm to NPM.
 This portion of the tutorial will explain how to build a [Webpack] JavaScript project
 that will run your WebAssembly code in the browser.
@@ -26,7 +26,7 @@ If we look in the project, we'll see the following:
 - `README.md`: the file you are reading now!
 - `index.html`: a bare bones html document that includes the webpack bundle
 - `js/index.js`: example JS file with a comment showing how to import and use a wasm pkg
-- `package.json` and `package-lock.json`: 
+- `package.json` and `package-lock.json`:
   - pulls in devDependencies for using webpack:
       - [`webpack`](https://www.npmjs.com/package/webpack)
       - [`webpack-cli`](https://www.npmjs.com/package/webpack-cli)
@@ -66,20 +66,14 @@ import("../crate/pkg").then(module => {
 
 ## Run The Project
 
-To generate our Rust-compiled to wasm code, in the `crate` directory we run:
-```bash
-wasm-pack build
-```
-You can see this generated code in the `pkg` directory that's just been created.
-
-In the `crate` directory, we will also run:
+To generate our Rust-compiled to wasm code, in the root directory we run:
 ```bash
 npm run build
 ```
-This will create our bundled JavaScript module in a new directory `dist`. 
+This will create our bundled JavaScript module in a new directory `dist`.
 
 We should be ready to run our project now!
-In the `dist` directory, we'll run:
+In the root directory, we'll run:
 
 ```bash
 npm start
