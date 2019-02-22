@@ -35,7 +35,12 @@ fn run() -> Result<(), failure::Error> {
     if let Ok(me) = env::current_exe() {
         // If we're actually running as the installer then execute our
         // self-installation, otherwise just continue as usual.
-        if me.file_stem().and_then(|s| s.to_str()) == Some("wasm-pack-init") {
+        if me
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .expect("executable should have a filename")
+            .starts_with("wasm-pack-init")
+        {
             installer::install();
         }
     }
