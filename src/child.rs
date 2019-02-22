@@ -41,7 +41,7 @@ pub fn new_command(program: &str) -> Command {
 /// given sender.
 fn read_and_send<R, F>(
     mut reader: R,
-    sender: mpsc::Sender<OutputFragment>,
+    sender: &mpsc::Sender<OutputFragment>,
     mut map: F,
 ) -> io::Result<()>
 where
@@ -104,10 +104,7 @@ where
             .rev()
             .find(|(_, ch)| *ch == b'\n')
         {
-            let next_in_progress: Vec<u8> = self.in_progress[last_newline + 1..]
-                .iter()
-                .cloned()
-                .collect();
+            let next_in_progress: Vec<u8> = self.in_progress[last_newline + 1..].to_vec();
             let mut these_lines = mem::replace(&mut self.in_progress, next_in_progress);
             these_lines.truncate(last_newline + 1);
             let these_lines = String::from_utf8(these_lines)?;
@@ -153,9 +150,9 @@ pub fn run(mut command: Command, command_name: &str) -> Result<String, Error> {
     // waiting on the child process.
 
     let stdout_handle =
-        thread::spawn(move || read_and_send(stdout, stdout_send, OutputFragment::Stdout));
+        thread::spawn(move || read_and_send(stdout, &stdout_send, OutputFragment::Stdout));
     let stderr_handle =
-        thread::spawn(move || read_and_send(stderr, stderr_send, OutputFragment::Stderr));
+        thread::spawn(move || read_and_send(stderr, &stderr_send, OutputFragment::Stderr));
 
     let mut stdout = OutputAccumulator::new(|line| {
         info!("{} (stdout): {}", command_name, line);
@@ -182,7 +179,7 @@ pub fn run(mut command: Command, command_name: &str) -> Result<String, Error> {
 
     let exit = child.wait()?;
     if exit.success() {
-        return Ok(stdout);
+        Ok(stdout)
     } else {
         drop((stdout, stderr));
         bail!("failed to execute `{}`: exited with {}", command_name, exit)

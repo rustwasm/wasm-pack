@@ -82,7 +82,7 @@ impl ProgressOutput {
     }
 
     /// Add an error message.
-    pub fn error(&self, message: String) {
+    pub fn error(&self, message: &str) {
         let err = format!(
             "{} {}: {}",
             emoji::ERROR,
@@ -140,5 +140,11 @@ impl fmt::Display for Step {
 impl Drop for ProgressOutput {
     fn drop(&mut self) {
         self.done();
+    }
+}
+
+impl Default for ProgressOutput {
+    fn default() -> Self {
+        Self::new()
     }
 }
