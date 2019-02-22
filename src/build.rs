@@ -4,11 +4,12 @@ use child;
 use command::build::BuildProfile;
 use emoji;
 use failure::{Error, ResultExt};
+use log::info;
 use progressbar::Step;
 use std::path::Path;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::str;
-use tempfile;
+use std::string::FromUtf8Error;
 use PBAR;
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
@@ -50,35 +51,88 @@ fn rustc_minor_version() -> Option<u32> {
     otry!(pieces.next()).parse().ok()
 }
 
-/// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
-/// current toolchain
-pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
-    let msg = format!("{}Adding WASM target...", emoji::TARGET);
-    PBAR.step(step, &msg);
+/// Get rustc's sysroot as a String
+fn get_rustc_sysroot() -> Result<String, FromUtf8Error> {
+    String::from_utf8(
+        Command::new("rustc")
+            .args(&["--print", "sysroot"])
+            .stdout(Stdio::piped())
+            .output()
+            .unwrap()
+            .stdout,
+    )
+}
 
-    // Checking wether we can already compile to wasm with the rustc
-    // we have in scope.
-    let dir = tempfile::TempDir::new()?;
-    let p = dir.path().join("main.rs");
-    {
-        let mut f = File::create(&p)?;
-        writeln!(f, "fn main(){{}}")?;
-    }
-    match Command::new("rustc")
-        .arg("--target")
-        .arg("wasm32-unknown-unknown")
-        .arg(p.to_str().unwrap())
-        .status()
-    {
-        Ok(ref e) if e.success() => return Ok(()),
-        _ => {}
-    }
+/// Checks if the wasm32-unknown-unknown is present in rustc's sysroot.
+fn is_wasm32_target_in_sysroot(sysroot: &str) -> Result<bool, Error> {
+    let wasm32_target = "wasm32-unknown-unknown";
 
-    // If not, using rustup to add it.
+    info!("Looking for {} in {}", wasm32_target, sysroot);
+
+    let rustlib_path = &format!("{}/lib/rustlib", sysroot.replace("\n", ""));
+
+    let ls_command = Command::new("ls")
+        .arg(rustlib_path)
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()?;
+
+    let grep_command_status = Command::new("grep")
+        .args(&["-x", wasm32_target])
+        .stdin(ls_command.stdout.unwrap())
+        .status();
+
+    match grep_command_status {
+        Ok(status) if status.success() => {
+            info!("Found {} in {}", wasm32_target, sysroot);
+            Ok(true)
+        }
+        _ => {
+            info!("Failed to find {} in {}", wasm32_target, sysroot);
+            Ok(false)
+        }
+    }
+}
+
+fn check_wasm32_target() -> Result<bool, Error> {
+    let sysroot = get_rustc_sysroot()?;
+
+    // If wasm32-unknown-unknown already exists we're ok.
+    match is_wasm32_target_in_sysroot(&sysroot) {
+        Ok(true) => Ok(true),
+        // If it doesn't exist, then we need to check if we're using rustup.
+        _ => {
+            // If sysroot contains .rustup, then we can assume we're using rustup
+            // and use rustup to add the wasm32-unknown-unknown target.
+            if sysroot.contains(".rustup") {
+                rustup_add_wasm_target()
+            } else {
+                Ok(false)
+            }
+        }
+    }
+}
+
+/// Add wasm32-unknown-unknown using `rustup`.
+fn rustup_add_wasm_target() -> Result<bool, Error> {
     let mut cmd = Command::new("rustup");
     cmd.arg("target").arg("add").arg("wasm32-unknown-unknown");
     child::run(cmd, "rustup").context("Adding the wasm32-unknown-unknown target with rustup")?;
-    Ok(())
+
+    Ok(true)
+}
+
+/// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
+/// current toolchain
+pub fn check_for_wasm32_target(step: &Step) -> Result<(), Error> {
+    let msg = format!("{}Checking for WASM target...", emoji::TARGET);
+    PBAR.step(step, &msg);
+
+    // Check if wasm32 target is present, otherwise bail.
+    match check_wasm32_target() {
+        Ok(true) => Ok(()),
+        _ => bail!("wasm32-unknown-unknown target not found!"),
+    }
 }
 
 /// Run `cargo build` targetting `wasm32-unknown-unknown`.

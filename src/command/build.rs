@@ -236,7 +236,7 @@ impl Build {
             BuildMode::Normal => steps![
                 step_check_rustc_version,
                 step_check_crate_config,
-                step_add_wasm_target,
+                step_check_for_wasm_target,
                 step_build_wasm,
                 step_create_dir,
                 step_copy_readme,
@@ -281,10 +281,10 @@ impl Build {
         Ok(())
     }
 
-    fn step_add_wasm_target(&mut self, step: &Step) -> Result<(), Error> {
-        info!("Adding wasm-target...");
-        build::rustup_add_wasm_target(step)?;
-        info!("Adding wasm-target was successful.");
+    fn step_check_for_wasm_target(&mut self, step: &Step) -> Result<(), Error> {
+        info!("Checking for wasm-target...");
+        build::check_for_wasm32_target(step)?;
+        info!("Checking for wasm-target was successful.");
         Ok(())
     }
 
