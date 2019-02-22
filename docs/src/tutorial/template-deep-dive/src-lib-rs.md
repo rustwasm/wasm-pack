@@ -72,19 +72,7 @@ use cfg_if::cfg_if;
 
 `use` allows us to conveniently refer to parts of a crate or module. For example, suppose the crate `cfg_if` contains a function `func`. It is always possible to call this function directly by writing `cfg_if::func()`. However, this is often tedious to write. If we first specify `use cfg_if::func;`, then `func` can be called by just writing `func()` instead.
 
-With this in mind, this `use` allows us to call the macro `cfg_if!` inside the crate `cfg_if` without writing `cfg_if::cfg_if!`.
-
-```rust
-use wasm_bindgen::prelude::*;
-```
-
-Many modules contain a prelude, a list of things that should be automatically imported. This allows common features of the module to be conveniently accessed without a lengthy prefix. For example, in this file we can use `#[wasm_bindgen]` only because it is brought into scope by the prelude.
-
-The asterisk at the end of this `use` indicates that everything inside the module `wasm_bindgen::prelude` (i.e. the module `prelude` inside the crate `wasm_bindgen`) can be referred to without prefixing it with `wasm_bindgen::prelude`.
-
-For example, `#[wasm_bindgen]` could also be written as `#[wasm_bindgen::prelude::wasm_bindgen]`, although this is not recommended.
-
-## 3. `wee_alloc` optional dependecy
+With this in mind, this `use` allows us to call the macro `cfg_if!` inside the crate `cfg_if` without writing `cfg_if::cfg_if!`. We use `cfg_if!` to configure `wee_alloc`, which we will talk more about in a [separate section](./wee_alloc.md):
 
 ```rust
 cfg_if! {
@@ -96,8 +84,6 @@ cfg_if! {
 }
 ```
 
-This code block is intended to initialize `wee_alloc` as the global memory allocator, but only if the `wee_alloc` feature is enabled in `Cargo.toml`.
-
 We immediately notice that `cfg_if!` is a macro because it ends in `!`, similarly to other Rust macros such as `println!` and `vec!`. A macro is directly replaced by other code during compile time.
 
 During compile time, `cfg_if!` evaluates the `if` statement. This tests whether the feature `wee_alloc` is present in the `[features]` section of `Cargo.toml` (among other possible ways to set it).
@@ -105,23 +91,12 @@ During compile time, `cfg_if!` evaluates the `if` statement. This tests whether 
 As we saw earlier, the `default` vector in `[features]` only contains `"console_error_panic_hook"` and not `"wee_alloc"`. So, in this case, the `cfg_if!` block will be replaced by no code at all, and hence the default memory allocator will be used instead of `wee_alloc`.
 
 ```rust
-extern crate wee_alloc;
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+use wasm_bindgen::prelude::*;
 ```
 
-However, suppose `"wee_alloc"` is appended to the `default` vector in `Cargo.toml`. Then, the `cfg_if!` block is instead replaced with the contents of the `if` block, shown above.
+Many modules contain a prelude, a list of things that should be automatically imported. This allows common features of the module to be conveniently accessed without a lengthy prefix. For example, in this file we can use `#[wasm_bindgen]` only because it is brought into scope by the prelude.
 
-This code sets the `wee_alloc` allocator to be used as the global memory allocator.
+The asterisk at the end of this `use` indicates that everything inside the module `wasm_bindgen::prelude` (i.e. the module `prelude` inside the crate `wasm_bindgen`) can be referred to without prefixing it with `wasm_bindgen::prelude`.
 
-### What is `wee_alloc`?
+For example, `#[wasm_bindgen]` could also be written as `#[wasm_bindgen::prelude::wasm_bindgen]`, although this is not recommended.
 
-Reducing the size of compiled WebAssembly code is important, since it is often transmitted over the Internet or placed on embedded devices.
-
-> `wee_alloc` is a tiny allocator designed for WebAssembly that has a (pre-compression) code-size footprint of only a single kilobyte.
-
-[An analysis](http://fitzgeraldnick.com/2018/02/09/wee-alloc.html) suggests that over half of the bare minimum WebAssembly memory footprint is required by Rust's default memory allocator. Yet, WebAssembly code often does not require a sophisticated allocator, since it often just requests a couple of large initial allocations.
-
-`wee_alloc` trades off size for speed. Although it has a tiny code-size footprint, it is relatively slow if additional allocations are needed.
-
-For more details, see the [`wee_alloc` repository](https://github.com/rustwasm/wee_alloc).
