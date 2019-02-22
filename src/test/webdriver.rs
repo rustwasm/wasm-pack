@@ -1,6 +1,6 @@
 //! Getting WebDriver client binaries.
 
-use binaries::Cache;
+use binary_install::Cache;
 use command::build::BuildMode;
 use failure;
 use std::path::PathBuf;
@@ -31,14 +31,14 @@ pub fn install_chromedriver(
         "linux64"
     } else if target::MACOS && target::x86_64 {
         "mac64"
-    } else if target::WINDOWS && target::x86 {
+    } else if target::WINDOWS {
         "win32"
     } else {
-        bail!("geckodriver binaries are unavailable for this target")
+        bail!("chromedriver binaries are unavailable for this target")
     };
 
     let url = format!(
-        "https://chromedriver.storage.googleapis.com/2.41/chromedriver_{}.zip",
+        "https://chromedriver.storage.googleapis.com/2.46/chromedriver_{}.zip",
         target
     );
     match cache.download(
@@ -47,7 +47,7 @@ pub fn install_chromedriver(
         &["chromedriver"],
         &url,
     )? {
-        Some(dl) => Ok(dl.binary("chromedriver")),
+        Some(dl) => Ok(dl.binary("chromedriver")?),
         None => bail!(
             "No cached `chromedriver` binary found, and could not find a global \
              `chromedriver` on the `$PATH`. Not installing `chromedriver` because of noinstall \
@@ -92,12 +92,12 @@ pub fn install_geckodriver(
     };
 
     let url = format!(
-        "https://github.com/mozilla/geckodriver/releases/download/v0.21.0/geckodriver-v0.21.0-{}.{}",
+        "https://github.com/mozilla/geckodriver/releases/download/v0.24.0/geckodriver-v0.24.0-{}.{}",
         target,
         ext,
     );
     match cache.download(installation_allowed, "geckodriver", &["geckodriver"], &url)? {
-        Some(dl) => Ok(dl.binary("geckodriver")),
+        Some(dl) => Ok(dl.binary("geckodriver")?),
         None => bail!(
             "No cached `geckodriver` binary found, and could not find a global `geckodriver` \
              on the `$PATH`. Not installing `geckodriver` because of noinstall mode."

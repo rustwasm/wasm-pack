@@ -1,7 +1,7 @@
 [package]
 name = "wasm-pack"
-description = "pack up the wasm and publish it to npm!"
-version = "0.5.1"
+description = "📦✨ your favorite rust -> wasm workflow tool!"
+version = "0.6.0"
 authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
 repository = "https://github.com/ashleygwilliams/wasm-pack.git"
 license = "MIT/Apache-2.0"
@@ -13,31 +13,34 @@ documentation = "https://rustwasm.github.io/wasm-pack/"
 atty = "0.2.11"
 cargo_metadata = "0.6.0"
 console = "0.6.1"
+dialoguer = "0.3.0"
 curl = "0.4.13"
 dirs = "1.0.4"
+env_logger = { version = "0.5.13", default-features = false }
 failure = "0.1.2"
-flate2 = "1.0.2"
-hex = "0.3"
 human-panic = "1.0.1"
+glob = "0.2"
 indicatif = "0.9.0"
 lazy_static = "1.1.0"
+log = "0.4.6"
 openssl = { version = '0.10.11', optional = true }
 parking_lot = "0.6"
 serde = "1.0.74"
 serde_derive = "1.0.74"
+serde_ignored = "0.0.4"
 serde_json = "1.0.26"
+strsim = "0.8.0"
 siphasher = "0.2.3"
-slog = "2.3"
-slog-term = "2.4"
-slog-async = "2.3"
 structopt = "0.2"
-tar = "0.4.16"
 toml = "0.4"
 which = "2.0.0"
-zip = "0.4.2"
 tempfile = "3.0"
+binary-install = { version = "0.0.1", path = "./binary-install" }
+walkdir = "2"
 
 [dev-dependencies]
+assert_cmd = "0.10.2"
+predicates = "1.0.0"
 tempfile = "3"
 
 [features]

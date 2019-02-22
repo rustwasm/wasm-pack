@@ -1,5 +1,5 @@
+use binary_install::Cache;
 use tempfile;
-use wasm_pack::binaries::Cache;
 use wasm_pack::bindgen;
 
 #[test]
@@ -12,8 +12,8 @@ fn can_download_prebuilt_wasm_bindgen() {
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
     let dl = bindgen::download_prebuilt_wasm_bindgen(&cache, "0.2.21", true).unwrap();
-    assert!(dl.binary("wasm-bindgen").is_file());
-    assert!(dl.binary("wasm-bindgen-test-runner").is_file())
+    assert!(dl.binary("wasm-bindgen").unwrap().is_file());
+    assert!(dl.binary("wasm-bindgen-test-runner").unwrap().is_file())
 }
 
 #[test]

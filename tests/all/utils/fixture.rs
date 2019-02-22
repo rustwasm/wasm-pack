@@ -1,4 +1,4 @@
-use super::logger::null_logger;
+use binary_install::Cache;
 use std::env;
 use std::fs;
 use std::mem::ManuallyDrop;
@@ -8,7 +8,6 @@ use std::sync::{MutexGuard, Once, ONCE_INIT};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
-use wasm_pack::binaries::Cache;
 
 /// A test fixture in a temporary directory.
 pub struct Fixture {
@@ -68,6 +67,44 @@ impl Fixture {
         )
     }
 
+    /// Add `WTFPL LICENSE` file to the fixture.
+    pub fn wtfpl_license(&self) -> &Self {
+        self.file(
+            "LICENSE-WTFPL",
+            r#"
+                DO WHATEVER YOU WANT TO PUBLIC LICENSE
+                    Version 2, December 2004
+
+                Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>
+
+                Everyone is permitted to copy and distribute verbatim or modified
+                copies of this license document, and changing it is allowed as long
+                as the name is changed.
+
+                DO WHATEVER YOU WANT TO PUBLIC LICENSE
+                TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+
+                0. You just DO WHATEVER YOU WANT TO.
+            "#,
+        )
+    }
+
+    /// Add `MIT LICENSE` file to the fixture.
+    pub fn mit_license(&self) -> &Self {
+        self.file(
+            "LICENSE-MIT",
+            r#"
+                Copyright <YEAR> <COPYRIGHT HOLDER>
+
+                Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+                The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+                THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+            "#,
+        )
+    }
+
     /// Add a `Cargo.toml` with a correctly configured `wasm-bindgen`
     /// dependency, `wasm-bindgen-test` dev-dependency, and `crate-type =
     /// ["cdylib"]`.
@@ -96,6 +133,39 @@ impl Fixture {
                     wasm-bindgen-test = "=0.2.21"
                 "#,
                 name
+            ),
+        )
+    }
+
+    /// Add a `Cargo.toml` with a correctly configured `wasm-bindgen`
+    /// dependency, `wasm-bindgen-test` dev-dependency, and `crate-type =
+    /// ["cdylib"]`.
+    ///
+    /// `name` is the crate's name.
+    /// `license_file` is license file path
+    pub fn cargo_toml_with_license_file(&self, name: &str, license_file: &str) -> &Self {
+        self.file(
+            "Cargo.toml",
+            &format!(
+                r#"
+                    [package]
+                    authors = ["The wasm-pack developers"]
+                    description = "so awesome rust+wasm package"
+                    name = "{}"
+                    license-file = "{}"
+                    repository = "https://github.com/rustwasm/wasm-pack.git"
+                    version = "0.1.0"
+
+                    [lib]
+                    crate-type = ["cdylib"]
+
+                    [dependencies]
+                    wasm-bindgen = "=0.2.21"
+
+                    [dev-dependencies]
+                    wasm-bindgen-test = "=0.2.21"
+                "#,
+                name, license_file
             ),
         )
     }
@@ -132,7 +202,6 @@ impl Fixture {
         static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
         let cache = self.cache();
         let version = "0.2.21";
-        let log = &null_logger();
 
         let download = || {
             if let Ok(download) =
@@ -141,7 +210,7 @@ impl Fixture {
                 return Ok(download);
             }
 
-            wasm_pack::bindgen::cargo_install_wasm_bindgen(log, &cache, version, true)
+            wasm_pack::bindgen::cargo_install_wasm_bindgen(&cache, version, true)
         };
 
         // Only one thread can perform the actual download, and then afterwards
@@ -149,7 +218,7 @@ impl Fixture {
         INSTALL_WASM_BINDGEN.call_once(|| {
             download().unwrap();
         });
-        download().unwrap().binary("wasm-bindgen")
+        download().unwrap().binary("wasm-bindgen").unwrap()
     }
 
     /// Download `geckodriver` and return its path.
@@ -182,9 +251,14 @@ impl Fixture {
         wasm_pack::test::webdriver::install_chromedriver(&cache, true).unwrap()
     }
 
+    pub fn cache_dir(&self) -> PathBuf {
+        Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("target")
+            .join("test_cache")
+    }
+
     pub fn cache(&self) -> Cache {
-        let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
-        Cache::at(&target_dir.join("test_cache"))
+        Cache::at(&self.cache_dir())
     }
 
     /// The `step_install_wasm_bindgen` and `step_run_wasm_bindgen` steps only
@@ -204,22 +278,14 @@ impl Fixture {
         self
     }
 
-    pub fn run(&self, cmd: wasm_pack::command::Command) -> Result<(), failure::Error> {
-        let logger = wasm_pack::logger::new(&cmd, 3)?;
-        match cmd {
-            wasm_pack::command::Command::Test(cmd) => {
-                let _lock = self.lock();
-                let mut test = wasm_pack::command::test::Test::try_from_opts(cmd)?;
-                test.set_cache(self.cache());
-                test.run(&logger)
-            }
-            wasm_pack::command::Command::Build(cmd) => {
-                let mut build = wasm_pack::command::build::Build::try_from_opts(cmd)?;
-                build.set_cache(self.cache());
-                build.run(&logger)
-            }
-            _ => unreachable!(),
-        }
+    /// Get a `wasm-pack` command configured to run in this fixure's temp
+    /// directory and using the test cache.
+    pub fn wasm_pack(&self) -> Command {
+        use assert_cmd::prelude::*;
+        let mut cmd = Command::main_binary().unwrap();
+        cmd.current_dir(&self.path);
+        cmd.env("WASM_PACK_CACHE", self.cache_dir());
+        cmd
     }
 
     pub fn lock(&self) -> MutexGuard<'static, ()> {
@@ -588,5 +654,36 @@ pub fn transitive_dependencies() -> Fixture {
     project_b_fixture(&mut fixture);
     project_a_fixture(&mut fixture);
     project_main_fixture(&mut fixture);
+    fixture
+}
+
+pub fn single_license() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("single_license")
+        .wtfpl_license()
+        .hello_world_src_lib();
+    fixture
+}
+
+pub fn dual_license() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml("dual_license")
+        .wtfpl_license()
+        .mit_license()
+        .hello_world_src_lib();
+    fixture
+}
+
+pub fn non_standard_license(license_file: &str) -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml_with_license_file("dual_license", license_file)
+        .file(license_file, "license file for test")
+        .hello_world_src_lib();
     fixture
 }

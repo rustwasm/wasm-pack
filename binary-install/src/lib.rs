@@ -1,10 +1,17 @@
 //! Utilities for finding and installing binaries that we depend on.
 
-use curl;
-use dirs;
+extern crate curl;
+#[macro_use]
+extern crate failure;
+extern crate dirs;
+extern crate flate2;
+extern crate hex;
+extern crate is_executable;
+extern crate siphasher;
+extern crate tar;
+extern crate zip;
+
 use failure::{Error, ResultExt};
-use flate2;
-use hex;
 use siphasher::sip::SipHasher13;
 use std::collections::HashSet;
 use std::env;
@@ -13,8 +20,6 @@ use std::fs;
 use std::hash::{Hash, Hasher};
 use std::io;
 use std::path::{Path, PathBuf};
-use tar;
-use zip;
 
 /// Global cache for wasm-pack, currently containing binaries downloaded from
 /// urls like wasm-bindgen and such.
@@ -32,12 +37,13 @@ impl Cache {
     ///
     /// This function may return an error if a cache directory cannot be
     /// determined.
-    pub fn new() -> Result<Cache, Error> {
+    pub fn new(name: &str) -> Result<Cache, Error> {
+        let cache_name = format!(".{}", name);
         let destination = dirs::cache_dir()
-            .map(|p| p.join("wasm-pack"))
+            .map(|p| p.join(&cache_name))
             .or_else(|| {
                 let home = dirs::home_dir()?;
-                Some(home.join(".wasm-pack"))
+                Some(home.join(&cache_name))
             })
             .ok_or_else(|| format_err!("couldn't find your home directory, is $HOME not set?"))?;
         Ok(Cache::at(&destination))
@@ -218,13 +224,22 @@ impl Download {
     }
 
     /// Returns the path to the binary `name` within this download
-    pub fn binary(&self, name: &str) -> PathBuf {
+    pub fn binary(&self, name: &str) -> Result<PathBuf, Error> {
+        use is_executable::IsExecutable;
+
         let ret = self
             .root
             .join(name)
             .with_extension(env::consts::EXE_EXTENSION);
-        assert!(ret.exists(), "binary {} doesn't exist", ret.display());
-        return ret;
+
+        if !ret.is_file() {
+            bail!("{} binary does not exist", ret.display());
+        }
+        if !ret.is_executable() {
+            bail!("{} is not executable", ret.display());
+        }
+
+        Ok(ret)
     }
 }
 

@@ -5,6 +5,10 @@ interoperability and for publishing a package to npm. This involves compiling
 your code to wasm and generating a pkg folder. This pkg folder will contain the
 wasm binary, a JS wrapper file, your `README`, and a `package.json` file.
 
+The `pkg` directory is automatically `.gitignore`d by default, since it contains
+build artifacts which are not intended to be checked into version
+control.<sup>[0](#footnote-0)</sup>
+
 ## Path
 
 The `wasm-pack build` command can be given an optional path argument, e.g.:
@@ -55,7 +59,7 @@ wasm-pack build --target nodejs
 | Option    | Description                                                                                                     |
 |-----------|-----------------------------------------------------------------------------------------------------------------|
 | `nodejs`  | Outputs JS that uses CommonJS modules, for use with a `require` statement. `main` key in `package.json`. |
-| `nomodules`  | Outputs JS that use no modules. `browser` key in `package.json`. |
+| `no-modules`  | Outputs JS that use no modules. `browser` key in `package.json`. |
 | `browser` | Outputs JS that uses ES6 modules, primarily for use with `import` statements and/or bundlers such as `webpack`. `module` key in `package.json`. `sideEffects: false` by default. |
 
 ## Scope
@@ -85,3 +89,20 @@ wasm-pack build examples/js-hello-world --mode no-install
 |---------------|------------------------------------------------------------------------------------------|
 | `no-install`  | `wasm-pack init` implicitly and create wasm binding  without installing `wasm-bindgen`.  |
 | `normal`      | do all the stuffs of `no-install` with installed `wasm-bindgen`.                         |
+
+## Extra options
+
+The `build` command can pass extra options straight to `cargo build` even if they are not
+supported in wasm-pack. To use them you should add standalone `--` argument at the very
+end of your command, and all the arguments you want to pass to cargo should go after.
+For example to build previous example using unstable cargo offline feature:
+
+```
+wasm-pack build examples/js-hello-world --mode no-install -- -Z offline
+```
+
+<hr style="font-size: 1.5em; margin-top: 2.5em"/>
+
+<sup id="footnote-0">0</sup> If you need to include additional assets in the pkg
+directory and your NPM package, we intend to have a solution for your use case
+soon. [↩](#wasm-pack-build)

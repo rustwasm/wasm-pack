@@ -1,13 +1,15 @@
 //! Functionality related to installing and running `wasm-bindgen`.
 
-use binaries::{Cache, Download};
+use binary_install::{Cache, Download};
 use child;
 use command::build::BuildProfile;
 use emoji;
 use failure::{self, ResultExt};
+use log::debug;
+use log::{info, warn};
 use manifest::CrateData;
 use progressbar::Step;
-use slog::Logger;
+use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
@@ -26,7 +28,6 @@ pub fn install_wasm_bindgen(
     version: &str,
     install_permitted: bool,
     step: &Step,
-    log: &Logger,
 ) -> Result<Download, failure::Error> {
     // If `wasm-bindgen` is installed globally and it has the right version, use
     // that. Assume that other tools are installed next to it.
@@ -34,12 +35,8 @@ pub fn install_wasm_bindgen(
     // This situation can arise if `wasm-bindgen` is already installed via
     // `cargo install`, for example.
     if let Ok(path) = which("wasm-bindgen") {
-        debug!(
-            log,
-            "found global wasm-bindgen binary at: {}",
-            path.display()
-        );
-        if wasm_bindgen_version_check(&path, version, log) {
+        debug!("found global wasm-bindgen binary at: {}", path.display());
+        if wasm_bindgen_version_check(&path, version) {
             return Ok(Download::at(path.parent().unwrap()));
         }
     }
@@ -52,14 +49,13 @@ pub fn install_wasm_bindgen(
         Ok(dl) => return Ok(dl),
         Err(e) => {
             warn!(
-                log,
                 "could not download pre-built `wasm-bindgen`: {}. Falling back to `cargo install`.",
                 e
             );
         }
     }
 
-    cargo_install_wasm_bindgen(log, &cache, version, install_permitted)
+    cargo_install_wasm_bindgen(&cache, version, install_permitted)
 }
 
 /// Downloads a precompiled copy of wasm-bindgen, if available.
@@ -102,14 +98,23 @@ fn prebuilt_url(version: &str) -> Option<String> {
 /// Use `cargo install` to install the `wasm-bindgen` CLI locally into the given
 /// crate.
 pub fn cargo_install_wasm_bindgen(
-    logger: &Logger,
     cache: &Cache,
     version: &str,
     install_permitted: bool,
 ) -> Result<Download, failure::Error> {
+    debug!(
+        "Attempting to use a `cargo install`ed version of `wasm-bindgen={}`",
+        version
+    );
+
     let dirname = format!("wasm-bindgen-cargo-install-{}", version);
     let destination = cache.join(dirname.as_ref());
     if destination.exists() {
+        debug!(
+            "`cargo install`ed `wasm-bindgen={}` already exists at {}",
+            version,
+            destination.display()
+        );
         return Ok(Download::at(&destination));
     }
 
@@ -121,7 +126,12 @@ pub fn cargo_install_wasm_bindgen(
     // and ensure we don't accidentally use stale files in the future
     let tmp = cache.join(format!(".{}", dirname).as_ref());
     drop(fs::remove_dir_all(&tmp));
-    fs::create_dir_all(&tmp)?;
+    debug!(
+        "cargo installing wasm-bindgen to tempdir: {}",
+        tmp.display()
+    );
+    fs::create_dir_all(&tmp)
+        .context("failed to create temp dir for `cargo install wasm-bindgen`")?;
 
     let mut cmd = Command::new("cargo");
     cmd.arg("install")
@@ -132,9 +142,30 @@ pub fn cargo_install_wasm_bindgen(
         .arg("--root")
         .arg(&tmp);
 
-    child::run(logger, cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
+    child::run(cmd, "cargo install").context("Installing wasm-bindgen with cargo")?;
 
+    // `cargo install` will put the installed binaries in `$root/bin/*`, but we
+    // just want them in `$root/*` directly (which matches how the tarballs are
+    // laid out, and where the rest of our code expects them to be). So we do a
+    // little renaming here.
+    for f in ["wasm-bindgen", "wasm-bindgen-test-runner"].iter().cloned() {
+        let from = tmp
+            .join("bin")
+            .join(f)
+            .with_extension(env::consts::EXE_EXTENSION);
+        let to = tmp.join(from.file_name().unwrap());
+        fs::rename(&from, &to).with_context(|_| {
+            format!(
+                "failed to move {} to {} for `cargo install`ed `wasm-bindgen`",
+                from.display(),
+                to.display()
+            )
+        })?;
+    }
+
+    // Finally, move the `tmp` directory into our binary cache.
     fs::rename(&tmp, &destination)?;
+
     Ok(Download::at(&destination))
 }
 
@@ -148,7 +179,6 @@ pub fn wasm_bindgen_build(
     target: &str,
     profile: BuildProfile,
     step: &Step,
-    log: &Logger,
 ) -> Result<(), failure::Error> {
     let msg = format!("{}Running WASM-bindgen...", emoji::RUNNER);
     PBAR.step(step, &msg);
@@ -177,7 +207,7 @@ pub fn wasm_bindgen_build(
         "no-modules" => "--no-modules",
         _ => "--browser",
     };
-    let bindgen_path = bindgen.binary("wasm-bindgen");
+    let bindgen_path = bindgen.binary("wasm-bindgen")?;
     let mut cmd = Command::new(bindgen_path);
     cmd.arg(&wasm_path)
         .arg("--out-dir")
@@ -196,15 +226,15 @@ pub fn wasm_bindgen_build(
         cmd.arg("--keep-debug");
     }
 
-    child::run(log, cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
+    child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.
-fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str, log: &Logger) -> bool {
+fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str) -> bool {
     let mut cmd = Command::new(bindgen_path);
     cmd.arg("--version");
-    child::run(log, cmd, "wasm-bindgen")
+    child::run(cmd, "wasm-bindgen")
         .map(|stdout| {
             stdout
                 .trim()
@@ -212,10 +242,8 @@ fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str, log: &L
                 .nth(1)
                 .map(|v| {
                     info!(
-                        log,
                         "Checking installed `wasm-bindgen` version == expected version: {} == {}",
-                        v,
-                        dep_version
+                        v, dep_version
                     );
                     v == dep_version
                 })
