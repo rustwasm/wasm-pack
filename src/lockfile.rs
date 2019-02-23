@@ -1,5 +1,7 @@
 //! Reading Cargo.lock lock file.
 
+#![allow(clippy::new_ret_no_self)]
+
 use std::fs;
 use std::path::PathBuf;
 

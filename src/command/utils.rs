@@ -11,7 +11,7 @@ use PBAR;
 /// If an explicit path is given, then use it, otherwise assume the current
 /// directory is the crate path.
 pub fn set_crate_path(path: Option<PathBuf>) -> Result<PathBuf, failure::Error> {
-    Ok(path.unwrap_or(PathBuf::from(".")))
+    Ok(path.unwrap_or_else(|| PathBuf::from(".")))
 }
 
 /// Construct our `pkg` directory in the crate.

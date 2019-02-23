@@ -1,5 +1,7 @@
 //! Reading and writing Cargo.toml and package.json manifests.
 
+#![allow(clippy::new_ret_no_self, clippy::needless_pass_by_value)]
+
 mod npm;
 
 use std::fs;
@@ -20,7 +22,7 @@ use strsim::levenshtein;
 use toml;
 use PBAR;
 
-const WASM_PACK_METADATA_KEY: &'static str = "package.metadata.wasm-pack";
+const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
 
 /// Store for metadata learned about a crate
 pub struct CrateData {
@@ -40,7 +42,10 @@ struct CargoPackage {
     name: String,
     description: Option<String>,
     license: Option<String>,
+    #[serde(rename = "license-file")]
+    license_file: Option<String>,
     repository: Option<String>,
+    homepage: Option<String>,
 
     #[serde(default)]
     metadata: CargoMetadata,
@@ -145,7 +150,7 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_dev());
+        profile.update_with_defaults(&Self::default_dev());
         Ok(profile)
     }
 
@@ -154,7 +159,7 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_release());
+        profile.update_with_defaults(&Self::default_release());
         Ok(profile)
     }
 
@@ -163,11 +168,11 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_profiling());
+        profile.update_with_defaults(&Self::default_profiling());
         Ok(profile)
     }
 
-    fn update_with_defaults(&mut self, defaults: Self) {
+    fn update_with_defaults(&mut self, defaults: &Self) {
         macro_rules! d {
             ( $( $path:ident ).* ) => {
                 self. $( $path ).* .get_or_insert(defaults. $( $path ).* .unwrap());
@@ -199,6 +204,7 @@ struct NpmData {
     files: Vec<String>,
     dts_file: Option<String>,
     main: String,
+    homepage: Option<String>, // https://docs.npmjs.com/files/package.json#homepage
 }
 
 #[doc(hidden)]
@@ -248,7 +254,7 @@ impl CrateData {
             for e in errors[..errors.len() - 1].iter().rev() {
                 err = err.context(e.to_string()).into();
             }
-            return err;
+            err
         }
     }
 
@@ -290,7 +296,7 @@ impl CrateData {
     pub fn warn_for_unused_keys(manifest_and_keys: &ManifestAndUnsedKeys) {
         manifest_and_keys.unused_keys.iter().for_each(|path| {
             PBAR.warn(&format!(
-                "\"{}\" is a unknown key and will be ignored. Please check your Cargo.toml.",
+                "\"{}\" is an unknown key and will be ignored. Please check your Cargo.toml.",
                 path
             ));
         });
@@ -349,6 +355,11 @@ impl CrateData {
         &self.manifest.package.license
     }
 
+    /// Get the license file path for the crate at the given path.
+    pub fn crate_license_file(&self) -> &Option<String> {
+        &self.manifest.package.license_file
+    }
+
     /// Returns the path to this project's target directory where artifacts are
     /// located after a cargo build.
     pub fn target_directory(&self) -> &Path {
@@ -374,11 +385,11 @@ impl CrateData {
         PBAR.step(step, &msg);
         let pkg_file_path = out_dir.join("package.json");
         let npm_data = if target == "nodejs" {
-            self.to_commonjs(scope, disable_dts)
+            self.to_commonjs(scope, disable_dts, out_dir)
         } else if target == "no-modules" {
-            self.to_nomodules(scope, disable_dts)
+            self.to_nomodules(scope, disable_dts, out_dir)
         } else {
-            self.to_esmodules(scope, disable_dts)
+            self.to_esmodules(scope, disable_dts, out_dir)
         };
 
         let npm_json = serde_json::to_string_pretty(&npm_data)?;
@@ -392,6 +403,7 @@ impl CrateData {
         scope: &Option<String>,
         include_commonjs_shim: bool,
         disable_dts: bool,
+        out_dir: &Path,
     ) -> NpmData {
         let crate_name = self.crate_name();
         let wasm_file = format!("{}_bg.wasm", crate_name);
@@ -417,16 +429,43 @@ impl CrateData {
         } else {
             None
         };
+
+        let readme_file = out_dir.join("README.md");
+        if readme_file.is_file() {
+            files.push("README.md".to_string());
+        }
+
+        if let Ok(entries) = fs::read_dir(out_dir) {
+            let file_names = entries
+                .filter_map(|e| e.ok())
+                .filter(|e| e.metadata().map(|m| m.is_file()).unwrap_or(false))
+                .filter_map(|e| e.file_name().into_string().ok())
+                .filter(|f| f.starts_with("LICENSE"));
+            for file_name in file_names {
+                files.push(file_name);
+            }
+        }
+
         NpmData {
             name: npm_name,
             dts_file,
             files,
             main: js_file,
+            homepage: self.manifest.package.homepage.clone(),
         }
     }
 
-    fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, true, disable_dts);
+    fn license(&self) -> Option<String> {
+        self.manifest.package.license.clone().or_else(|| {
+            self.manifest.package.license_file.clone().map(|file| {
+                // When license is written in file: https://docs.npmjs.com/files/package.json#license
+                format!("SEE LICENSE IN {}", file)
+            })
+        })
+    }
+
+    fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
+        let data = self.npm_data(scope, true, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -436,7 +475,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
@@ -448,12 +487,18 @@ impl CrateData {
                 }),
             files: data.files,
             main: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
         })
     }
 
-    fn to_esmodules(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts);
+    fn to_esmodules(
+        &self,
+        scope: &Option<String>,
+        disable_dts: bool,
+        out_dir: &Path,
+    ) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -463,7 +508,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
@@ -475,13 +520,19 @@ impl CrateData {
                 }),
             files: data.files,
             module: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
             side_effects: "false".to_string(),
         })
     }
 
-    fn to_nomodules(&self, scope: &Option<String>, disable_dts: bool) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts);
+    fn to_nomodules(
+        &self,
+        scope: &Option<String>,
+        disable_dts: bool,
+        out_dir: &Path,
+    ) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -491,7 +542,7 @@ impl CrateData {
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.clone(),
-            license: self.manifest.package.license.clone(),
+            license: self.license(),
             repository: self
                 .manifest
                 .package
@@ -503,6 +554,7 @@ impl CrateData {
                 }),
             files: data.files,
             browser: data.main,
+            homepage: data.homepage,
             types: data.dts_file,
         })
     }

@@ -6,7 +6,8 @@ use wasm_pack::test::webdriver;
 #[cfg(any(
     all(target_os = "linux", target_arch = "x86_64"),
     all(target_os = "macos", target_arch = "x86_64"),
-    all(target_os = "windows", target_arch = "x86")
+    all(target_os = "windows", target_arch = "x86"),
+    all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn can_install_chromedriver() {
     let fixture = fixture::js_hello_world();

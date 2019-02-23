@@ -114,7 +114,7 @@ fn confirm_can_overwrite(dst: &Path) -> Result<(), failure::Error> {
         .read_line(&mut line)
         .with_context(|_| "failed to read stdin")?;
 
-    if line.starts_with("y") || line.starts_with("Y") {
+    if line.starts_with('y') || line.starts_with('Y') {
         return Ok(());
     }
 

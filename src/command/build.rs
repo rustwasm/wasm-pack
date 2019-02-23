@@ -19,7 +19,7 @@ use std::str::FromStr;
 use std::time::Instant;
 use PBAR;
 
-/// Everything required to configure and run the `wasm-pack init` command.
+/// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]
 pub struct Build {
     pub crate_path: PathBuf,
@@ -193,7 +193,7 @@ impl Build {
 
     /// Execute this `Build` command.
     pub fn run(&mut self) -> Result<(), Error> {
-        let process_steps = Build::get_process_steps(&self.mode);
+        let process_steps = Build::get_process_steps(self.mode);
 
         let mut step_counter = Step::new(process_steps.len());
 
@@ -221,7 +221,7 @@ impl Build {
         Ok(())
     }
 
-    fn get_process_steps(mode: &BuildMode) -> Vec<(&'static str, BuildStep)> {
+    fn get_process_steps(mode: BuildMode) -> Vec<(&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {
@@ -239,29 +239,29 @@ impl Build {
                 step_add_wasm_target,
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
                 step_install_wasm_bindgen,
                 step_run_wasm_bindgen,
+                step_create_json,
             ],
             BuildMode::Noinstall => steps![
                 step_check_rustc_version,
                 step_check_crate_config,
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
-                step_run_wasm_bindgen
+                step_run_wasm_bindgen,
+                step_create_json,
             ],
             BuildMode::Force => steps![
                 step_build_wasm,
                 step_create_dir,
-                step_create_json,
                 step_copy_readme,
                 step_copy_license,
-                step_run_wasm_bindgen
+                step_run_wasm_bindgen,
+                step_create_json,
             ],
         }
     }
