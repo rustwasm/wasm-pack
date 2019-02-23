@@ -3,42 +3,44 @@ use flate2::Compression;
 use std::fs::{File, OpenOptions};
 use std::io::{self, Read, Write};
 use std::net::TcpListener;
+use std::sync::mpsc::{channel, Receiver};
 use std::thread;
-use std::time::Duration;
 
 pub const TEST_SERVER_HOST: &'static str = "localhost";
 
-pub fn start_server(port: u32, tarball: Option<Vec<u8>>) -> thread::JoinHandle<TcpListener> {
-    let handle = thread::spawn(move || {
-        let listener = TcpListener::bind(format!("{}:{}", TEST_SERVER_HOST, port)).unwrap();
+pub fn start_server(port: u32, tarball: Option<Vec<u8>>) -> Receiver<()> {
+    let (sender, receiver) = channel();
 
-        for stream in listener.incoming() {
-            let mut stream = stream.unwrap();
+    thread::spawn(move || {
+        TcpListener::bind(format!("{}:{}", TEST_SERVER_HOST, port))
+            .map(|listener| {
+                sender.send(()).unwrap();
 
-            let mut buffer = [0; 512];
+                for stream in listener.incoming() {
+                    let mut stream = stream.unwrap();
 
-            stream.read(&mut buffer).unwrap();
+                    let mut buffer = [0; 512];
 
-            let response = "HTTP/1.1 200 OK\r\n\r\n";
+                    stream.read(&mut buffer).unwrap();
 
-            stream.write(response.as_bytes()).unwrap();
+                    let response = "HTTP/1.1 200 OK\r\n\r\n";
 
-            match tarball.to_owned() {
-                Some(tar) => {
-                    stream.write(tar.as_ref()).unwrap();
+                    stream.write(response.as_bytes()).unwrap();
+
+                    match tarball.to_owned() {
+                        Some(tar) => {
+                            stream.write(tar.as_ref()).unwrap();
+                        }
+                        None => {}
+                    }
+
+                    stream.flush().unwrap();
                 }
-                None => {}
-            }
-
-            stream.flush().unwrap();
-        }
-        listener
+            })
+            .unwrap();
     });
 
-    // Wait for server to start...
-    thread::sleep(Duration::from_secs(1));
-
-    handle
+    receiver
 }
 
 pub fn create_tarball(binary_name: &str) -> Result<Vec<u8>, io::Error> {

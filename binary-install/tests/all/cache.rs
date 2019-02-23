@@ -32,7 +32,7 @@ fn it_downloads_tarball() {
     let tarball = utils::create_tarball(binary_name).ok();
 
     // Spin up a local TcpListener.
-    utils::start_server(server_port, tarball);
+    utils::start_server(server_port, tarball).recv().unwrap();
 
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
@@ -80,7 +80,7 @@ fn it_returns_error_when_it_failed_to_extract_tarball() {
     let full_url = &format!("{}/{}.tar.gz", &url, binary_name);
 
     // Spin up a local TcpListener.
-    utils::start_server(server_port, None);
+    utils::start_server(server_port, None).recv().unwrap();
 
     let dl = cache.download(true, binary_name, &binaries, full_url);
 
@@ -103,7 +103,7 @@ fn it_returns_error_when_it_failed_to_extract_zip() {
     let full_url = &format!("{}/{}.zip", &url, binary_name);
 
     // Spin up a local TcpListener.
-    utils::start_server(server_port, None);
+    utils::start_server(server_port, None).recv().unwrap();
 
     let dl = cache.download(true, binary_name, &binaries, full_url);
 
@@ -127,7 +127,7 @@ fn it_panics_if_not_tarball_or_zip() {
     let full_url = &format!("{}/{}.bin", &url, binary_name);
 
     // Spin up a local TcpListener.
-    utils::start_server(server_port, None);
+    utils::start_server(server_port, None).recv().unwrap();
 
     let _ = cache.download(true, binary_name, &binaries, full_url);
 }
