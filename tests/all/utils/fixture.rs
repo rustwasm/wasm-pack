@@ -201,7 +201,7 @@ impl Fixture {
     pub fn install_local_wasm_bindgen(&self) -> PathBuf {
         static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
         let cache = self.cache();
-        let version = "0.2.33";
+        let version = "0.2.37";
 
         let download = || {
             if let Ok(download) =
