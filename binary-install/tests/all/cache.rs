@@ -23,8 +23,6 @@ fn it_returns_none_if_install_is_not_permitted() {
 
 #[test]
 fn it_downloads_tarball() {
-    let server_port = 7880;
-    let url = format!("http://{}:{}", utils::TEST_SERVER_HOST, server_port);
     let binary_name = "wasm-pack";
     let binaries = vec![binary_name];
 
@@ -32,7 +30,9 @@ fn it_downloads_tarball() {
     let tarball = utils::create_tarball(binary_name).ok();
 
     // Spin up a local TcpListener.
-    utils::start_server(server_port, tarball).recv().unwrap();
+    let server_port = utils::start_server(tarball, None).recv().unwrap();
+
+    let url = format!("http://{}:{}", utils::TEST_SERVER_HOST, server_port);
 
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
@@ -70,17 +70,17 @@ fn it_returns_error_when_it_failed_to_download() {
 
 #[test]
 fn it_returns_error_when_it_failed_to_extract_tarball() {
-    let server_port = 7882;
-    let url = format!("http://{}:{}", utils::TEST_SERVER_HOST, server_port);
     let binary_name = "wasm-pack";
     let binaries = vec![binary_name];
 
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
-    let full_url = &format!("{}/{}.tar.gz", &url, binary_name);
 
     // Spin up a local TcpListener.
-    utils::start_server(server_port, None).recv().unwrap();
+    let server_port = utils::start_server(None, None).recv().unwrap();
+
+    let url = format!("http://{}:{}", utils::TEST_SERVER_HOST, server_port);
+    let full_url = &format!("{}/{}.tar.gz", &url, binary_name);
 
     let dl = cache.download(true, binary_name, &binaries, full_url);
 
@@ -93,17 +93,17 @@ fn it_returns_error_when_it_failed_to_extract_tarball() {
 
 #[test]
 fn it_returns_error_when_it_failed_to_extract_zip() {
-    let server_port = 7883;
-    let url = format!("http://{}:{}", utils::TEST_SERVER_HOST, server_port);
     let binary_name = "wasm-pack";
     let binaries = vec![binary_name];
 
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
-    let full_url = &format!("{}/{}.zip", &url, binary_name);
 
     // Spin up a local TcpListener.
-    utils::start_server(server_port, None).recv().unwrap();
+    let server_port = utils::start_server(None, None).recv().unwrap();
+
+    let url = format!("http://{}:{}", utils::TEST_SERVER_HOST, server_port);
+    let full_url = &format!("{}/{}.zip", &url, binary_name);
 
     let dl = cache.download(true, binary_name, &binaries, full_url);
 
@@ -118,16 +118,17 @@ fn it_returns_error_when_it_failed_to_extract_zip() {
 #[should_panic(expected = "don't know how to extract http://localhost:7884/wasm-pack.bin")]
 fn it_panics_if_not_tarball_or_zip() {
     let server_port = 7884;
-    let url = format!("http://{}:{}", utils::TEST_SERVER_HOST, server_port);
     let binary_name = "wasm-pack";
     let binaries = vec![binary_name];
 
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
-    let full_url = &format!("{}/{}.bin", &url, binary_name);
 
     // Spin up a local TcpListener.
-    utils::start_server(server_port, None).recv().unwrap();
+    utils::start_server(None, Some(server_port)).recv().unwrap();
+
+    let url = format!("http://{}:{}", utils::TEST_SERVER_HOST, server_port);
+    let full_url = &format!("{}/{}.bin", &url, binary_name);
 
     let _ = cache.download(true, binary_name, &binaries, full_url);
 }

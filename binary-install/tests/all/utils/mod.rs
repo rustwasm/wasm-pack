@@ -8,36 +8,40 @@ use std::thread;
 
 pub const TEST_SERVER_HOST: &'static str = "localhost";
 
-pub fn start_server(port: u32, tarball: Option<Vec<u8>>) -> Receiver<()> {
+pub fn start_server(tarball: Option<Vec<u8>>, server_port: Option<u16>) -> Receiver<u16> {
     let (sender, receiver) = channel();
 
     thread::spawn(move || {
-        TcpListener::bind(format!("{}:{}", TEST_SERVER_HOST, port))
-            .map(|listener| {
-                sender.send(()).unwrap();
+        TcpListener::bind(format!(
+            "{}:{}",
+            TEST_SERVER_HOST,
+            server_port.unwrap_or_else(|| 0)
+        ))
+        .map(|listener| {
+            sender.send(listener.local_addr().unwrap().port()).unwrap();
 
-                for stream in listener.incoming() {
-                    let mut stream = stream.unwrap();
+            for stream in listener.incoming() {
+                let mut stream = stream.unwrap();
 
-                    let mut buffer = [0; 512];
+                let mut buffer = [0; 512];
 
-                    stream.read(&mut buffer).unwrap();
+                stream.read(&mut buffer).unwrap();
 
-                    let response = "HTTP/1.1 200 OK\r\n\r\n";
+                let response = "HTTP/1.1 200 OK\r\n\r\n";
 
-                    stream.write(response.as_bytes()).unwrap();
+                stream.write(response.as_bytes()).unwrap();
 
-                    match tarball.to_owned() {
-                        Some(tar) => {
-                            stream.write(tar.as_ref()).unwrap();
-                        }
-                        None => {}
+                match tarball.to_owned() {
+                    Some(tar) => {
+                        stream.write(tar.as_ref()).unwrap();
                     }
-
-                    stream.flush().unwrap();
+                    None => {}
                 }
-            })
-            .unwrap();
+
+                stream.flush().unwrap();
+            }
+        })
+        .unwrap();
     });
 
     receiver
