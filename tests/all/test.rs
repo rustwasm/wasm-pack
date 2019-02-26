@@ -178,7 +178,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
                 crate-type = ["cdylib"]
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
 
                 [dev-dependencies]
                 # no wasm-bindgen-test dep here!
@@ -218,10 +218,10 @@ fn renamed_crate_name_works() {
                 name = 'bar'
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
 
                 [dev-dependencies]
-                wasm-bindgen-test = "=0.2.21"
+                wasm-bindgen-test = "0.2"
             "#,
         )
         .file(
@@ -258,10 +258,10 @@ fn cdylib_not_required() {
                 authors = []
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "0.2"
 
                 [dev-dependencies]
-                wasm-bindgen-test = "=0.2.21"
+                wasm-bindgen-test = "0.2"
             "#,
         )
         .file(
@@ -293,7 +293,7 @@ fn cdylib_not_required() {
 }
 
 #[test]
-fn test_output_is_printed_once() {
+fn test_output_is_printed_once_in_both_stdout_and_failures() {
     let fixture = fixture::Fixture::new();
     fixture
         .readme()
@@ -322,6 +322,9 @@ fn test_output_is_printed_once() {
         )
         .install_local_wasm_bindgen();
     let _lock = fixture.lock();
+
+    // there will be only one log in stdout, and only one log in failures
+    let log_cnt = 1;
     fixture
         .wasm_pack()
         .arg("test")
@@ -329,6 +332,8 @@ fn test_output_is_printed_once() {
         .assert()
         .failure()
         .stderr(predicate::function(|err: &str| {
-            err.matches("YABBA DABBA DOO").count() == 1
+            // but the err string will capture both stdout and failures,
+            // so we will get a log that count twice
+            err.matches("YABBA DABBA DOO").count() == log_cnt * 2
         }));
 }

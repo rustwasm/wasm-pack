@@ -8,7 +8,7 @@ fn it_gets_wasm_bindgen_version() {
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path).unwrap();
     let lock = Lockfile::new(&data).unwrap();
-    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.21"),);
+    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.37"),);
 }
 
 #[test]
@@ -17,7 +17,7 @@ fn it_gets_wasm_bindgen_test_version() {
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path).unwrap();
     let lock = Lockfile::new(&data).unwrap();
-    assert_eq!(lock.wasm_bindgen_test_version(), Some("0.2.21"),);
+    assert_eq!(lock.wasm_bindgen_test_version(), Some("0.2.37"),);
 }
 
 #[test]
@@ -46,7 +46,7 @@ fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
                 crate-type = ["cdylib"]
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "=0.2.37"
             "#,
         )
         .file(
@@ -62,7 +62,7 @@ fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path.join("blah")).unwrap();
     let lock = Lockfile::new(&data).unwrap();
-    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.21"),);
+    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.37"),);
 }
 
 #[test]
@@ -91,7 +91,7 @@ fn it_gets_wasm_bindgen_version_from_dependencies() {
                 crate-type = ["cdylib"]
 
                 [dependencies]
-                wasm-bindgen = "=0.2.21"
+                wasm-bindgen = "=0.2.37"
             "#,
         )
         .file(
@@ -130,5 +130,5 @@ fn it_gets_wasm_bindgen_version_from_dependencies() {
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path.join("parent")).unwrap();
     let lock = Lockfile::new(&data).unwrap();
-    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.21"),);
+    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.37"),);
 }
