@@ -14,7 +14,6 @@ use cargo_metadata::Metadata;
 use command::build::{BuildProfile, Target};
 use emoji;
 use failure::{Error, ResultExt};
-use progressbar::Step;
 use serde::{self, Deserialize};
 use serde_json;
 use std::collections::BTreeSet;
@@ -312,9 +311,7 @@ impl CrateData {
     }
 
     /// Check that the crate the given path is properly configured.
-    pub fn check_crate_config(&self, step: &Step) -> Result<(), Error> {
-        let msg = format!("{}Checking crate configuration...", emoji::WRENCH);
-        PBAR.step(&step, &msg);
+    pub fn check_crate_config(&self) -> Result<(), Error> {
         self.check_crate_type()?;
         Ok(())
     }
@@ -378,11 +375,7 @@ impl CrateData {
         scope: &Option<String>,
         disable_dts: bool,
         target: &Target,
-        step: &Step,
     ) -> Result<(), Error> {
-        let msg = format!("{}Writing a package.json...", emoji::MEMO);
-
-        PBAR.step(step, &msg);
         let pkg_file_path = out_dir.join("package.json");
         let npm_data = match target {
             Target::Nodejs => self.to_commonjs(scope, disable_dts, out_dir),

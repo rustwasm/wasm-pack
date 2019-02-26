@@ -81,7 +81,7 @@ impl Step {
 
 impl fmt::Display for Step {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "[{}/{}]", self.current, self.total)
+        write!(f, "{}", emoji::INFO)
     }
 }
 

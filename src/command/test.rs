@@ -7,7 +7,6 @@ use build;
 use cache;
 use command::utils::set_crate_path;
 use console::style;
-use emoji;
 use failure::Error;
 use lockfile::Lockfile;
 use log::info;
@@ -16,7 +15,6 @@ use progressbar::Step;
 use std::path::PathBuf;
 use std::time::Instant;
 use test::{self, webdriver};
-use PBAR;
 
 #[derive(Debug, Default, StructOpt)]
 /// Everything required to configure the `wasm-pack test` command.
@@ -232,9 +230,9 @@ impl Test {
         }
     }
 
-    fn step_check_rustc_version(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_check_rustc_version(&mut self, _step: &Step) -> Result<(), Error> {
         info!("Checking rustc version...");
-        let _ = build::check_rustc_version(step)?;
+        let _ = build::check_rustc_version()?;
         info!("Rustc version is correct.");
         Ok(())
     }
@@ -246,11 +244,8 @@ impl Test {
         Ok(())
     }
 
-    fn step_build_tests(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_build_tests(&mut self, _step: &Step) -> Result<(), Error> {
         info!("Compiling tests to wasm...");
-
-        let msg = format!("{}Compiling tests to Wasm...", emoji::CYCLONE);
-        PBAR.step(step, &msg);
 
         build::cargo_build_wasm_tests(&self.crate_path, !self.release)?;
 
@@ -301,10 +296,9 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_node(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_test_node(&mut self, _step: &Step) -> Result<(), Error> {
         assert!(self.node);
         info!("Running tests in node...");
-        PBAR.step(step, "Running tests in node...");
         test::cargo_test_wasm(
             &self.crate_path,
             self.release,
@@ -319,19 +313,17 @@ impl Test {
     }
 
     fn step_get_chromedriver(&mut self, step: &Step) -> Result<(), Error> {
-        PBAR.step(step, "Getting chromedriver...");
         assert!(self.chrome && self.chromedriver.is_none());
 
         self.chromedriver = Some(webdriver::get_or_install_chromedriver(
             &self.cache,
             self.mode,
+            step,
         )?);
         Ok(())
     }
 
-    fn step_test_chrome(&mut self, step: &Step) -> Result<(), Error> {
-        PBAR.step(step, "Running tests in Chrome...");
-
+    fn step_test_chrome(&mut self, _step: &Step) -> Result<(), Error> {
         let chromedriver = self.chromedriver.as_ref().unwrap().display().to_string();
         let chromedriver = chromedriver.as_str();
         info!(
@@ -361,19 +353,17 @@ impl Test {
     }
 
     fn step_get_geckodriver(&mut self, step: &Step) -> Result<(), Error> {
-        PBAR.step(step, "Getting geckodriver...");
         assert!(self.firefox && self.geckodriver.is_none());
 
         self.geckodriver = Some(webdriver::get_or_install_geckodriver(
             &self.cache,
             self.mode,
+            step,
         )?);
         Ok(())
     }
 
-    fn step_test_firefox(&mut self, step: &Step) -> Result<(), Error> {
-        PBAR.step(step, "Running tests in Firefox...");
-
+    fn step_test_firefox(&mut self, _step: &Step) -> Result<(), Error> {
         let geckodriver = self.geckodriver.as_ref().unwrap().display().to_string();
         let geckodriver = geckodriver.as_str();
         info!(
@@ -402,17 +392,14 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_safaridriver(&mut self, step: &Step) -> Result<(), Error> {
-        PBAR.step(step, "Getting safaridriver...");
+    fn step_get_safaridriver(&mut self, _step: &Step) -> Result<(), Error> {
         assert!(self.safari && self.safaridriver.is_none());
 
         self.safaridriver = Some(webdriver::get_safaridriver()?);
         Ok(())
     }
 
-    fn step_test_safari(&mut self, step: &Step) -> Result<(), Error> {
-        PBAR.step(step, "Running tests in Safari...");
-
+    fn step_test_safari(&mut self, _step: &Step) -> Result<(), Error> {
         let safaridriver = self.safaridriver.as_ref().unwrap().display().to_string();
         let safaridriver = safaridriver.as_str();
         info!(

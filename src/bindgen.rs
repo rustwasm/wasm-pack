@@ -178,11 +178,7 @@ pub fn wasm_bindgen_build(
     disable_dts: bool,
     target: &Target,
     profile: BuildProfile,
-    step: &Step,
 ) -> Result<(), failure::Error> {
-    let msg = format!("{}Running wasm-bindgen...", emoji::RUNNER);
-    PBAR.step(step, &msg);
-
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
         BuildProfile::Dev => "debug",

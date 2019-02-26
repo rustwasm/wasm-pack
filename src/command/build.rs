@@ -297,17 +297,17 @@ impl Build {
         }
     }
 
-    fn step_check_rustc_version(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_check_rustc_version(&mut self, _step: &Step) -> Result<(), Error> {
         info!("Checking rustc version...");
-        let version = build::check_rustc_version(step)?;
+        let version = build::check_rustc_version()?;
         let msg = format!("rustc version is {}.", version);
         info!("{}", &msg);
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_check_crate_config(&mut self, _step: &Step) -> Result<(), Error> {
         info!("Checking crate configuration...");
-        self.crate_data.check_crate_config(step)?;
+        self.crate_data.check_crate_config()?;
         info!("Crate is correctly configured.");
         Ok(())
     }
@@ -319,9 +319,9 @@ impl Build {
         Ok(())
     }
 
-    fn step_build_wasm(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_build_wasm(&mut self, _step: &Step) -> Result<(), Error> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, step, &self.extra_options)?;
+        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
 
         info!(
             "wasm built at {:#?}.",
@@ -334,21 +334,19 @@ impl Build {
         Ok(())
     }
 
-    fn step_create_dir(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_create_dir(&mut self, _step: &Step) -> Result<(), Error> {
         info!("Creating a pkg directory...");
-        create_pkg_dir(&self.out_dir, step)?;
+        create_pkg_dir(&self.out_dir)?;
         info!("Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }
 
-    fn step_create_json(&mut self, step: &Step) -> Result<(), Error> {
-        info!("Writing a package.json...");
+    fn step_create_json(&mut self, _step: &Step) -> Result<(), Error> {
         self.crate_data.write_package_json(
             &self.out_dir,
             &self.scope,
             self.disable_dts,
             &self.target,
-            step,
         )?;
         info!(
             "Wrote a package.json at {:#?}.",
@@ -357,16 +355,16 @@ impl Build {
         Ok(())
     }
 
-    fn step_copy_readme(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_copy_readme(&mut self, _step: &Step) -> Result<(), Error> {
         info!("Copying readme from crate...");
-        readme::copy_from_crate(&self.crate_path, &self.out_dir, step)?;
+        readme::copy_from_crate(&self.crate_path, &self.out_dir)?;
         info!("Copied readme from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_copy_license(&mut self, step: &Step) -> Result<(), failure::Error> {
+    fn step_copy_license(&mut self, _step: &Step) -> Result<(), failure::Error> {
         info!("Copying license from crate...");
-        license::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir, step)?;
+        license::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir)?;
         info!("Copied license from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
@@ -388,7 +386,7 @@ impl Build {
         Ok(())
     }
 
-    fn step_run_wasm_bindgen(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_run_wasm_bindgen(&mut self, _step: &Step) -> Result<(), Error> {
         info!("Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_data,
@@ -397,7 +395,6 @@ impl Build {
             self.disable_dts,
             &self.target,
             self.profile,
-            step,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())
