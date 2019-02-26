@@ -52,7 +52,7 @@ fn rustc_minor_version() -> Option<u32> {
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
 /// current toolchain
 pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
-    let msg = format!("{}Adding WASM target...", emoji::TARGET);
+    let msg = format!("{}Adding the Wasm target...", emoji::TARGET);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("rustup");
     cmd.arg("target").arg("add").arg("wasm32-unknown-unknown");
@@ -67,7 +67,7 @@ pub fn cargo_build_wasm(
     step: &Step,
     extra_options: &Vec<String>,
 ) -> Result<(), Error> {
-    let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
+    let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
