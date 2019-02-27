@@ -17,8 +17,8 @@ fn it_copies_a_license_default_path() {
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir, &step).is_ok());
 
-    let crate_license_path = fixture.path.join("LICENSE-WTFPL");
-    let pkg_license_path = out_dir.join("LICENSE-WTFPL");
+    let crate_license_path = fixture.path.join("LICENSE");
+    let pkg_license_path = out_dir.join("LICENSE");
     println!(
         "wasm-pack: should have copied LICENSE from '{}' to '{}'",
         crate_license_path.display(),
@@ -42,10 +42,10 @@ fn it_copies_a_license_provided_path() {
 
     let step = wasm_pack::progressbar::Step::new(1);
     assert!(license::copy_from_crate(&crate_data.unwrap(), &fixture.path, &out_dir, &step).is_ok());
-    let crate_license_path = fixture.path.join("LICENSE-WTFPL");
-    let pkg_license_path = out_dir.join("LICENSE-WTFPL");
+    let crate_license_path = fixture.path.join("LICENSE");
+    let pkg_license_path = out_dir.join("LICENSE");
     println!(
-        "wasm-pack: should have copied LICENSE-WTFPL from '{}' to '{}'",
+        "wasm-pack: should have copied LICENSE from '{}' to '{}'",
         crate_license_path.display(),
         pkg_license_path.display()
     );

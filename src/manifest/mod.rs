@@ -430,17 +430,13 @@ impl CrateData {
             None
         };
 
-        let readme_file = out_dir.join("README.md");
-        if readme_file.is_file() {
-            files.push("README.md".to_string());
-        }
-
         if let Ok(entries) = fs::read_dir(out_dir) {
             let file_names = entries
                 .filter_map(|e| e.ok())
                 .filter(|e| e.metadata().map(|m| m.is_file()).unwrap_or(false))
                 .filter_map(|e| e.file_name().into_string().ok())
-                .filter(|f| f.starts_with("LICENSE"));
+                .filter(|f| f.starts_with("LICENSE"))
+                .filter(|f| f != "LICENSE");
             for file_name in file_names {
                 files.push(file_name);
             }
