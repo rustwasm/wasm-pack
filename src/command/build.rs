@@ -319,9 +319,9 @@ impl Build {
         Ok(())
     }
 
-    fn step_build_wasm(&mut self, _step: &Step) -> Result<(), Error> {
+    fn step_build_wasm(&mut self, step: &Step) -> Result<(), Error> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
+        build::cargo_build_wasm(&self.crate_path, self.profile, step, &self.extra_options)?;
 
         info!(
             "wasm built at {:#?}.",

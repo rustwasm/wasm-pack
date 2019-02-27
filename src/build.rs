@@ -74,8 +74,11 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
 pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
+    step: &Step,
     extra_options: &Vec<String>,
 ) -> Result<(), Error> {
+    let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
+    PBAR.step(step, &msg);
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
     match profile {
