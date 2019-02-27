@@ -27,8 +27,7 @@ fn it_checks_has_cdylib_default_path() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(crate_data.check_crate_config(&step).is_err());
+    assert!(crate_data.check_crate_config().is_err());
 }
 
 #[test]
@@ -37,16 +36,14 @@ fn it_checks_has_cdylib_provided_path() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    crate_data.check_crate_config(&step).unwrap();
+    crate_data.check_crate_config().unwrap();
 }
 
 #[test]
 fn it_checks_has_cdylib_wrong_crate_type() {
     let fixture = fixture::bad_cargo_toml();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(crate_data.check_crate_config(&step).is_err());
+    assert!(crate_data.check_crate_config().is_err());
 }
 
 #[test]
@@ -55,8 +52,7 @@ fn it_recognizes_a_map_during_depcheck() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    crate_data.check_crate_config(&step).unwrap();
+    crate_data.check_crate_config().unwrap();
 }
 
 #[test]
@@ -64,10 +60,9 @@ fn it_creates_a_package_json_default_path() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, &Target::Bundler, &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -100,10 +95,9 @@ fn it_creates_a_package_json_provided_path() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, &Target::Bundler, &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -129,15 +123,13 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(
             &out_dir,
             &Some("test".to_string()),
             false,
             &Target::Bundler,
-            &step
         )
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
@@ -164,10 +156,9 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, &Target::Nodejs, &step)
+        .write_package_json(&out_dir, &None, false, &Target::Nodejs)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -200,10 +191,9 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, &Target::NoModules, &step)
+        .write_package_json(&out_dir, &None, false, &Target::NoModules)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -235,10 +225,9 @@ fn it_creates_a_pkg_json_in_out_dir() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("./custom/out");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, &Target::Bundler, &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
         .is_ok());
 
     let package_json_path = &fixture.path.join(&out_dir).join("package.json");
@@ -251,10 +240,9 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, true, &Target::Bundler, &step)
+        .write_package_json(&out_dir, &None, true, &Target::Bundler)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -280,8 +268,7 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
 fn it_errors_when_wasm_bindgen_is_not_declared() {
     let fixture = fixture::bad_cargo_toml();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(crate_data.check_crate_config(&step).is_err());
+    assert!(crate_data.check_crate_config().is_err());
 }
 
 #[test]
@@ -314,10 +301,9 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
 
-    let step = wasm_pack::progressbar::Step::new(2);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     crate_data
-        .write_package_json(&out_dir, &None, true, &Target::Bundler, &step)
+        .write_package_json(&out_dir, &None, true, &Target::Bundler)
         .unwrap();
 
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
@@ -331,10 +317,9 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
 
-    let step = wasm_pack::progressbar::Step::new(2);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     crate_data
-        .write_package_json(&out_dir, &None, true, &Target::Bundler, &step)
+        .write_package_json(&out_dir, &None, true, &Target::Bundler)
         .unwrap();
 
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
@@ -347,8 +332,7 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    crate_data.check_crate_config(&step).unwrap();
+    crate_data.check_crate_config().unwrap();
 }
 
 #[test]
@@ -433,11 +417,10 @@ fn it_lists_license_files_in_files_field_of_package_json() {
 
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
 
-    let step = wasm_pack::progressbar::Step::new(3);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    license::copy_from_crate(&crate_data, &fixture.path, &out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
+    license::copy_from_crate(&crate_data, &fixture.path, &out_dir).unwrap();
     crate_data
-        .write_package_json(&out_dir, &None, false, &Target::Bundler, &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
         .unwrap();
 
     let package_json_path = &fixture.path.join("pkg").join("package.json");
