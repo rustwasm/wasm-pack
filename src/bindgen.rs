@@ -180,7 +180,7 @@ pub fn wasm_bindgen_build(
     profile: BuildProfile,
     step: &Step,
 ) -> Result<(), failure::Error> {
-    let msg = format!("{}Running WASM-bindgen...", emoji::RUNNER);
+    let msg = format!("{}Running wasm-bindgen...", emoji::RUNNER);
     PBAR.step(step, &msg);
 
     let release_or_debug = match profile {
