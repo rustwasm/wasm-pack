@@ -67,6 +67,16 @@ impl Fixture {
         )
     }
 
+    /// Add `LICENSE` file to the fixture.
+    pub fn license(&self) -> &Self {
+        self.file(
+            "LICENSE",
+            r#"
+                I'm a license!
+            "#,
+        )
+    }
+
     /// Add `WTFPL LICENSE` file to the fixture.
     pub fn wtfpl_license(&self) -> &Self {
         self.file(
@@ -662,7 +672,7 @@ pub fn single_license() -> Fixture {
     fixture
         .readme()
         .cargo_toml("single_license")
-        .wtfpl_license()
+        .license()
         .hello_world_src_lib();
     fixture
 }

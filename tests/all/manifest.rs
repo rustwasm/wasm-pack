@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
 use utils::{self, fixture};
-use wasm_pack::{self, license, manifest, readme};
+use wasm_pack::{self, license, manifest};
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
@@ -446,36 +446,6 @@ fn it_lists_license_files_in_files_field_of_package_json() {
     assert!(
         pkg.files.contains(&"LICENSE-MIT".to_string()),
         "LICENSE-MIT is not in files: {:?}",
-        pkg.files,
-    );
-}
-
-#[test]
-fn it_lists_readme_in_files_field_of_package_json() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
-        .readme()
-        .hello_world_src_lib()
-        .cargo_toml("readme-test-for-package-json");
-
-    let out_dir = fixture.path.join("pkg");
-
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-
-    let step = wasm_pack::progressbar::Step::new(3);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    readme::copy_from_crate(&fixture.path, &out_dir, &step).unwrap();
-    crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
-        .unwrap();
-
-    let package_json_path = &fixture.path.join("pkg").join("package.json");
-    fs::metadata(package_json_path).unwrap();
-    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
-
-    assert!(
-        pkg.files.contains(&"README.md".to_string()),
-        "README.md is not in files: {:?}",
         pkg.files,
     );
 }
