@@ -52,7 +52,8 @@ fn rustc_minor_version() -> Option<u32> {
 pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
     let mut cmd = Command::new("rustc");
     cmd.arg("--print").arg("sysroot");
-    let output = child::run(cmd, "rustc").context("Learning about rustc's sysroot")?;
+    let output =
+        child::run_capture_stdout(cmd, "rustc").context("Learning about rustc's sysroot")?;
     let sysroot = Path::new(output.trim());
 
     // If this exists then we for sure have a wasm32 target so there's no need

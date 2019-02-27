@@ -231,7 +231,7 @@ pub fn wasm_bindgen_build(
 fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str) -> bool {
     let mut cmd = Command::new(bindgen_path);
     cmd.arg("--version");
-    child::run(cmd, "wasm-bindgen")
+    child::run_capture_stdout(cmd, "wasm-bindgen")
         .map(|stdout| {
             stdout
                 .trim()
