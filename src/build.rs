@@ -4,7 +4,6 @@ use child;
 use command::build::BuildProfile;
 use emoji;
 use failure::{Error, ResultExt};
-use progressbar::Step;
 use std::path::Path;
 use std::process::Command;
 use std::str;
@@ -49,7 +48,7 @@ fn rustc_minor_version() -> Option<u32> {
 
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
 /// current toolchain
-pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
+pub fn rustup_add_wasm_target() -> Result<(), Error> {
     let mut cmd = Command::new("rustc");
     cmd.arg("--print").arg("sysroot");
     let output =
@@ -64,7 +63,7 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
 
     // ... otherwise fall back to rustup to add the target
     let msg = format!("{}Adding Wasm target...", emoji::TARGET);
-    PBAR.step(step, &msg);
+    PBAR.step(&msg);
     let mut cmd = Command::new("rustup");
     cmd.arg("target").arg("add").arg("wasm32-unknown-unknown");
     child::run(cmd, "rustup").context("Adding the wasm32-unknown-unknown target with rustup")?;
@@ -75,11 +74,10 @@ pub fn rustup_add_wasm_target(step: &Step) -> Result<(), Error> {
 pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
-    step: &Step,
     extra_options: &Vec<String>,
 ) -> Result<(), Error> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
-    PBAR.step(step, &msg);
+    PBAR.step(&msg);
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
     match profile {

@@ -11,7 +11,6 @@ use failure::Error;
 use lockfile::Lockfile;
 use log::info;
 use manifest;
-use progressbar::Step;
 use std::path::PathBuf;
 use std::time::Instant;
 use test::{self, webdriver};
@@ -100,7 +99,7 @@ pub struct Test {
     extra_options: Vec<String>,
 }
 
-type TestStep = fn(&mut Test, &Step) -> Result<(), Error>;
+type TestStep = fn(&mut Test) -> Result<(), Error>;
 
 impl Test {
     /// Construct a test command from the given options.
@@ -162,12 +161,10 @@ impl Test {
     /// Execute this test command.
     pub fn run(mut self) -> Result<(), Error> {
         let process_steps = self.get_process_steps();
-        let mut step_counter = Step::new(process_steps.len());
 
         let started = Instant::now();
         for (_, process_step) in process_steps {
-            process_step(&mut self, &step_counter)?;
-            step_counter.inc();
+            process_step(&mut self)?;
         }
         let duration = crate::command::utils::elapsed(started.elapsed());
         info!("Done in {}.", &duration);
@@ -230,21 +227,21 @@ impl Test {
         }
     }
 
-    fn step_check_rustc_version(&mut self, _step: &Step) -> Result<(), Error> {
+    fn step_check_rustc_version(&mut self) -> Result<(), Error> {
         info!("Checking rustc version...");
         let _ = build::check_rustc_version()?;
         info!("Rustc version is correct.");
         Ok(())
     }
 
-    fn step_add_wasm_target(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_add_wasm_target(&mut self) -> Result<(), Error> {
         info!("Adding wasm-target...");
-        build::rustup_add_wasm_target(step)?;
+        build::rustup_add_wasm_target()?;
         info!("Adding wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_tests(&mut self, _step: &Step) -> Result<(), Error> {
+    fn step_build_tests(&mut self) -> Result<(), Error> {
         info!("Compiling tests to wasm...");
 
         build::cargo_build_wasm_tests(&self.crate_path, !self.release)?;
@@ -253,7 +250,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_install_wasm_bindgen(&mut self) -> Result<(), Error> {
         info!("Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
@@ -288,7 +285,7 @@ impl Test {
         };
 
         let dl =
-            bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted, step)?;
+            bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted)?;
 
         self.test_runner_path = Some(dl.binary("wasm-bindgen-test-runner")?);
 
@@ -296,7 +293,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_node(&mut self, _step: &Step) -> Result<(), Error> {
+    fn step_test_node(&mut self) -> Result<(), Error> {
         assert!(self.node);
         info!("Running tests in node...");
         test::cargo_test_wasm(
@@ -312,18 +309,17 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_chromedriver(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_get_chromedriver(&mut self) -> Result<(), Error> {
         assert!(self.chrome && self.chromedriver.is_none());
 
         self.chromedriver = Some(webdriver::get_or_install_chromedriver(
             &self.cache,
             self.mode,
-            step,
         )?);
         Ok(())
     }
 
-    fn step_test_chrome(&mut self, _step: &Step) -> Result<(), Error> {
+    fn step_test_chrome(&mut self) -> Result<(), Error> {
         let chromedriver = self.chromedriver.as_ref().unwrap().display().to_string();
         let chromedriver = chromedriver.as_str();
         info!(
@@ -352,18 +348,17 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_geckodriver(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_get_geckodriver(&mut self) -> Result<(), Error> {
         assert!(self.firefox && self.geckodriver.is_none());
 
         self.geckodriver = Some(webdriver::get_or_install_geckodriver(
             &self.cache,
             self.mode,
-            step,
         )?);
         Ok(())
     }
 
-    fn step_test_firefox(&mut self, _step: &Step) -> Result<(), Error> {
+    fn step_test_firefox(&mut self) -> Result<(), Error> {
         let geckodriver = self.geckodriver.as_ref().unwrap().display().to_string();
         let geckodriver = geckodriver.as_str();
         info!(
@@ -392,14 +387,14 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_safaridriver(&mut self, _step: &Step) -> Result<(), Error> {
+    fn step_get_safaridriver(&mut self) -> Result<(), Error> {
         assert!(self.safari && self.safaridriver.is_none());
 
         self.safaridriver = Some(webdriver::get_safaridriver()?);
         Ok(())
     }
 
-    fn step_test_safari(&mut self, _step: &Step) -> Result<(), Error> {
+    fn step_test_safari(&mut self) -> Result<(), Error> {
         let safaridriver = self.safaridriver.as_ref().unwrap().display().to_string();
         let safaridriver = safaridriver.as_str();
         info!(

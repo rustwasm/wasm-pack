@@ -245,11 +245,10 @@ impl Fixture {
         let cache = self.cache();
 
         // like above for synchronization
-        let step = wasm_pack::progressbar::Step::new(1);
         FETCH_GECKODRIVER.call_once(|| {
-            wasm_pack::test::webdriver::install_geckodriver(&cache, true, &step).unwrap();
+            wasm_pack::test::webdriver::install_geckodriver(&cache, true).unwrap();
         });
-        wasm_pack::test::webdriver::install_geckodriver(&cache, true, &step).unwrap()
+        wasm_pack::test::webdriver::install_geckodriver(&cache, true).unwrap()
     }
 
     /// Download `chromedriver` and return its path.
@@ -261,11 +260,10 @@ impl Fixture {
         let cache = self.cache();
 
         // like above for synchronization
-        let step = wasm_pack::progressbar::Step::new(1);
         FETCH_CHROMEDRIVER.call_once(|| {
-            wasm_pack::test::webdriver::install_chromedriver(&cache, true, &step).unwrap();
+            wasm_pack::test::webdriver::install_chromedriver(&cache, true).unwrap();
         });
-        wasm_pack::test::webdriver::install_chromedriver(&cache, true, &step).unwrap()
+        wasm_pack::test::webdriver::install_chromedriver(&cache, true).unwrap()
     }
 
     pub fn cache_dir(&self) -> PathBuf {

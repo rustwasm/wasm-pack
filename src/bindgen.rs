@@ -8,7 +8,6 @@ use failure::{self, ResultExt};
 use log::debug;
 use log::{info, warn};
 use manifest::CrateData;
-use progressbar::Step;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -27,7 +26,6 @@ pub fn install_wasm_bindgen(
     cache: &Cache,
     version: &str,
     install_permitted: bool,
-    step: &Step,
 ) -> Result<Download, failure::Error> {
     // If `wasm-bindgen` is installed globally and it has the right version, use
     // that. Assume that other tools are installed next to it.
@@ -42,7 +40,7 @@ pub fn install_wasm_bindgen(
     }
 
     let msg = format!("{}Installing wasm-bindgen...", emoji::DOWN_ARROW);
-    PBAR.step(step, &msg);
+    PBAR.step(&msg);
 
     let dl = download_prebuilt_wasm_bindgen(&cache, version, install_permitted);
     match dl {

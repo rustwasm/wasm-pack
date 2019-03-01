@@ -12,8 +12,7 @@ use wasm_pack::test::webdriver;
 fn can_install_chromedriver() {
     let fixture = fixture::js_hello_world();
     let cache = Cache::at(&fixture.path);
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(webdriver::install_chromedriver(&cache, true, &step).is_ok());
+    assert!(webdriver::install_chromedriver(&cache, true).is_ok());
 }
 
 #[test]
@@ -27,6 +26,5 @@ fn can_install_chromedriver() {
 fn can_install_geckodriver() {
     let fixture = fixture::js_hello_world();
     let cache = Cache::at(&fixture.path);
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(webdriver::install_geckodriver(&cache, true, &step).is_ok());
+    assert!(webdriver::install_geckodriver(&cache, true).is_ok());
 }
