@@ -12,7 +12,6 @@ use self::npm::{
 };
 use cargo_metadata::Metadata;
 use command::build::{BuildProfile, Target};
-use emoji;
 use failure::{Error, ResultExt};
 use serde::{self, Deserialize};
 use serde_json;

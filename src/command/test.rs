@@ -284,8 +284,7 @@ impl Test {
             }
         };
 
-        let dl =
-            bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted)?;
+        let dl = bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted)?;
 
         self.test_runner_path = Some(dl.binary("wasm-bindgen-test-runner")?);
 
