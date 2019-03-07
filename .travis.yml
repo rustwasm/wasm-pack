@@ -62,7 +62,7 @@ matrix:
     - (test -x $HOME/.cargo/bin/mdbook || cargo install --vers "^0.2" mdbook)
     - cargo install-update -a
     script:
-    - (cd docs && mdbook build)
+    - (cd docs && mv _theme theme && mdbook build)
     - rustc ./docs/_installer/build-installer.rs
     - ./build-installer
     deploy:
