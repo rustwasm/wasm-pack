@@ -26,7 +26,7 @@ pub struct Build {
     pub crate_data: manifest::CrateData,
     pub scope: Option<String>,
     pub disable_dts: bool,
-    pub target: String,
+    pub target: Target,
     pub profile: BuildProfile,
     pub mode: BuildMode,
     pub out_dir: PathBuf,
@@ -66,6 +66,44 @@ impl FromStr for BuildMode {
     }
 }
 
+/// What sort of output we're going to be generating and flags we're invoking
+/// `wasm-bindgen` with.
+#[derive(Clone, Copy, Debug)]
+pub enum Target {
+    /// Default output mode or `--target bundler`, indicates output will be
+    /// used with a bundle in a later step.
+    Bundler,
+    /// Correspond to `--target web` where the output is natively usable as an
+    /// ES module in a browser and the wasm is manually instantiated.
+    Web,
+    /// Correspond to `--target nodejs` where the output is natively usable as
+    /// a Node.js module loaded with `require`.
+    Nodejs,
+    /// Correspond to `--target no-modules` where the output is natively usable
+    /// in a browser but pollutes the global namespace and must be manually
+    /// instantiated.
+    NoModules,
+}
+
+impl Default for Target {
+    fn default() -> Target {
+        Target::Bundler
+    }
+}
+
+impl FromStr for Target {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self, Error> {
+        match s {
+            "bundler" | "browser" => Ok(Target::Bundler),
+            "web" => Ok(Target::Web),
+            "nodejs" => Ok(Target::Nodejs),
+            "no-modules" => Ok(Target::NoModules),
+            _ => bail!("Unknown target: {}", s),
+        }
+    }
+}
+
 /// The build profile controls whether optimizations, debug info, and assertions
 /// are enabled or disabled.
 #[derive(Clone, Copy, Debug)]
@@ -99,8 +137,8 @@ pub struct BuildOptions {
     pub disable_dts: bool,
 
     #[structopt(long = "target", short = "t", default_value = "browser")]
-    /// Sets the target environment. [possible values: browser, nodejs, no-modules]
-    pub target: String,
+    /// Sets the target environment. [possible values: browser, nodejs, web, no-modules]
+    pub target: Target,
 
     #[structopt(long = "debug")]
     /// Deprecated. Renamed to `--dev`.
@@ -133,9 +171,9 @@ impl Default for BuildOptions {
         Self {
             path: None,
             scope: None,
-            mode: BuildMode::Normal,
+            mode: BuildMode::default(),
             disable_dts: false,
-            target: String::new(),
+            target: Target::default(),
             debug: false,
             dev: false,
             release: false,
@@ -164,12 +202,6 @@ impl Build {
             // functionality yet, so we have to implement it ourselves.
             _ => bail!("Can only supply one of the --dev, --release, or --profiling flags"),
         };
-
-        // `possible_values` in clap isn't supported by `structopt`
-        let possible_targets = ["browser", "nodejs", "no-modules"];
-        if !possible_targets.contains(&build_opts.target.as_str()) {
-            bail!("Supported targets: browser, nodejs, no-modules");
-        }
 
         Ok(Build {
             crate_path,
