@@ -137,7 +137,12 @@ impl Fixture {
                     crate-type = ["cdylib"]
 
                     [dependencies]
-                    wasm-bindgen = "0.2"
+                    # Note that this uses and `=` dependency because there are
+                    # various tests which assert that the version of wasm
+                    # bindgen downloaded is what we expect, and if `=` is
+                    # removed then it will download whatever the newest version
+                    # of wasm-bindgen is which may not be what's listed here.
+                    wasm-bindgen = "=0.2.37"
 
                     [dev-dependencies]
                     wasm-bindgen-test = "0.2"
