@@ -11,7 +11,7 @@ use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
 use cargo_metadata::Metadata;
-use command::build::BuildProfile;
+use command::build::{BuildProfile, Target};
 use emoji;
 use failure::{Error, ResultExt};
 use progressbar::Step;
@@ -377,19 +377,18 @@ impl CrateData {
         out_dir: &Path,
         scope: &Option<String>,
         disable_dts: bool,
-        target: &str,
+        target: &Target,
         step: &Step,
     ) -> Result<(), Error> {
         let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
         PBAR.step(step, &msg);
         let pkg_file_path = out_dir.join("package.json");
-        let npm_data = if target == "nodejs" {
-            self.to_commonjs(scope, disable_dts, out_dir)
-        } else if target == "no-modules" {
-            self.to_nomodules(scope, disable_dts, out_dir)
-        } else {
-            self.to_esmodules(scope, disable_dts, out_dir)
+        let npm_data = match target {
+            Target::Nodejs => self.to_commonjs(scope, disable_dts, out_dir),
+            Target::NoModules => self.to_nomodules(scope, disable_dts, out_dir),
+            Target::Bundler => self.to_esmodules(scope, disable_dts, out_dir),
+            Target::Web => self.to_web(scope, disable_dts, out_dir),
         };
 
         let npm_json = serde_json::to_string_pretty(&npm_data)?;
@@ -494,6 +493,35 @@ impl CrateData {
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let pkg = &self.data.packages[self.current_idx];
+
+        self.check_optional_fields();
+
+        NpmPackage::ESModulesPackage(ESModulesPackage {
+            name: data.name,
+            collaborators: pkg.authors.clone(),
+            description: self.manifest.package.description.clone(),
+            version: pkg.version.clone(),
+            license: self.license(),
+            repository: self
+                .manifest
+                .package
+                .repository
+                .clone()
+                .map(|repo_url| Repository {
+                    ty: "git".to_string(),
+                    url: repo_url,
+                }),
+            files: data.files,
+            module: data.main,
+            homepage: data.homepage,
+            types: data.dts_file,
+            side_effects: "false".to_string(),
+        })
+    }
+
+    fn to_web(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 

@@ -47,20 +47,26 @@ The exact meaning of the profile flags may evolve as the platform matures.
 
 ## Target
 
-The `build` command accepts a `--target` argument. This will customize the output files
-to align with a particular type of JS module. This allows wasm-pack to generate either
-ES6 modules or CommonJS modules for use in browser and in NodeJS. Defaults to `browser`.
-The options are:
+The `build` command accepts a `--target` argument. This will customize the JS
+that is emitted and how the WebAssembly files are instantiated and loaded. For
+more documentation on the various strategies here, see the [documentation on
+using the compiled output][deploy].
 
 ```
 wasm-pack build --target nodejs
 ```
 
-| Option    | Description                                                                                                     |
-|-----------|-----------------------------------------------------------------------------------------------------------------|
-| `nodejs`  | Outputs JS that uses CommonJS modules, for use with a `require` statement. `main` key in `package.json`. |
-| `no-modules`  | Outputs JS that use no modules. `browser` key in `package.json`. |
-| `browser` | Outputs JS that uses ES6 modules, primarily for use with `import` statements and/or bundlers such as `webpack`. `module` key in `package.json`. `sideEffects: false` by default. |
+| Option    | Usage | Description                                                                                                     |
+|-----------|------------|-----------------------------------------------------------------------------------------------------|
+| *not specified* or `bundler` | [Bundler][bundlers] | Outputs JS that is suitable for interoperation with a Bundler like Webpack. You'll `import` the JS and the `module` key is specified in `package.json`. `sideEffects: false` is by default. |
+| `nodejs`  | [Node.js][deploy-nodejs] | Outputs JS that uses CommonJS modules, for use with a `require` statement. `main` key in `package.json`. |
+| `web` | [Native in browser][deploy-web] | Outputs JS that can be natively imported as an ES module in a browser, but the WebAssembly must be manually instantiated and loaded. |
+| `no-modules` | [Native in browser][deploy-web] | Same as `web`, except the JS is included on a page and modifies global state, and doesn't support as many `wasm-bindgen` features as `web` |
+
+[deploy]: https://rustwasm.github.io/docs/wasm-bindgen/reference/deployment.html
+[bundlers]: https://rustwasm.github.io/docs/wasm-bindgen/reference/deployment.html#bundlers
+[deploy-nodejs]: https://rustwasm.github.io/docs/wasm-bindgen/reference/deployment.html#nodejs
+[deploy-web]: https://rustwasm.github.io/docs/wasm-bindgen/reference/deployment.html#without-a-bundler
 
 ## Scope
 

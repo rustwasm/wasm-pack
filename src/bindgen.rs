@@ -2,7 +2,7 @@
 
 use binary_install::{Cache, Download};
 use child;
-use command::build::BuildProfile;
+use command::build::{BuildProfile, Target};
 use emoji;
 use failure::{self, ResultExt};
 use log::debug;
@@ -176,7 +176,7 @@ pub fn wasm_bindgen_build(
     bindgen: &Download,
     out_dir: &Path,
     disable_dts: bool,
-    target: &str,
+    target: &Target,
     profile: BuildProfile,
     step: &Step,
 ) -> Result<(), failure::Error> {
@@ -203,9 +203,10 @@ pub fn wasm_bindgen_build(
         "--typescript"
     };
     let target_arg = match target {
-        "nodejs" => "--nodejs",
-        "no-modules" => "--no-modules",
-        _ => "--browser",
+        Target::Nodejs => "--nodejs",
+        Target::NoModules => "--no-modules",
+        Target::Web => "--web",
+        Target::Bundler => "--browser",
     };
     let bindgen_path = bindgen.binary("wasm-bindgen")?;
     let mut cmd = Command::new(bindgen_path);
