@@ -1,5 +1,7 @@
 //! Reading and writing Cargo.toml and package.json manifests.
 
+#![allow(clippy::new_ret_no_self, clippy::needless_pass_by_value)]
+
 mod npm;
 
 use std::fs;
@@ -9,7 +11,7 @@ use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
 use cargo_metadata::Metadata;
-use command::build::BuildProfile;
+use command::build::{BuildProfile, Target};
 use emoji;
 use failure::{Error, ResultExt};
 use progressbar::Step;
@@ -20,7 +22,7 @@ use strsim::levenshtein;
 use toml;
 use PBAR;
 
-const WASM_PACK_METADATA_KEY: &'static str = "package.metadata.wasm-pack";
+const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
 
 /// Store for metadata learned about a crate
 pub struct CrateData {
@@ -148,7 +150,7 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_dev());
+        profile.update_with_defaults(&Self::default_dev());
         Ok(profile)
     }
 
@@ -157,7 +159,7 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_release());
+        profile.update_with_defaults(&Self::default_release());
         Ok(profile)
     }
 
@@ -166,11 +168,11 @@ impl CargoWasmPackProfile {
         D: serde::Deserializer<'de>,
     {
         let mut profile = <Option<Self>>::deserialize(deserializer)?.unwrap_or_default();
-        profile.update_with_defaults(Self::default_profiling());
+        profile.update_with_defaults(&Self::default_profiling());
         Ok(profile)
     }
 
-    fn update_with_defaults(&mut self, defaults: Self) {
+    fn update_with_defaults(&mut self, defaults: &Self) {
         macro_rules! d {
             ( $( $path:ident ).* ) => {
                 self. $( $path ).* .get_or_insert(defaults. $( $path ).* .unwrap());
@@ -252,7 +254,7 @@ impl CrateData {
             for e in errors[..errors.len() - 1].iter().rev() {
                 err = err.context(e.to_string()).into();
             }
-            return err;
+            err
         }
     }
 
@@ -375,19 +377,18 @@ impl CrateData {
         out_dir: &Path,
         scope: &Option<String>,
         disable_dts: bool,
-        target: &str,
+        target: &Target,
         step: &Step,
     ) -> Result<(), Error> {
         let msg = format!("{}Writing a package.json...", emoji::MEMO);
 
         PBAR.step(step, &msg);
         let pkg_file_path = out_dir.join("package.json");
-        let npm_data = if target == "nodejs" {
-            self.to_commonjs(scope, disable_dts, out_dir)
-        } else if target == "no-modules" {
-            self.to_nomodules(scope, disable_dts, out_dir)
-        } else {
-            self.to_esmodules(scope, disable_dts, out_dir)
+        let npm_data = match target {
+            Target::Nodejs => self.to_commonjs(scope, disable_dts, out_dir),
+            Target::NoModules => self.to_nomodules(scope, disable_dts, out_dir),
+            Target::Bundler => self.to_esmodules(scope, disable_dts, out_dir),
+            Target::Web => self.to_web(scope, disable_dts, out_dir),
         };
 
         let npm_json = serde_json::to_string_pretty(&npm_data)?;
@@ -428,17 +429,13 @@ impl CrateData {
             None
         };
 
-        let readme_file = out_dir.join("README.md");
-        if readme_file.is_file() {
-            files.push("README.md".to_string());
-        }
-
         if let Ok(entries) = fs::read_dir(out_dir) {
             let file_names = entries
                 .filter_map(|e| e.ok())
                 .filter(|e| e.metadata().map(|m| m.is_file()).unwrap_or(false))
                 .filter_map(|e| e.file_name().into_string().ok())
-                .filter(|f| f.starts_with("LICENSE"));
+                .filter(|f| f.starts_with("LICENSE"))
+                .filter(|f| f != "LICENSE");
             for file_name in file_names {
                 files.push(file_name);
             }
@@ -496,6 +493,35 @@ impl CrateData {
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let pkg = &self.data.packages[self.current_idx];
+
+        self.check_optional_fields();
+
+        NpmPackage::ESModulesPackage(ESModulesPackage {
+            name: data.name,
+            collaborators: pkg.authors.clone(),
+            description: self.manifest.package.description.clone(),
+            version: pkg.version.clone(),
+            license: self.license(),
+            repository: self
+                .manifest
+                .package
+                .repository
+                .clone()
+                .map(|repo_url| Repository {
+                    ty: "git".to_string(),
+                    url: repo_url,
+                }),
+            files: data.files,
+            module: data.main,
+            homepage: data.homepage,
+            types: data.dts_file,
+            side_effects: "false".to_string(),
+        })
+    }
+
+    fn to_web(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 

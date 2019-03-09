@@ -67,6 +67,16 @@ impl Fixture {
         )
     }
 
+    /// Add `LICENSE` file to the fixture.
+    pub fn license(&self) -> &Self {
+        self.file(
+            "LICENSE",
+            r#"
+                I'm a license!
+            "#,
+        )
+    }
+
     /// Add `WTFPL LICENSE` file to the fixture.
     pub fn wtfpl_license(&self) -> &Self {
         self.file(
@@ -127,10 +137,15 @@ impl Fixture {
                     crate-type = ["cdylib"]
 
                     [dependencies]
-                    wasm-bindgen = "=0.2.21"
+                    # Note that this uses and `=` dependency because there are
+                    # various tests which assert that the version of wasm
+                    # bindgen downloaded is what we expect, and if `=` is
+                    # removed then it will download whatever the newest version
+                    # of wasm-bindgen is which may not be what's listed here.
+                    wasm-bindgen = "=0.2.37"
 
                     [dev-dependencies]
-                    wasm-bindgen-test = "=0.2.21"
+                    wasm-bindgen-test = "0.2"
                 "#,
                 name
             ),
@@ -201,7 +216,7 @@ impl Fixture {
     pub fn install_local_wasm_bindgen(&self) -> PathBuf {
         static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
         let cache = self.cache();
-        let version = "0.2.21";
+        let version = "0.2.37";
 
         let download = || {
             if let Ok(download) =
@@ -351,10 +366,10 @@ pub fn no_cdylib() -> Fixture {
             # crate-type = ["cdylib"]
 
             [dependencies]
-            wasm-bindgen = "=0.2.21"
+            wasm-bindgen = "0.2"
 
             [dev-dependencies]
-            wasm-bindgen-test = "=0.2.21"
+            wasm-bindgen-test = "0.2"
         "#,
     );
     fixture
@@ -403,14 +418,14 @@ pub fn wbg_test_diff_versions() -> Fixture {
                 crate-type = ["cdylib", "rlib"]
 
                 [dependencies]
-                # We depend on wasm-bindgen 0.2.21
-                wasm-bindgen = "=0.2.21"
+                # We depend on the latest wasm-bindgen 0.2
+                wasm-bindgen = "0.2"
 
                 [dev-dependencies]
-                # And we depend on wasm-bindgen-test 0.2.19. This should still
-                # work, and we should end up with `wasm-bindgen` at 0.2.21 and
-                # wasm-bindgen-test at 0.2.19, and everything should still work.
-                wasm-bindgen-test = "0.2.19"
+                # And we depend on wasm-bindgen-test 0.2.29. This should still
+                # work, and we should end up with the latest `wasm-bindgen` and
+                # wasm-bindgen-test at 0.2.29, and everything should still work.
+                wasm-bindgen-test = "0.2.29"
             "#,
         )
         .file(
@@ -522,12 +537,12 @@ pub fn transitive_dependencies() -> Fixture {
             crate-type = ["cdylib"]
 
             [dependencies]
-            wasm-bindgen = "=0.2.21"
+            wasm-bindgen = "0.2"
             project_a = { path = "../project_a" }
             project_b = { path = "../project_b" }
 
             [dev-dependencies]
-            wasm-bindgen-test = "=0.2.21"
+            wasm-bindgen-test = "0.2"
         "#,
         );
         fixture.file(
@@ -572,11 +587,11 @@ pub fn transitive_dependencies() -> Fixture {
             crate-type = ["cdylib"]
 
             [dependencies]
-            wasm-bindgen = "=0.2.21"
+            wasm-bindgen = "0.2"
             project_b = { path = "../project_b" }
 
             [dev-dependencies]
-            wasm-bindgen-test = "=0.2.21"
+            wasm-bindgen-test = "0.2"
         "#,
         );
         fixture.file(
@@ -622,10 +637,10 @@ pub fn transitive_dependencies() -> Fixture {
             crate-type = ["cdylib"]
 
             [dependencies]
-            wasm-bindgen = "=0.2.21"
+            wasm-bindgen = "0.2"
 
             [dev-dependencies]
-            wasm-bindgen-test = "=0.2.21"
+            wasm-bindgen-test = "0.2"
         "#,
         );
         fixture.file(
@@ -662,7 +677,7 @@ pub fn single_license() -> Fixture {
     fixture
         .readme()
         .cargo_toml("single_license")
-        .wtfpl_license()
+        .license()
         .hello_world_src_lib();
     fixture
 }

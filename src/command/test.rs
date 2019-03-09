@@ -250,7 +250,7 @@ impl Test {
     fn step_build_tests(&mut self, step: &Step) -> Result<(), Error> {
         info!("Compiling tests to wasm...");
 
-        let msg = format!("{}Compiling tests to WASM...", emoji::CYCLONE);
+        let msg = format!("{}Compiling tests to Wasm...", emoji::CYCLONE);
         PBAR.step(step, &msg);
 
         build::cargo_build_wasm_tests(&self.crate_path, !self.release)?;

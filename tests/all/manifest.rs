@@ -3,7 +3,8 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
 use utils::{self, fixture};
-use wasm_pack::{self, license, manifest, readme};
+use wasm_pack::command::build::Target;
+use wasm_pack::{self, license, manifest};
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
@@ -66,7 +67,7 @@ fn it_creates_a_package_json_default_path() {
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler, &step)
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -102,7 +103,7 @@ fn it_creates_a_package_json_provided_path() {
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler, &step)
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -131,7 +132,13 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &Some("test".to_string()), false, "", &step)
+        .write_package_json(
+            &out_dir,
+            &Some("test".to_string()),
+            false,
+            &Target::Bundler,
+            &step
+        )
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -160,7 +167,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "nodejs", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Nodejs, &step)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -196,7 +203,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "no-modules", &step)
+        .write_package_json(&out_dir, &None, false, &Target::NoModules, &step)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -231,7 +238,7 @@ fn it_creates_a_pkg_json_in_out_dir() {
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler, &step)
         .is_ok());
 
     let package_json_path = &fixture.path.join(&out_dir).join("package.json");
@@ -247,7 +254,7 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     let step = wasm_pack::progressbar::Step::new(1);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, true, "", &step)
+        .write_package_json(&out_dir, &None, true, &Target::Bundler, &step)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -310,7 +317,7 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
     let step = wasm_pack::progressbar::Step::new(2);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     crate_data
-        .write_package_json(&out_dir, &None, true, "", &step)
+        .write_package_json(&out_dir, &None, true, &Target::Bundler, &step)
         .unwrap();
 
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
@@ -327,7 +334,7 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
     let step = wasm_pack::progressbar::Step::new(2);
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     crate_data
-        .write_package_json(&out_dir, &None, true, "", &step)
+        .write_package_json(&out_dir, &None, true, &Target::Bundler, &step)
         .unwrap();
 
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
@@ -430,7 +437,7 @@ fn it_lists_license_files_in_files_field_of_package_json() {
     wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
     license::copy_from_crate(&crate_data, &fixture.path, &out_dir, &step).unwrap();
     crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler, &step)
         .unwrap();
 
     let package_json_path = &fixture.path.join("pkg").join("package.json");
@@ -446,36 +453,6 @@ fn it_lists_license_files_in_files_field_of_package_json() {
     assert!(
         pkg.files.contains(&"LICENSE-MIT".to_string()),
         "LICENSE-MIT is not in files: {:?}",
-        pkg.files,
-    );
-}
-
-#[test]
-fn it_lists_readme_in_files_field_of_package_json() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
-        .readme()
-        .hello_world_src_lib()
-        .cargo_toml("readme-test-for-package-json");
-
-    let out_dir = fixture.path.join("pkg");
-
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-
-    let step = wasm_pack::progressbar::Step::new(3);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
-    readme::copy_from_crate(&fixture.path, &out_dir, &step).unwrap();
-    crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
-        .unwrap();
-
-    let package_json_path = &fixture.path.join("pkg").join("package.json");
-    fs::metadata(package_json_path).unwrap();
-    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
-
-    assert!(
-        pkg.files.contains(&"README.md".to_string()),
-        "README.md is not in files: {:?}",
         pkg.files,
     );
 }

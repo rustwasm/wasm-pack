@@ -2,7 +2,7 @@
 pub mod access;
 
 use self::access::Access;
-use command::build::{Build, BuildOptions};
+use command::build::{Build, BuildOptions, Target};
 use command::utils::{find_pkg_directory, set_crate_path};
 use dialoguer::{Confirmation, Input, Select};
 use failure::Error;
@@ -10,12 +10,13 @@ use log::info;
 use npm;
 use std::path::PathBuf;
 use std::result;
+use std::str::FromStr;
 use PBAR;
 
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry
 pub fn publish(
-    _target: String,
+    _target: &str,
     path: Option<PathBuf>,
     access: Option<Access>,
 ) -> result::Result<(), Error> {
@@ -45,6 +46,7 @@ pub fn publish(
                     .default(0)
                     .interact()?
                     .to_string();
+                let target = Target::from_str(&target)?;
                 let build_opts = BuildOptions {
                     path: Some(crate_path.clone()),
                     target,

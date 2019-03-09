@@ -90,7 +90,7 @@ pub enum Command {
 pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
-    let status = match command {
+    match command {
         Command::Build(build_opts) => {
             info!("Running build command...");
             Build::try_from_opts(build_opts).and_then(|mut b| b.run())
@@ -107,7 +107,7 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
         } => {
             info!("Running publish command...");
             info!("Path: {:?}", &path);
-            publish(target, path, access)
+            publish(&target, path, access)
         }
         Command::Login {
             registry,
@@ -120,14 +120,11 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
                 "Registry: {:?}, Scope: {:?}, Always Auth: {}, Auth Type: {:?}",
                 &registry, &scope, &always_auth, &auth_type
             );
-            login(registry, scope, always_auth, auth_type)
+            login(registry, &scope, always_auth, &auth_type)
         }
         Command::Test(test_opts) => {
             info!("Running test command...");
             Test::try_from_opts(test_opts).and_then(|t| t.run())
         }
-    };
-
-    // Return the actual status of the program to the main function
-    status
+    }
 }

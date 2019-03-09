@@ -23,8 +23,8 @@ pub fn copy_from_crate(path: &Path, out_dir: &Path, step: &Step) -> Result<(), f
     PBAR.step(step, &msg);
     let crate_readme_path = path.join("README.md");
     let new_readme_path = out_dir.join("README.md");
-    if let Err(_) = fs::copy(&crate_readme_path, &new_readme_path) {
+    if fs::copy(&crate_readme_path, &new_readme_path).is_err() {
         PBAR.warn("origin crate has no README");
-    };
+    }
     Ok(())
 }

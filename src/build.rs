@@ -125,7 +125,7 @@ fn rustup_add_wasm_target() -> Result<bool, Error> {
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
 /// current toolchain
 pub fn check_for_wasm32_target(step: &Step) -> Result<(), Error> {
-    let msg = format!("{}Checking for WASM target...", emoji::TARGET);
+    let msg = format!("{}Checking for the Wasm target...", emoji::TARGET);
     PBAR.step(step, &msg);
 
     // Check if wasm32 target is present, otherwise bail.
@@ -142,7 +142,7 @@ pub fn cargo_build_wasm(
     step: &Step,
     extra_options: &Vec<String>,
 ) -> Result<(), Error> {
-    let msg = format!("{}Compiling to WASM...", emoji::CYCLONE);
+    let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.step(step, &msg);
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
