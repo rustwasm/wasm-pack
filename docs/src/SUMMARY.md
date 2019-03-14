@@ -1,8 +1,7 @@
 # Summary
 
 - [Prerequisites](./prerequisites/index.md)
-  - [Rust](./prerequisites/rust.md)
-  - [npm](./prerequisites/npm.md)
+  - [npm (optional)](./prerequisites/npm.md)
 - [Project Setup](./project-setup/index.md)
   - [Using a Template](./project-setup/using-a-template.md)
   - [Manual Setup](./project-setup/manual-setup.md)
