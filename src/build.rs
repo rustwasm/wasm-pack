@@ -109,9 +109,9 @@ fn rustup_add_wasm_target() -> Result<(), Error> {
 
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
 /// current toolchain
-pub fn check_for_wasm32_target(step: &Step) -> Result<(), Error> {
+pub fn check_for_wasm32_target() -> Result<(), Error> {
     let msg = format!("{}Checking for the Wasm target...", emoji::TARGET);
-    PBAR.step(step, &msg);
+    PBAR.info(&msg);
 
     // Check if wasm32 target is present, otherwise bail.
     match check_wasm32_target() {

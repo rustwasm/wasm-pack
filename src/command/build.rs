@@ -310,7 +310,7 @@ impl Build {
 
     fn step_check_for_wasm_target(&mut self) -> Result<(), Error> {
         info!("Checking for wasm-target...");
-        build::check_for_wasm32_target(step)?;
+        build::check_for_wasm32_target()?;
         info!("Checking for wasm-target was successful.");
         Ok(())
     }
