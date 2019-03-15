@@ -5,16 +5,13 @@ use command::build::BuildProfile;
 use emoji;
 use failure::{Error, ResultExt};
 use log::info;
-use progressbar::Step;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
 use PBAR;
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
-pub fn check_rustc_version(step: &Step) -> Result<String, Error> {
-    let msg = format!("{}Checking `rustc` version...", emoji::CRAB);
-    PBAR.step(step, &msg);
+pub fn check_rustc_version() -> Result<String, Error> {
     let local_minor_version = rustc_minor_version();
     match local_minor_version {
         Some(mv) => {
@@ -128,11 +125,10 @@ pub fn check_for_wasm32_target(step: &Step) -> Result<(), Error> {
 pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
-    step: &Step,
     extra_options: &Vec<String>,
 ) -> Result<(), Error> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
-    PBAR.step(step, &msg);
+    PBAR.info(&msg);
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
     match profile {

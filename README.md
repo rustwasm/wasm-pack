@@ -32,8 +32,8 @@ This project requires Rust 1.30.0 or later.
 
 ## 🎙️ Commands
 
-- [`init` (⚠️ DEPRECATED)](https://rustwasm.github.io/wasm-pack/book/commands/init.html): This command has been deprecated since release `0.5.0`, in favor of `build`. `0.4.2` and previous use this command.
 - [`build`](https://rustwasm.github.io/wasm-pack/book/commands/build.html): Generate an npm wasm pkg from a rustwasm crate
+- [`test`](https://rustwasm.github.io/wasm-pack/book/commands/test.html): Run browser tests
 - [`pack` and `publish`](https://rustwasm.github.io/wasm-pack/book/commands/pack-and-publish.html): Create a tarball of your rustwasm pkg and/or publish to a registry
 
 ## 📝 Logging

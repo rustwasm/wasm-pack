@@ -8,7 +8,6 @@ use failure::{self, ResultExt};
 use log::debug;
 use log::{info, warn};
 use manifest::CrateData;
-use progressbar::Step;
 use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -27,7 +26,6 @@ pub fn install_wasm_bindgen(
     cache: &Cache,
     version: &str,
     install_permitted: bool,
-    step: &Step,
 ) -> Result<Download, failure::Error> {
     // If `wasm-bindgen` is installed globally and it has the right version, use
     // that. Assume that other tools are installed next to it.
@@ -42,7 +40,7 @@ pub fn install_wasm_bindgen(
     }
 
     let msg = format!("{}Installing wasm-bindgen...", emoji::DOWN_ARROW);
-    PBAR.step(step, &msg);
+    PBAR.info(&msg);
 
     let dl = download_prebuilt_wasm_bindgen(&cache, version, install_permitted);
     match dl {
@@ -178,11 +176,7 @@ pub fn wasm_bindgen_build(
     disable_dts: bool,
     target: &Target,
     profile: BuildProfile,
-    step: &Step,
 ) -> Result<(), failure::Error> {
-    let msg = format!("{}Running wasm-bindgen...", emoji::RUNNER);
-    PBAR.step(step, &msg);
-
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
         BuildProfile::Dev => "debug",
@@ -235,7 +229,7 @@ pub fn wasm_bindgen_build(
 fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str) -> bool {
     let mut cmd = Command::new(bindgen_path);
     cmd.arg("--version");
-    child::run(cmd, "wasm-bindgen")
+    child::run_capture_stdout(cmd, "wasm-bindgen")
         .map(|stdout| {
             stdout
                 .trim()

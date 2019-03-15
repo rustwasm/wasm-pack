@@ -331,9 +331,9 @@ fn test_output_is_printed_once_in_both_stdout_and_failures() {
         .arg("--node")
         .assert()
         .failure()
-        .stderr(predicate::function(|err: &str| {
-            // but the err string will capture both stdout and failures,
+        .stdout(predicate::function(|out: &str| {
+            // but the out string will capture both stdout and failures,
             // so we will get a log that count twice
-            err.matches("YABBA DABBA DOO").count() == log_cnt * 2
+            out.matches("YABBA DABBA DOO").count() == log_cnt * 2
         }));
 }

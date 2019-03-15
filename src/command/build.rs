@@ -7,12 +7,10 @@ use cache;
 use command::utils::{create_pkg_dir, set_crate_path};
 use emoji;
 use failure::Error;
-use indicatif::HumanDuration;
 use license;
 use lockfile::Lockfile;
 use log::info;
 use manifest;
-use progressbar::Step;
 use readme;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -184,7 +182,7 @@ impl Default for BuildOptions {
     }
 }
 
-type BuildStep = fn(&mut Build, &Step) -> Result<(), Error>;
+type BuildStep = fn(&mut Build) -> Result<(), Error>;
 
 impl Build {
     /// Construct a build command from the given options.
@@ -227,25 +225,22 @@ impl Build {
     pub fn run(&mut self) -> Result<(), Error> {
         let process_steps = Build::get_process_steps(self.mode);
 
-        let mut step_counter = Step::new(process_steps.len());
-
         let started = Instant::now();
 
         for (_, process_step) in process_steps {
-            process_step(self, &step_counter)?;
-            step_counter.inc();
+            process_step(self)?;
         }
 
-        let duration = HumanDuration(started.elapsed());
+        let duration = crate::command::utils::elapsed(started.elapsed());
         info!("Done in {}.", &duration);
         info!(
             "Your wasm pkg is ready to publish at {}.",
             self.out_dir.display()
         );
 
-        PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
+        PBAR.info(&format!("{} Done in {}", emoji::SPARKLE, &duration));
 
-        PBAR.message(&format!(
+        PBAR.info(&format!(
             "{} Your wasm pkg is ready to publish at {}.",
             emoji::PACKAGE,
             self.out_dir.display()
@@ -298,31 +293,31 @@ impl Build {
         }
     }
 
-    fn step_check_rustc_version(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_check_rustc_version(&mut self) -> Result<(), Error> {
         info!("Checking rustc version...");
-        let version = build::check_rustc_version(step)?;
+        let version = build::check_rustc_version()?;
         let msg = format!("rustc version is {}.", version);
         info!("{}", &msg);
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_check_crate_config(&mut self) -> Result<(), Error> {
         info!("Checking crate configuration...");
-        self.crate_data.check_crate_config(step)?;
+        self.crate_data.check_crate_config()?;
         info!("Crate is correctly configured.");
         Ok(())
     }
 
-    fn step_check_for_wasm_target(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_check_for_wasm_target(&mut self) -> Result<(), Error> {
         info!("Checking for wasm-target...");
         build::check_for_wasm32_target(step)?;
         info!("Checking for wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_wasm(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_build_wasm(&mut self) -> Result<(), Error> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, step, &self.extra_options)?;
+        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
 
         info!(
             "wasm built at {:#?}.",
@@ -335,21 +330,19 @@ impl Build {
         Ok(())
     }
 
-    fn step_create_dir(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_create_dir(&mut self) -> Result<(), Error> {
         info!("Creating a pkg directory...");
-        create_pkg_dir(&self.out_dir, step)?;
+        create_pkg_dir(&self.out_dir)?;
         info!("Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }
 
-    fn step_create_json(&mut self, step: &Step) -> Result<(), Error> {
-        info!("Writing a package.json...");
+    fn step_create_json(&mut self) -> Result<(), Error> {
         self.crate_data.write_package_json(
             &self.out_dir,
             &self.scope,
             self.disable_dts,
             &self.target,
-            step,
         )?;
         info!(
             "Wrote a package.json at {:#?}.",
@@ -358,21 +351,21 @@ impl Build {
         Ok(())
     }
 
-    fn step_copy_readme(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_copy_readme(&mut self) -> Result<(), Error> {
         info!("Copying readme from crate...");
-        readme::copy_from_crate(&self.crate_path, &self.out_dir, step)?;
+        readme::copy_from_crate(&self.crate_path, &self.out_dir)?;
         info!("Copied readme from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_copy_license(&mut self, step: &Step) -> Result<(), failure::Error> {
+    fn step_copy_license(&mut self) -> Result<(), failure::Error> {
         info!("Copying license from crate...");
-        license::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir, step)?;
+        license::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir)?;
         info!("Copied license from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self, step: &Step) -> Result<(), failure::Error> {
+    fn step_install_wasm_bindgen(&mut self) -> Result<(), failure::Error> {
         info!("Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
@@ -383,13 +376,13 @@ impl Build {
             BuildMode::Noinstall => false,
         };
         let bindgen =
-            bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted, step)?;
+            bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted)?;
         self.bindgen = Some(bindgen);
         info!("Installing wasm-bindgen-cli was successful.");
         Ok(())
     }
 
-    fn step_run_wasm_bindgen(&mut self, step: &Step) -> Result<(), Error> {
+    fn step_run_wasm_bindgen(&mut self) -> Result<(), Error> {
         info!("Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_data,
@@ -398,7 +391,6 @@ impl Build {
             self.disable_dts,
             &self.target,
             self.profile,
-            step,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())

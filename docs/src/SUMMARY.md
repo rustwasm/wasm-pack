@@ -1,14 +1,14 @@
 # Summary
 
 - [Prerequisites](./prerequisites/index.md)
-  - [Rust](./prerequisites/rust.md)
-  - [npm](./prerequisites/npm.md)
+  - [npm (optional)](./prerequisites/npm.md)
 - [Project Setup](./project-setup/index.md)
   - [Using a Template](./project-setup/using-a-template.md)
   - [Manual Setup](./project-setup/manual-setup.md)
 - [Commands](./commands/index.md)
   - [`init` (DEPRECATED)](./commands/init.md)
   - [`build`](./commands/build.md)
+  - [`test`](./commands/test.md)
   - [`pack` and `publish`](./commands/pack-and-publish.md)
 - [Tutorial](./tutorial/index.md)
   - [Getting Started](./tutorial/getting-started.md)

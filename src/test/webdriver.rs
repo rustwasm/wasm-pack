@@ -5,6 +5,25 @@ use command::build::BuildMode;
 use failure;
 use std::path::PathBuf;
 use target;
+use PBAR;
+
+fn get_and_notify(
+    cache: &Cache,
+    installation_allowed: bool,
+    name: &str,
+    url: &str,
+) -> Result<Option<PathBuf>, failure::Error> {
+    if let Some(dl) = cache.download(false, name, &[name], &url)? {
+        return Ok(Some(dl.binary(name)?));
+    }
+    if installation_allowed {
+        PBAR.info(&format!("Getting {}...", name));
+    }
+    match cache.download(installation_allowed, name, &[name], &url)? {
+        Some(dl) => Ok(Some(dl.binary(name)?)),
+        None => Ok(None),
+    }
+}
 
 /// Get the path to an existing `chromedriver`, or install it if no existing
 /// binary is found.
@@ -41,13 +60,8 @@ pub fn install_chromedriver(
         "https://chromedriver.storage.googleapis.com/2.46/chromedriver_{}.zip",
         target
     );
-    match cache.download(
-        installation_allowed,
-        "chromedriver",
-        &["chromedriver"],
-        &url,
-    )? {
-        Some(dl) => Ok(dl.binary("chromedriver")?),
+    match get_and_notify(cache, installation_allowed, "chromedriver", &url)? {
+        Some(path) => Ok(path),
         None => bail!(
             "No cached `chromedriver` binary found, and could not find a global \
              `chromedriver` on the `$PATH`. Not installing `chromedriver` because of noinstall \
@@ -96,8 +110,8 @@ pub fn install_geckodriver(
         target,
         ext,
     );
-    match cache.download(installation_allowed, "geckodriver", &["geckodriver"], &url)? {
-        Some(dl) => Ok(dl.binary("geckodriver")?),
+    match get_and_notify(cache, installation_allowed, "geckodriver", &url)? {
+        Some(path) => Ok(path),
         None => bail!(
             "No cached `geckodriver` binary found, and could not find a global `geckodriver` \
              on the `$PATH`. Not installing `geckodriver` because of noinstall mode."
