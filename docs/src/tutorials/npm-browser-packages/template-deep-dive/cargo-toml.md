@@ -1,7 +1,9 @@
 # Cargo.toml
 
-`Cargo.toml` is the manifest file for Rust's package manager, `cargo`. This file contains
+`Cargo.toml` is the manifest file for Rust's package manager, [`cargo`]. This file contains
 metadata such as name, version, and dependencies for packages, which are call "crates" in Rust.
+
+[`cargo`]: https://doc.rust-lang.org/cargo/
 
 There's a bunch of metadata that the template gives us, but there are three key parts to discuss:
 
@@ -40,10 +42,12 @@ You can read more about linking and crate types, [here](https://doc.rust-lang.or
 
 ## 2. `wasm-bindgen` dependency
 
-`wasm-bindgen` is our most important dependency. This package allows us to use the
+[`wasm-bindgen`] is our most important dependency. This package allows us to use the
 `#[wasm-bindgen]` attribute to tag code that represents the interface we want between
 our JavaScript and Rust-generated `wasm`. We can import JS and export Rust by using this
 attribute.
+
+[`wasm-bindgen`]: https://rustwasm.github.io/docs/wasm-bindgen/
 
 ```toml
 wasm-bindgen = "0.2"
@@ -53,9 +57,15 @@ We'll see more about how to use this library when we discuss what has been gener
 
 ⚠️ If you are coming from JavaScript, you might note that when we add the dependency
 there is no `^` or `~` symbol- it looks like we're locking to the `0.2` version. 
-However, that's not the case! In Rust, the `^` is implied.
+However, that's not the case! In Rust, the `^` is implied. You can read more about this in the
+[cargo documentation on specifying dependencies].
 
-## 3. `[features]` and `wee_alloc`, `console_error_panic_hook` dependencies
+[cargo documentation on specifying dependencies]: https://doc.rust-lang.org/cargo/reference/specifying-dependencies.html
+
+## 3. `[features]` and [`wee_alloc`], [`console_error_panic_hook`] dependencies
+
+[`wee_alloc`]: https://github.com/rustwasm/wee_alloc
+[`console_error_panic_hook`]: https://github.com/rustwasm/console_error_panic_hook
 
 As part of our effort to design a template that helps people discover useful crates
 for their particular use case, this template includes two dependencies that can be
@@ -95,8 +105,11 @@ use this crate later to optionally enable `console_error_panic_hook` or
 By default, only `console_error_panic_hook` is enabled. To disable either
 feature, we can remove its name from the `default` vector.
 
-To learn more about these features, we discuss them in-depth in the `src/lib.rs` and 
-`src/utils.rs` sections.
+To learn more about these features, we discuss them in-depth in the [`src/lib.rs`] and 
+[`src/utils.rs`] sections.
+
+[`src/lib.rs`]: src-lib-rs.html
+[`src/utils.rs`]: src-utils-rs.html
 
 Briefly, they include:
 

@@ -11,7 +11,7 @@ It contains three key parts:
 
 ---
 
-We'll start with the most important part of `lib.rs` -- the two `#[wasm_bindgen]` functions. In many cases, this is the only part of `lib.rs` you will need to modify.
+We'll start with the most important part of `lib.rs` -- the two `#[wasm_bindgen]` functions (which you can find at the bottom of the file). In many cases, this is the only part of `lib.rs` you will need to modify.
 
 ## 1. `#[wasm_bindgen]` functions
 
@@ -39,18 +39,14 @@ pub fn greet() {
 
 If we were to write the `greet` function without the `#[wasm_bindgen]` attribute, then `greet` would not be easily accessible within JavaScript. Furthermore, we wouldn't be able to natively convert certain types such as `&str` between JavaScript and Rust. So, both the `#[wasm_bindgen]` attribute and the prior import of `alert` allow `greet` to be called from JavaScript.
 
-This is all you need to know to interface with JavaScript! If you are curious about the rest, read on.
+This is all you need to know to interface with JavaScript, at least to start! You can learn a bunch more by reading the
+[`wasm-bindgen` documentation]!
+
+[`wasm-bindgen` documentation]: https://rustwasm.github.io/docs/wasm-bindgen/
+
+If you are curious about the rest, read on.
 
 ## 2. Crate imports
-
-```rust
-extern crate cfg_if;
-extern crate wasm_bindgen;
-```
-
-In `Cargo.toml`, we included the crates `cfg_if` and `wasm_bindgen` as project dependencies.
-
-Here, we explicitly declare that these crates will be used in `lib.rs`.
 
 ```rust
 mod utils;
@@ -70,7 +66,8 @@ Either way, the contents of `utils.rs` define a single public function `set_pani
 use cfg_if::cfg_if;
 ```
 
-`use` allows us to conveniently refer to parts of a crate or module. For example, suppose the crate `cfg_if` contains a function `func`. It is always possible to call this function directly by writing `cfg_if::func()`. However, this is often tedious to write. If we first specify `use cfg_if::func;`, then `func` can be called by just writing `func()` instead.
+`use` allows us to conveniently refer to parts of a crate or module. For example, suppose the crate `cfg_if` contains a function `func`. It is always possible to call this function directly by writing `cfg_if::func()`. However, this is often tedious to write. If we first specify `use cfg_if::func;`, then `func` can be called by just writing `func()` instead. You can learn more about how Rust let's you
+write modular code in [this chapter of the book](https://doc.rust-lang.org/book/ch07-02-modules-and-use-to-control-scope-and-privacy.html).
 
 With this in mind, this `use` allows us to call the macro `cfg_if!` inside the crate `cfg_if` without writing `cfg_if::cfg_if!`. We use `cfg_if!` to configure `wee_alloc`, which we will talk more about in a [separate section](./wee_alloc.md):
 
