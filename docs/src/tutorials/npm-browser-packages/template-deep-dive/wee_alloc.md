@@ -8,6 +8,8 @@
 
 Reducing the size of compiled WebAssembly code is important, since it is often transmitted over the Internet or placed on embedded devices.
 
+*Want to learn more about code sizein the rustwasm toolchain? Check out this [documentation](https://rustwasm.github.io/docs/book/reference/code-size.html).
+
 > `wee_alloc` is a tiny allocator designed for WebAssembly that has a (pre-compression) code-size footprint of only a single kilobyte.
 
 [An analysis](http://fitzgeraldnick.com/2018/02/09/wee-alloc.html) suggests that over half of the bare minimum WebAssembly memory footprint is required by Rust's default memory allocator. Yet, WebAssembly code often does not require a sophisticated allocator, since it often just requests a couple of large initial allocations.
