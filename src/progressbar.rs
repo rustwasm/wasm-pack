@@ -10,17 +10,12 @@ impl ProgressOutput {
     /// Inform the user that the given `step` is being executed, with details in
     /// `message`.
     pub fn step(&self, message: &str) {
-        let msg = format!("{} {}", style(emoji::INFO).bold().dim(), message);
-        self.message(&msg)
+        self.info(message);
     }
 
     /// Print the given message.
     pub fn message(&self, message: &str) {
-        eprintln!("  {}", message);
-    }
-
-    fn add_message(&self, msg: &str) {
-        println!("{}", msg);
+        eprintln!("{}", message);
     }
 
     /// Add an informational message.
@@ -31,7 +26,7 @@ impl ProgressOutput {
             style("[INFO]").bold().dim(),
             message
         );
-        self.add_message(&info);
+        self.message(&info);
     }
 
     /// Add a warning message.
@@ -42,7 +37,7 @@ impl ProgressOutput {
             style("[WARN]").bold().dim(),
             message
         );
-        self.add_message(&warn);
+        self.message(&warn);
     }
 
     /// Add an error message.
@@ -53,7 +48,7 @@ impl ProgressOutput {
             style("[ERR]").bold().dim(),
             message
         );
-        self.add_message(&err);
+        self.message(&err);
     }
 }
 
