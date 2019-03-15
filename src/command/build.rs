@@ -238,9 +238,9 @@ impl Build {
             self.out_dir.display()
         );
 
-        PBAR.message(&format!("{} Done in {}", emoji::SPARKLE, &duration));
+        PBAR.info(&format!("{} Done in {}", emoji::SPARKLE, &duration));
 
-        PBAR.message(&format!(
+        PBAR.info(&format!(
             "{} Your wasm pkg is ready to publish at {}.",
             emoji::PACKAGE,
             self.out_dir.display()

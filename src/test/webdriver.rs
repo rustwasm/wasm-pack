@@ -17,7 +17,7 @@ fn get_and_notify(
         return Ok(Some(dl.binary(name)?));
     }
     if installation_allowed {
-        PBAR.step(&format!("Getting {}...", name));
+        PBAR.info(&format!("Getting {}...", name));
     }
     match cache.download(installation_allowed, name, &[name], &url)? {
         Some(dl) => Ok(Some(dl.binary(name)?)),

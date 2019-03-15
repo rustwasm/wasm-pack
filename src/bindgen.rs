@@ -40,7 +40,7 @@ pub fn install_wasm_bindgen(
     }
 
     let msg = format!("{}Installing wasm-bindgen...", emoji::DOWN_ARROW);
-    PBAR.step(&msg);
+    PBAR.info(&msg);
 
     let dl = download_prebuilt_wasm_bindgen(&cache, version, install_permitted);
     match dl {

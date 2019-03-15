@@ -7,24 +7,17 @@ use emoji;
 pub struct ProgressOutput;
 
 impl ProgressOutput {
-    /// Inform the user that the given `step` is being executed, with details in
-    /// `message`.
-    pub fn step(&self, message: &str) {
-        self.info(message);
-    }
-
     /// Print the given message.
-    pub fn message(&self, message: &str) {
+    fn message(&self, message: &str) {
         eprintln!("{}", message);
     }
 
     /// Add an informational message.
     pub fn info(&self, message: &str) {
         let info = format!(
-            "{} {}: {}",
-            emoji::INFO,
+            "{}: {}",
             style("[INFO]").bold().dim(),
-            message
+            message,
         );
         self.message(&info);
     }

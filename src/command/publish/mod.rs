@@ -77,6 +77,6 @@ pub fn publish(
     npm::npm_publish(&pkg_directory.to_string_lossy(), access)?;
     info!("Published your package!");
 
-    PBAR.message("💥  published your package!");
+    PBAR.info("💥  published your package!");
     Ok(())
 }

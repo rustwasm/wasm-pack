@@ -63,7 +63,7 @@ pub fn rustup_add_wasm_target() -> Result<(), Error> {
 
     // ... otherwise fall back to rustup to add the target
     let msg = format!("{}Adding Wasm target...", emoji::TARGET);
-    PBAR.step(&msg);
+    PBAR.info(&msg);
     let mut cmd = Command::new("rustup");
     cmd.arg("target").arg("add").arg("wasm32-unknown-unknown");
     child::run(cmd, "rustup").context("Adding the wasm32-unknown-unknown target with rustup")?;
@@ -77,7 +77,7 @@ pub fn cargo_build_wasm(
     extra_options: &Vec<String>,
 ) -> Result<(), Error> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
-    PBAR.step(&msg);
+    PBAR.info(&msg);
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
     match profile {

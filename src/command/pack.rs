@@ -22,6 +22,6 @@ pub fn pack(path: Option<PathBuf>) -> result::Result<(), Error> {
     npm::npm_pack(&pkg_directory.to_string_lossy())?;
     info!("Your package is located at {:#?}", crate_path.join("pkg"));
 
-    PBAR.message("🎒  packed up your package!");
+    PBAR.info("🎒  packed up your package!");
     Ok(())
 }
