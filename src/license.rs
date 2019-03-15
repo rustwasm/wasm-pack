@@ -4,10 +4,8 @@ use failure;
 use std::fs;
 use std::path::Path;
 
-use emoji;
 use glob::glob;
 use manifest::CrateData;
-use progressbar::Step;
 use PBAR;
 
 fn glob_license_files(path: &Path) -> Result<Vec<String>, failure::Error> {
@@ -45,7 +43,6 @@ pub fn copy_from_crate(
     crate_data: &CrateData,
     path: &Path,
     out_dir: &Path,
-    step: &Step,
 ) -> Result<(), failure::Error> {
     assert!(
         fs::metadata(path).ok().map_or(false, |m| m.is_dir()),
@@ -59,8 +56,6 @@ pub fn copy_from_crate(
 
     match (crate_data.crate_license(), crate_data.crate_license_file()) {
         (Some(_), _) => {
-            let msg = format!("{}Copying over your LICENSE...", emoji::DANCERS);
-            PBAR.step(step, &msg);
             let license_files = glob_license_files(path);
 
             match license_files {
@@ -87,9 +82,7 @@ pub fn copy_from_crate(
                 PBAR.info("origin crate has no LICENSE");
             }
         }
-        (None, None) => {
-            PBAR.step(step, "No LICENSE found in Cargo.toml, skipping...");
-        }
+        (None, None) => {}
     };
 
     Ok(())

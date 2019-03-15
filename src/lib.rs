@@ -8,12 +8,9 @@ extern crate strsim;
 #[macro_use]
 extern crate failure;
 extern crate glob;
-extern crate indicatif;
-extern crate which;
-#[macro_use]
-extern crate lazy_static;
 extern crate parking_lot;
 extern crate serde;
+extern crate which;
 #[macro_use]
 extern crate serde_derive;
 extern crate serde_ignored;
@@ -43,10 +40,8 @@ pub mod test;
 
 use progressbar::ProgressOutput;
 
-lazy_static! {
-    /// The global progress bar and user-facing message output.
-    pub static ref PBAR: ProgressOutput = { ProgressOutput::new() };
-}
+/// The global progress bar and user-facing message output.
+pub static PBAR: ProgressOutput = ProgressOutput;
 
 /// 📦 ✨  pack and publish your wasm!
 #[derive(Debug, StructOpt)]

@@ -12,8 +12,7 @@ fn it_copies_a_readme_default_path() {
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
 
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(readme::copy_from_crate(&fixture.path, &out_dir, &step).is_ok());
+    assert!(readme::copy_from_crate(&fixture.path, &out_dir).is_ok());
 
     let crate_readme_path = fixture.path.join("README.md");
     let pkg_readme_path = out_dir.join("README.md");
@@ -37,8 +36,7 @@ fn it_copies_a_readme_provided_path() {
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
 
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(readme::copy_from_crate(&fixture.path, &out_dir, &step).is_ok());
+    assert!(readme::copy_from_crate(&fixture.path, &out_dir).is_ok());
     let crate_readme_path = fixture.path.join("README.md");
     let pkg_readme_path = out_dir.join("README.md");
     println!(
