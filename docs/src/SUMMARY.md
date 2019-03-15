@@ -8,6 +8,7 @@
 - [Commands](./commands/index.md)
   - [`init` (DEPRECATED)](./commands/init.md)
   - [`build`](./commands/build.md)
+  - [`test`](./commands/test.md)
   - [`pack` and `publish`](./commands/pack-and-publish.md)
 - [Tutorial](./tutorial/index.md)
   - [Getting Started](./tutorial/getting-started.md)
