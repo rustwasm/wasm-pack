@@ -14,11 +14,7 @@ impl ProgressOutput {
 
     /// Add an informational message.
     pub fn info(&self, message: &str) {
-        let info = format!(
-            "{}: {}",
-            style("[INFO]").bold().dim(),
-            message,
-        );
+        let info = format!("{}: {}", style("[INFO]").bold().dim(), message,);
         self.message(&info);
     }
 
