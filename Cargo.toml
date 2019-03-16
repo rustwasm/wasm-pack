@@ -32,7 +32,7 @@ siphasher = "0.2.3"
 structopt = "0.2"
 toml = "0.4"
 which = "2.0.0"
-binary-install = { version = "0.0.1", path = "./binary-install" }
+binary-install = { version = "0.0.2", path = "./binary-install" }
 walkdir = "2"
 
 [dev-dependencies]
