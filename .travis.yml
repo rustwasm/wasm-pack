@@ -40,7 +40,7 @@ matrix:
 
   - name: Tests
     env: RUST_BACKTRACE=1
-    rust: nightly
+    rust: stable
     addons:
       firefox: latest
       chrome: stable
@@ -76,7 +76,7 @@ matrix:
 
   - name: Linux Binary
     env: TARGET=x86_64-unknown-linux-musl
-    rust: nightly
+    rust: stable
     before_script: rustup target add $TARGET
     script: cargo build --release --target $TARGET --locked --features vendored-openssl
     addons:
@@ -88,7 +88,7 @@ matrix:
   - name: macOS Binary
     env: MACOSX_DEPLOYMENT_TARGET=10.7 TARGET=x86_64-apple-darwin
     os: osx
-    rust: nightly
+    rust: stable
     script: cargo build --release --target $TARGET --locked
     install: true
     <<: *DEPLOY_TO_GITHUB
