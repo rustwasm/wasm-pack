@@ -3,6 +3,7 @@
 
 [![Build Status](https://travis-ci.com/rustwasm/wasm-pack.svg?branch=master)](https://travis-ci.com/rustwasm/wasm-pack)
 [![Build status](https://ci.appveyor.com/api/projects/status/iv1qtnqtv168ef8h?svg=true)](https://ci.appveyor.com/project/ashleygwilliams/wasm-pack-071k0)
+[![crates.io](https://meritbadge.herokuapp.com/wasm-pack)](https://crates.io/crates/wasm-pack)
 
 
 This tool seeks to be a one-stop shop for building and working with rust-
