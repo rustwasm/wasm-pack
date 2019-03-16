@@ -1,7 +1,7 @@
 # 📦✨  wasm-pack
 > Your favorite rust -> wasm workflow tool!
 
-[![Build Status](https://travis-ci.org/rustwasm/wasm-pack.svg?branch=master)](https://travis-ci.org/rustwasm/wasm-pack)
+[![Build Status](https://travis-ci.com/rustwasm/wasm-pack.svg?branch=master)](https://travis-ci.com/rustwasm/wasm-pack)
 [![Build status](https://ci.appveyor.com/api/projects/status/iv1qtnqtv168ef8h?svg=true)](https://ci.appveyor.com/project/ashleygwilliams/wasm-pack-071k0)
 
 
