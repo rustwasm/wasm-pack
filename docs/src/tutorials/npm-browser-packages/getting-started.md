@@ -25,4 +25,4 @@ further in this guide.
 ⚠️ If you'd rather not use a template, or are having trouble with the template, you can
 do a manual setup by following [these instructions].
 
-[these instructions]: ../project-setup/manual-setup.html
+[these instructions]: ./getting-started/manual-setup.html

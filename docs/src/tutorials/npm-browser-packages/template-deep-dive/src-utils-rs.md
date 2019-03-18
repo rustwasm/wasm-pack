@@ -22,7 +22,6 @@ This allows us to write `cfg_if!` instead of `cfg_if::cfg_if!`, identically to t
 ```rust
 cfg_if! {
     if #[cfg(feature = "console_error_panic_hook")] {
-        extern crate console_error_panic_hook;
         pub use self::console_error_panic_hook::set_once as set_panic_hook;
     } else {
         #[inline]
@@ -31,36 +30,52 @@ cfg_if! {
 }
 ```
 
-As described in the preceding section, the macro `cfg_if!` evaluates the `if` statement during compile time. This is possible because it is essentially testing whether `"console_error_panic_hook"` is defined in the `[features]` section of `Cargo.toml`, which is available during compile time.
-
-The entire macro block will either be replaced with the statements in the `if` block or with those in the `else` block. These two cases are now described in turn:
+As described in the preceding section, this invocation of the `cfg_if!`
+tests whether the `console_error_panic_hook` feature is enabled at compile time,
+replacing with the statements in the `if` block or with those in the `else`
+block. These two cases are:
 
 ```rust
-extern crate console_error_panic_hook;
 pub use self::console_error_panic_hook::set_once as set_panic_hook;
 ```
 
-Due to the `use` statement, the function `self::console_error_panic_hook::set_once` can now be accessed more conveniently as `set_panic_hook`. Due to `pub`, this function will be publicly accessible outside of the `utils` module as `utils::set_panic_hook`.
+This `use` statement means the function
+`self::console_error_panic_hook::set_once` can now be accessed more conveniently
+as `set_panic_hook`. With `pub`, this function will be accessible
+outside of the `utils` module as `utils::set_panic_hook`.
 
 ```rust
 #[inline]
 pub fn set_panic_hook() {}
 ```
 
-An inline function replaces the function call with the contents of the function during compile time. Here, `set_panic_hook` is defined to be an empty inline function. This allows the use of `set_panic_hook` without any run-time or code-size performance penalty if the feature is not enabled.
+Here, `set_panic_hook` is defined to be an empty inline function. The inline
+annotation here means that whenever the function is called the function call is
+replaced with the body of the function, which is for `set_panic_hook` nothing!
+This allows the use of `set_panic_hook` without any run-time or code-size
+performance penalty if the feature is not enabled.
 
 ## 2. What is `console_error_panic_hook`?
 
-The crate `console_error_panic_hook` enhances error messages in the web browser. This allows you to easily debug WebAssembly code.
+The [crate `console_error_panic_hook`][ceph] allows debugging Rust panic
+messages in a web browser, making it much easier to debug WebAssembly code.
 
-Let's compare error messages before and after enabling the feature:
+Let's compare what happens when Rust code panics before and after enabling the
+feature:
 
 **Before:** `"RuntimeError: Unreachable executed"`
 
 **After:** `"panicked at 'index out of bounds: the len is 3 but the index is 4', libcore/slice/mod.rs:2046:10"`
 
-To do this, a panic hook for WebAssembly is provided that logs panics to the developer console via the JavaScript `console.error` function. 
+To do this, a [panic hook] is configured that logs panics to the
+developer console via the JavaScript `console.error` function.
 
-Note that although the template sets up the function, your error messages will not automatically be enhanced. To enable the enhanced errors, call the function `utils::set_panic_hook()` in `lib.rs` when your code first runs. The function may be called multiple times if needed.
+Note though that `console_error_panic_hook` is not entirely automatic, so you'll
+need to make sure that `utils::set_panic_hook()` is called before any of our
+code runs (and it's safe to run `set_panic_hook` many times).
 
-For more details, see the [`console_error_panic_hook` repository](https://github.com/rustwasm/console_error_panic_hook).
+For more details, see the [`console_error_panic_hook`
+repository](https://github.com/rustwasm/console_error_panic_hook).
+
+[ceph]: https://crates.io/crates/console_error_panic_hook
+[panic hook]: https://doc.rust-lang.org/std/panic/fn.set_hook.html

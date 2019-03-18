@@ -1,9 +1,9 @@
 # Manual Setup
 
 ⚠️ This is not the recommended way to start a `wasm-pack` project! If you ended up
-here by mistake, go check out our recommended project start, [Using A Template].
+here by mistake, go check out our [recommended project start][template].
 
-[Using A Template]: using-a-template.md
+[template]: ../getting-started.html
 
 ### Step 1: Create a New Rust Library Project
 
@@ -25,7 +25,7 @@ section. `wasm-bindgen` is a tool that facilitates interoperability between
 wasm modules and JavaScript.
 
 ⚠️ If you are coming from JavaScript, you might note that when we add the dependency
-there is no `^` or `~` symbol- it looks like we're locking to the `0.2` version. 
+there is no `^` or `~` symbol- it looks like we're locking to the `0.2` version.
 However, that's not the case! In Rust, the `^` is implied.
 
 #### Add `crate-type`
