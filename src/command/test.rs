@@ -1,22 +1,19 @@
 //! Implementation of the `wasm-pack test` command.
 
 use super::build::BuildMode;
-use binaries::Cache;
+use binary_install::Cache;
 use bindgen;
 use build;
+use cache;
 use command::utils::set_crate_path;
 use console::style;
-use emoji;
 use failure::Error;
-use indicatif::HumanDuration;
 use lockfile::Lockfile;
+use log::info;
 use manifest;
-use progressbar::Step;
-use slog::Logger;
 use std::path::PathBuf;
 use std::time::Instant;
 use test::{self, webdriver};
-use PBAR;
 
 #[derive(Debug, Default, StructOpt)]
 /// Everything required to configure the `wasm-pack test` command.
@@ -77,6 +74,10 @@ pub struct TestOptions {
     #[structopt(long = "release", short = "r")]
     /// Build with the release profile.
     pub release: bool,
+
+    #[structopt(last = true)]
+    /// List of extra options to pass to `cargo test`
+    pub extra_options: Vec<String>,
 }
 
 /// A configured `wasm-pack test` command.
@@ -95,9 +96,10 @@ pub struct Test {
     headless: bool,
     release: bool,
     test_runner_path: Option<PathBuf>,
+    extra_options: Vec<String>,
 }
 
-type TestStep = fn(&mut Test, &Step, &Logger) -> Result<(), Error>;
+type TestStep = fn(&mut Test) -> Result<(), Error>;
 
 impl Test {
     /// Construct a test command from the given options.
@@ -114,6 +116,7 @@ impl Test {
             geckodriver,
             safari,
             safaridriver,
+            extra_options,
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
@@ -132,7 +135,7 @@ impl Test {
         }
 
         Ok(Test {
-            cache: Cache::new()?,
+            cache: cache::get_wasm_pack_cache()?,
             crate_path,
             crate_data,
             node,
@@ -146,6 +149,7 @@ impl Test {
             headless,
             release,
             test_runner_path: None,
+            extra_options,
         })
     }
 
@@ -155,17 +159,15 @@ impl Test {
     }
 
     /// Execute this test command.
-    pub fn run(mut self, log: &Logger) -> Result<(), Error> {
+    pub fn run(mut self) -> Result<(), Error> {
         let process_steps = self.get_process_steps();
-        let mut step_counter = Step::new(process_steps.len());
 
         let started = Instant::now();
         for (_, process_step) in process_steps {
-            process_step(&mut self, &step_counter, log)?;
-            step_counter.inc();
+            process_step(&mut self)?;
         }
-        let duration = HumanDuration(started.elapsed());
-        info!(&log, "Done in {}.", &duration);
+        let duration = crate::command::utils::elapsed(started.elapsed());
+        info!("Done in {}.", &duration);
 
         Ok(())
     }
@@ -188,7 +190,7 @@ impl Test {
         match self.mode {
             BuildMode::Normal => steps![
                 step_check_rustc_version,
-                step_add_wasm_target,
+                step_check_for_wasm_target,
                 step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
@@ -200,7 +202,7 @@ impl Test {
                 step_test_safari if self.safari,
             ],
             BuildMode::Force => steps![
-                step_add_wasm_target,
+                step_check_for_wasm_target,
                 step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
@@ -225,34 +227,31 @@ impl Test {
         }
     }
 
-    fn step_check_rustc_version(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(log, "Checking rustc version...");
-        let _ = build::check_rustc_version(step)?;
-        info!(log, "Rustc version is correct.");
+    fn step_check_rustc_version(&mut self) -> Result<(), Error> {
+        info!("Checking rustc version...");
+        let _ = build::check_rustc_version()?;
+        info!("Rustc version is correct.");
         Ok(())
     }
 
-    fn step_add_wasm_target(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Adding wasm-target...");
-        build::rustup_add_wasm_target(log, step)?;
-        info!(&log, "Adding wasm-target was successful.");
+    fn step_check_for_wasm_target(&mut self) -> Result<(), Error> {
+        info!("Adding wasm-target...");
+        build::check_for_wasm32_target()?;
+        info!("Adding wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_tests(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(log, "Compiling tests to wasm...");
+    fn step_build_tests(&mut self) -> Result<(), Error> {
+        info!("Compiling tests to wasm...");
 
-        let msg = format!("{}Compiling tests to WASM...", emoji::CYCLONE);
-        PBAR.step(step, &msg);
+        build::cargo_build_wasm_tests(&self.crate_path, !self.release)?;
 
-        build::cargo_build_wasm_tests(log, &self.crate_path, !self.release)?;
-
-        info!(log, "Finished compiling tests to wasm.");
+        info!("Finished compiling tests to wasm.");
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        info!(&log, "Identifying wasm-bindgen dependency...");
+    fn step_install_wasm_bindgen(&mut self) -> Result<(), Error> {
+        info!("Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
 
@@ -272,52 +271,44 @@ impl Test {
 
         let install_permitted = match self.mode {
             BuildMode::Normal => {
-                info!(&log, "Ensuring wasm-bindgen-cli is installed...");
+                info!("Ensuring wasm-bindgen-cli is installed...");
                 true
             }
             BuildMode::Force => {
-                info!(&log, "Ensuring wasm-bindgen-cli is installed...");
+                info!("Ensuring wasm-bindgen-cli is installed...");
                 true
             }
             BuildMode::Noinstall => {
-                info!(&log, "Searching for existing wasm-bindgen-cli install...");
+                info!("Searching for existing wasm-bindgen-cli install...");
                 false
             }
         };
 
-        let dl = bindgen::install_wasm_bindgen(
-            &self.cache,
-            &bindgen_version,
-            install_permitted,
-            step,
-            log,
-        )?;
+        let dl = bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted)?;
 
-        self.test_runner_path = Some(dl.binary("wasm-bindgen-test-runner"));
+        self.test_runner_path = Some(dl.binary("wasm-bindgen-test-runner")?);
 
-        info!(&log, "Getting wasm-bindgen-cli was successful.");
+        info!("Getting wasm-bindgen-cli was successful.");
         Ok(())
     }
 
-    fn step_test_node(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
+    fn step_test_node(&mut self) -> Result<(), Error> {
         assert!(self.node);
-        info!(log, "Running tests in node...");
-        PBAR.step(step, "Running tests in node...");
+        info!("Running tests in node...");
         test::cargo_test_wasm(
             &self.crate_path,
             self.release,
-            log,
             Some((
                 "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER",
                 &self.test_runner_path.as_ref().unwrap(),
             )),
+            &self.extra_options,
         )?;
-        info!(log, "Finished running tests in node.");
+        info!("Finished running tests in node.");
         Ok(())
     }
 
-    fn step_get_chromedriver(&mut self, step: &Step, _log: &Logger) -> Result<(), Error> {
-        PBAR.step(step, "Getting chromedriver...");
+    fn step_get_chromedriver(&mut self) -> Result<(), Error> {
         assert!(self.chrome && self.chromedriver.is_none());
 
         self.chromedriver = Some(webdriver::get_or_install_chromedriver(
@@ -327,14 +318,12 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_chrome(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        PBAR.step(step, "Running tests in Chrome...");
-
+    fn step_test_chrome(&mut self) -> Result<(), Error> {
         let chromedriver = self.chromedriver.as_ref().unwrap().display().to_string();
         let chromedriver = chromedriver.as_str();
         info!(
-            log,
-            "Running tests in Chrome with chromedriver at {}", chromedriver
+            "Running tests in Chrome with chromedriver at {}",
+            chromedriver
         );
 
         let test_runner = self
@@ -344,7 +333,7 @@ impl Test {
             .display()
             .to_string();
         let test_runner = test_runner.as_str();
-        info!(log, "Using wasm-bindgen test runner at {}", test_runner);
+        info!("Using wasm-bindgen test runner at {}", test_runner);
 
         let mut envs = vec![
             ("CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER", test_runner),
@@ -354,12 +343,11 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 
-    fn step_get_geckodriver(&mut self, step: &Step, _log: &Logger) -> Result<(), Error> {
-        PBAR.step(step, "Getting geckodriver...");
+    fn step_get_geckodriver(&mut self) -> Result<(), Error> {
         assert!(self.firefox && self.geckodriver.is_none());
 
         self.geckodriver = Some(webdriver::get_or_install_geckodriver(
@@ -369,14 +357,12 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_firefox(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        PBAR.step(step, "Running tests in Firefox...");
-
+    fn step_test_firefox(&mut self) -> Result<(), Error> {
         let geckodriver = self.geckodriver.as_ref().unwrap().display().to_string();
         let geckodriver = geckodriver.as_str();
         info!(
-            log,
-            "Running tests in Firefox with geckodriver at {}", geckodriver
+            "Running tests in Firefox with geckodriver at {}",
+            geckodriver
         );
 
         let test_runner = self
@@ -386,7 +372,7 @@ impl Test {
             .display()
             .to_string();
         let test_runner = test_runner.as_str();
-        info!(log, "Using wasm-bindgen test runner at {}", test_runner);
+        info!("Using wasm-bindgen test runner at {}", test_runner);
 
         let mut envs = vec![
             ("CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER", test_runner),
@@ -396,26 +382,23 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 
-    fn step_get_safaridriver(&mut self, step: &Step, _log: &Logger) -> Result<(), Error> {
-        PBAR.step(step, "Getting safaridriver...");
+    fn step_get_safaridriver(&mut self) -> Result<(), Error> {
         assert!(self.safari && self.safaridriver.is_none());
 
         self.safaridriver = Some(webdriver::get_safaridriver()?);
         Ok(())
     }
 
-    fn step_test_safari(&mut self, step: &Step, log: &Logger) -> Result<(), Error> {
-        PBAR.step(step, "Running tests in Safari...");
-
+    fn step_test_safari(&mut self) -> Result<(), Error> {
         let safaridriver = self.safaridriver.as_ref().unwrap().display().to_string();
         let safaridriver = safaridriver.as_str();
         info!(
-            log,
-            "Running tests in Safari with safaridriver at {}", safaridriver
+            "Running tests in Safari with safaridriver at {}",
+            safaridriver
         );
 
         let test_runner = self
@@ -425,7 +408,7 @@ impl Test {
             .display()
             .to_string();
         let test_runner = test_runner.as_str();
-        info!(log, "Using wasm-bindgen test runner at {}", test_runner);
+        info!("Using wasm-bindgen test runner at {}", test_runner);
 
         let mut envs = vec![
             ("CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER", test_runner),
@@ -435,7 +418,7 @@ impl Test {
             envs.push(("NO_HEADLESS", "1"));
         }
 
-        test::cargo_test_wasm(&self.crate_path, self.release, log, envs)?;
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
     }
 }

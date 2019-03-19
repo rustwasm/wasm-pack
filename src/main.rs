@@ -1,4 +1,5 @@
 extern crate atty;
+extern crate env_logger;
 #[macro_use]
 extern crate failure;
 #[macro_use]
@@ -9,11 +10,12 @@ extern crate which;
 
 use std::env;
 use structopt::StructOpt;
-use wasm_pack::{command::run_wasm_pack, logger, Cli};
+use wasm_pack::{command::run_wasm_pack, Cli};
 
 mod installer;
 
 fn main() {
+    env_logger::init();
     setup_panic!();
     if let Err(e) = run() {
         eprintln!("Error: {}", e);
@@ -33,13 +35,17 @@ fn run() -> Result<(), failure::Error> {
     if let Ok(me) = env::current_exe() {
         // If we're actually running as the installer then execute our
         // self-installation, otherwise just continue as usual.
-        if me.file_stem().and_then(|s| s.to_str()) == Some("wasm-pack-init") {
+        if me
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .expect("executable should have a filename")
+            .starts_with("wasm-pack-init")
+        {
             installer::install();
         }
     }
 
     let args = Cli::from_args();
-    let log = logger::new(&args.cmd, args.verbosity)?;
-    run_wasm_pack(args.cmd, &log)?;
+    run_wasm_pack(args.cmd)?;
     Ok(())
 }

@@ -14,11 +14,9 @@ use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
 use failure::Error;
-use slog::Logger;
+use log::info;
 use std::path::PathBuf;
 use std::result;
-use std::sync::mpsc;
-use std::thread;
 
 /// The various kinds of commands that `wasm-pack` can execute.
 #[derive(Debug, StructOpt)]
@@ -38,6 +36,10 @@ pub enum Command {
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish!
     Publish {
+        #[structopt(long = "target", short = "t", default_value = "browser")]
+        /// Sets the target environment. [possible values: browser, nodejs, no-modules]
+        target: String,
+
         /// The access level for the package to be published
         #[structopt(long = "access", short = "a")]
         access: Option<Access>,
@@ -48,7 +50,7 @@ pub enum Command {
     },
 
     #[structopt(name = "login", alias = "adduser", alias = "add-user")]
-    /// 👤  Add a registry user account! (aliases: adduser, add-user)
+    /// 👤  Add an npm registry user account! (aliases: adduser, add-user)
     Login {
         #[structopt(long = "registry", short = "r")]
         /// Default: 'https://registry.npmjs.org/'.
@@ -84,41 +86,28 @@ pub enum Command {
     Test(TestOptions),
 }
 
-/// Spawn a thread for wasm-pack version check
-fn background_check_for_updates() -> mpsc::Receiver<(String, String)> {
-    let (sender, receiver) = mpsc::channel();
-    let _detached_thread = thread::spawn(move || {
-        if let Ok((local, latest)) = Build::return_wasm_pack_versions() {
-            if !local.is_empty() && !latest.is_empty() && local != latest {
-                sender.send((local, latest)).unwrap();
-            }
-        }
-    });
-
-    receiver
-}
-
 /// Run a command with the given logger!
-pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error> {
+pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
-
-    let update_available = background_check_for_updates();
-
-    let status = match command {
+    match command {
         Command::Build(build_opts) => {
-            info!(&log, "Running build command...");
-            Build::try_from_opts(build_opts).and_then(|mut b| b.run(&log))
+            info!("Running build command...");
+            Build::try_from_opts(build_opts).and_then(|mut b| b.run())
         }
         Command::Pack { path } => {
-            info!(&log, "Running pack command...");
-            info!(&log, "Path: {:?}", &path);
-            pack(path, &log)
+            info!("Running pack command...");
+            info!("Path: {:?}", &path);
+            pack(path)
         }
-        Command::Publish { path, access } => {
-            info!(&log, "Running publish command...");
-            info!(&log, "Path: {:?}", &path);
-            publish(path, access, &log)
+        Command::Publish {
+            target,
+            path,
+            access,
+        } => {
+            info!("Running publish command...");
+            info!("Path: {:?}", &path);
+            publish(&target, path, access)
         }
         Command::Login {
             registry,
@@ -126,27 +115,16 @@ pub fn run_wasm_pack(command: Command, log: &Logger) -> result::Result<(), Error
             always_auth,
             auth_type,
         } => {
-            info!(&log, "Running login command...");
+            info!("Running login command...");
             info!(
-                &log,
                 "Registry: {:?}, Scope: {:?}, Always Auth: {}, Auth Type: {:?}",
-                &registry,
-                &scope,
-                &always_auth,
-                &auth_type
+                &registry, &scope, &always_auth, &auth_type
             );
-            login(registry, scope, always_auth, auth_type, &log)
+            login(registry, &scope, always_auth, &auth_type)
         }
         Command::Test(test_opts) => {
-            info!(&log, "Running test command...");
-            Test::try_from_opts(test_opts).and_then(|t| t.run(&log))
+            info!("Running test command...");
+            Test::try_from_opts(test_opts).and_then(|t| t.run())
         }
-    };
-
-    if let Ok(update_available) = update_available.try_recv() {
-        println!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}", update_available.1, update_available.0);
     }
-
-    // Return the actual status of the program to the main function
-    status
 }

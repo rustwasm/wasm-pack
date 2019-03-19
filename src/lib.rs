@@ -4,41 +4,33 @@
 
 extern crate cargo_metadata;
 extern crate console;
-extern crate curl;
-extern crate dirs;
+extern crate strsim;
 #[macro_use]
 extern crate failure;
-extern crate flate2;
-extern crate hex;
-extern crate indicatif;
-#[macro_use]
-extern crate lazy_static;
+extern crate glob;
 extern crate parking_lot;
 extern crate serde;
+extern crate which;
 #[macro_use]
 extern crate serde_derive;
+extern crate serde_ignored;
 extern crate serde_json;
-extern crate siphasher;
 #[macro_use]
 extern crate structopt;
-#[macro_use]
-extern crate slog;
-extern crate chrono;
-extern crate slog_async;
-extern crate slog_term;
-extern crate tar;
+extern crate binary_install;
+extern crate dialoguer;
+extern crate log;
 extern crate toml;
-extern crate which;
-extern crate zip;
+extern crate walkdir;
 
-pub mod binaries;
 pub mod bindgen;
 pub mod build;
+pub mod cache;
 pub mod child;
 pub mod command;
 pub mod emoji;
+pub mod license;
 pub mod lockfile;
-pub mod logger;
 pub mod manifest;
 pub mod npm;
 pub mod progressbar;
@@ -48,10 +40,8 @@ pub mod test;
 
 use progressbar::ProgressOutput;
 
-lazy_static! {
-    /// The global progress bar and user-facing message output.
-    pub static ref PBAR: ProgressOutput = { ProgressOutput::new() };
-}
+/// The global progress bar and user-facing message output.
+pub static PBAR: ProgressOutput = ProgressOutput;
 
 /// 📦 ✨  pack and publish your wasm!
 #[derive(Debug, StructOpt)]

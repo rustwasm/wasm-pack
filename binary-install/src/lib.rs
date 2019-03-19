@@ -1,10 +1,17 @@
 //! Utilities for finding and installing binaries that we depend on.
 
-use curl;
-use dirs;
+extern crate curl;
+#[macro_use]
+extern crate failure;
+extern crate dirs;
+extern crate flate2;
+extern crate hex;
+extern crate is_executable;
+extern crate siphasher;
+extern crate tar;
+extern crate zip;
+
 use failure::{Error, ResultExt};
-use flate2;
-use hex;
 use siphasher::sip::SipHasher13;
 use std::collections::HashSet;
 use std::env;
@@ -13,16 +20,16 @@ use std::fs;
 use std::hash::{Hash, Hasher};
 use std::io;
 use std::path::{Path, PathBuf};
-use tar;
-use zip;
 
 /// Global cache for wasm-pack, currently containing binaries downloaded from
 /// urls like wasm-bindgen and such.
+#[derive(Debug)]
 pub struct Cache {
     destination: PathBuf,
 }
 
 /// Representation of a downloaded tarball/zip
+#[derive(Debug)]
 pub struct Download {
     root: PathBuf,
 }
@@ -32,12 +39,13 @@ impl Cache {
     ///
     /// This function may return an error if a cache directory cannot be
     /// determined.
-    pub fn new() -> Result<Cache, Error> {
+    pub fn new(name: &str) -> Result<Cache, Error> {
+        let cache_name = format!(".{}", name);
         let destination = dirs::cache_dir()
-            .map(|p| p.join("wasm-pack"))
+            .map(|p| p.join(&cache_name))
             .or_else(|| {
                 let home = dirs::home_dir()?;
-                Some(home.join(".wasm-pack"))
+                Some(home.join(&cache_name))
             })
             .ok_or_else(|| format_err!("couldn't find your home directory, is $HOME not set?"))?;
         Ok(Cache::at(&destination))
@@ -75,22 +83,10 @@ impl Cache {
         binaries: &[&str],
         url: &str,
     ) -> Result<Option<Download>, Error> {
-        let mut hasher = SipHasher13::new();
-        url.hash(&mut hasher);
-        let result = hasher.finish();
-        let hex = hex::encode(&[
-            (result >> 0) as u8,
-            (result >> 8) as u8,
-            (result >> 16) as u8,
-            (result >> 24) as u8,
-            (result >> 32) as u8,
-            (result >> 40) as u8,
-            (result >> 48) as u8,
-            (result >> 56) as u8,
-        ]);
-        let dirname = format!("{}-{}", name, hex);
+        let dirname = hashed_dirname(url, name);
 
         let destination = self.destination.join(&dirname);
+
         if destination.exists() {
             return Ok(Some(Download { root: destination }));
         }
@@ -218,13 +214,22 @@ impl Download {
     }
 
     /// Returns the path to the binary `name` within this download
-    pub fn binary(&self, name: &str) -> PathBuf {
+    pub fn binary(&self, name: &str) -> Result<PathBuf, Error> {
+        use is_executable::IsExecutable;
+
         let ret = self
             .root
             .join(name)
             .with_extension(env::consts::EXE_EXTENSION);
-        assert!(ret.exists(), "binary {} doesn't exist", ret.display());
-        return ret;
+
+        if !ret.is_file() {
+            bail!("{} binary does not exist", ret.display());
+        }
+        if !ret.is_executable() {
+            bail!("{} is not executable", ret.display());
+        }
+
+        Ok(ret)
     }
 }
 
@@ -253,5 +258,89 @@ fn curl(url: &str) -> Result<Vec<u8>, Error> {
             status_code,
             url
         )
+    }
+}
+
+fn hashed_dirname(url: &str, name: &str) -> String {
+    let mut hasher = SipHasher13::new();
+    url.hash(&mut hasher);
+    let result = hasher.finish();
+    let hex = hex::encode(&[
+        (result >> 0) as u8,
+        (result >> 8) as u8,
+        (result >> 16) as u8,
+        (result >> 24) as u8,
+        (result >> 32) as u8,
+        (result >> 40) as u8,
+        (result >> 48) as u8,
+        (result >> 56) as u8,
+    ]);
+    format!("{}-{}", name, hex)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn it_returns_same_hash_for_same_name_and_url() {
+        let name = "wasm-pack";
+        let url = "http://localhost:7878/wasm-pack-v0.6.0.tar.gz";
+
+        let first = hashed_dirname(url, name);
+        let second = hashed_dirname(url, name);
+
+        assert!(!first.is_empty());
+        assert!(!second.is_empty());
+        assert_eq!(first, second);
+    }
+
+    #[test]
+    fn it_returns_different_hashes_for_different_urls() {
+        let name = "wasm-pack";
+        let url = "http://localhost:7878/wasm-pack-v0.5.1.tar.gz";
+        let second_url = "http://localhost:7878/wasm-pack-v0.6.0.tar.gz";
+
+        let first = hashed_dirname(url, name);
+        let second = hashed_dirname(second_url, name);
+
+        assert_ne!(first, second);
+    }
+
+    #[test]
+    fn it_returns_cache_dir() {
+        let name = "wasm-pack";
+        let cache = Cache::new(name);
+
+        let expected = dirs::cache_dir()
+            .unwrap()
+            .join(PathBuf::from(".".to_owned() + name));
+
+        assert!(cache.is_ok());
+        assert_eq!(cache.unwrap().destination, expected);
+    }
+
+    #[test]
+    fn it_returns_destination_if_binary_already_exists() {
+        use std::fs;
+
+        let binary_name = "wasm-pack";
+        let binaries = vec![binary_name];
+
+        let dir = tempfile::TempDir::new().unwrap();
+        let cache = Cache::at(dir.path());
+        let url = &format!("{}/{}.tar.gz", "http://localhost:7878", binary_name);
+
+        let dirname = hashed_dirname(&url, &binary_name);
+        let full_path = dir.path().join(dirname);
+
+        // Create temporary directory and binary to simulate that
+        // a cached binary already exists.
+        fs::create_dir_all(full_path).unwrap();
+
+        let dl = cache.download(true, binary_name, &binaries, url);
+
+        assert!(dl.is_ok());
+        assert!(dl.unwrap().is_some())
     }
 }

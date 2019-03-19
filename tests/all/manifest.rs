@@ -1,11 +1,10 @@
+use assert_cmd::prelude::*;
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
-
-use structopt::StructOpt;
-
 use utils::{self, fixture};
-use wasm_pack::{self, manifest, Cli};
+use wasm_pack::command::build::Target;
+use wasm_pack::{self, license, manifest};
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
@@ -28,8 +27,7 @@ fn it_checks_has_cdylib_default_path() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(crate_data.check_crate_config(&step).is_err());
+    assert!(crate_data.check_crate_config().is_err());
 }
 
 #[test]
@@ -38,16 +36,14 @@ fn it_checks_has_cdylib_provided_path() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    crate_data.check_crate_config(&step).unwrap();
+    crate_data.check_crate_config().unwrap();
 }
 
 #[test]
 fn it_checks_has_cdylib_wrong_crate_type() {
     let fixture = fixture::bad_cargo_toml();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(crate_data.check_crate_config(&step).is_err());
+    assert!(crate_data.check_crate_config().is_err());
 }
 
 #[test]
@@ -56,8 +52,7 @@ fn it_recognizes_a_map_during_depcheck() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    crate_data.check_crate_config(&step).unwrap();
+    crate_data.check_crate_config().unwrap();
 }
 
 #[test]
@@ -65,10 +60,9 @@ fn it_creates_a_package_json_default_path() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -101,10 +95,9 @@ fn it_creates_a_package_json_provided_path() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -130,10 +123,9 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &Some("test".to_string()), false, "", &step)
+        .write_package_json(&out_dir, &Some("test".to_string()), false, &Target::Bundler,)
         .is_ok());
     let package_json_path = &fixture.path.join("pkg").join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -159,10 +151,9 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "nodejs", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Nodejs)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -195,10 +186,9 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "no-modules", &step)
+        .write_package_json(&out_dir, &None, false, &Target::NoModules)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -230,10 +220,9 @@ fn it_creates_a_pkg_json_in_out_dir() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("./custom/out");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, false, "", &step)
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
         .is_ok());
 
     let package_json_path = &fixture.path.join(&out_dir).join("package.json");
@@ -246,10 +235,9 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    wasm_pack::command::utils::create_pkg_dir(&out_dir, &step).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
-        .write_package_json(&out_dir, &None, true, "", &step)
+        .write_package_json(&out_dir, &None, true, &Target::Bundler)
         .is_ok());
     let package_json_path = &out_dir.join("package.json");
     fs::metadata(package_json_path).unwrap();
@@ -275,8 +263,62 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
 fn it_errors_when_wasm_bindgen_is_not_declared() {
     let fixture = fixture::bad_cargo_toml();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    assert!(crate_data.check_crate_config(&step).is_err());
+    assert!(crate_data.check_crate_config().is_err());
+}
+
+#[test]
+fn it_sets_homepage_field_if_available_in_cargo_toml() {
+    // When 'homepage' is available
+    let fixture = utils::fixture::Fixture::new();
+    fixture.hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "homepage-field-test"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+            homepage = "https://rustwasm.github.io/wasm-pack/"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "=0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "=0.2"
+        "#,
+    );
+
+    let out_dir = fixture.path.join("pkg");
+    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
+    crate_data
+        .write_package_json(&out_dir, &None, true, &Target::Bundler)
+        .unwrap();
+
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(
+        pkg.homepage,
+        Some("https://rustwasm.github.io/wasm-pack/".to_string()),
+    );
+
+    // When 'homepage' is unavailable
+    let fixture = fixture::js_hello_world();
+    let out_dir = fixture.path.join("pkg");
+    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
+    crate_data
+        .write_package_json(&out_dir, &None, true, &Target::Bundler)
+        .unwrap();
+
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(pkg.homepage, None);
 }
 
 #[test]
@@ -285,12 +327,46 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
-    let step = wasm_pack::progressbar::Step::new(1);
-    crate_data.check_crate_config(&step).unwrap();
+    crate_data.check_crate_config().unwrap();
 }
 
 #[test]
 fn configure_wasm_bindgen_debug_incorrectly_is_error() {
+    let fixture = utils::fixture::Fixture::new();
+    fixture.readme().hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "whatever"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+            debug-js-glue = "not a boolean"
+            "#,
+    );
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--dev")
+        .assert()
+        .failure()
+        .stderr(predicates::str::contains(
+            "package.metadata.wasm-pack.profile.dev.wasm-bindgen.debug",
+        ));
+}
+
+#[test]
+fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
     let fixture = utils::fixture::Fixture::new();
     fixture
         .readme()
@@ -311,25 +387,50 @@ fn configure_wasm_bindgen_debug_incorrectly_is_error() {
             [dependencies]
             wasm-bindgen = "0.2"
 
-            [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
-            debug-js-glue = "not a boolean"
+            # Note: production is not valid.
+            [package.metadata.wasm-pack.profile.production.wasm-bindgen]
+            debug-js-glue = true
             "#,
         )
-        .hello_world_src_lib();
+        .hello_world_src_lib()
+        .install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .assert()
+        .success()
+        .stderr(predicates::str::contains(
+            "[WARN]: \"package.metadata.wasm-pack.profile.production\" is an unknown key and will \
+             be ignored. Please check your Cargo.toml.",
+        ));
+}
 
-    let cli = Cli::from_iter_safe(vec![
-        "wasm-pack",
-        "build",
-        "--dev",
-        &fixture.path.display().to_string(),
-    ])
-    .unwrap();
+#[test]
+fn it_lists_license_files_in_files_field_of_package_json() {
+    let fixture = fixture::dual_license();
+    let out_dir = fixture.path.join("pkg");
 
-    let result = fixture.run(cli.cmd);
-    assert!(result.is_err());
+    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
 
-    let err = result.unwrap_err();
-    assert!(err.iter_chain().any(|c| c
-        .to_string()
-        .contains("package.metadata.wasm-pack.profile.dev.wasm-bindgen.debug")));
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
+    license::copy_from_crate(&crate_data, &fixture.path, &out_dir).unwrap();
+    crate_data
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
+        .unwrap();
+
+    let package_json_path = &fixture.path.join("pkg").join("package.json");
+    fs::metadata(package_json_path).unwrap();
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+
+    assert!(
+        pkg.files.contains(&"LICENSE-WTFPL".to_string()),
+        "LICENSE-WTFPL is not in files: {:?}",
+        pkg.files,
+    );
+
+    assert!(
+        pkg.files.contains(&"LICENSE-MIT".to_string()),
+        "LICENSE-MIT is not in files: {:?}",
+        pkg.files,
+    );
 }

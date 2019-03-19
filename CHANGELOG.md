@@ -1,5 +1,640 @@
 # Changelog
 
+## 🌤️ 0.7.0
+
+- ### ✨ Features
+
+  - **Non `rustup` environment support - [drager], [pull/552]**
+
+    Before now, `wasm-pack` had a hard requirement that `rustup` had to be in the PATH. While most Rust users use
+    `rustup` there are variety reasons to have an environment that doesn't use `rustup`. With this PR, we'll now
+    support folks who are using a non-`rustup` environment!
+
+    [pull/552]: https://github.com/rustwasm/wasm-pack/pull/552
+
+  - **Improved CLI Output - [alexcrichton], [pull/547]**
+
+    It's hard to decide if this is a fix or a feature, but let's keep it positive! This PR moves `wasm-pack`'s CLI
+    output strategy closer to the desired standard we have for 1.0. This is important as it fixes many small bugs
+    that are distributed across a diveristy of terminals and difficult to test for locally.
+
+    This strategy was first introduced as a mini RFC in [issue/298], and then was discussed in a session at the Rust
+    All Hands ([notes](https://gist.github.com/fitzgen/23a62ebbd67574b9f6f72e5ac8eaeb67#file-road-to-wasm-pack-1-0-md)).
+
+    You'll notice that the spinner is gone- we eventually want to have one, but we'd like one that doesn't cause bugs!
+    If you have feedback about terminal support or an output bug, please [file an issue]! We want to hear from you!
+
+    Check out the new output in the `README` demo- or update your `wasm-pack` and take it for a spin!
+
+    [file an issue]: https://github.com/rustwasm/wasm-pack/issues/new/choose
+    [pull/547]: https://github.com/rustwasm/wasm-pack/pull/547
+    [issue/298]: https://github.com/rustwasm/wasm-pack/issues/298
+
+  - **Add support for `--target web` - [alexcrichton], [pull/567]**
+
+    Recently, `wasm-bindgen` add a new target- `web`. This new target is similar to the `no-modules` target, in that
+    it is designed to generate code that should be loaded directly in a browser, without the need of a bundler. As 
+    opposed to the `no-modules` target, which produces an IIFE (Immediately Invoked Function Expression), this target
+    produces code that is an ES6 module.
+
+    You can use this target by running:
+
+    ```
+    wasm-pack build --target web
+    ```
+
+    Learn more about how to use this target by [checking out the docs!](https://rustwasm.github.io/wasm-pack/book/commands/build.html#target)
+
+    [pull/567]: https://github.com/rustwasm/wasm-pack/pull/567
+
+  - **Support passing arbitrary arguments to `cargo test` via `wasm-pack test` - [chinedufn], [issue/525] [pull/530]**
+
+    `wasm-pack test` is an awesome command that wraps `cargo test` in a way that helps provide you some nice out of the
+    box configuration and setup. However, you may find yourself wanting to leverage the full funcationality of `cargo test`
+    by passing arguments that haven't been re-exported by the `wasm-pack test` interface.
+
+    For example, if you have a large test suite, it can be nice to simply run one test, or a subset of your tests.
+    `cargo test` supports this, however up until now, the `wasm-pack test` interface did not!
+
+    `wasm-pack test` now accepts passing and arbitrary set of arguments that it will forward along to its `cargo test` call
+    by allowing users to use `--` after any `wasm-pack test` arguments, followed by the set of arguments you'd like to pass
+    to `cargo test`.
+
+    For example:
+
+    ```
+    # Anything after `--` gets passed to the `cargo test`
+    wasm-pack test --firefox --headless -- --package my-workspace-crate my_test_name --color=always
+    ```
+
+    This will just run the `my_test_name` test and will output using color!
+
+    [See the `test` docs here!](https://rustwasm.github.io/docs/wasm-pack/commands/test.html)
+
+    [chinedufn]: https://github.com/chinedufn
+    [issue/525]: https://github.com/rustwasm/wasm-pack/issues/525
+    [pull/530]: https://github.com/rustwasm/wasm-pack/pull/530
+
+  - **Support `homepage` field of `Cargo.toml` and `package.json` - [rhysd], [pull/531]**
+
+    Both `Cargo.toml` and `package.json` support a `homepage` field that allow you to specify a website for
+    your project. We didn't support it previously (purely an accidental omission) - but now we do!
+
+    [pull/531]: https://github.com/rustwasm/wasm-pack/pull/531
+
+  - **Support `license-file` field in `Cargo.toml` - [rhysd], [pull/527]**
+
+    Sometimes, you want to provide a custom license, or specific license file that doesn't map to SPDX standard
+    licenses. In Rust/Cargo, you accomplish this by omitting the `license` field and including a `license-file`
+    field instead. You can read more about this in the [`cargo` manifest documentation].
+
+    In an npm package, this translates to `"license": "SEE LICENSE IN <filename>"` in your `package.json`. You can
+    read more about this in the [npm `package.json` documentation].
+
+    We previously only supported using SPDX standard licenses, by only supporting the `"license"` key in your
+    `Cargo.toml`- but now we'll allow you to leverage the `license-file` key as well, and will translate it
+    correctly into your `package.json`!
+
+    [`cargo` manifest documentation]: https://doc.rust-lang.org/cargo/reference/manifest.html
+    [npm `package.json` documentation]: https://docs.npmjs.com/files/package.json#license
+    [rhysd]: https://github.com/rhysd
+    [pull/527]: https://github.com/rustwasm/wasm-pack/pull/527
+
+- ### 🤕 Fixes
+
+  - **`wasm-pack-init (1).exe` should work - [ashleygwilliams], [issue/518] [pull/550]**
+
+    Several users noted that when downloading a new version of `wasm-pack` their browser named the executable
+    file `wasm-pack-init (1).exe`. When named this way, the file didn't show the init instructions on execution.
+    This happened because the installation logic was requiring an exact match on filename. We've loosened that
+    restriction so that the filename must *start* with `wasm-pack-init` and will still execute files with these
+    additional, extraneous charaters in the filename. Thanks so much to [Mblkolo] and [danwilhelm] for filing the
+    issue and the excellent discussion!
+
+    [issue/518]: https://github.com/rustwasm/wasm-pack/issues/518
+    [pull/550]: https://github.com/rustwasm/wasm-pack/pull/550
+    [Mblkolo]: https://github.com/Mblkolo
+
+  - **Fix chromedriver error and message on Windows for `wasm-pack test` - [jscheffner], [issue/535] [pull/537]**
+
+    When running `wasm-pack test` on a 64-bit Windows machine, users would receive an error:
+    `geckodriver binaries are unavailable for this target`. This error message had two issues- firstly, it accidentally
+    said "geckodriver" instead of "chromedriver", secondly, it threw an error instead of using the available 32-bit
+    chromedriver distribution. Chromedriver does not do a specific disribution for Windows 64-bit!
+
+    We've fixed the error message and have also ensured that 64-bit Windows users won't encounter an error, and will
+    appropriately fallback to the 32-bit Windows chromedriver.
+
+    [jscheffner]: https://github.com/jscheffner
+    [issue/535]: https://github.com/rustwasm/wasm-pack/issues/535
+    [pull/537]: https://github.com/rustwasm/wasm-pack/pull/537
+
+  - **Correct look up location for `wasm-bindgen` when it's installed via `cargo install` - [fitzgen], [pull/504]**
+
+    Sometimes, when a `wasm-bindgen` binary is not available, or if `wasm-pack` is being run on an architecture that
+    `wasm-bindgen` doesn't produce binaries for, instead of downloading a pre-built binary, `wasm-pack` will install 
+    `wasm-bindgen` using `cargo install`. This is a great and flexible back up!
+
+    However, due to the last release's recent refactor to use a global cache, we overlooked the `cargo install` case
+    and did not look for `wasm-bindgen` in the appropriate location. As a result, this led to a bug where `wasm-pack`
+    would panic.
+
+    We've fixed the lookup for the `cargo install`'d `wasm-bindgen` by moving the `cargo-install`'d version to global
+    cache location for `wasm-pack` once it's successfully built. We also eliminated the panic in favor of 
+    propagating an error. Thanks for your bug reports and sorry about the mistake!
+
+    [pull/504]: https://github.com/rustwasm/wasm-pack/pull/504
+
+  - **Only print `cargo test` output the once - [fitzgen], [issue/511] [pull/521]**
+
+    Due to some technical debt and churn in the part of the codebase that handles output, we were accidentally
+    printing the output of `cargo test` twice. Now we ensure that we print it only one time!
+
+    [issue/511]: https://github.com/rustwasm/wasm-pack/issues/511
+    [pull/521]: https://github.com/rustwasm/wasm-pack/pull/521
+
+- ### 🛠️ Maintenance
+
+  - **Fix `clippy` warnings - [mstallmo], [issue/477] [pull/478]**
+
+    [`clippy`] is an awesome utilty that helps lint your Rust code for common optimizations and idioms. at the
+    beginning of `wasm-pack` development, `clippy` had not yet stablized, but it has since 1.0'd and it was
+    high time we leveraged it in `wasm-pack`. We still aren't *completely* fixed, but we're working on it, and
+    we've already dervived a ton of value from the tool!
+
+    [`clippy`]: https://github.com/rust-lang/rust-clippy
+    [issue/477]: https://github.com/rustwasm/wasm-pack/issues/477
+    [pull/478]: https://github.com/rustwasm/wasm-pack/pull/478
+
+  - **Run `clippy` check on Travis - [drager], [pull/502]**
+
+    Now that `wasm-pack` has been clippified- we want to keep it that way! Now in addition to `cargo fmt` and
+    `cargo test`, we'll also run `cargo clippy` on all incoming PRs!
+
+    [pull/502]: https://github.com/rustwasm/wasm-pack/pull/502
+
+  - **Port tests to use `assert-cmd` - [fitzgen], [pull/522]**
+
+    [`assert_cmd`] is a great utility for testing CLI applications that is supported by the [CLI WG]. `wasm-pack`
+    development began before this library existed- so we were using a much less pleasant and efficient strategy
+    to test the CLI functionality of `wasm-pack`. Now we've ported over to using this great library!
+    
+    [CLI WG]: https://www.rust-lang.org/what/cli
+    [`assert_cmd`]: https://crates.io/crates/assert_cmd
+    [pull/522]: https://github.com/rustwasm/wasm-pack/pull/522
+
+  - **Add initial tests for `binary-install` crate - [drager], [pull/517]**
+
+    In the last release, we separated some of our binary install logic into a new crate, `binary-install`.
+    However, that's about all we did... move the logic! In an effort to move the crate into true open source
+    status, [drager] has done some excellent work adding tests to the crate. This was trickier than it looked
+    and involved creating a test server! Thanks for all the efforts [drager], and the great review work [fitzgen]
+    and [lfairy]!
+
+    [pull/517]: https://github.com/rustwasm/wasm-pack/pull/517
+    [lfairy]: https://github.com/lfairy
+
+  - **Update tests `wasm-bindgen` version - [huangjj27], [issue/519] [issue/417] [pull/526]**
+
+    Our tests use fixtures that reference `wasm-bindgen` often, but the versions were not consistent or up to
+    date. As a result, the test suite leverage many version of `wasm-bindgen` which meant that they took a while
+    to run as they couldn't use the cached version of `wasm-bindgen` because the cached versions we slightly
+    different! Now they are up to date and consistent so the tests can perform better!
+
+    [pull/526]: https://github.com/rustwasm/wasm-pack/pull/526
+    [issue/519]: https://github.com/rustwasm/wasm-pack/issues/519
+    [issue/417]: https://github.com/rustwasm/wasm-pack/issues/417
+
+- ### 📖 Documentation
+
+  - **Flag gh-pages docs as unpublished - [alexcrichton] [pull/565]**
+
+    Recently, [DebugSteven] made a PR to merge all the documentation for the rustwasm toolchain into a 
+    [single location]. This is going to make discovering and using tools from the entire organization easier
+    for new and seasoned folks alike. This also has the feature of displaying documentation that is related
+    to the current published version of each tool- unlike before, where the only accessible documentation was
+    for the tools at current master (which may or may not be currently published!)
+
+    If you like reading the current master's documentation- fear not, each tool will still publish the
+    documentation generated from the master branch on their individual `gh-pages` 
+    ([See `wasm-pack's` master docs here]). To avoid confusion, we've added a flash message that let's you know
+    which documentation you are reading- and provides a link to documentation of the published version- just
+    in case that's what you're looking for!
+
+    [DebugSteve]: https://github.com/DebugSteven
+    [single location]: https://rustwasm.github.io/docs.html
+    [See `wasm-pack's` master docs here]: https://rustwasm.github.io/wasm-pack/book/
+    [pull/565]: https://github.com/rustwasm/wasm-pack/pull/565
+
+  - **Add new QuickStart guide for "Hybrid Applications with Webpack" - [DebugSteven] [pull/536]**
+
+    Since `wasm-pack` was first published, we've focused on a workflow where a user writes a library and then
+    publishes it to npm, where anyone can use it like any npm package in their JavaScript or Node.js application.
+
+    Shortly after `wasm-pack` appeared, some RustWASM teammates created a template for a similar workflow- building
+    a RustWASM package *alongside* an application. They did this by leveraging Webpack plugins, and it's a really
+    lovely user experience!
+
+    [This template] hasn't gotten as much attention because we've lacked a quickstart guide for folks to discover
+    and follow- now we've got one!
+
+    Check out the guide [here](https://rustwasm.github.io/wasm-pack/book/tutorials/hybrid-applications-with-webpack/index.html)!
+
+    [This temaplte]: https://github.com/rustwasm/rust-webpack-template
+    [DebugSteven]: https://github.com/DebugSteven
+    [pull/536]: https://github.com/rustwasm/wasm-pack/pull/536
+
+  - **Add `wee_alloc` deepdive - [surma], [pull/542]**
+
+    `wee_alloc` is a useful utility that deserved more attention and explanation than our previous docs addressed.
+    This was partially because the `wasm-pack` template has an explanatory comment that helps explain its use.
+    However, for folks who don't use the template, `wee_alloc` is something important to know about- so now we have
+    given it its own section!
+
+    Check out the deepdive [here](https://rustwasm.github.io/wasm-pack/book/tutorials/npm-browser-packages/template-deep-dive/wee_alloc.html)!
+
+    [surma]: https://github.com/surma
+    [pull/542]: https://github.com/rustwasm/wasm-pack/pull/542
+
+  - **Update prerequisite documentation - [alexcrichton], [pull/569]**
+
+    Many folks are using `wasm-pack` without publishing to npm- as a result, we've updated the documentation to
+    clearly indicate that npm is an optional requirement, only required for specific targets and workflows.
+    Additionally, since the 2018 Edition landed, `nightly` Rust is no longer a requirement. We've removed those
+    instructions and have consolidated the documentation so it is shorter and more efficient at getting you
+    started!
+
+    [pull/569]: https://github.com/rustwasm/wasm-pack/pull/569
+
+  - **Clarify what kind of account `login` adds - [killercup], [pull/539]**
+
+    Previously, when view `--help`, the command description for `login` showed:
+    `👤  Add a registry user account!` This could be confusing for folks, so now it's been updated to read:
+    `👤  Add an npm registry user account!`, which is much clearer!
+
+    [killercup]: https://github.com/killercup
+    [pull/539]: https://github.com/rustwasm/wasm-pack/pull/539
+
+  - **Wasm is a contraction, not an acronym - [fitzgen], [pull/555]**
+
+    Ever wonder how you're *actually* supposed to refer to WebAssembly in short-form? WASM? wasm? For the pedants
+    out there, the correct usage is "Wasm" because Wasm is a *contraction* of the words Web and Assembly. We've
+    updated our doucmentation to consistently refer to WebAssembly as Wasm in the shortform.
+
+    *The more you know!*
+
+    [pull/555]: https://github.com/rustwasm/wasm-pack/pull/555
+
+  - **Fix links and Rust highlightning - [drager], [issue/513] [pull/514] [pull/516]**
+
+    We had some broken links and missing Rust syntax highlighting in a few sections of the docs. This fixes that!
+
+    [issue/513]: https://github.com/rustwasm/wasm-pack/issues/513
+    [pull/514]: https://github.com/rustwasm/wasm-pack/pull/514
+    [pull/516]: https://github.com/rustwasm/wasm-pack/pull/516  
+    
+
+## 🌅 0.6.0
+
+- ### ✨ Features
+
+  - **Add three build profiles and infrastructure for their toml config - [fitzgen], [issue/153] [issue/160] [pull/440]**
+
+    When originally conceived, `wasm-pack` was exclusively a packaging and publishing tool, which naively assumed
+    that the crate author would simply run `wasm-pack` when they were ready to publish a wasm package. As a result,
+    `wasm-pack` always ran `cargo build` in `--release` mode. Since then, `wasm-pack` has grown into an integrated build
+    tool used at all stages of development, from idea conception to publishing, and as such has developed new needs.
+
+    In previous releases, we've supported a flag called `--debug` which will run `cargo build` in `dev` mode, which
+    trades faster compilation speed for a lack of optimizations. We've renamed this flag to `--dev` to match `cargo`
+    and added an additional flag, representing a third, intermediary, build profile, called `--profiling` which
+    is useful for investigating performance issues. You can see all three flags and their uses in the table below:
+
+    | Profile       | Debug Assertions | Debug Info | Optimizations | Notes                                 |
+    |---------------|------------------|------------|---------------|---------------------------------------|
+    | `--dev`       | Yes              | Yes        | No            | Useful for development and debugging. |
+    | `--profiling` | No               | Yes        | Yes           | Useful when profiling and investigating performance issues. |
+    | `--release`   | No               | No         | Yes           | Useful for shipping to production.    |
+
+    The meaning of these flags will evolve as the platform grows, and always be tied to the behavior of these flags
+    in `cargo`. You can learn more about these in the [`cargo profile` documentation].
+
+    This PR also introduces a way to configure `wasm-pack` in your `Cargo.toml` file that we intend to use much more
+    in the future. As a largely convention-based tool, `wasm-pack` will never require that you configure it manually,
+    however, as our community and their projects mature alongside the tool, it became clear that allowing folks the
+    ability to drop down and configure things was something we needed to do to meet their needs.
+
+    Currently, you can only configure things related to the above-mentioned build profiles. To learn more, 
+    [check out the documentation][profile-config-docs]. It leverages the `package.metadata.wasm-pack` key in your
+    `Cargo.toml`, and looks like this:
+
+    ```toml
+    # Cargo.toml
+
+    [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
+    # Should we enable wasm-bindgen's debug assertions in its generated JS glue?
+    debug-js-glue = true
+    # Should wasm-bindgen demangle the symbols in the "name" custom section?
+    demangle-name-section = true
+    # Should we emit the DWARF debug info custom sections?
+    dwarf-debug-info = false
+    ```
+
+    As always- there are defaults for you to use, but if you love to configure (or have a project that requires it),
+    get excited, as your options have grown now and will continue to!
+
+    [profile-config-docs]: https://rustwasm.github.io/wasm-pack/book/cargo-toml-configuration.html
+    [`cargo profile` documentation]: https://doc.rust-lang.org/cargo/reference/manifest.html#the-profile-sections
+    [issue/153]: https://github.com/rustwasm/wasm-pack/issues/153
+    [issue/160]: https://github.com/rustwasm/wasm-pack/issues/160
+    [pull/440]: https://github.com/rustwasm/wasm-pack/pull/440
+
+  - **DEPRECATION: Rename `--debug` to `--dev` to match `cargo` - [fitzgen], [pull/439]**
+
+    See the discussion of the build profiles feature above. This is a strict renaming of the previous `--debug` flag,
+    which will now warn as deprecated.
+
+    [pull/439]: https://github.com/rustwasm/wasm-pack/pull/439
+
+  - **Add an option to pass an arbitrary set of arguments to `cargo build` - [torkve], [issue/455] [pull/461]**
+
+    As an integrated build tool, `wasm-pack` orchestrates many secondary command line tools to build your package
+    in a single command. Notably, one of these tools is `cargo`. `cargo` has a wide array of features and flags, and
+    we couldn't reasonably expect to implement them all as first class features of `wasm-pack`. As a result, we've
+    created the option to allow users to pass an arbitrary number of additional flags to `wasm-pack` by appending them
+    to the `wasm-pack build` command, after passing `--`. For example:
+
+    ```
+    wasm-pack build examples/js-hello-world --mode no-install -- -Z offline
+    ```
+
+    In the above example, the flag `-Z offline` will be passed to `cargo build`. This feature is documented 
+    [here][cargo opts docs].
+
+    [cargo opts docs]: https://rustwasm.github.io/wasm-pack/book/commands/build.html#extra-options
+    [torkve]: https://github.com/torkve
+    [issue/455]: https://github.com/rustwasm/wasm-pack/issues/455
+    [pull/461]: https://github.com/rustwasm/wasm-pack/pull/461
+
+
+  - **Pre-build before wasm-pack publish - [csmoe], [issue/438] [pull/444]**
+
+    Previously, if you ran `wasm-pack publish` before you had successfully run `wasm-pack build`,
+    you'd receive an error that a package could not be found- because there would be no `pkg` or
+    out-directory containing a `package.json`.
+
+    In this situation, you would hope that `wasm-pack` would build your package for you when you
+    ran `wasm-pack publish`. This is slightly complicated by the fact that not everyone wants to 
+    build their package to the default target or to a directory named `pkg`.
+
+    To solve this, running `wasm-pack publish` before a successful build  will give you an interactive
+    prompt to build your package- allowing you to specify your out directory as well as the target you'd
+    like to build to. Check it out in the gif below:
+
+    ![pre-build publish workflow](https://user-images.githubusercontent.com/35686186/50500909-5984fe80-0a8f-11e9-9de6-43d1423b2969.gif)
+
+    [issue/438]: https://github.com/rustwasm/wasm-pack/issues/438
+    [pull/444]: https://github.com/rustwasm/wasm-pack/pull/444
+
+  - **Generate self-.gitignore as part of pkg folder - [RReverser], [pull/453]**
+
+    Since `wasm-pack` was first published, the `pkg` directory was intended to be treated as a
+    build artifact, and as such should never be published to version control. This was
+    never enforced by any assets generated by `wasm-pack`, however.
+
+    Now, when building your package, `wasm-pack` will also generate a `.gitignore` file so that the
+    `pkg`, or out-directory, will be ignored.
+
+    If you use another version control tool, you'll need to still create or edit your own ignore file-
+    pull requests to support other version control tools are welcome!
+
+    If you require editing of the generated `package.json` or add additonal assets to your package
+    before publishing, you'll want to remove the `.gitignore` file and commit to version control. We
+    intend to have a solution that makes this workflow significantly easier in upcoming releases!
+
+    [RReverser]: https://github.com/RReverser
+    [pull/453]: https://github.com/rustwasm/wasm-pack/pull/453
+
+  - **Support cargo workspaces - [fitzgen], [issue/252] [issue/305] [pull/430]**
+
+    Workspaces are a well-liked and used feature of cargo that allow you to build multiple crates
+    in a single cargo project. Because of how `wasm-pack` handled paths for `target` and out-directories,
+    we did not support cargo workspaces out of the box. Now they should work well and the feature is
+    well guarded by tests!
+    
+    [issue/252]: https://github.com/rustwasm/wasm-pack/issues/252
+    [issue/305]: https://github.com/rustwasm/wasm-pack/issues/305
+    [pull/430]: https://github.com/rustwasm/wasm-pack/pull/430
+
+  - **Use a global cache for all downloaded binaries - [alexcrichton], [pull/426]**
+
+    `wasm-pack` is an integrated build tool that orchestrates several other command line tools to build
+    your wasm project for you. How `wasm-pack` does this has evolved significantly since it's early versions.
+    In the last version, a `bin` directory was created to house the tool binaries that `wasm-pack` needed to
+    build our project, but this had several limitations. Firstly, it created a `bin` directory in your project's
+    root, which could be confusing. Secondly, it meant that sharing these tools across multiple projects was
+    not possible. We did this because it gaves us the fine-grained control over the version of these tools that
+    you used.
+
+    Now, `wasm-pack` will not generate a `bin` directory, but rather will use a global cache. We retain the
+    fine-grained control over the versions of these tools that are used, but allow multiple projects that use
+    the same tools at the same versions to share the already installed asset. Your global cache will generally
+    be in your user's home directory- we use the [`dirs` crate] to determine where to place this global cache.
+    This is not currently customizable but is something we intend to look into doing!
+
+    This feature ensures that `wasm-pack` users are downloading a minimal number of binaries from the network,
+    which, for `wasm-pack` users with multiple projects, should speed up build times.
+
+    [`dirs` crate]: https://docs.rs/dirs/1.0.4/dirs/fn.cache_dir.html
+    [pull/426]: https://github.com/rustwasm/wasm-pack/pull/426
+
+- ### 🤕 Fixes
+
+  - **Fix `pack`, `login`, and `publish` for Windows users - [danwilhelm], [issue/277] [pull/489]**
+
+    Rust's behavior for spawning processes on some Windows targets introduced an interesting case where
+    Rust would fail unless the command was explicitly spawned with a prepended `cmd /c`. This failure
+    of `wasm-pack` was well noticed by our community - and thanks to the efforts of `danwilhelm` is now
+    fixed! You can read more on the background of this issue in [rust-lang/rust issue/44542].
+
+    [rust-lang/rust issue/44542]: https://github.com/rust-lang/rust/pull/44542
+    [issue/277]: https://github.com/rustwasm/wasm-pack/issues/277
+    [pull/489]: https://github.com/rustwasm/wasm-pack/pull/489
+
+  - **Validate `--target` argument - [csmoe], [issue/483] [pull/484]**
+
+    For a few releases now, `wasm-pack` has supported allowing users to specifying the target module system
+    they'd like their package built for- `browser`, `nodejs`, and `no-modules`. We did not however, validate
+    this input, and so if a user made even a slight mistake, e.g. `node`, `wasm-pack` would not catch the
+    error and would build your project using the default, `browser`. This is of course, surprising, and 
+    unpleasant behavior and so now we'll error out with a message containing the supported target names.
+
+    [issue/483]: https://github.com/rustwasm/wasm-pack/issues/483
+    [pull/484]: https://github.com/rustwasm/wasm-pack/pull/484
+
+  - **Fix login - [danwilhelm], [issue/486] [pull/487]**
+
+    [danwilhelm]: https://github.com/danwilhelm
+    [issue/486]: https://github.com/rustwasm/wasm-pack/issues/486
+    [pull/487]: https://github.com/rustwasm/wasm-pack/pull/487
+
+  - **Eliminate unecessary escaping in build success terminal output - [huangjj27], [issue/390] [pull/396]**
+
+    Previously, on some systems, a successful `wasm-pack build` would print a unfortunate looking string:
+
+    ```
+    | :-) Your wasm pkg is ready to publish at "\\\\?\\C:\\Users\\Ferris\\tmp\\wasm-bug\\pkg".
+    ```
+
+    We've updated this to make sure the path to your project is well-formed, and most importantly, 
+    human-readable.
+
+    [issue/390]: https://github.com/rustwasm/wasm-pack/issues/390
+    [pull/396]: https://github.com/rustwasm/wasm-pack/pull/396
+
+  - **Copy license file(s) to out directory - [mstallmo], [issue/407] [pull/411]**
+
+    Since `wasm-pack` was first published, we've copied over your `Cargo.toml` license definition over to
+    your `package.json`. However, we overlooked copying the actual `LICENSE` files over! Now we do!
+
+    [issue/407]: https://github.com/rustwasm/wasm-pack/issues/407
+    [pull/411]: https://github.com/rustwasm/wasm-pack/pull/411
+
+  - **Don't require cdylib crate-type for testing - [alexcrichton], [pull/442]**
+
+    `wasm-pack` was unecssarily checking `Cargo.toml` for the `cdylib` crate type during calls to `wasm-pack test`.
+    The `cdylib` output isn't necessary for the `wasm-pack test` stage because `wasm-bindgen` isn't being run over
+    a wasm file during testing. This check is now removed!
+
+    [pull/442]: https://github.com/rustwasm/wasm-pack/pull/442
+
+  - **Fix wasm-bindgen if lib is renamed via `lib.name` - [alexcrichton], [issue/339] [pull/435]**
+
+    In some circumstances, a library author may wish to specify a `name` in the `[package]` portion of their 
+    `Cargo.toml`, as well as a different `name` in the `[lib]` portion, e.g.:
+
+    ```toml
+    [package]
+    name = "hello-wasm"
+  
+    [lib]
+    name = "wasm-lib"
+    ```
+
+    This would cause the `wasm-bindgen` build stage of `wasm-pack` to error out because `wasm-pack` would attempt
+    to run `wasm-bindgen-cli` on a path using the `[package]` name, which wouldn't exist (because it would be using
+    the `[lib]` name). Now it works- thanks to more usage of [`cargo_metadata`] in `wasm-pack` internals!
+
+    [`cargo_metadata`]: https://crates.io/crates/cargo_metadata
+    [issue/339]: https://github.com/rustwasm/wasm-pack/issues/339
+    [pull/435]: https://github.com/rustwasm/wasm-pack/pull/435
+
+  - **Print standard error only once for failing commands - [fitzgen], [issue/422] [pull/424]**
+
+    Previously, `wasm-pack` may have printed `stderr` twice in some circumstances. This was both confusing and not
+    a pleasant experience, so now we've ensued that `wasm-pack` prints `stderr` exactly once! (It's hard enough to have
+    errors, you don't want `wasm-pack` rubbing it in, right?)
+
+    [issue/422]: https://github.com/rustwasm/wasm-pack/issues/422
+    [pull/424]: https://github.com/rustwasm/wasm-pack/pull/424
+
+  - **Add no-modules to --target flag's help text - [fitzgen], [issue/416] [pull/417]**
+
+    This is an interesting one! `fitzgen` very reasonably filed an issue asking to add `wasm-bindgen`'s 
+    `--target no-modules` feature to `wasm-pack`. This was confusing as this feature was indeed already implemented,
+    and documented- BUT, notably missing from the `wasm-pack --help` text. We've fixed that now- and it was an omission
+    so glaring we definitely considered it a bug!
+
+    [issue/416]: https://github.com/rustwasm/wasm-pack/issues/416
+    [pull/417]: https://github.com/rustwasm/wasm-pack/pull/417
+
+- ### 🛠️ Maintenance
+
+  - **Replace `slog` with `log` - [alexcrichton], [issue/425] [pull/434]**
+
+    For internal maintenance reasons, as well as several end-user ones, we've migrated away from the `slog` family
+    of crates, and are now using the `log` crate plus `env_logger`. Now, `wasm-pack` won't create a `wasm-pack.log`.
+    Additionally, enabling logging will now be done through `RUST_LOG=wasm_pack` instead of  `-v` flags. 
+
+    [issue/425]: https://github.com/rustwasm/wasm-pack/issues/425
+    [pull/434]: https://github.com/rustwasm/wasm-pack/pull/434
+
+  - **Move binary installation to its own crate - [drager], [issue/384] [pull/415]**
+
+    In `wasm-pack 0.5.0`, we move away from `cargo install`ing many of the tools that `wasm-pack` orchestrates. Because
+    we used `cargo install`, this required an end user to sit through the compilation of each tool, which was a 
+    prohibitively long time. We moved, instead, to building, and then installing, binaries of the tools. This sped up
+    build times dramatically!
+
+    This pattern has been very beneficial to `wasm-pack` and is potentially something that could be beneficial to other
+    projects! As a result, we've refactored it out into a crate and have published it as it's own crate, [`binary-install`].
+
+    [`binary-install`]: https://crates.io/crates/binary-install
+    [drager]: https://github.com/drager
+    [issue/384]: https://github.com/rustwasm/wasm-pack/issues/384
+    [pull/415]: https://github.com/rustwasm/wasm-pack/pull/415
+
+  - **Replace internal `Error` with `failure::Error` - [alexcrichton], [pull/436]**
+
+    The story of error message handling in `wasm-pack` has not been the prettiest. We originally were manually implementing
+    errors, adding the [`failure` crate] at one point, but not fully updating the entire codebase. With this PR, we are
+    nearly completely handling errors with `failure`, bringing the code into a much more maintainable and 
+    pleasant-to-work-on place.
+
+    [`failure` crate]: https://crates.io/crates/failure
+    [pull/436]: https://github.com/rustwasm/wasm-pack/pull/436
+
+  - **Update `mdbook` version used by Travis - [fitzgen], [pull/433]**
+
+    [pull/433]: https://github.com/rustwasm/wasm-pack/pull/433
+
+  - **Read the `Cargo.toml` file only once - [fitzgen], [issue/25] [pull/431]**
+
+    This is a very fun one since it fixes one of the original issues filed by `ag_dubs` at the very beginning of `wasm-pack`
+    development. In a rush to implement a POC tool, `ag_dubs` noted for posterity that the `Cargo.toml` was being read 
+    multiple times (twice), when it did not need to be. Thanks to `fitzgen` now it's read only once! A minor performance
+    improvement in the scheme of things, but a nice one :)
+
+    [issue/25]: https://github.com/rustwasm/wasm-pack/issues/25
+    [pull/431]: https://github.com/rustwasm/wasm-pack/pull/431
+
+  - **Use `name` field for Travis CI jobs - [fitzgen], [pull/432]**
+
+    [pull/432]: https://github.com/rustwasm/wasm-pack/pull/432
+
+  - **Add a test for build command - [huangjj27], [pull/408]**
+
+    [huangjj27]: https://github.com/huangjj27
+    [pull/408]: https://github.com/rustwasm/wasm-pack/pull/408
+
+  - **Test paths on Windows - [xmclark], [issue/380] [pull/389]**
+
+    [xmclark]: https://github.com/xmclark
+    [issue/380]: https://github.com/rustwasm/wasm-pack/issues/380
+    [pull/389]: https://github.com/rustwasm/wasm-pack/pull/389
+
+  - **Fix typo in test function name for copying the README - [mstallmo], [pull/412]**
+
+    [pull/412]: https://github.com/rustwasm/wasm-pack/pull/412
+
+- ### 📖 Documentation
+
+  - **Complete template deep dive docs - [danwilhelm], [issue/345] [issue/346] [pull/490]**
+
+    In a rush to publish a release, `ag_dubs` left some "Coming soon!" comments on most pages
+    of the "Template Deep Dive" docs. These docs help walk new users through the boilerplate
+    that using the `wasm-pack` template generates for you. Thanks so much to `danwilhem` for
+    picking this up and doing an excellent job!
+
+    [issue/345]: https://github.com/rustwasm/wasm-pack/issues/345
+    [issue/346]: https://github.com/rustwasm/wasm-pack/issues/346
+    [pull/490]: https://github.com/rustwasm/wasm-pack/pull/490
+
+  - **Minor docs updates - [fitzgen], [issue/473] [pull/485]**
+
+    [issue/473]: https://github.com/rustwasm/wasm-pack/issues/473
+    [pull/485]: https://github.com/rustwasm/wasm-pack/pull/485
+
 ## 🌄 0.5.1
 
 - ### 🤕 Fixes
