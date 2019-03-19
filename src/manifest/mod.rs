@@ -11,18 +11,18 @@ use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
 use cargo_metadata::Metadata;
+use chrono::offset;
+use chrono::DateTime;
 use command::build::{BuildProfile, Target};
+use curl::easy;
 use failure::{Error, ResultExt};
 use serde::{self, Deserialize};
 use serde_json;
-use chrono::offset;
-use chrono::DateTime;
-use curl::easy;
-use std::io::Write;
 use std::collections::BTreeSet;
+use std::io::Write;
 use strsim::levenshtein;
-use which;
 use toml;
+use which;
 use PBAR;
 
 const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
@@ -116,7 +116,6 @@ struct CargoWasmPackProfileWasmBindgen {
     #[serde(default, rename = "dwarf-debug-info")]
     dwarf_debug_info: Option<bool>,
 }
-
 
 struct Collector(Vec<u8>);
 

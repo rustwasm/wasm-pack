@@ -4,17 +4,17 @@ extern crate env_logger;
 extern crate failure;
 #[macro_use]
 extern crate human_panic;
+extern crate log;
 extern crate structopt;
 extern crate wasm_pack;
 extern crate which;
-extern crate log;
 
 use std::env;
-use structopt::StructOpt;
-use wasm_pack::{command::run_wasm_pack, Cli};
-use wasm_pack::command::build::{Build};
 use std::sync::mpsc;
 use std::thread;
+use structopt::StructOpt;
+use wasm_pack::command::build::Build;
+use wasm_pack::{command::run_wasm_pack, Cli};
 
 mod installer;
 

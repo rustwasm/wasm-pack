@@ -5,10 +5,10 @@ use command::build::BuildProfile;
 use emoji;
 use failure::{Error, ResultExt};
 use log::info;
+use manifest::Crate;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
-use manifest::Crate;
 use PBAR;
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
