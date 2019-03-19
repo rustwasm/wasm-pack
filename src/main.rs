@@ -7,12 +7,29 @@ extern crate human_panic;
 extern crate structopt;
 extern crate wasm_pack;
 extern crate which;
+extern crate log;
 
 use std::env;
 use structopt::StructOpt;
 use wasm_pack::{command::run_wasm_pack, Cli};
+use wasm_pack::command::build::{Build};
+use std::sync::mpsc;
+use std::thread;
 
 mod installer;
+
+fn background_check_for_updates() -> mpsc::Receiver<(String, String)> {
+    let (sender, receiver) = mpsc::channel();
+    let _detached_thread = thread::spawn(move || {
+        if let Ok((local, latest)) = Build::return_wasm_pack_versions() {
+            if !local.is_empty() && !latest.is_empty() && local != latest {
+                sender.send((local, latest)).unwrap();
+            }
+        }
+    });
+
+    receiver
+}
 
 fn main() {
     env_logger::init();
@@ -27,6 +44,8 @@ fn main() {
 }
 
 fn run() -> Result<(), failure::Error> {
+    let update_available = background_check_for_updates();
+
     // Deprecate `init`
     if let Some("init") = env::args().nth(1).as_ref().map(|arg| arg.as_str()) {
         println!("wasm-pack init is deprecated, consider using wasm-pack build");
@@ -47,5 +66,10 @@ fn run() -> Result<(), failure::Error> {
 
     let args = Cli::from_args();
     run_wasm_pack(args.cmd)?;
+
+    if let Ok(update_available) = update_available.try_recv() {
+        println!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}", update_available.1, update_available.0);
+    }
+
     Ok(())
 }

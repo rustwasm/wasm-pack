@@ -8,6 +8,7 @@ use log::info;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 use std::str;
+use manifest::Crate;
 use PBAR;
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
@@ -45,6 +46,42 @@ fn rustc_minor_version() -> Option<u32> {
         return None;
     }
     otry!(pieces.next()).parse().ok()
+}
+
+/// Checks and returns local and latest versions of wasm-pack
+pub fn check_wasm_pack_versions() -> Result<(String, String), Error> {
+    match wasm_pack_local_version() {
+        Some(local) => {
+            match Crate::return_wasm_pack_latest_version() {
+                Some(latest) => Ok((local, latest)),
+                None => Ok((local, "".to_string()))
+            }
+        },
+        None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")
+    }
+}
+
+fn wasm_pack_local_version() -> Option<String> {
+    macro_rules! otry {
+        ($e:expr) => {
+            match $e {
+                Some(e) => e,
+                None => return None,
+            }
+        };
+    }
+
+    let output = otry!(Command::new("wasm-pack").arg("--version").output().ok());
+    let version = otry!(str::from_utf8(&output.stdout).ok());
+    let mut pieces = version.split(' ');
+    if pieces.next() != Some("wasm-pack") {
+        return None;
+    }
+    otry!(pieces.next())
+        .to_string()
+        .trim()
+        .parse::<String>()
+        .ok()
 }
 
 /// Get rustc's sysroot as a PathBuf

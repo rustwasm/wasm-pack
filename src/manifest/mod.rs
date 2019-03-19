@@ -15,8 +15,13 @@ use command::build::{BuildProfile, Target};
 use failure::{Error, ResultExt};
 use serde::{self, Deserialize};
 use serde_json;
+use chrono::offset;
+use chrono::DateTime;
+use curl::easy;
+use std::io::Write;
 use std::collections::BTreeSet;
 use strsim::levenshtein;
+use which;
 use toml;
 use PBAR;
 
@@ -110,6 +115,117 @@ struct CargoWasmPackProfileWasmBindgen {
 
     #[serde(default, rename = "dwarf-debug-info")]
     dwarf_debug_info: Option<bool>,
+}
+
+
+struct Collector(Vec<u8>);
+
+impl easy::Handler for Collector {
+    fn write(&mut self, data: &[u8]) -> Result<usize, easy::WriteError> {
+        self.0.extend_from_slice(data);
+        Ok(data.len())
+    }
+}
+
+/// Struct for storing information received from crates.io
+#[derive(Deserialize, Debug)]
+pub struct Crate {
+    #[serde(rename = "crate")]
+    crt: CrateInformation,
+}
+
+#[derive(Deserialize, Debug)]
+struct CrateInformation {
+    max_version: String,
+}
+
+impl Crate {
+    /// Returns latest wasm-pack version
+    pub fn return_wasm_pack_latest_version() -> Option<String> {
+        let current_time = chrono::offset::Local::now();
+        Crate::return_wasm_pack_file().and_then(|contents| {
+            let last_updated = Crate::return_stamp_file_value(&contents, "created")
+                .and_then(|t| Some(DateTime::parse_from_str(t.as_str(), "%+").unwrap()));
+            let version = Crate::return_stamp_file_value(&contents, "version").and_then(|v| {
+                if current_time
+                    .signed_duration_since(last_updated.unwrap())
+                    .num_hours()
+                    > 24
+                {
+                    return Crate::return_api_call_result(current_time);
+                } else {
+                    return Some(v);
+                }
+            });
+            version
+        });
+        return Crate::return_api_call_result(current_time);
+    }
+
+    fn return_api_call_result(current_time: DateTime<offset::Local>) -> Option<String> {
+        Crate::call_for_wasm_pack_version().and_then(|v| {
+            Crate::override_stamp_file(current_time, &v);
+            Some(v)
+        })
+    }
+
+    fn override_stamp_file(current_time: DateTime<offset::Local>, version: &String) {
+        if let Ok(path) = which::which("wasm-pack") {
+            let file = fs::OpenOptions::new()
+                .read(true)
+                .write(true)
+                .append(true)
+                .create(true)
+                .open(path.with_extension("stamp"));
+
+            if let Ok(()) = file.as_ref().unwrap().set_len(0) {
+                if let Err(_) = write!(
+                    file.unwrap(),
+                    "created {:?}\nversion {}",
+                    current_time,
+                    version
+                ) {}
+            }
+        }
+    }
+
+    fn return_wasm_pack_file() -> Option<String> {
+        if let Ok(path) = which::which("wasm-pack") {
+            if let Ok(file) = fs::read_to_string(path.with_extension("stamp")) {
+                return Some(file);
+            }
+        }
+        None
+    }
+
+    fn call_for_wasm_pack_version() -> Option<String> {
+        if let Ok(crt) = Crate::check_wasm_pack_latest_version() {
+            return Some(crt.crt.max_version);
+        }
+        None
+    }
+
+    fn return_stamp_file_value(file: &String, word: &str) -> Option<String> {
+        let created = file
+            .lines()
+            .find(|line| line.starts_with(word))
+            .and_then(|l| l.split_whitespace().nth(1));
+
+        let value = created.map(|s| s.to_string());
+
+        value
+    }
+
+    /// Call to the crates.io api and return the latest version of `wasm-pack`
+    fn check_wasm_pack_latest_version() -> Result<Crate, Error> {
+        let mut easy = easy::Easy2::new(Collector(Vec::new()));
+        easy.get(true)?;
+        easy.url("https://crates.io/api/v1/crates/wasm-pack")?;
+        easy.perform()?;
+        let contents = easy.get_ref();
+        let result = String::from_utf8_lossy(&contents.0);
+        Ok(serde_json::from_str(result.into_owned().as_str())?)
+    }
 }
 
 impl CargoWasmPackProfile {

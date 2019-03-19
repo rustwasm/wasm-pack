@@ -22,6 +22,8 @@ extern crate dialoguer;
 extern crate log;
 extern crate toml;
 extern crate walkdir;
+extern crate chrono;
+extern crate curl;
 
 pub mod bindgen;
 pub mod build;
