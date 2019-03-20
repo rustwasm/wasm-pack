@@ -9,8 +9,10 @@ may look slightly different than what is described here.
 
 ### What the Template Gave Us
 
-Let's start by taking a look at what the template generated for us. 
+Let's start by taking a look at what the template generated for us.
 
-- [`Cargo.toml`](./cargo-toml.html)
-- [`src/lib.rs`](./src-lib-rs.html)
-- [`src/utils.rs`](./src-utils-rs.html)
+- [`Cargo.toml` - the Cargo manifest](./cargo-toml.html)
+- [`src/lib.rs` - main library module](./src-lib-rs.html)
+- [`src/utils.rs` - a utility module](./src-utils-rs.html)
+- [`wee_alloc` - a tiny memory allocator](./wee_alloc.html)
+- [`tests/web.rs` - running headless browser tests](./tests-web-rs.html)

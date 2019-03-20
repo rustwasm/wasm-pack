@@ -10,10 +10,10 @@ Next, since `wasm-pack` is a build tool, you'll want to make sure you have
 
 [rust]: https://www.rust-lang.org/tools/install
 
-Finally, if you're using `wasm-pack` to install to publish to NPM, you'll want
+Finally, if you're using `wasm-pack` to publish to NPM, you'll want
 to [install and configure `npm`][npm]. In the future, we intend to rewrite the
 npm registry client bits so that the need for a Node runtime is eliminated. If
 you're excited about that work- you should reach out to the maintainers and get
 involved!
 
-[npm]: npm.html
+[npm]: prerequisites/npm.html
