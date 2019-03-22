@@ -212,3 +212,29 @@ fn build_with_arbitrary_cargo_options() {
         .assert()
         .success();
 }
+
+#[test]
+fn build_no_install() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--mode")
+        .arg("no-install")
+        .assert()
+        .success();
+}
+
+#[test]
+fn build_force() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--mode")
+        .arg("force")
+        .assert()
+        .success();
+}
