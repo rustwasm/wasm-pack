@@ -32,6 +32,16 @@ wasm-pack build --out-dir out
 The above command will put your build artifacts in a directory called `out`, instead
 of the default `pkg`.
 
+## Output file names
+
+Set output file names. Defaults to package name.
+
+```
+wasm-pack build --out-name index
+```
+
+This command will build the package with file names like `index.js`, `index.d.ts`, and so on.
+
 ## Profile
 
 The `build` command accepts an optional profile argument: one of `--dev`,
