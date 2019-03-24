@@ -34,13 +34,20 @@ of the default `pkg`.
 
 ## Output file names
 
-Set output file names. Defaults to package name.
+Flag `--out-name` sets the prefix for output file names. If not provided, package name is used instead.
+
+Usage examples, assuming our crate is named `dom`:
 
 ```
+wasm-pack build
+# will produce files
+# dom.d.ts  dom.js  dom_bg.d.ts  dom_bg.wasm  package.json  README.md
+
 wasm-pack build --out-name index
+# will produce files
+# index.d.ts  index.js  index_bg.d.ts  index_bg.wasm  package.json  README.md
 ```
 
-This command will build the package with file names like `index.js`, `index.d.ts`, and so on.
 
 ## Profile
 
