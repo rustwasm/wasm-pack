@@ -58,6 +58,12 @@ check out our [contribution policy].
 [guide]: https://rustwasm.github.io/wasm-pack/book/contributing.html
 [contribution policy]: CONTRIBUTING.md
 
+## 🤹‍♀️ Governance
+
+This project is part of the [rustwasm Working Group].
+
+This project was started by [ashleygwilliams] and is co-maintained by [ashleygwilliams], [drager] and the Rust Wasm Working Group Core Team.
+
 ## ⚡ Quickstart Guide
 
 1. Write a crate in Rust.
@@ -73,8 +79,6 @@ check out our [contribution policy].
 3. Add this to the top of your `src/lib.rs`:
 
   ```rust
-  extern crate wasm_bindgen;
-
   use wasm_bindgen::prelude::*;
   ```
 

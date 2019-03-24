@@ -1,5 +1,107 @@
 # Changelog
 
+## 🌤️ 0.8.0
+
+- ### ✨ Features
+
+    - **Give user's ability to customize generated filenames with `--out-name` flag - [ibaryshnikov], [issue/596] [pull/599]**
+
+        When running `wasm-pack build`, several files are generated. These files
+        are named based on the name of the crate, as per your `Cargo.toml` file.
+        Sometimes- that's not the name you'd like your files to have!
+
+        You can now specify a custom name for the generated files using a new
+        flag, `--out-name`. Given a project called `dom`, here's a comparison of
+        the default and custom generated filenames:
+
+        ```
+        wasm-pack build
+        # will produce files
+        # dom.d.ts  dom.js  dom_bg.d.ts  dom_bg.wasm  package.json  README.md
+
+         wasm-pack build --out-name index
+        # will produce files
+        # index.d.ts  index.js  index_bg.d.ts  index_bg.wasm  package.json  README.md
+        ``` 
+
+        [ibaryshnikov]: https://github.com/ibaryshnikov
+        [issue/596]: https://github.com/rustwasm/wasm-pack/issues/596
+        [pull/599]: https://github.com/rustwasm/wasm-pack/pull/599
+
+- ### 🤕 Fixes
+
+    - **Fix panics in `build mode --no-install` - [alexcrichton], [pull/598]**
+
+        This commit fixes the `wasm-pack build --mode no-install` command from
+        unconditionally panicking as well as `--mode force`. These steps were
+        calling an `unwrap()` on an internal `Option<T>` which was supposed to
+        be set during `step_install_wasm_bindgen`, but that step wasn't run in
+        these modes. The mode configuration of steps has been refactored
+        slightly to ensure that more steps are shared between these modes to
+        reduce duplication.
+
+        [pull/598]: https://github.com/rustwasm/wasm-pack/pull/598
+
+    - **Print unexpected panics to standard error - [drager], [issue/562] [pull/601]**
+
+        Unexpected panics are unfortunate but they're currently covered up and written
+        out to an auxiliary file. This makes panics in CI difficult to debug,
+        especially at a glance, as CI builders are likely not uploading those files.
+
+        This PR will print to standard error for unexpected panics and then let
+        `human_panic` handle panics, just like before.
+
+        [issue/562]: https://github.com/rustwasm/wasm-pack/issues/562
+        [pull/601]: https://github.com/rustwasm/wasm-pack/pull/601
+
+    - **Improve error message when `wasm32-unknown-unknown` is missing - [drager], [issue/579] [pull/602]**
+
+        For folks with non-rustup environments (which we only started supporting in
+        0.7.0!), we were giving a missing target error that was not helpful!
+
+        We've updated the error message to include more information, and we've added
+        some documentation to help explain how you can remedy the error by manually
+        installing the target on your specific rust setup- including the fact that
+        it may *not* be possible to add the target to some setups.
+
+        Check out the docs [here](https://rustwasm.github.io/wasm-pack/book/prerequisites/non-rustup-setups.html).
+
+        [issue/579]: https://github.com/rustwasm/wasm-pack/issues/579
+        [pull/602]: https://github.com/rustwasm/wasm-pack/pull/602
+
+- ### 📖 Documentation
+
+    - **Document `--out-dir` flag - [ashleygwilliams], [issue/592] [pull/593]**
+
+        Recently, someone asked on Discord about customizing the name of the directory
+        that contains the assets built by `wasm-pack`. We've had the `out-dir` flag for
+        a while, but it wasn't documented! Now it is.
+
+        [issue/592]: https://github.com/rustwasm/wasm-pack/issues/592
+        [pull/593]: https://github.com/rustwasm/wasm-pack/pull/593
+
+    - **Fix broken links in docs and update for template changes - [drager], [ashleygwilliams], [issue/609] [pull/612] [pull/614]**
+
+        Recently, some improvements were made to the [`wasmpack-template`]. Additionally,
+        there were some broken links in the documentation. We've updated the docs for the
+        new template and fixed the broken links!
+
+        [issue/609]: https://github.com/rustwasm/wasm-pack/issues/609
+        [pull/612]: https://github.com/rustwasm/wasm-pack/pull/612
+        [pull/614]: https://github.com/rustwasm/wasm-pack/pull/614
+
+- ### 🛠️ Maintenance
+
+    - **Move `binary-install` to its own repo - [drager], [issue/500] [pull/600]**
+
+        `binary-install` is a crate that holds the abstractions for how `wasm-pack` downloads
+        and caches pre-built binaries for the tools it wraps. It was originally part of the
+        `wasm-pack` code, then moved into a workspace as an independent crate. Now that we
+        believe it's stable, we've moved it into its own [repo](https://github.com/rustwasm/binary-install)!
+
+        [issue/500]: https://github.com/rustwasm/wasm-pack/issues/500
+        [pull/600]: https://github.com/rustwasm/wasm-pack/pull/600
+
 ## 🌤️ 0.7.0
 
 - ### ✨ Features
