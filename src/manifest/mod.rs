@@ -349,7 +349,7 @@ impl CrateData {
     }
 
     /// Get the prefix for output file names
-    fn name_prefix(&self) -> String {
+    pub fn name_prefix(&self) -> String {
         match &self.out_name {
             Some(value) => value.clone(),
             None => self.crate_name(),
