@@ -265,38 +265,27 @@ impl Build {
                 };
             ($($name:ident,)*) => (steps![$($name),*])
         }
+        let mut steps = Vec::new();
         match &mode {
-            BuildMode::Normal => steps![
-                step_check_rustc_version,
-                step_check_crate_config,
-                step_check_for_wasm_target,
-                step_build_wasm,
-                step_create_dir,
-                step_copy_readme,
-                step_copy_license,
-                step_install_wasm_bindgen,
-                step_run_wasm_bindgen,
-                step_create_json,
-            ],
-            BuildMode::Noinstall => steps![
-                step_check_rustc_version,
-                step_check_crate_config,
-                step_build_wasm,
-                step_create_dir,
-                step_copy_readme,
-                step_copy_license,
-                step_run_wasm_bindgen,
-                step_create_json,
-            ],
-            BuildMode::Force => steps![
-                step_build_wasm,
-                step_create_dir,
-                step_copy_readme,
-                step_copy_license,
-                step_run_wasm_bindgen,
-                step_create_json,
-            ],
+            BuildMode::Force => {}
+            _ => {
+                steps.extend(steps![
+                    step_check_rustc_version,
+                    step_check_crate_config,
+                    step_check_for_wasm_target,
+                ]);
+            }
         }
+        steps.extend(steps![
+            step_build_wasm,
+            step_create_dir,
+            step_copy_readme,
+            step_copy_license,
+            step_install_wasm_bindgen,
+            step_run_wasm_bindgen,
+            step_create_json,
+        ]);
+        steps
     }
 
     fn step_check_rustc_version(&mut self) -> Result<(), Error> {

@@ -46,7 +46,7 @@ This is all you need to know to interface with JavaScript, at least to start! Yo
 
 If you are curious about the rest, read on.
 
-## 2. Crate imports
+## 2. Crate Organization
 
 ```rust
 mod utils;
@@ -74,7 +74,6 @@ With this in mind, this `use` allows us to call the macro `cfg_if!` inside the c
 ```rust
 cfg_if! {
     if #[cfg(feature = "wee_alloc")] {
-        extern crate wee_alloc;
         #[global_allocator]
         static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
     }
@@ -83,7 +82,11 @@ cfg_if! {
 
 We immediately notice that `cfg_if!` is a macro because it ends in `!`, similarly to other Rust macros such as `println!` and `vec!`. A macro is directly replaced by other code during compile time.
 
-During compile time, `cfg_if!` evaluates the `if` statement. This tests whether the feature `wee_alloc` is present in the `[features]` section of `Cargo.toml` (among other possible ways to set it).
+At compile time this will test if the `wee_alloc` feature is enabled for this
+compilation. If it's enabled we'll configure a global allocator (according to
+[`wee_alloc`'s docs][wee-alloc-docs]), otherwise it'll compile to nothing.
+
+[wee-alloc-docs]: https://docs.rs/wee_alloc/0.4.3/wee_alloc/
 
 As we saw earlier, the `default` vector in `[features]` only contains `"console_error_panic_hook"` and not `"wee_alloc"`. So, in this case, the `cfg_if!` block will be replaced by no code at all, and hence the default memory allocator will be used instead of `wee_alloc`.
 
@@ -91,7 +94,10 @@ As we saw earlier, the `default` vector in `[features]` only contains `"console_
 use wasm_bindgen::prelude::*;
 ```
 
-Many modules contain a prelude, a list of things that should be automatically imported. This allows common features of the module to be conveniently accessed without a lengthy prefix. For example, in this file we can use `#[wasm_bindgen]` only because it is brought into scope by the prelude.
+Many crates contain a prelude, a list of things that are convenient to import
+all at once. This allows common features of the module to be conveniently
+accessed without a lengthy prefix. For example, in this file we can use
+`#[wasm_bindgen]` only because it is brought into scope by the prelude.
 
 The asterisk at the end of this `use` indicates that everything inside the module `wasm_bindgen::prelude` (i.e. the module `prelude` inside the crate `wasm_bindgen`) can be referred to without prefixing it with `wasm_bindgen::prelude`.
 

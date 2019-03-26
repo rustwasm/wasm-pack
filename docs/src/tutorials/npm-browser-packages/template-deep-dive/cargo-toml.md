@@ -23,20 +23,21 @@ crate-type = ["cdylib", "rlib"]
 A Rust-`wasm` crate is a bit different from a normal crate, and as a result, we need to note
 this in our `Cargo.toml`.
 
-When `cargo` is told to build a project, or compilation is otherwise done on a Rust project,
-the Rust compiler will need to link crates together, using a particular method, either
-staticly or dynamically. The two types of crate that you are likely most familiar with are
-`#[crate_type = "bin"]` and `#[crate_type = "lib"]`, which are the crate types that largely
-represent the difference between Rust application projects and Rust libraries.
+This `[lib]` annotation is typically not needed in Cargo projects, and if you're
+familiar with other Rust crates you'll remember that the most common crate types
+are `rlib` (the default) or `bin` for binaries (which don't need a `crate-type`
+annotation).
 
-`#[crate_type = "cdylib"]` signifies that you'd like the compiler to create a dynamic system
-library. This type of library is suited for situations where you'd like to compile Rust code
-as a dynamic library to be loaded from another language. In our case, we'll be compiling to a
-`.wasm` file, but this output type will create `*.so` files on Linux, `*.dylib` files on
-macOS, and `*.dll` files on Windows in non-`wasm` circumstances.
+Here though `crate-type = ["cdylib"]` typically signifies that you'd like the
+compiler to create a dynamic system library, but for WebAssembly target it
+simply means "create a `*.wasm` file without a `start` function". On other
+platforms this output type will create `*.so` file on Linux, `*.dylib` on
+macOS, and `*.dll` Windows.
 
-`#[crate_type = "rlib"]` signifies that an intermediate "Rust library" file will be produced. 
-This allows tests to use the main crate.
+We also specify `crate-type = ["rlib"]` to ensure that our library can be unit
+tested with `wasm-pack test` (which we'll see later). Without this we wouldn't
+be able to test our library because the `cdylib` crate type is incompatible with
+`wasm-pack`'s style of unit tests.
 
 You can read more about linking and crate types, [here](https://doc.rust-lang.org/reference/linkage.html).
 
@@ -56,7 +57,7 @@ wasm-bindgen = "0.2"
 We'll see more about how to use this library when we discuss what has been generated in `lib.rs`.
 
 ⚠️ If you are coming from JavaScript, you might note that when we add the dependency
-there is no `^` or `~` symbol- it looks like we're locking to the `0.2` version. 
+there is no `^` or `~` symbol- it looks like we're locking to the `0.2` version.
 However, that's not the case! In Rust, the `^` is implied. You can read more about this in the
 [cargo documentation on specifying dependencies].
 
@@ -64,13 +65,14 @@ However, that's not the case! In Rust, the `^` is implied. You can read more abo
 
 ## 3. `[features]` and [`wee_alloc`], [`console_error_panic_hook`] dependencies
 
-[`wee_alloc`]: https://github.com/rustwasm/wee_alloc
-[`console_error_panic_hook`]: https://github.com/rustwasm/console_error_panic_hook
+[`wee_alloc`]: https://crates.io/crates/wee_alloc
+[`console_error_panic_hook`]: https://crates.io/crates/console_error_panic_hook
+[`cfg-if`]: https://crates.io/crates/cfg-if
 
 As part of our effort to design a template that helps people discover useful crates
 for their particular use case, this template includes two dependencies that can be
-very useful for folks developing Rust-`wasm` crates: `console-error-panic-hook` and
-`wee-alloc`.
+very useful for folks developing Rust-`wasm` crates:[ `console_error_panic_hook`] and
+[`wee_alloc`].
 
 Because these dependencies are useful primarily in a specific portion of the Rust-`wasm`
 crate development workflow, we've also set up a bit of glue code that allows us to include
@@ -99,13 +101,13 @@ wee_alloc = { version = "0.4.2", optional = true }
 ```
 
 [`cfg-if`] allows us to check if certain features are enabled on a Rust crate. We'll
-use this crate later to optionally enable `console_error_panic_hook` or
+use this crate later to optionally enable [`console_error_panic_hook` or
 `wee_alloc`.
 
 By default, only `console_error_panic_hook` is enabled. To disable either
 feature, we can remove its name from the `default` vector.
 
-To learn more about these features, we discuss them in-depth in the [`src/lib.rs`] and 
+To learn more about these features, we discuss them in-depth in the [`src/lib.rs`] and
 [`src/utils.rs`] sections.
 
 [`src/lib.rs`]: src-lib-rs.html

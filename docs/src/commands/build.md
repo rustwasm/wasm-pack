@@ -20,6 +20,18 @@ wasm-pack build examples/js-hello-world
 This path should point to a directory that contains a `Cargo.toml` file. If no
 path is given, the `build` command will run in the current directory.
 
+## Output Directory
+
+By default, `wasm-pack` will generate a directory for it's build output called `pkg`.
+If you'd like to customize this you can use the `--out-dir` flag.
+
+```
+wasm-pack build --out-dir out
+```
+
+The above command will put your build artifacts in a directory called `out`, instead
+of the default `pkg`.
+
 ## Profile
 
 The `build` command accepts an optional profile argument: one of `--dev`,

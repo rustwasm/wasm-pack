@@ -17,9 +17,6 @@ build: false
 test_script:
   - cargo test --release --tests --locked
   - cargo test --release --doc
-  - cd binary-install
-  - cargo test
-  - cd ..
 
 before_deploy:
   - ps: |
