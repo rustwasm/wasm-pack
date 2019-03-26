@@ -62,26 +62,8 @@ pub fn check_wasm_pack_versions() -> Result<(String, String), Error> {
 }
 
 fn wasm_pack_local_version() -> Option<String> {
-    macro_rules! otry {
-        ($e:expr) => {
-            match $e {
-                Some(e) => e,
-                None => return None,
-            }
-        };
-    }
-
-    let output = otry!(Command::new("wasm-pack").arg("--version").output().ok());
-    let version = otry!(str::from_utf8(&output.stdout).ok());
-    let mut pieces = version.split(' ');
-    if pieces.next() != Some("wasm-pack") {
-        return None;
-    }
-    otry!(pieces.next())
-        .to_string()
-        .trim()
-        .parse::<String>()
-        .ok()
+    let output = env!("CARGO_PKG_VERSION");
+    Some(output.to_string())
 }
 
 /// Get rustc's sysroot as a PathBuf

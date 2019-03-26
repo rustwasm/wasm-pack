@@ -68,7 +68,8 @@ fn run() -> Result<(), failure::Error> {
     run_wasm_pack(args.cmd)?;
 
     if let Ok(update_available) = update_available.try_recv() {
-        println!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}", update_available.1, update_available.0);
+        println!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}. \
+            To update, navigate to: https://rustwasm.github.io/wasm-pack/installer/", update_available.1, update_available.0);
     }
 
     Ok(())

@@ -162,7 +162,7 @@ impl Crate {
     }
 
     fn return_api_call_result(current_time: DateTime<offset::Local>) -> Option<String> {
-        Crate::call_for_wasm_pack_version().and_then(|v| {
+        Crate::return_latest_wasm_pack_version().and_then(|v| {
             Crate::override_stamp_file(current_time, &v);
             Some(v)
         })
@@ -188,6 +188,7 @@ impl Crate {
         }
     }
 
+    /// Return stamp file where metadata is stored.
     fn return_wasm_pack_file() -> Option<String> {
         if let Ok(path) = which::which("wasm-pack") {
             if let Ok(file) = fs::read_to_string(path.with_extension("stamp")) {
@@ -197,13 +198,15 @@ impl Crate {
         None
     }
 
-    fn call_for_wasm_pack_version() -> Option<String> {
+    /// Returns wasm-pack latest version (if it's received) by executing check_wasm_pack_latest_version function.
+    fn return_latest_wasm_pack_version() -> Option<String> {
         if let Ok(crt) = Crate::check_wasm_pack_latest_version() {
             return Some(crt.crt.max_version);
         }
         None
     }
 
+    /// Read the stamp file and return value assigned to a certain key.
     fn return_stamp_file_value(file: &String, word: &str) -> Option<String> {
         let created = file
             .lines()
