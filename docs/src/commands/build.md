@@ -37,7 +37,7 @@ of the default `pkg`.
 The `build` command accepts an optional profile argument: one of `--dev`,
 `--profiling`, or `--release`. If none is supplied, then `--release` is used.
 
-Th controls whether debug assertions are enabled, debug info is generated, and
+This controls whether debug assertions are enabled, debug info is generated, and
 which (if any) optimizations are enabled.
 
 | Profile       | Debug Assertions | Debug Info | Optimizations | Notes                                 |
