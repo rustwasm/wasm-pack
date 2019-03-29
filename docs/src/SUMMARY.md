@@ -2,6 +2,7 @@
 
 - [Prerequisites](./prerequisites/index.md)
   - [npm (optional)](./prerequisites/npm.md)
+  - [Non-`rustup` setups](./prerequisites/non-rustup-setups.md)
 - [Commands](./commands/index.md)
   - [`build`](./commands/build.md)
   - [`test`](./commands/test.md)
@@ -25,5 +26,4 @@
     - [Packaging and publishing](./tutorials/npm-browser-packages/packaging-and-publishing.md)
     - [Using your library](./tutorials/npm-browser-packages/using-your-library.md)
 - [`Cargo.toml` Configuration](./cargo-toml-configuration.md)
-- [Non-rustup setups](./non-rustup-setups.md)
 - [Contributing](./contributing.md)
