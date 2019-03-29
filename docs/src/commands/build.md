@@ -32,7 +32,7 @@ wasm-pack build --out-dir out
 The above command will put your build artifacts in a directory called `out`, instead
 of the default `pkg`.
 
-## Output file names
+## Generated file names
 
 Flag `--out-name` sets the prefix for output file names. If not provided, package name is used instead.
 
