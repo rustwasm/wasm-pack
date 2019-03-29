@@ -17,3 +17,5 @@ you're excited about that work- you should reach out to the maintainers and get
 involved!
 
 [npm]: prerequisites/npm.html
+
+Using a non-rustup setup? Learn how to configure it for wasm-pack [here](./non-rustup-setups.html).

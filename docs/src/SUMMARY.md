@@ -25,4 +25,5 @@
     - [Packaging and publishing](./tutorials/npm-browser-packages/packaging-and-publishing.md)
     - [Using your library](./tutorials/npm-browser-packages/using-your-library.md)
 - [`Cargo.toml` Configuration](./cargo-toml-configuration.md)
+- [Non-rustup setups](./non-rustup-setups.md)
 - [Contributing](./contributing.md)
