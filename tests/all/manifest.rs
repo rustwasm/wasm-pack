@@ -9,7 +9,7 @@ use wasm_pack::{self, license, manifest};
 #[test]
 fn it_gets_the_crate_name_default_path() {
     let path = &PathBuf::from(".");
-    let crate_data = manifest::CrateData::new(&path).unwrap();
+    let crate_data = manifest::CrateData::new(&path, None).unwrap();
     let name = crate_data.crate_name();
     assert_eq!(name, "wasm_pack");
 }
@@ -17,8 +17,24 @@ fn it_gets_the_crate_name_default_path() {
 #[test]
 fn it_gets_the_crate_name_provided_path() {
     let fixture = fixture::js_hello_world();
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     assert_eq!(crate_data.crate_name(), "js_hello_world");
+}
+
+#[test]
+fn it_gets_the_default_name_prefix() {
+    let path = &PathBuf::from(".");
+    let crate_data = manifest::CrateData::new(&path, None).unwrap();
+    let name = crate_data.name_prefix();
+    assert_eq!(name, "wasm_pack");
+}
+
+#[test]
+fn it_gets_the_name_prefix_passed_from_cli() {
+    let path = &PathBuf::from(".");
+    let crate_data = manifest::CrateData::new(&path, Some("index".to_owned())).unwrap();
+    let name = crate_data.name_prefix();
+    assert_eq!(name, "index");
 }
 
 #[test]
@@ -26,7 +42,7 @@ fn it_checks_has_cdylib_default_path() {
     let fixture = fixture::no_cdylib();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     assert!(crate_data.check_crate_config().is_err());
 }
 
@@ -35,14 +51,14 @@ fn it_checks_has_cdylib_provided_path() {
     let fixture = fixture::js_hello_world();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     crate_data.check_crate_config().unwrap();
 }
 
 #[test]
 fn it_checks_has_cdylib_wrong_crate_type() {
     let fixture = fixture::bad_cargo_toml();
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     assert!(crate_data.check_crate_config().is_err());
 }
 
@@ -51,7 +67,7 @@ fn it_recognizes_a_map_during_depcheck() {
     let fixture = fixture::serde_feature();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     crate_data.check_crate_config().unwrap();
 }
 
@@ -59,7 +75,7 @@ fn it_recognizes_a_map_during_depcheck() {
 fn it_creates_a_package_json_default_path() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(&out_dir, &None, false, &Target::Bundler)
@@ -94,7 +110,7 @@ fn it_creates_a_package_json_default_path() {
 fn it_creates_a_package_json_provided_path() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(&out_dir, &None, false, &Target::Bundler)
@@ -122,7 +138,7 @@ fn it_creates_a_package_json_provided_path() {
 fn it_creates_a_package_json_provided_path_with_scope() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(&out_dir, &Some("test".to_string()), false, &Target::Bundler,)
@@ -150,7 +166,7 @@ fn it_creates_a_package_json_provided_path_with_scope() {
 fn it_creates_a_pkg_json_with_correct_files_on_node() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(&out_dir, &None, false, &Target::Nodejs)
@@ -185,7 +201,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
 fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(&out_dir, &None, false, &Target::NoModules)
@@ -216,10 +232,41 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
 }
 
 #[test]
+fn it_creates_a_package_json_with_correct_files_when_out_name_is_provided() {
+    let fixture = fixture::js_hello_world();
+    let out_dir = fixture.path.join("pkg");
+    let crate_data = manifest::CrateData::new(&fixture.path, Some("index".to_owned())).unwrap();
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
+    assert!(crate_data
+        .write_package_json(&out_dir, &None, false, &Target::Bundler)
+        .is_ok());
+    let package_json_path = &fixture.path.join("pkg").join("package.json");
+    fs::metadata(package_json_path).unwrap();
+    utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(pkg.name, "js-hello-world");
+    assert_eq!(pkg.repository.ty, "git");
+    assert_eq!(
+        pkg.repository.url,
+        "https://github.com/rustwasm/wasm-pack.git"
+    );
+    assert_eq!(pkg.module, "index.js");
+    assert_eq!(pkg.types, "index.d.ts");
+    assert_eq!(pkg.side_effects, "false");
+
+    let actual_files: HashSet<String> = pkg.files.into_iter().collect();
+    let expected_files: HashSet<String> = ["index_bg.wasm", "index.d.ts", "index.js"]
+        .iter()
+        .map(|&s| String::from(s))
+        .collect();
+    assert_eq!(actual_files, expected_files);
+}
+
+#[test]
 fn it_creates_a_pkg_json_in_out_dir() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("./custom/out");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(&out_dir, &None, false, &Target::Bundler)
@@ -234,7 +281,7 @@ fn it_creates_a_pkg_json_in_out_dir() {
 fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(&out_dir, &None, true, &Target::Bundler)
@@ -262,7 +309,7 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
 #[test]
 fn it_errors_when_wasm_bindgen_is_not_declared() {
     let fixture = fixture::bad_cargo_toml();
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     assert!(crate_data.check_crate_config().is_err());
 }
 
@@ -294,7 +341,7 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
     );
 
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
 
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     crate_data
@@ -310,7 +357,7 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
     // When 'homepage' is unavailable
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
 
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     crate_data
@@ -326,7 +373,7 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
     let fixture = fixture::js_hello_world();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     crate_data.check_crate_config().unwrap();
 }
 
@@ -410,7 +457,7 @@ fn it_lists_license_files_in_files_field_of_package_json() {
     let fixture = fixture::dual_license();
     let out_dir = fixture.path.join("pkg");
 
-    let crate_data = manifest::CrateData::new(&fixture.path).unwrap();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
 
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     license::copy_from_crate(&crate_data, &fixture.path, &out_dir).unwrap();

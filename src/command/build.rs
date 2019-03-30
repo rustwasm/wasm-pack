@@ -28,6 +28,7 @@ pub struct Build {
     pub profile: BuildProfile,
     pub mode: BuildMode,
     pub out_dir: PathBuf,
+    pub out_name: Option<String>,
     pub bindgen: Option<Download>,
     pub cache: Cache,
     pub extra_options: Vec<String>,
@@ -159,6 +160,10 @@ pub struct BuildOptions {
     /// Sets the output directory with a relative path.
     pub out_dir: String,
 
+    #[structopt(long = "out-name")]
+    /// Sets the output file names. Defaults to package name.
+    pub out_name: Option<String>,
+
     #[structopt(last = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
@@ -177,6 +182,7 @@ impl Default for BuildOptions {
             release: false,
             profiling: false,
             out_dir: String::new(),
+            out_name: None,
             extra_options: Vec::new(),
         }
     }
@@ -188,7 +194,7 @@ impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
         let crate_path = set_crate_path(build_opts.path)?;
-        let crate_data = manifest::CrateData::new(&crate_path)?;
+        let crate_data = manifest::CrateData::new(&crate_path, build_opts.out_name.clone())?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
 
         let dev = build_opts.dev || build_opts.debug;
@@ -210,6 +216,7 @@ impl Build {
             profile,
             mode: build_opts.mode,
             out_dir,
+            out_name: build_opts.out_name,
             bindgen: None,
             cache: cache::get_wasm_pack_cache()?,
             extra_options: build_opts.extra_options,
@@ -377,6 +384,7 @@ impl Build {
             &self.crate_data,
             self.bindgen.as_ref().unwrap(),
             &self.out_dir,
+            &self.out_name,
             self.disable_dts,
             &self.target,
             self.profile,

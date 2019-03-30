@@ -120,7 +120,7 @@ impl Test {
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
-        let crate_data = manifest::CrateData::new(&crate_path)?;
+        let crate_data = manifest::CrateData::new(&crate_path, None)?;
         let any_browser = chrome || firefox || safari;
 
         if !node && !any_browser {
