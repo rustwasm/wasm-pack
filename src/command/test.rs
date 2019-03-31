@@ -120,7 +120,7 @@ impl Test {
         } = test_opts;
 
         let crate_path = set_crate_path(path)?;
-        let crate_data = manifest::CrateData::new(&crate_path)?;
+        let crate_data = manifest::CrateData::new(&crate_path, None)?;
         let any_browser = chrome || firefox || safari;
 
         if !node && !any_browser {
@@ -236,7 +236,7 @@ impl Test {
 
     fn step_check_for_wasm_target(&mut self) -> Result<(), Error> {
         info!("Adding wasm-target...");
-        build::check_for_wasm32_target()?;
+        build::wasm_target::check_for_wasm32_target()?;
         info!("Adding wasm-target was successful.");
         Ok(())
     }

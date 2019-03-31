@@ -32,6 +32,7 @@ pub struct CrateData {
     data: Metadata,
     current_idx: usize,
     manifest: CargoManifest,
+    out_name: Option<String>,
 }
 
 #[doc(hidden)]
@@ -332,7 +333,7 @@ pub struct ManifestAndUnsedKeys {
 impl CrateData {
     /// Reads all metadata for the crate whose manifest is inside the directory
     /// specified by `path`.
-    pub fn new(crate_path: &Path) -> Result<CrateData, Error> {
+    pub fn new(crate_path: &Path, out_name: Option<String>) -> Result<CrateData, Error> {
         let manifest_path = crate_path.join("Cargo.toml");
         if !manifest_path.is_file() {
             bail!(
@@ -359,6 +360,7 @@ impl CrateData {
             data,
             manifest,
             current_idx,
+            out_name,
         });
 
         fn error_chain_to_failure(err: cargo_metadata::Error) -> Error {
@@ -464,6 +466,14 @@ impl CrateData {
         }
     }
 
+    /// Get the prefix for output file names
+    pub fn name_prefix(&self) -> String {
+        match &self.out_name {
+            Some(value) => value.clone(),
+            None => self.crate_name(),
+        }
+    }
+
     /// Get the license for the crate at the given path.
     pub fn crate_license(&self) -> &Option<String> {
         &self.manifest.package.license
@@ -514,14 +524,14 @@ impl CrateData {
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmData {
-        let crate_name = self.crate_name();
-        let wasm_file = format!("{}_bg.wasm", crate_name);
-        let js_file = format!("{}.js", crate_name);
+        let name_prefix = self.name_prefix();
+        let wasm_file = format!("{}_bg.wasm", name_prefix);
+        let js_file = format!("{}.js", name_prefix);
         let mut files = vec![wasm_file];
 
         files.push(js_file.clone());
         if include_commonjs_shim {
-            let js_bg_file = format!("{}_bg.js", crate_name);
+            let js_bg_file = format!("{}_bg.js", name_prefix);
             files.push(js_bg_file.to_string());
         }
 
@@ -532,7 +542,7 @@ impl CrateData {
         };
 
         let dts_file = if !disable_dts {
-            let file = format!("{}.d.ts", crate_name);
+            let file = format!("{}.d.ts", name_prefix);
             files.push(file.to_string());
             Some(file)
         } else {

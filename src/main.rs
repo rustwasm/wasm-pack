@@ -2,7 +2,6 @@ extern crate atty;
 extern crate env_logger;
 #[macro_use]
 extern crate failure;
-#[macro_use]
 extern crate human_panic;
 extern crate log;
 extern crate structopt;
@@ -10,6 +9,7 @@ extern crate wasm_pack;
 extern crate which;
 
 use std::env;
+use std::panic;
 use std::sync::mpsc;
 use std::thread;
 use structopt::StructOpt;
@@ -33,7 +33,9 @@ fn background_check_for_updates() -> mpsc::Receiver<(String, String)> {
 
 fn main() {
     env_logger::init();
-    setup_panic!();
+
+    setup_panic_hooks();
+
     if let Err(e) = run() {
         eprintln!("Error: {}", e);
         for cause in e.iter_causes() {
@@ -73,4 +75,30 @@ fn run() -> Result<(), failure::Error> {
     }
 
     Ok(())
+}
+
+fn setup_panic_hooks() {
+    let meta = human_panic::Metadata {
+        version: env!("CARGO_PKG_VERSION").into(),
+        name: env!("CARGO_PKG_NAME").into(),
+        authors: env!("CARGO_PKG_AUTHORS").replace(":", ", ").into(),
+        homepage: env!("CARGO_PKG_HOMEPAGE").into(),
+    };
+
+    let default_hook = panic::take_hook();
+
+    match env::var("RUST_BACKTRACE") {
+        Err(_) => {
+            panic::set_hook(Box::new(move |info: &panic::PanicInfo| {
+                // First call the default hook that prints to standard error.
+                default_hook(info);
+
+                // Then call human_panic.
+                let file_path = human_panic::handle_dump(&meta, info);
+                human_panic::print_msg(file_path, &meta)
+                    .expect("human-panic: printing error message to console failed");
+            }));
+        }
+        Ok(_) => {}
+    }
 }

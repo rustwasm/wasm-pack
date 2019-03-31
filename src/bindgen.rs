@@ -173,6 +173,7 @@ pub fn wasm_bindgen_build(
     data: &CrateData,
     bindgen: &Download,
     out_dir: &Path,
+    out_name: &Option<String>,
     disable_dts: bool,
     target: &Target,
     profile: BuildProfile,
@@ -209,6 +210,10 @@ pub fn wasm_bindgen_build(
         .arg(out_dir)
         .arg(dts_arg)
         .arg(target_arg);
+
+    if let Some(value) = out_name {
+        cmd.arg("--out-name").arg(value);
+    }
 
     let profile = data.configured_profile(profile);
     if profile.wasm_bindgen_debug_js_glue() {

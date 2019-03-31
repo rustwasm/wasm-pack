@@ -2,6 +2,7 @@
 
 - [Prerequisites](./prerequisites/index.md)
   - [npm (optional)](./prerequisites/npm.md)
+  - [Non-`rustup` setups](./prerequisites/non-rustup-setups.md)
 - [Commands](./commands/index.md)
   - [`build`](./commands/build.md)
   - [`test`](./commands/test.md)
