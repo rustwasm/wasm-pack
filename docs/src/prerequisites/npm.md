@@ -20,11 +20,6 @@ your package to the npm registry you'll need an npm account.
 
 You can find information about signing up for npm [here][npm-signup-info].
 
-If you'd rather not sign up for an account or publish a package to the regsitry, you can
-use the [`npm link`] command to use your generated package locally, which we'll discuss
-later in the [Tutorial].
-
 [`npm link`]: https://docs.npmjs.com/cli/link
 [npm-install-info]: https://www.npmjs.com/get-npm
 [npm-signup-info]: https://www.npmjs.com/signup
-[Tutorial]: ../tutorial/index.html
