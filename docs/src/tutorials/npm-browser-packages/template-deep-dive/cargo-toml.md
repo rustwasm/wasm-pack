@@ -67,7 +67,6 @@ However, that's not the case! In Rust, the `^` is implied. You can read more abo
 
 [`wee_alloc`]: https://crates.io/crates/wee_alloc
 [`console_error_panic_hook`]: https://crates.io/crates/console_error_panic_hook
-[`cfg-if`]: https://crates.io/crates/cfg-if
 
 As part of our effort to design a template that helps people discover useful crates
 for their particular use case, this template includes two dependencies that can be
@@ -83,7 +82,6 @@ them both as dependencies, but also allows them to be optionally included.
 default = ["console_error_panic_hook"]
 
 [dependencies]
-cfg-if = "0.1.2"
 wasm-bindgen = "0.2"
 
 # The `console_error_panic_hook` crate provides better debugging of panics by
@@ -100,12 +98,10 @@ console_error_panic_hook = { version = "0.1.1", optional = true }
 wee_alloc = { version = "0.4.2", optional = true }
 ```
 
-[`cfg-if`] allows us to check if certain features are enabled on a Rust crate. We'll
-use this crate later to optionally enable [`console_error_panic_hook` or
-`wee_alloc`.
-
-By default, only `console_error_panic_hook` is enabled. To disable either
-feature, we can remove its name from the `default` vector.
+In our code, we'll mark certain parts of code as running only if certain `[features]`
+are enabled, specifically, `console_error_panic_hook` and `wee_alloc`. By default,
+only `console_error_panic_hook` is enabled. To disable or enable either feature, by
+default, we can edit the `default` vector under `[features]`.
 
 To learn more about these features, we discuss them in-depth in the [`src/lib.rs`] and
 [`src/utils.rs`] sections.

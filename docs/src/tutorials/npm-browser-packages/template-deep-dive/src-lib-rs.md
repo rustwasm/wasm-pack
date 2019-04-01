@@ -13,6 +13,25 @@ It contains three key parts:
 
 We'll start with the most important part of `lib.rs` -- the two `#[wasm_bindgen]` functions (which you can find at the bottom of the file). In many cases, this is the only part of `lib.rs` you will need to modify.
 
+## 1. Using `wasm_bindgen`
+
+To expose functionality from the `wasm-bindgen` crate more conveniently we can use the `use` keyword.
+`use` allows us to conveniently refer to parts of a crate or module. You can learn more about how Rust
+lets you write modular code in [this chapter of the book](https://doc.rust-lang.org/book/ch07-02-modules-and-use-to-control-scope-and-privacy.html).
+
+```rust
+use wasm_bindgen::prelude::*;
+```
+
+Many crates contain a prelude, a list of things that are convenient to import
+all at once. This allows common features of the module to be conveniently
+accessed without a lengthy prefix. For example, in this file we can use
+`#[wasm_bindgen]` only because it is brought into scope by the prelude.
+
+The asterisk at the end of this `use` indicates that everything inside the module `wasm_bindgen::prelude` (i.e. the module `prelude` inside the crate `wasm_bindgen`) can be referred to without prefixing it with `wasm_bindgen::prelude`.
+
+For example, `#[wasm_bindgen]` could also be written as `#[wasm_bindgen::prelude::wasm_bindgen]`, although this is not recommended.
+
 ## 1. `#[wasm_bindgen]` functions
 
 The `#[wasm_bindgen]` attribute indicates that the function below it will be accessible both in JavaScript and Rust.
@@ -63,24 +82,12 @@ Either way, the contents of `utils.rs` define a single public function `set_pani
 
 
 ```rust
-use cfg_if::cfg_if;
+    // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
+    // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global	// allocator.
+    // allocator.	#[cfg(feature = "wee_alloc")]
+    if #[cfg(feature = "wee_alloc")] {	#[global_allocator]
+        #[global_allocator]	static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 ```
-
-`use` allows us to conveniently refer to parts of a crate or module. For example, suppose the crate `cfg_if` contains a function `func`. It is always possible to call this function directly by writing `cfg_if::func()`. However, this is often tedious to write. If we first specify `use cfg_if::func;`, then `func` can be called by just writing `func()` instead. You can learn more about how Rust let's you
-write modular code in [this chapter of the book](https://doc.rust-lang.org/book/ch07-02-modules-and-use-to-control-scope-and-privacy.html).
-
-With this in mind, this `use` allows us to call the macro `cfg_if!` inside the crate `cfg_if` without writing `cfg_if::cfg_if!`. We use `cfg_if!` to configure `wee_alloc`, which we will talk more about in a [separate section](./wee_alloc.md):
-
-```rust
-cfg_if! {
-    if #[cfg(feature = "wee_alloc")] {
-        #[global_allocator]
-        static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-    }
-}
-```
-
-We immediately notice that `cfg_if!` is a macro because it ends in `!`, similarly to other Rust macros such as `println!` and `vec!`. A macro is directly replaced by other code during compile time.
 
 At compile time this will test if the `wee_alloc` feature is enabled for this
 compilation. If it's enabled we'll configure a global allocator (according to
@@ -88,18 +95,6 @@ compilation. If it's enabled we'll configure a global allocator (according to
 
 [wee-alloc-docs]: https://docs.rs/wee_alloc/0.4.3/wee_alloc/
 
-As we saw earlier, the `default` vector in `[features]` only contains `"console_error_panic_hook"` and not `"wee_alloc"`. So, in this case, the `cfg_if!` block will be replaced by no code at all, and hence the default memory allocator will be used instead of `wee_alloc`.
-
-```rust
-use wasm_bindgen::prelude::*;
-```
-
-Many crates contain a prelude, a list of things that are convenient to import
-all at once. This allows common features of the module to be conveniently
-accessed without a lengthy prefix. For example, in this file we can use
-`#[wasm_bindgen]` only because it is brought into scope by the prelude.
-
-The asterisk at the end of this `use` indicates that everything inside the module `wasm_bindgen::prelude` (i.e. the module `prelude` inside the crate `wasm_bindgen`) can be referred to without prefixing it with `wasm_bindgen::prelude`.
-
-For example, `#[wasm_bindgen]` could also be written as `#[wasm_bindgen::prelude::wasm_bindgen]`, although this is not recommended.
+As we saw earlier, the `default` vector in `[features]` only contains `"console_error_panic_hook"` and not `"wee_alloc"`. So, in this case, this 
+block will be replaced by no code at all, and hence the default memory allocator will be used instead of `wee_alloc`.
 
