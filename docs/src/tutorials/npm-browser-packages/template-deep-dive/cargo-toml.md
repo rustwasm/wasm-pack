@@ -99,7 +99,7 @@ wee_alloc = { version = "0.4.2", optional = true }
 ```
 
 In our code, we'll mark certain parts of code as running only if certain `[features]`
-are enabled, specifically, `console_error_panic_hook` and `weealloc`. By default,
+are enabled, specifically, `console_error_panic_hook` and `wee_alloc`. By default,
 only `console_error_panic_hook` is enabled. To disable or enable either feature, by
 default, we can edit the `default` vector under `[features]`.
 
