@@ -80,7 +80,7 @@ pub fn greet() {
 }
 ```
 
-And that's it! We'll talk about what this code does in the [Tutorial], which you are all
+And that's it! We'll talk about what this code does in the [Tutorials], which you are all
 setup for now. Happy `wasm-pack`ing!
 
-[Tutorial]: ../tutorial/index.html
+[Tutorials]: ../tutorials/index.html
