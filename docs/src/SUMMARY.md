@@ -1,5 +1,6 @@
 # Summary
 
+- [Introduction](./introduction.md)
 - [Prerequisites](./prerequisites/index.md)
   - [npm (optional)](./prerequisites/npm.md)
   - [Non-`rustup` setups](./prerequisites/non-rustup-setups.md)
