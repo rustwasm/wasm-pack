@@ -14,46 +14,22 @@ We will discuss:
 ## 1. Defining `set_panic_hook`
 
 ```rust
-use cfg_if::cfg_if;
-```
-
-This allows us to write `cfg_if!` instead of `cfg_if::cfg_if!`, identically to the line in `src/lib.rs`.
-
-```rust
-cfg_if! {
-    if #[cfg(feature = "console_error_panic_hook")] {
-        pub use self::console_error_panic_hook::set_once as set_panic_hook;
-    } else {
-        #[inline]
-        pub fn set_panic_hook() {}
-    }
+pub fn set_panic_hook() {
+    // When the `console_error_panic_hook` feature is enabled, we can call the
+    // `set_panic_hook` function at least once during initialization, and then
+    // we will get better error messages if our code ever panics.
+    //
+    // For more details see
+    // https://github.com/rustwasm/console_error_panic_hook#readme
+    #[cfg(feature = "console_error_panic_hook")]
+    console_error_panic_hook::set_once();
 }
 ```
 
-As described in the preceding section, this invocation of the `cfg_if!`
-tests whether the `console_error_panic_hook` feature is enabled at compile time,
-replacing with the statements in the `if` block or with those in the `else`
-block. These two cases are:
-
-```rust
-pub use self::console_error_panic_hook::set_once as set_panic_hook;
-```
-
-This `use` statement means the function
-`self::console_error_panic_hook::set_once` can now be accessed more conveniently
-as `set_panic_hook`. With `pub`, this function will be accessible
-outside of the `utils` module as `utils::set_panic_hook`.
-
-```rust
-#[inline]
-pub fn set_panic_hook() {}
-```
-
-Here, `set_panic_hook` is defined to be an empty inline function. The inline
-annotation here means that whenever the function is called the function call is
-replaced with the body of the function, which is for `set_panic_hook` nothing!
-This allows the use of `set_panic_hook` without any run-time or code-size
-performance penalty if the feature is not enabled.
+Here, we define a function that's preceded by a `cfg` attribute. This attribue,
+`#[cfg(feature = "console_error_panic_hook")]`, tells Rust to check if the 
+`console_error_panic_hook` feature is set at compile time. If it is, it will call
+this function. If it isn't- it won't! 
 
 ## 2. What is `console_error_panic_hook`?
 
