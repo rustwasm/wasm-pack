@@ -16,6 +16,6 @@ npm registry client bits so that the need for a Node runtime is eliminated. If
 you're excited about that work- you should reach out to the maintainers and get
 involved!
 
-[npm]: prerequisites/npm.html
+[npm]: ./npm.html
 
-Using a non-rustup setup? Learn how to configure it for wasm-pack [here](prerequisites/non-rustup-setups.html).
+Using a non-rustup setup? Learn how to configure it for wasm-pack [here](./non-rustup-setups.html).
