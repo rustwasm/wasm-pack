@@ -20,7 +20,7 @@ impl fmt::Display for Wasm32Check {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let target = "wasm32-unknown-unknown";
 
-        if self.found {
+        if !self.found {
             let rustup_string = if self.is_rustup {
                 "It looks like Rustup is being used.".to_owned()
             } else {
