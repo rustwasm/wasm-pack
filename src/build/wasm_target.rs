@@ -20,11 +20,11 @@ impl fmt::Display for Wasm32Check {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let target = "wasm32-unknown-unknown";
 
-        if self.found {
+        if !self.found {
             let rustup_string = if self.is_rustup {
                 "It looks like Rustup is being used.".to_owned()
             } else {
-                format!("It looks like Rustup is not being used. For non-Rustup setups, the {} target needs to be installed manually. See https://rustwasm.github.io/wasm-pack/book/prerequisites/index.html#target-wasm32-unknown-unknown on how to do this.", target)
+                format!("It looks like Rustup is not being used. For non-Rustup setups, the {} target needs to be installed manually. See https://rustwasm.github.io/wasm-pack/book/prerequisites/non-rustup-setups.html on how to do this.", target)
             };
 
             writeln!(
@@ -111,9 +111,9 @@ fn check_wasm32_target() -> Result<Wasm32Check, Error> {
         })
     // If it doesn't exist, then we need to check if we're using rustup.
     } else {
-        // If sysroot contains .rustup, then we can assume we're using rustup
+        // If sysroot contains "rustup", then we can assume we're using rustup
         // and use rustup to add the wasm32-unknown-unknown target.
-        if sysroot.to_string_lossy().contains(".rustup") {
+        if sysroot.to_string_lossy().contains("rustup") {
             rustup_add_wasm_target().map(|()| Wasm32Check {
                 rustc_path,
                 sysroot,
