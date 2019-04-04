@@ -1,5 +1,23 @@
 # Changelog
 
+## 🛠️ 0.8.1
+
+- ### 🤕 Fixes
+
+  - **Check for "rustup" rather than ".rustup" when checking for wasm32 - [drager], [issue/613][pull/616]**
+
+      When we introduced support for non-rustup setups we did a check if the user was
+      using rustup or not. However, this check was too constrained and only covered
+      the most common cases, but it did not work for Docker setups.
+
+      This PR addresses that and it now covers Docker setups as well!
+      When doing this fix we also found two other small issues which this PR also addresses.
+      The first is that we did not print the helpful error message when the wasm32 target
+      was not found and the other one was that it linked to the wrong section of the documentation.
+
+      [issue/613]: https://github.com/rustwasm/wasm-pack/issues/613
+      [pull/616]: https://github.com/rustwasm/wasm-pack/pull/616
+
 ## 🌤️ 0.8.0
 
 - ### ✨ Features
