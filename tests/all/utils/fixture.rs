@@ -8,6 +8,7 @@ use std::sync::{MutexGuard, Once, ONCE_INIT};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
+use wasm_pack::install::{self, Tool};
 
 /// A test fixture in a temporary directory.
 pub struct Fixture {
@@ -220,12 +221,12 @@ impl Fixture {
 
         let download = || {
             if let Ok(download) =
-                wasm_pack::bindgen::download_prebuilt_wasm_bindgen(&cache, version, true)
+                install::download_prebuilt(&Tool::WasmBindgen, &cache, version, true)
             {
                 return Ok(download);
             }
 
-            wasm_pack::bindgen::cargo_install_wasm_bindgen(&cache, version, true)
+            install::cargo_install(Tool::WasmBindgen, &cache, version, true)
         };
 
         // Only one thread can perform the actual download, and then afterwards
@@ -234,6 +235,32 @@ impl Fixture {
             download().unwrap();
         });
         download().unwrap().binary("wasm-bindgen").unwrap()
+    }
+
+    /// Install a local cargo-generate for this fixture.
+    ///
+    /// Takes care not to re-install for every fixture, but only the one time
+    /// for the whole test suite.
+    pub fn install_local_cargo_generate(&self) -> PathBuf {
+        static INSTALL_CARGO_GENERATE: Once = ONCE_INIT;
+        let cache = self.cache();
+
+        let download = || {
+            if let Ok(download) =
+                install::download_prebuilt(&Tool::CargoGenerate, &cache, "latest", true)
+            {
+                return Ok(download);
+            }
+
+            install::cargo_install(Tool::CargoGenerate, &cache, "latest", true)
+        };
+
+        // Only one thread can perform the actual download, and then afterwards
+        // everything will hit the cache so we can run the same path.
+        INSTALL_CARGO_GENERATE.call_once(|| {
+            download().unwrap();
+        });
+        download().unwrap().binary("cargo-generate").unwrap()
     }
 
     /// Download `geckodriver` and return its path.
@@ -297,7 +324,7 @@ impl Fixture {
     /// directory and using the test cache.
     pub fn wasm_pack(&self) -> Command {
         use assert_cmd::prelude::*;
-        let mut cmd = Command::main_binary().unwrap();
+        let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
         cmd.current_dir(&self.path);
         cmd.env("WASM_PACK_CACHE", self.cache_dir());
         cmd

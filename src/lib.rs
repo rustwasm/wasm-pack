@@ -31,6 +31,8 @@ pub mod cache;
 pub mod child;
 pub mod command;
 pub mod emoji;
+pub mod generate;
+pub mod install;
 pub mod license;
 pub mod lockfile;
 pub mod manifest;

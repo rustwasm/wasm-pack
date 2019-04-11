@@ -23,6 +23,7 @@ glob = "0.2"
 log = "0.4.6"
 openssl = { version = '0.10.11', optional = true }
 parking_lot = "0.6"
+reqwest = "0.9.14"
 serde = "1.0.74"
 serde_derive = "1.0.74"
 serde_ignored = "0.0.4"
@@ -37,7 +38,7 @@ walkdir = "2"
 chrono = "0.4.6"
 
 [dev-dependencies]
-assert_cmd = "0.10.2"
+assert_cmd = "0.11"
 lazy_static = "1.1.0"
 predicates = "1.0.0"
 tempfile = "3"

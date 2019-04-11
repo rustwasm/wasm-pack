@@ -503,7 +503,7 @@ impl CrateData {
         out_dir: &Path,
         scope: &Option<String>,
         disable_dts: bool,
-        target: &Target,
+        target: Target,
     ) -> Result<(), Error> {
         let pkg_file_path = out_dir.join("package.json");
         let npm_data = match target {
