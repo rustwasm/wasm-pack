@@ -39,6 +39,7 @@ pub mod progressbar;
 pub mod readme;
 pub mod target;
 pub mod test;
+pub mod wasm_opt;
 
 use progressbar::ProgressOutput;
 

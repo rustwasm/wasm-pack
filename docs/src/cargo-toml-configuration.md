@@ -9,6 +9,17 @@ the `--dev`, `--profiling`, and `--release` flags passed to `wasm-pack build`.
 The available configuration options and their default values are shown below:
 
 ```toml
+[package.metadata.wasm-pack.profile.dev]
+# Should `wasm-opt` be used to further optimize the wasm binary generated after
+# the Rust compiler has finished? Using `wasm-opt` can often further decrease
+# binary size or do clever tricks that haven't made their way into LLVM yet.
+#
+# Configuration can be set to `false` if you want to disable it (as is the
+# default for the dev profile), or it can be an array of strings which are
+# explicit arguments to pass to `wasm-opt`. For example `['-Os']` would optimize
+# for size while `['-O4']` would execute very expensive optimizations passes
+wasm-opt = false
+
 [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
 # Should we enable wasm-bindgen's debug assertions in its generated JS glue?
 debug-js-glue = true
@@ -17,10 +28,16 @@ demangle-name-section = true
 # Should we emit the DWARF debug info custom sections?
 dwarf-debug-info = false
 
+[package.metadata.wasm-pack.profile.profiling]
+wasm-opt = ['-O']
+
 [package.metadata.wasm-pack.profile.profiling.wasm-bindgen]
 debug-js-glue = false
 demangle-name-section = true
 dwarf-debug-info = false
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = ['-O']
 
 [package.metadata.wasm-pack.profile.release.wasm-bindgen]
 debug-js-glue = false

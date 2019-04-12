@@ -1,5 +1,6 @@
 //! Implementation of the `wasm-pack build` command.
 
+use crate::wasm_opt;
 use binary_install::{Cache, Download};
 use bindgen;
 use build;
@@ -45,6 +46,16 @@ pub enum BuildMode {
     Noinstall,
     /// Skip the rustc version check
     Force,
+}
+
+impl BuildMode {
+    fn install_permitted(&self) -> bool {
+        match self {
+            BuildMode::Normal => true,
+            BuildMode::Force => true,
+            BuildMode::Noinstall => false,
+        }
+    }
 }
 
 impl Default for BuildMode {
@@ -284,6 +295,7 @@ impl Build {
             step_copy_license,
             step_install_wasm_bindgen,
             step_run_wasm_bindgen,
+            step_run_wasm_opt,
             step_create_json,
         ]);
         steps
@@ -366,13 +378,11 @@ impl Build {
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
         info!("Installing wasm-bindgen-cli...");
-        let install_permitted = match self.mode {
-            BuildMode::Normal => true,
-            BuildMode::Force => true,
-            BuildMode::Noinstall => false,
-        };
-        let bindgen =
-            bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted)?;
+        let bindgen = bindgen::install_wasm_bindgen(
+            &self.cache,
+            &bindgen_version,
+            self.mode.install_permitted(),
+        )?;
         self.bindgen = Some(bindgen);
         info!("Installing wasm-bindgen-cli was successful.");
         Ok(())
@@ -390,6 +400,25 @@ impl Build {
             self.profile,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
+        Ok(())
+    }
+
+    fn step_run_wasm_opt(&mut self) -> Result<(), Error> {
+        let args = match self
+            .crate_data
+            .configured_profile(self.profile)
+            .wasm_opt_args()
+        {
+            Some(args) => args,
+            None => return Ok(()),
+        };
+        info!("executing wasm-opt with {:?}", args);
+        wasm_opt::run(
+            &self.cache,
+            &self.out_dir,
+            &args,
+            self.mode.install_permitted(),
+        )?;
         Ok(())
     }
 }

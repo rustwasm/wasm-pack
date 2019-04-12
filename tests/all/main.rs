@@ -19,4 +19,5 @@ mod manifest;
 mod readme;
 mod test;
 mod utils;
+mod wasm_opt;
 mod webdriver;
