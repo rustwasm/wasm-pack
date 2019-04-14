@@ -19,10 +19,10 @@ use failure::{Error, ResultExt};
 use serde::{self, Deserialize};
 use serde_json;
 use std::collections::BTreeSet;
+use std::env;
 use std::io::Write;
 use strsim::levenshtein;
 use toml;
-use which;
 use PBAR;
 
 const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
@@ -143,55 +143,57 @@ impl Crate {
     /// Returns latest wasm-pack version
     pub fn return_wasm_pack_latest_version() -> Option<String> {
         let current_time = chrono::offset::Local::now();
-        Crate::return_wasm_pack_file().and_then(|contents| {
-            let last_updated = Crate::return_stamp_file_value(&contents, "created")
-                .and_then(|t| Some(DateTime::parse_from_str(t.as_str(), "%+").unwrap()));
-            let version = Crate::return_stamp_file_value(&contents, "version").and_then(|v| {
-                if current_time
-                    .signed_duration_since(last_updated.unwrap())
-                    .num_hours()
-                    > 24
-                {
-                    return Crate::return_api_call_result(current_time);
-                } else {
-                    return Some(v);
-                }
-            });
-            version
-        });
-        return Crate::return_api_call_result(current_time);
+
+        Self::return_wasm_pack_file()
+            .and_then(|contents| {
+                let last_updated = Self::return_stamp_file_value(&contents, "created")
+                    .and_then(|t| DateTime::parse_from_str(t.as_str(), "%+").ok());
+
+                Self::return_stamp_file_value(&contents, "version").and_then(|v| {
+                    last_updated.and_then(|last_updated| {
+                        if current_time.signed_duration_since(last_updated).num_hours() > 24 {
+                            Self::return_api_call_result(current_time)
+                        } else {
+                            Some(v)
+                        }
+                    })
+                })
+            })
+            .map_or(Self::return_api_call_result(current_time), |value| {
+                Some(value)
+            })
     }
 
     fn return_api_call_result(current_time: DateTime<offset::Local>) -> Option<String> {
-        Crate::return_latest_wasm_pack_version().and_then(|v| {
-            Crate::override_stamp_file(current_time, &v);
+        Self::return_latest_wasm_pack_version().and_then(|v| {
+            Self::override_stamp_file(current_time, &v).ok();
             Some(v)
         })
     }
 
-    fn override_stamp_file(current_time: DateTime<offset::Local>, version: &String) {
-        if let Ok(path) = which::which("wasm-pack") {
-            let file = fs::OpenOptions::new()
-                .read(true)
-                .write(true)
-                .append(true)
-                .create(true)
-                .open(path.with_extension("stamp"));
+    fn override_stamp_file(
+        current_time: DateTime<offset::Local>,
+        version: &String,
+    ) -> Result<(), failure::Error> {
+        let path = env::current_exe()?;
 
-            if let Ok(()) = file.as_ref().unwrap().set_len(0) {
-                if let Err(_) = write!(
-                    file.unwrap(),
-                    "created {:?}\nversion {}",
-                    current_time,
-                    version
-                ) {}
-            }
-        }
+        let mut file = fs::OpenOptions::new()
+            .read(true)
+            .write(true)
+            .append(true)
+            .create(true)
+            .open(path.with_extension("stamp"))?;
+
+        file.set_len(0)?;
+
+        write!(file, "created {:?}\nversion {}", current_time, version)?;
+
+        Ok(())
     }
 
     /// Return stamp file where metadata is stored.
     fn return_wasm_pack_file() -> Option<String> {
-        if let Ok(path) = which::which("wasm-pack") {
+        if let Ok(path) = env::current_exe() {
             if let Ok(file) = fs::read_to_string(path.with_extension("stamp")) {
                 return Some(file);
             }
@@ -201,7 +203,7 @@ impl Crate {
 
     /// Returns wasm-pack latest version (if it's received) by executing check_wasm_pack_latest_version function.
     fn return_latest_wasm_pack_version() -> Option<String> {
-        if let Ok(crt) = Crate::check_wasm_pack_latest_version() {
+        if let Ok(crt) = Self::check_wasm_pack_latest_version() {
             return Some(crt.crt.max_version);
         }
         None
