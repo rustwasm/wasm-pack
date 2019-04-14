@@ -4,6 +4,7 @@ use child;
 use command::build::BuildProfile;
 use emoji;
 use failure::{Error, ResultExt};
+use manifest::Crate;
 use std::path::Path;
 use std::process::Command;
 use std::str;
@@ -46,6 +47,24 @@ fn rustc_minor_version() -> Option<u32> {
         return None;
     }
     otry!(pieces.next()).parse().ok()
+}
+
+/// Checks and returns local and latest versions of wasm-pack
+pub fn check_wasm_pack_versions() -> Result<(String, String), Error> {
+    match wasm_pack_local_version() {
+        Some(local) => {
+            match Crate::return_wasm_pack_latest_version() {
+                Some(latest) => Ok((local, latest)),
+                None => Ok((local, "".to_string()))
+            }
+        },
+        None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")
+    }
+}
+
+fn wasm_pack_local_version() -> Option<String> {
+    let output = env!("CARGO_PKG_VERSION");
+    Some(output.to_string())
 }
 
 /// Run `cargo build` targetting `wasm32-unknown-unknown`.

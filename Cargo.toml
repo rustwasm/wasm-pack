@@ -34,6 +34,7 @@ toml = "0.4"
 which = "2.0.0"
 binary-install = "0.0.2"
 walkdir = "2"
+chrono = "0.4.6"
 
 [dev-dependencies]
 assert_cmd = "0.10.2"

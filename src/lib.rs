@@ -18,6 +18,8 @@ extern crate serde_json;
 #[macro_use]
 extern crate structopt;
 extern crate binary_install;
+extern crate chrono;
+extern crate curl;
 extern crate dialoguer;
 extern crate log;
 extern crate toml;

@@ -255,6 +255,12 @@ impl Build {
         Ok(())
     }
 
+    /// Returns local and latest wasm-pack versions.
+    pub fn return_wasm_pack_versions() -> Result<(String, String), Error> {
+        let (local, latest) = build::check_wasm_pack_versions()?;
+        Ok((local, latest))
+    }
+
     fn get_process_steps(mode: BuildMode) -> Vec<(&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
