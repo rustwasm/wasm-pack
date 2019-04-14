@@ -64,6 +64,10 @@ This project is part of the [rustwasm Working Group].
 
 This project was started by [ashleygwilliams] and is co-maintained by [ashleygwilliams], [drager] and the Rust Wasm Working Group Core Team.
 
+[ashleygwilliams]: https://github.com/ashleygwilliams
+[drager]: https://github.com/drager
+[rustwasm Working Group]: https://github.com/rustwasm/team
+
 ## ⚡ Quickstart Guide
 
 1. Write a crate in Rust.
