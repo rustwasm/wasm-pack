@@ -16,7 +16,7 @@ This is a list of the things that need to happen during a release.
   from the previous releases emoji (point releases can be a little weirder).
 1. Create a new branch "#.#.#" where "#.#.#" is the release's version.
 1. Add this release to the `CHANGELOG.md`. Use the structure of previous 
-  entires.
+  entries.
 1. Update the version in `Cargo.toml`.
 1. Update the version number and date in `docs/index.html`.
 1. Run `cargo update`.
