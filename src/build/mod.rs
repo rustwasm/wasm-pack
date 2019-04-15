@@ -12,6 +12,16 @@ use PBAR;
 
 pub mod wasm_target;
 
+/// Used when comparing the currently installed
+/// wasm-pack version with the latest on crates.io.
+pub struct WasmPackVersion {
+    /// The currently installed wasm-pack version.
+    pub local: String,
+    /// The latest version of wasm-pack that's released at
+    /// crates.io.
+    pub latest: String,
+}
+
 /// Ensure that `rustc` is present and that it is >= 1.30.0
 pub fn check_rustc_version() -> Result<String, Error> {
     let local_minor_version = rustc_minor_version();
@@ -50,12 +60,12 @@ fn rustc_minor_version() -> Option<u32> {
 }
 
 /// Checks and returns local and latest versions of wasm-pack
-pub fn check_wasm_pack_versions() -> Result<(String, String), Error> {
+pub fn check_wasm_pack_versions() -> Result<WasmPackVersion, Error> {
     match wasm_pack_local_version() {
         Some(local) => {
             match Crate::return_wasm_pack_latest_version() {
-                Some(latest) => Ok((local, latest)),
-                None => Ok((local, "".to_string()))
+                Some(latest) => Ok(WasmPackVersion {local, latest}),
+                None => Ok(WasmPackVersion {local, latest: "".to_string()})
             }
         },
         None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")

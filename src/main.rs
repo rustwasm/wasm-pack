@@ -13,17 +13,24 @@ use std::panic;
 use std::sync::mpsc;
 use std::thread;
 use structopt::StructOpt;
-use wasm_pack::command::build::Build;
-use wasm_pack::{command::run_wasm_pack, Cli};
+use wasm_pack::{
+    build::{self, WasmPackVersion},
+    command::run_wasm_pack,
+    Cli, PBAR,
+};
 
 mod installer;
 
-fn background_check_for_updates() -> mpsc::Receiver<(String, String)> {
+fn background_check_for_updates() -> mpsc::Receiver<WasmPackVersion> {
     let (sender, receiver) = mpsc::channel();
+
     let _detached_thread = thread::spawn(move || {
-        if let Ok((local, latest)) = Build::return_wasm_pack_versions() {
-            if !local.is_empty() && !latest.is_empty() && local != latest {
-                sender.send((local, latest)).unwrap();
+        if let Ok(wasm_pack_version) = build::check_wasm_pack_versions() {
+            if !wasm_pack_version.local.is_empty()
+                && !wasm_pack_version.latest.is_empty()
+                && wasm_pack_version.local != wasm_pack_version.latest
+            {
+                let _ = sender.send(wasm_pack_version);
             }
         }
     });
@@ -46,7 +53,7 @@ fn main() {
 }
 
 fn run() -> Result<(), failure::Error> {
-    let update_available = background_check_for_updates();
+    let wasm_pack_version = background_check_for_updates();
 
     // Deprecate `init`
     if let Some("init") = env::args().nth(1).as_ref().map(|arg| arg.as_str()) {
@@ -69,9 +76,9 @@ fn run() -> Result<(), failure::Error> {
     let args = Cli::from_args();
     run_wasm_pack(args.cmd)?;
 
-    if let Ok(update_available) = update_available.try_recv() {
-        println!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}. \
-            To update, navigate to: https://rustwasm.github.io/wasm-pack/installer/", update_available.1, update_available.0);
+    if let Ok(wasm_pack_version) = wasm_pack_version.try_recv() {
+        PBAR.warn(&format!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}. \
+            To update, navigate to: https://rustwasm.github.io/wasm-pack/installer/", wasm_pack_version.latest, wasm_pack_version.local));
     }
 
     Ok(())
