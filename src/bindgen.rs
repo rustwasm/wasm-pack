@@ -226,8 +226,25 @@ pub fn wasm_bindgen_build(
         cmd.arg("--keep-debug");
     }
 
-    child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
+    let result = child::run(cmd, "wasm-bindgen");
+    let result: Result<(), failure::Error> = match result {
+        Ok(r) => Ok(r),
+        Err(e) => process_error(e),
+    };
+    result.context("Running the wasm-bindgen CLI")?;
     Ok(())
+}
+
+fn process_error(e: child::CommandError) -> Result<(), failure::Error> {
+    match &e.stderr {
+        Some(err) if err.trim().starts_with("Unknown flag: '--web'") =>
+            bail!("Failed to execute `wasm-bindgen`: --web is not supported. Upgrade wasm-bindgen to a more recent version."),
+        Some(err) => {
+            eprintln!("{}", err);
+            bail!("{}", e.to_string())
+        },
+        _ => bail!("{}", e.to_string()),
+    }
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.
