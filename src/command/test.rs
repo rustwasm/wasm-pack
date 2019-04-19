@@ -298,10 +298,13 @@ impl Test {
         test::cargo_test_wasm(
             &self.crate_path,
             self.release,
-            Some((
-                "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER",
-                &self.test_runner_path.as_ref().unwrap(),
-            )),
+            vec![
+                (
+                    "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER",
+                    &**self.test_runner_path.as_ref().unwrap(),
+                ),
+                ("WASM_BINDGEN_TEST_ONLY_NODE", "1".as_ref()),
+            ],
             &self.extra_options,
         )?;
         info!("Finished running tests in node.");
@@ -326,22 +329,8 @@ impl Test {
             chromedriver
         );
 
-        let test_runner = self
-            .test_runner_path
-            .as_ref()
-            .unwrap()
-            .display()
-            .to_string();
-        let test_runner = test_runner.as_str();
-        info!("Using wasm-bindgen test runner at {}", test_runner);
-
-        let mut envs = vec![
-            ("CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER", test_runner),
-            ("CHROMEDRIVER", chromedriver),
-        ];
-        if !self.headless {
-            envs.push(("NO_HEADLESS", "1"));
-        }
+        let mut envs = self.webdriver_env();
+        envs.push(("CHROMEDRIVER", chromedriver));
 
         test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
@@ -365,22 +354,8 @@ impl Test {
             geckodriver
         );
 
-        let test_runner = self
-            .test_runner_path
-            .as_ref()
-            .unwrap()
-            .display()
-            .to_string();
-        let test_runner = test_runner.as_str();
-        info!("Using wasm-bindgen test runner at {}", test_runner);
-
-        let mut envs = vec![
-            ("CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER", test_runner),
-            ("GECKODRIVER", geckodriver),
-        ];
-        if !self.headless {
-            envs.push(("NO_HEADLESS", "1"));
-        }
+        let mut envs = self.webdriver_env();
+        envs.push(("GECKODRIVER", geckodriver));
 
         test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         Ok(())
@@ -401,24 +376,23 @@ impl Test {
             safaridriver
         );
 
-        let test_runner = self
-            .test_runner_path
-            .as_ref()
-            .unwrap()
-            .display()
-            .to_string();
-        let test_runner = test_runner.as_str();
-        info!("Using wasm-bindgen test runner at {}", test_runner);
+        let mut envs = self.webdriver_env();
+        envs.push(("SAFARIDRIVER", safaridriver));
 
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
+        Ok(())
+    }
+
+    fn webdriver_env(&self) -> Vec<(&'static str, &str)> {
+        let test_runner = self.test_runner_path.as_ref().unwrap().to_str().unwrap();
+        info!("Using wasm-bindgen test runner at {}", test_runner);
         let mut envs = vec![
             ("CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER", test_runner),
-            ("SAFARIDRIVER", safaridriver),
+            ("WASM_BINDGEN_TEST_ONLY_WEB", "1"),
         ];
         if !self.headless {
             envs.push(("NO_HEADLESS", "1"));
         }
-
-        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
-        Ok(())
+        return envs;
     }
 }

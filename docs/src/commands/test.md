@@ -67,18 +67,30 @@ $ tree crates/foo
 │   ├── lib.rs
 └── tests
     ├── diff_patch.rs
+    └── node.rs
 ```
 
 ```
-# Run all tests in tests/diff_patch.rs
-wasm-pack test crates/foo --firefox --headless -- --tests diff_patch
+# Run all tests in tests/diff_patch.rs in Firefox
+wasm-pack test crates/foo --firefox --headless -- --test diff_patch
 
 # Run all tests in tests/diff_patch.rs that contain the word "replace"
-wasm-pack test crates/foo --firefox --headless -- --tests diff_patch replace
+wasm-pack test crates/foo --firefox --headless -- --test diff_patch replace
 
 # Run all tests inside of a `tests` module inside of src/lib/diff.rs
 wasm-pack test crates/foo --firefox --headless -- --lib diff::tests
 
 # Same as the above, but only if they contain the word replace
 wasm-pack test crates/foo --firefox --headless -- --lib diff::tests::replace
+```
+
+Note that you can also filter tests by location in which they're supposed to
+run. For example:
+
+```
+# Run all tests which are intended to execute in Node.js
+wasm-pack test --node
+
+# Run all tests which are intended to be executed in a browser
+wasm-pack test --firefox --headless
 ```
