@@ -30,7 +30,6 @@ This project requires Rust 1.30.0 or later.
 
 - [Development Environment](https://rustwasm.github.io/wasm-pack/book/prerequisites/index.html)
 - [Installation](https://rustwasm.github.io/wasm-pack/installer)
-- [Project Setup](https://rustwasm.github.io/wasm-pack/book/project-setup/index.html)
 
 ## 🎙️ Commands
 
