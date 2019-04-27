@@ -9,6 +9,7 @@ fn build_in_non_crate_directory_doesnt_panic() {
     fixture
         .wasm_pack()
         .arg("build")
+        .arg(".")
         .assert()
         .failure()
         .stderr(predicates::str::contains("missing a `Cargo.toml`"));

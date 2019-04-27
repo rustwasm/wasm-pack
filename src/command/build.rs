@@ -4,7 +4,7 @@ use binary_install::{Cache, Download};
 use bindgen;
 use build;
 use cache;
-use command::utils::{create_pkg_dir, set_crate_path};
+use command::utils::{create_pkg_dir, get_crate_path};
 use emoji;
 use failure::Error;
 use license;
@@ -118,7 +118,7 @@ pub enum BuildProfile {
 /// Everything required to configure and run the `wasm-pack build` command.
 #[derive(Debug, StructOpt)]
 pub struct BuildOptions {
-    /// The path to the Rust crate.
+    /// The path to the Rust crate. If not set, searches up the path from the current directory.
     #[structopt(parse(from_os_str))]
     pub path: Option<PathBuf>,
 
@@ -193,7 +193,7 @@ type BuildStep = fn(&mut Build) -> Result<(), Error>;
 impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
-        let crate_path = set_crate_path(build_opts.path)?;
+        let crate_path = get_crate_path(build_opts.path)?;
         let crate_data = manifest::CrateData::new(&crate_path, build_opts.out_name.clone())?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
 
