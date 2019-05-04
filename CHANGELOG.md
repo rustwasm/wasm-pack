@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+- ###  Fixes
+
+  - Updated help message for `build` and `publish` subcommands. Replaced `browser` with the `bundler`
+
 ## 🛠️ 0.8.1
 
 - ### 🤕 Fixes

@@ -135,8 +135,8 @@ pub struct BuildOptions {
     /// this flag will disable generating this TypeScript file.
     pub disable_dts: bool,
 
-    #[structopt(long = "target", short = "t", default_value = "browser")]
-    /// Sets the target environment. [possible values: browser, nodejs, web, no-modules]
+    #[structopt(long = "target", short = "t", default_value = "bundler")]
+    /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
 
     #[structopt(long = "debug")]

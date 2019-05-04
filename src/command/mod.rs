@@ -36,8 +36,8 @@ pub enum Command {
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish!
     Publish {
-        #[structopt(long = "target", short = "t", default_value = "browser")]
-        /// Sets the target environment. [possible values: browser, nodejs, no-modules]
+        #[structopt(long = "target", short = "t", default_value = "bundler")]
+        /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
         target: String,
 
         /// The access level for the package to be published
