@@ -382,6 +382,6 @@ impl Test {
         if !self.headless {
             envs.push(("NO_HEADLESS", "1"));
         }
-        return envs;
+        envs
     }
 }

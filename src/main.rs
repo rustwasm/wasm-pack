@@ -64,8 +64,7 @@ fn run() -> Result<(), failure::Error> {
         // If we're actually running as the installer then execute our
         // self-installation, otherwise just continue as usual.
         if me
-            .file_stem()
-            .and_then(|s| s.to_str())
+            .file_stem().and_then(|s| s.to_str())
             .expect("executable should have a filename")
             .starts_with("wasm-pack-init")
         {
@@ -94,18 +93,15 @@ fn setup_panic_hooks() {
 
     let default_hook = panic::take_hook();
 
-    match env::var("RUST_BACKTRACE") {
-        Err(_) => {
-            panic::set_hook(Box::new(move |info: &panic::PanicInfo| {
-                // First call the default hook that prints to standard error.
-                default_hook(info);
+    if let Err(_) = env::var("RUST_BACKTRACE") {
+        panic::set_hook(Box::new(move |info: &panic::PanicInfo| {
+            // First call the default hook that prints to standard error.
+            default_hook(info);
 
-                // Then call human_panic.
-                let file_path = human_panic::handle_dump(&meta, info);
-                human_panic::print_msg(file_path, &meta)
-                    .expect("human-panic: printing error message to console failed");
-            }));
-        }
-        Ok(_) => {}
+            // Then call human_panic.
+            let file_path = human_panic::handle_dump(&meta, info);
+            human_panic::print_msg(file_path, &meta)
+                .expect("human-panic: printing error message to console failed");
+        }));
     }
 }
