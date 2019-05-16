@@ -1,3 +1,5 @@
+#![allow(clippy::redundant_closure, clippy::redundant_pattern_matching)]
+
 extern crate atty;
 extern crate env_logger;
 #[macro_use]
@@ -64,7 +66,8 @@ fn run() -> Result<(), failure::Error> {
         // If we're actually running as the installer then execute our
         // self-installation, otherwise just continue as usual.
         if me
-            .file_stem().and_then(|s| s.to_str())
+            .file_stem()
+            .and_then(|s| s.to_str())
             .expect("executable should have a filename")
             .starts_with("wasm-pack-init")
         {

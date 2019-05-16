@@ -1,4 +1,5 @@
 //! Utility functions for commands.
+#![allow(clippy::redundant_closure)]
 
 use failure;
 use std::fs;
