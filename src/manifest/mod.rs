@@ -639,7 +639,7 @@ impl CrateData {
             module: data.main,
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: "false".to_string(),
+            side_effects: false,
         })
     }
 
@@ -668,7 +668,7 @@ impl CrateData {
             module: data.main,
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: "false".to_string(),
+            side_effects: false,
         })
     }
 
