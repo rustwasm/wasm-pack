@@ -28,17 +28,17 @@ fn it_should_build_crates_in_a_workspace() {
             "Cargo.toml",
             r#"
                 [workspace]
-                members = ["blah"]
+                members = ["it_should_build_crates_in_a_workspace"]
             "#,
         )
         .file(
-            Path::new("blah").join("Cargo.toml"),
+            Path::new("it_should_build_crates_in_a_workspace").join("Cargo.toml"),
             r#"
                 [package]
                 authors = ["The wasm-pack developers"]
                 description = "so awesome rust+wasm package"
                 license = "WTFPL"
-                name = "blah"
+                name = "it_should_build_crates_in_a_workspace"
                 repository = "https://github.com/rustwasm/wasm-pack.git"
                 version = "0.1.0"
 
@@ -50,7 +50,9 @@ fn it_should_build_crates_in_a_workspace() {
             "#,
         )
         .file(
-            Path::new("blah").join("src").join("lib.rs"),
+            Path::new("it_should_build_crates_in_a_workspace")
+                .join("src")
+                .join("lib.rs"),
             r#"
                 extern crate wasm_bindgen;
                 use wasm_bindgen::prelude::*;
@@ -62,7 +64,7 @@ fn it_should_build_crates_in_a_workspace() {
         .install_local_wasm_bindgen();
     fixture
         .wasm_pack()
-        .current_dir(&fixture.path.join("blah"))
+        .current_dir(&fixture.path.join("it_should_build_crates_in_a_workspace"))
         .arg("build")
         .assert()
         .success();
