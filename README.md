@@ -1,10 +1,29 @@
-# 📦✨  wasm-pack
-> Your favorite rust -> wasm workflow tool!
+<div align="center">
 
-[![Build Status](https://travis-ci.com/rustwasm/wasm-pack.svg?branch=master)](https://travis-ci.com/rustwasm/wasm-pack)
-[![Build status](https://ci.appveyor.com/api/projects/status/iv1qtnqtv168ef8h?svg=true)](https://ci.appveyor.com/project/ashleygwilliams/wasm-pack-071k0)
-[![crates.io](https://meritbadge.herokuapp.com/wasm-pack)](https://crates.io/crates/wasm-pack)
+  <h1>📦✨  wasm-pack</h1>
 
+  <p>
+    <strong>Your favorite Rust → Wasm workflow tool!</strong>
+  </p>
+
+  <p>
+    <a href="https://travis-ci.com/rustwasm/wasm-pack"><img alt="Build Status" src="https://travis-ci.com/rustwasm/wasm-pack.svg?branch=master"/></a>
+    <a href="https://ci.appveyor.com/project/ashleygwilliams/wasm-pack-071k0"><img alt="Build status" src="https://ci.appveyor.com/api/projects/status/iv1qtnqtv168ef8h?svg=true"/></a>
+    <a href="https://crates.io/crates/wasm-pack"><img alt="crates.io" src="https://meritbadge.herokuapp.com/wasm-pack"/></a>
+  </p>
+
+  <h3>
+    <a href="https://rustwasm.github.io/docs/wasm-pack/">Docs</a>
+    <span> | </span>
+    <a href="https://github.com/rustwasm/wasm-pack/blob/master/CONTRIBUTING.md">Contributing</a>
+    <span> | </span>
+    <a href="https://discordapp.com/channels/442252698964721669/443151097398296587">Chat</a>
+  </h3>
+
+  <sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
+</div>
+
+## About
 
 This tool seeks to be a one-stop shop for building and working with rust-
 generated WebAssembly that you would like to interop with JavaScript, in the
