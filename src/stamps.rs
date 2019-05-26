@@ -24,10 +24,12 @@ pub fn save_stamp_value(
 ) -> Result<(), failure::Error> {
     let mut json = read_stamps_file_to_json().unwrap_or_else(|_| serde_json::Map::new().into());
 
-    let stamps = json
-        .as_object_mut()
-        .ok_or_else(|| failure::err_msg("stamps file doesn't contain JSON object"))?;
-    stamps.insert(key.into(), value.as_ref().into());
+    {
+        let stamps = json
+            .as_object_mut()
+            .ok_or_else(|| failure::err_msg("stamps file doesn't contain JSON object"))?;
+        stamps.insert(key.into(), value.as_ref().into());
+    }
 
     write_to_stamps_file(json)
 }
