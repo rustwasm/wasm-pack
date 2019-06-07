@@ -58,7 +58,7 @@ This project requires Rust 1.30.0 or later.
 
 ## 📝 Logging
 
-`wasm-pack` uses [`env_logger`] to produces logs when `wasm-pack` runs.
+`wasm-pack` uses [`env_logger`] to produce logs when `wasm-pack` runs.
 
 To configure your log level, use the `RUST_LOG` environment variable. For example:
 
