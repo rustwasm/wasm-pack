@@ -26,6 +26,8 @@ use toml;
 use PBAR;
 
 const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
+const WASM_PACK_VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
+const WASM_PACK_REPO_URL: &str = "https://github.com/rustwasm/wasm-pack";
 
 /// Store for metadata learned about a crate
 pub struct CrateData {
@@ -224,6 +226,11 @@ impl Crate {
     /// Call to the crates.io api and return the latest version of `wasm-pack`
     fn check_wasm_pack_latest_version() -> Result<Crate, Error> {
         let mut easy = easy::Easy2::new(Collector(Vec::new()));
+        easy.useragent(&format!(
+            "wasm-pack/{} ({})",
+            WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),
+            WASM_PACK_REPO_URL
+        ))?;
         easy.get(true)?;
         easy.url("https://crates.io/api/v1/crates/wasm-pack")?;
         easy.perform()?;
