@@ -1,6 +1,8 @@
 //! CLI command structures, parsing, and execution.
+#![allow(clippy::redundant_closure)]
 
 pub mod build;
+mod generate;
 mod login;
 mod pack;
 /// Data structures and functions for publishing a package.
@@ -9,10 +11,12 @@ pub mod test;
 pub mod utils;
 
 use self::build::{Build, BuildOptions};
+use self::generate::generate;
 use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
+use crate::install::InstallMode;
 use failure::Error;
 use log::info;
 use std::path::PathBuf;
@@ -31,6 +35,23 @@ pub enum Command {
         /// The path to the Rust crate.
         #[structopt(parse(from_os_str))]
         path: Option<PathBuf>,
+    },
+
+    #[structopt(name = "new")]
+    /// 🐑 create a new project with a template
+    Generate {
+        /// The name of the project
+        name: String,
+        /// The URL to the template
+        #[structopt(
+            long = "template",
+            short = "temp",
+            default_value = "https://github.com/rustwasm/wasm-pack-template"
+        )]
+        template: String,
+        #[structopt(long = "mode", short = "m", default_value = "normal")]
+        /// Should we install or check the presence of binary tools. [possible values: no-install, normal, force]
+        mode: InstallMode,
     },
 
     #[structopt(name = "publish")]
@@ -99,6 +120,16 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
             info!("Running pack command...");
             info!("Path: {:?}", &path);
             pack(path)
+        }
+        Command::Generate {
+            template,
+            name,
+            mode,
+        } => {
+            info!("Running generate command...");
+            info!("Template: {:?}", &template);
+            info!("Name: {:?}", &name);
+            generate(template, name, mode.install_permitted())
         }
         Command::Publish {
             target,

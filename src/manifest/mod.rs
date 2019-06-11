@@ -1,6 +1,6 @@
 //! Reading and writing Cargo.toml and package.json manifests.
 
-#![allow(clippy::new_ret_no_self, clippy::needless_pass_by_value)]
+#![allow(clippy::new_ret_no_self, clippy::needless_pass_by_value, clippy::redundant_closure)]
 
 mod npm;
 
@@ -175,7 +175,7 @@ impl Crate {
 
     fn override_stamp_file(
         current_time: DateTime<offset::Local>,
-        version: &String,
+        version: &str,
     ) -> Result<(), failure::Error> {
         let path = env::current_exe()?;
 
@@ -212,15 +212,13 @@ impl Crate {
     }
 
     /// Read the stamp file and return value assigned to a certain key.
-    fn return_stamp_file_value(file: &String, word: &str) -> Option<String> {
+    fn return_stamp_file_value(file: &str, word: &str) -> Option<String> {
         let created = file
             .lines()
             .find(|line| line.starts_with(word))
             .and_then(|l| l.split_whitespace().nth(1));
 
-        let value = created.map(|s| s.to_string());
-
-        value
+        created.map(|s| s.to_string())
     }
 
     /// Call to the crates.io api and return the latest version of `wasm-pack`
@@ -510,7 +508,7 @@ impl CrateData {
         out_dir: &Path,
         scope: &Option<String>,
         disable_dts: bool,
-        target: &Target,
+        target: Target,
     ) -> Result<(), Error> {
         let pkg_file_path = out_dir.join("package.json");
         let npm_data = match target {

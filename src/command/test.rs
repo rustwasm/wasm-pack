@@ -1,13 +1,12 @@
 //! Implementation of the `wasm-pack test` command.
 
-use super::build::BuildMode;
 use binary_install::Cache;
-use bindgen;
 use build;
 use cache;
 use command::utils::set_crate_path;
 use console::style;
 use failure::Error;
+use install::{self, InstallMode, Tool};
 use lockfile::Lockfile;
 use log::info;
 use manifest;
@@ -69,7 +68,7 @@ pub struct TestOptions {
 
     #[structopt(long = "mode", short = "m", default_value = "normal")]
     /// Sets steps to be run. [possible values: no-install, normal]
-    pub mode: BuildMode,
+    pub mode: InstallMode,
 
     #[structopt(long = "release", short = "r")]
     /// Build with the release profile.
@@ -86,7 +85,7 @@ pub struct Test {
     crate_data: manifest::CrateData,
     cache: Cache,
     node: bool,
-    mode: BuildMode,
+    mode: InstallMode,
     firefox: bool,
     geckodriver: Option<PathBuf>,
     chrome: bool,
@@ -188,7 +187,7 @@ impl Test {
             ($($name:ident $(if $e:expr)* ,)*) => (steps![$($name $(if $e)* ),*])
         }
         match self.mode {
-            BuildMode::Normal => steps![
+            InstallMode::Normal => steps![
                 step_check_rustc_version,
                 step_check_for_wasm_target,
                 step_build_tests,
@@ -201,7 +200,7 @@ impl Test {
                 step_get_safaridriver if self.safari && self.safaridriver.is_none(),
                 step_test_safari if self.safari,
             ],
-            BuildMode::Force => steps![
+            InstallMode::Force => steps![
                 step_check_for_wasm_target,
                 step_build_tests,
                 step_install_wasm_bindgen,
@@ -213,7 +212,7 @@ impl Test {
                 step_get_safaridriver if self.safari && self.safaridriver.is_none(),
                 step_test_safari if self.safari,
             ],
-            BuildMode::Noinstall => steps![
+            InstallMode::Noinstall => steps![
                 step_build_tests,
                 step_install_wasm_bindgen,
                 step_test_node if self.node,
@@ -269,22 +268,12 @@ impl Test {
             )
         }
 
-        let install_permitted = match self.mode {
-            BuildMode::Normal => {
-                info!("Ensuring wasm-bindgen-cli is installed...");
-                true
-            }
-            BuildMode::Force => {
-                info!("Ensuring wasm-bindgen-cli is installed...");
-                true
-            }
-            BuildMode::Noinstall => {
-                info!("Searching for existing wasm-bindgen-cli install...");
-                false
-            }
-        };
-
-        let dl = bindgen::install_wasm_bindgen(&self.cache, &bindgen_version, install_permitted)?;
+        let dl = install::download_prebuilt_or_cargo_install(
+            Tool::WasmBindgen,
+            &self.cache,
+            &bindgen_version,
+            self.mode.install_permitted(),
+        )?;
 
         self.test_runner_path = Some(dl.binary("wasm-bindgen-test-runner")?);
 
@@ -393,6 +382,6 @@ impl Test {
         if !self.headless {
             envs.push(("NO_HEADLESS", "1"));
         }
-        return envs;
+        envs
     }
 }

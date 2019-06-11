@@ -50,8 +50,15 @@ This project requires Rust 1.30.0 or later.
 - [Development Environment](https://rustwasm.github.io/wasm-pack/book/prerequisites/index.html)
 - [Installation](https://rustwasm.github.io/wasm-pack/installer)
 
+## ⚡ Quickstart Guide
+
+Visit the [quickstart quide] in our documentation.
+
+[quickstart guide]: https://rustwasm.github.io/wasm-pack/book/quickstart.html
+
 ## 🎙️ Commands
 
+- [`generate`](https://rustwasm.github.io/wasm-pack/book/commands/generate.html): Generate a new RustWasm project using a template
 - [`build`](https://rustwasm.github.io/wasm-pack/book/commands/build.html): Generate an npm wasm pkg from a rustwasm crate
 - [`test`](https://rustwasm.github.io/wasm-pack/book/commands/test.html): Run browser tests
 - [`pack` and `publish`](https://rustwasm.github.io/wasm-pack/book/commands/pack-and-publish.html): Create a tarball of your rustwasm pkg and/or publish to a registry
@@ -85,41 +92,3 @@ This project was started by [ashleygwilliams] and is co-maintained by [ashleygwi
 [ashleygwilliams]: https://github.com/ashleygwilliams
 [drager]: https://github.com/drager
 [rustwasm Working Group]: https://github.com/rustwasm/team
-
-## ⚡ Quickstart Guide
-
-1. Write a crate in Rust.
-2. Add `wasm-bindgen` to your `Cargo.toml`:
-
-  ```toml
-  [lib]
-  crate-type = ["cdylib"]
-
-  [dependencies]
-  wasm-bindgen = "0.2"
-  ```
-3. Add this to the top of your `src/lib.rs`:
-
-  ```rust
-  use wasm_bindgen::prelude::*;
-  ```
-
-4. Annotate your public functions with `#[wasm_bindgen]`, for example:
-
-  ```rust
-  #[wasm_bindgen]
-  extern {
-      pub fn alert(s: &str);
-  }
-
-  #[wasm_bindgen]
-  pub fn greet(name: &str) {
-      alert(&format!("Hello, {}!", name));
-  }
-  ```
-
-5. Install this tool: `cargo install wasm-pack`
-6. Run `wasm-pack build`, optionally, pass a path to a dir or a scope (see above for details)
-7. This tool generates files in a `pkg` dir
-8. To publish to npm, run `wasm-pack publish`. You may need to login to the
-   registry you want to publish to. You can login using `wasm-pack login`.

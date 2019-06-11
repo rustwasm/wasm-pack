@@ -4,6 +4,7 @@
 //! properly logged and their output is logged as well.
 
 use failure::Error;
+use install::Tool;
 use log::info;
 use std::process::{Command, Stdio};
 
@@ -41,7 +42,7 @@ pub fn run(mut command: Command, command_name: &str) -> Result<(), Error> {
 }
 
 /// Run the given command and return its stdout.
-pub fn run_capture_stdout(mut command: Command, command_name: &str) -> Result<String, Error> {
+pub fn run_capture_stdout(mut command: Command, command_name: &Tool) -> Result<String, Error> {
     info!("Running {:?}", command);
 
     let output = command

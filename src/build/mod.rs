@@ -81,7 +81,7 @@ fn wasm_pack_local_version() -> Option<String> {
 pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
-    extra_options: &Vec<String>,
+    extra_options: &[String],
 ) -> Result<(), Error> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.info(&msg);
