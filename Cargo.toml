@@ -11,7 +11,7 @@ documentation = "https://rustwasm.github.io/wasm-pack/"
 
 [dependencies]
 atty = "0.2.11"
-cargo_metadata = "0.6.0"
+cargo_metadata = "0.8.0"
 console = "0.6.1"
 dialoguer = "0.3.0"
 curl = "0.4.13"
