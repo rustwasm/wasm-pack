@@ -69,27 +69,8 @@ pub fn wasm_bindgen_build(
         cmd.arg("--keep-debug");
     }
 
-    let result = child::run(cmd, "wasm-bindgen");
-    let result: Result<(), failure::Error> = match result {
-        Ok(r) => Ok(r),
-        Err(e) => process_error(&bindgen_path, e),
-    };
-    result.context("Running the wasm-bindgen CLI")?;
+    child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())
-}
-
-fn process_error(bindgen_path: &PathBuf, e: child::CommandError) -> Result<(), failure::Error> {
-    match &e.stderr {
-        Some(err) if err.trim().starts_with("Unknown flag: '--web'") => {
-            let v = wasm_bindgen_get_version(bindgen_path).unwrap_or(String::from("unknown"));
-            bail!("Failed to execute `wasm-bindgen`: --web is not supported in version '{}'. Upgrade the wasm-bindgen dependency in Cargo.toml to version 0.2.39 or later.", v)
-        }
-        Some(err) => {
-            eprintln!("{}", err);
-            bail!("{}", e.to_string())
-        }
-        _ => bail!("{}", e.to_string()),
-    }
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.

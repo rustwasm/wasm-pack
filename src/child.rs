@@ -3,6 +3,7 @@
 //! This module helps us ensure that all child processes that we spawn get
 //! properly logged and their output is logged as well.
 
+use failure::Error;
 use install::Tool;
 use log::info;
 use std::io::Error as StdError;
@@ -54,26 +55,19 @@ impl CommandError {
 }
 
 /// Run the given command and return on success.
-pub fn run(mut command: Command, command_name: &str) -> Result<(), CommandError> {
+pub fn run(mut command: Command, command_name: &str) -> Result<(), Error> {
     info!("Running {:?}", command);
 
-    let cmd_output = command
-        .stdin(Stdio::inherit())
-        .stdout(Stdio::inherit())
-        .output();
-    match cmd_output {
-        Ok(output) => {
-            if output.status.success() {
-                Ok(())
-            } else {
-                Err(CommandError::from_status(
-                    command_name,
-                    output.status,
-                    Some(String::from_utf8_lossy(&output.stderr).into_owned()),
-                ))
-            }
-        }
-        Err(e) => Err(CommandError::from_error(command_name, e)),
+    let status = command.status()?;
+
+    if status.success() {
+        Ok(())
+    } else {
+        bail!(
+            "failed to execute `{}`: exited with {}",
+            command_name,
+            status
+        )
     }
 }
 
