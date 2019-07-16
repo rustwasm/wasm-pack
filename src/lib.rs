@@ -9,6 +9,7 @@ extern crate strsim;
 extern crate failure;
 extern crate glob;
 extern crate parking_lot;
+extern crate semver;
 extern crate serde;
 extern crate which;
 #[macro_use]

@@ -2,11 +2,11 @@
 
 use binary_install::Download;
 use child;
-use crate::install;
 use command::build::{BuildProfile, Target};
 use failure::{self, ResultExt};
-use install::Tool;
+use install;
 use manifest::CrateData;
+use semver;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -40,13 +40,20 @@ pub fn wasm_bindgen_build(
     } else {
         "--typescript"
     };
+    let bindgen_path = bindgen.binary("wasm-bindgen")?;
     let target_arg = match target {
         Target::Nodejs => "--nodejs",
         Target::NoModules => "--no-modules",
-        Target::Web => "--web",
+        Target::Web => {
+            if supports_web_target(&bindgen_path)? {
+                "--web"
+            } else {
+                bail!("Your current version of wasm-bindgen does not support the 'web' target. Please update your project to wasm-bindgen version >= 0.2.39.")
+            }
+        }
         Target::Bundler => "--browser",
     };
-    let bindgen_path = bindgen.binary("wasm-bindgen")?;
+
     let mut cmd = Command::new(&bindgen_path);
     cmd.arg(&wasm_path)
         .arg("--out-dir")
@@ -69,14 +76,16 @@ pub fn wasm_bindgen_build(
         cmd.arg("--keep-debug");
     }
 
-    let versions_match = install::check_version(&Tool::WasmBindgen, &bindgen_path, "0.2.37")?;
-    assert!(versions_match, "Something went wrong! wasm-bindgen CLI and dependency version don't match. This is likely not your fault! You should file an issue: https://github.com/rustwasm/wasm-pack/issues/new?template=bug_report.md.");
-
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.
-fn supports_web_target(cli_path: &PathBuf, dep_version: &str) -> Result<bool, failure::Error> {
-    unimplemented!();
+fn supports_web_target(cli_path: &PathBuf) -> Result<bool, failure::Error> {
+    let cli_version = semver::Version::parse(&install::get_cli_version(
+        &install::Tool::WasmBindgen,
+        cli_path,
+    )?)?;
+    let expected_version = semver::Version::parse("0.2.39")?;
+    Ok(cli_version >= expected_version)
 }

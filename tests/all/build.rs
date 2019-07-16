@@ -136,14 +136,20 @@ fn dash_dash_web_target_has_error_on_old_bindgen() {
             "#,
         )
         .install_local_wasm_bindgen();
-    fixture
+    let cmd = fixture
         .wasm_pack()
         .arg("build")
         .arg("--target")
         .arg("web")
         .assert()
-        .success()
-        .stdout("");
+        .failure();
+    let output = String::from_utf8(cmd.get_output().stderr.clone()).unwrap();
+
+    assert!(
+        output.contains("0.2.39"),
+        "Output did not contain '0.2.39', output was {}",
+        output
+    );
 }
 
 #[test]
