@@ -105,6 +105,48 @@ fn renamed_crate_name_works() {
 }
 
 #[test]
+fn dash_dash_web_target_has_error_on_old_bindgen() {
+    let fixture = utils::fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "Cargo.toml",
+            r#"
+                [package]
+                name = "foo"
+                version = "0.1.0"
+                authors = []
+
+                [lib]
+                crate-type = ["cdylib"]
+                name = 'bar'
+
+                [dependencies]
+                wasm-bindgen = "0.2.37"
+            "#,
+        )
+        .file(
+            "src/lib.rs",
+            r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                #[wasm_bindgen]
+                pub fn one() -> u32 { 1 }
+            "#,
+        )
+        .install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--target")
+        .arg("web")
+        .assert()
+        .success()
+        .stdout("");
+}
+
+#[test]
 fn it_should_build_nested_project_with_transitive_dependencies() {
     let fixture = utils::fixture::transitive_dependencies();
     fixture.install_local_wasm_bindgen();
