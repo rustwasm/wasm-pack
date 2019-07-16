@@ -6,8 +6,7 @@
 use failure::Error;
 use install::Tool;
 use log::info;
-use std::io::Error as StdError;
-use std::process::{Command, ExitStatus, Stdio};
+use std::process::{Command, Stdio};
 
 /// Return a new Command object
 pub fn new_command(program: &str) -> Command {
@@ -22,35 +21,6 @@ pub fn new_command(program: &str) -> Command {
         cmd
     } else {
         Command::new(program)
-    }
-}
-
-/// Error from running Command processes
-/// This captures the standard error output
-#[derive(Fail, Debug)]
-#[fail(display = "failed to execute `{}`: {}", command_name, fail_reason)]
-pub struct CommandError {
-    command_name: String,
-    fail_reason: String,
-    /// the output printed to stderr, if any
-    pub stderr: Option<String>,
-}
-
-impl CommandError {
-    fn from_status(command_name: &str, status: ExitStatus, stderr: Option<String>) -> CommandError {
-        CommandError {
-            command_name: command_name.to_string(),
-            fail_reason: format!("exited with {}", status),
-            stderr: stderr,
-        }
-    }
-
-    fn from_error(command_name: &str, err: StdError) -> CommandError {
-        CommandError {
-            command_name: command_name.to_string(),
-            fail_reason: err.to_string(),
-            stderr: None,
-        }
     }
 }
 
@@ -72,27 +42,21 @@ pub fn run(mut command: Command, command_name: &str) -> Result<(), Error> {
 }
 
 /// Run the given command and return its stdout.
-pub fn run_capture_stdout(
-    mut command: Command,
-    command_name: &Tool,
-) -> Result<String, CommandError> {
+pub fn run_capture_stdout(mut command: Command, command_name: &Tool) -> Result<String, Error> {
     info!("Running {:?}", command);
 
-    let cmd_display = command_name.to_string();
+    let output = command
+        .stderr(Stdio::inherit())
+        .stdin(Stdio::inherit())
+        .output()?;
 
-    let cmd_output = command.stdin(Stdio::inherit()).output();
-    match cmd_output {
-        Ok(output) => {
-            if output.status.success() {
-                Ok(String::from_utf8_lossy(&output.stdout).into_owned())
-            } else {
-                Err(CommandError::from_status(
-                    &cmd_display,
-                    output.status,
-                    Some(String::from_utf8_lossy(&output.stderr).into_owned()),
-                ))
-            }
-        }
-        Err(e) => Err(CommandError::from_error(&cmd_display, e)),
+    if output.status.success() {
+        Ok(String::from_utf8_lossy(&output.stdout).into_owned())
+    } else {
+        bail!(
+            "failed to execute `{}`: exited with {}",
+            command_name,
+            output.status
+        )
     }
 }

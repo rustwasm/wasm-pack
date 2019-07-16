@@ -69,31 +69,26 @@ pub fn wasm_bindgen_build(
         cmd.arg("--keep-debug");
     }
 
+    let versions_match = versions_match(&bindgen_path, "0.2.37")?;
+    assert!(versions_match, "Something went wrong! wasm-bindgen CLI and dependency version don't match. This is likely not your fault! You should file an issue: https://github.com/rustwasm/wasm-pack/issues/new?template=bug_report.md.");
+
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.
-fn wasm_bindgen_version_check(bindgen_path: &PathBuf, dep_version: &str) -> bool {
-    wasm_bindgen_get_version(bindgen_path)
-        .map(|v| {
-            info!(
-                "Checking installed `wasm-bindgen` version == expected version: {} == {}",
-                v, dep_version
-            );
-            v == dep_version
-        })
-        .unwrap_or(false)
+fn versions_match(cli_path: &PathBuf, dep_version: &str) -> Result<bool, failure::Error> {
+    let cli_version = cli_version(cli_path)?;
+    Ok(cli_version == dep_version)
 }
 
-/// Get the `wasm-bindgen` version
-fn wasm_bindgen_get_version(bindgen_path: &PathBuf) -> Option<String> {
+/// Get the `wasm-bindgen` CLI version
+fn cli_version(bindgen_path: &PathBuf) -> Result<String, failure::Error> {
     let mut cmd = Command::new(bindgen_path);
     cmd.arg("--version");
-    child::run_capture_stdout(cmd, &Tool::WasmBindgen)
-        .map(|stdout| match stdout.trim().split_whitespace().nth(1) {
-            Some(v) => return Some(v.to_owned()),
-            None => return None,
-        })
-        .unwrap_or(None)
+    let stdout = child::run_capture_stdout(cmd, &Tool::WasmBindgen)?;
+    match stdout.trim().split_whitespace().nth(1) {
+            Some(v) => Ok(v.to_string()),
+            None => bail!("Something went wrong! No wasm-bindgen CLI found! You should file an issue: https://github.com/rustwasm/wasm-pack/issues/new?template=bug_report.md."),
+    }
 }
