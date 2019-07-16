@@ -63,7 +63,7 @@ pub fn download_prebuilt_or_cargo_install(
 }
 
 /// Check if the tool dependency is locally satisfied.
-fn check_version(
+pub fn check_version(
     tool: &Tool,
     path: &PathBuf,
     expected_version: &str,

@@ -2,6 +2,7 @@
 
 use binary_install::Download;
 use child;
+use crate::install;
 use command::build::{BuildProfile, Target};
 use failure::{self, ResultExt};
 use install::Tool;
@@ -68,7 +69,7 @@ pub fn wasm_bindgen_build(
         cmd.arg("--keep-debug");
     }
 
-    let versions_match = versions_match(&bindgen_path, "0.2.37")?;
+    let versions_match = install::check_version(&Tool::WasmBindgen, &bindgen_path, "0.2.37")?;
     assert!(versions_match, "Something went wrong! wasm-bindgen CLI and dependency version don't match. This is likely not your fault! You should file an issue: https://github.com/rustwasm/wasm-pack/issues/new?template=bug_report.md.");
 
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
@@ -76,18 +77,6 @@ pub fn wasm_bindgen_build(
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied.
-fn versions_match(cli_path: &PathBuf, dep_version: &str) -> Result<bool, failure::Error> {
-    let cli_version = cli_version(cli_path)?;
-    Ok(cli_version == dep_version)
-}
-
-/// Get the `wasm-bindgen` CLI version
-fn cli_version(bindgen_path: &PathBuf) -> Result<String, failure::Error> {
-    let mut cmd = Command::new(bindgen_path);
-    cmd.arg("--version");
-    let stdout = child::run_capture_stdout(cmd, &Tool::WasmBindgen)?;
-    match stdout.trim().split_whitespace().nth(1) {
-            Some(v) => Ok(v.to_string()),
-            None => bail!("Something went wrong! No wasm-bindgen CLI found! You should file an issue: https://github.com/rustwasm/wasm-pack/issues/new?template=bug_report.md."),
-    }
+fn supports_web_target(cli_path: &PathBuf, dep_version: &str) -> Result<bool, failure::Error> {
+    unimplemented!();
 }
