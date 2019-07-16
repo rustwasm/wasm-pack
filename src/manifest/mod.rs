@@ -1,6 +1,10 @@
 //! Reading and writing Cargo.toml and package.json manifests.
 
-#![allow(clippy::new_ret_no_self, clippy::needless_pass_by_value, clippy::redundant_closure)]
+#![allow(
+    clippy::new_ret_no_self,
+    clippy::needless_pass_by_value,
+    clippy::redundant_closure
+)]
 
 mod npm;
 
@@ -350,8 +354,9 @@ impl CrateData {
             )
         }
 
-        let data =
-            cargo_metadata::metadata(Some(&manifest_path)).map_err(error_chain_to_failure)?;
+        let data = cargo_metadata::MetadataCommand::new()
+            .manifest_path(&manifest_path)
+            .exec()?;
 
         let manifest_and_keys = CrateData::parse_crate_data(&manifest_path)?;
         CrateData::warn_for_unused_keys(&manifest_and_keys);
@@ -369,18 +374,6 @@ impl CrateData {
             current_idx,
             out_name,
         });
-
-        fn error_chain_to_failure(err: cargo_metadata::Error) -> Error {
-            let errors = err.iter().collect::<Vec<_>>();
-            let mut err: Error = match errors.last() {
-                Some(e) => format_err!("{}", e),
-                None => return format_err!("{}", err),
-            };
-            for e in errors[..errors.len() - 1].iter().rev() {
-                err = err.context(e.to_string()).into();
-            }
-            err
-        }
     }
 
     /// Read the `manifest_path` file and deserializes it using the toml Deserializer.
@@ -596,7 +589,7 @@ impl CrateData {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
+            version: pkg.version.to_string(),
             license: self.license(),
             repository: self
                 .manifest
@@ -629,7 +622,7 @@ impl CrateData {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
+            version: pkg.version.to_string(),
             license: self.license(),
             repository: self
                 .manifest
@@ -658,7 +651,7 @@ impl CrateData {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
+            version: pkg.version.to_string(),
             license: self.license(),
             repository: self
                 .manifest
@@ -692,7 +685,7 @@ impl CrateData {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
+            version: pkg.version.to_string(),
             license: self.license(),
             repository: self
                 .manifest
