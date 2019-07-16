@@ -41,25 +41,19 @@ pub fn wasm_bindgen_build(
         "--typescript"
     };
     let bindgen_path = bindgen.binary("wasm-bindgen")?;
-    let target_arg = match target {
-        Target::Nodejs => "--nodejs",
-        Target::NoModules => "--no-modules",
-        Target::Web => {
-            if supports_web_target(&bindgen_path)? {
-                "--web"
-            } else {
-                bail!("Your current version of wasm-bindgen does not support the 'web' target. Please update your project to wasm-bindgen version >= 0.2.39.")
-            }
-        }
-        Target::Bundler => "--browser",
-    };
 
     let mut cmd = Command::new(&bindgen_path);
     cmd.arg(&wasm_path)
         .arg("--out-dir")
         .arg(out_dir)
-        .arg(dts_arg)
-        .arg(target_arg);
+        .arg(dts_arg);
+
+    let target_arg = build_target_arg(target, &bindgen_path)?;
+    if supports_dash_dash_target(&bindgen_path)? {
+        cmd.arg("--target").arg(target_arg);
+    } else {
+        cmd.arg(target_arg);
+    }
 
     if let Some(value) = out_name {
         cmd.arg("--out-name").arg(value);
@@ -80,7 +74,7 @@ pub fn wasm_bindgen_build(
     Ok(())
 }
 
-/// Check if the `wasm-bindgen` dependency is locally satisfied.
+/// Check if the `wasm-bindgen` dependency is locally satisfied for the web target
 fn supports_web_target(cli_path: &PathBuf) -> Result<bool, failure::Error> {
     let cli_version = semver::Version::parse(&install::get_cli_version(
         &install::Tool::WasmBindgen,
@@ -88,4 +82,45 @@ fn supports_web_target(cli_path: &PathBuf) -> Result<bool, failure::Error> {
     )?)?;
     let expected_version = semver::Version::parse("0.2.39")?;
     Ok(cli_version >= expected_version)
+}
+
+/// Check if the `wasm-bindgen` dependency is locally satisfied for the --target flag
+fn supports_dash_dash_target(cli_path: &PathBuf) -> Result<bool, failure::Error> {
+    let cli_version = semver::Version::parse(&install::get_cli_version(
+        &install::Tool::WasmBindgen,
+        cli_path,
+    )?)?;
+    let expected_version = semver::Version::parse("0.2.40")?;
+    Ok(cli_version >= expected_version)
+}
+
+fn build_target_arg(target: Target, cli_path: &PathBuf) -> Result<&str, failure::Error> {
+    if !supports_dash_dash_target(cli_path)? {
+        Ok(build_target_arg_legacy(target, cli_path)?)
+    } else {
+        let target_arg = match target {
+            Target::Nodejs => "nodejs",
+            Target::NoModules => "no-modules",
+            Target::Web => "web",
+            Target::Bundler => "bundler",
+        };
+        Ok(target_arg)
+    }
+}
+
+fn build_target_arg_legacy(target: Target, cli_path: &PathBuf) -> Result<&str, failure::Error> {
+    log::info!("Your version of wasm-bindgen is out of date. You should consider updating your Cargo.toml to a version >= 0.2.40.");
+    let target_arg = match target {
+        Target::Nodejs => "--nodejs",
+        Target::NoModules => "--no-modules",
+        Target::Web => {
+            if supports_web_target(&cli_path)? {
+                "--web"
+            } else {
+                bail!("Your current version of wasm-bindgen does not support the 'web' target. Please update your project to wasm-bindgen version >= 0.2.39.")
+            }
+        }
+        Target::Bundler => "--browser",
+    };
+    Ok(target_arg)
 }
