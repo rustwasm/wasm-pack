@@ -41,8 +41,8 @@ pub fn publish(
                     .interact()?;
                 let out_dir = format!("{}/pkg", out_dir);
                 let target = Select::new()
-                    .with_prompt("target[default: browser]")
-                    .items(&["browser", "nodejs", "no-modules"])
+                    .with_prompt("target[default: bundler]")
+                    .items(&["bundler", "nodejs", "web", "no-modules"])
                     .default(0)
                     .interact()?
                     .to_string();
