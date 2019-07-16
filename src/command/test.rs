@@ -3,7 +3,7 @@
 use binary_install::Cache;
 use build;
 use cache;
-use command::utils::set_crate_path;
+use command::utils::get_crate_path;
 use console::style;
 use failure::Error;
 use install::{self, InstallMode, Tool};
@@ -18,7 +18,7 @@ use test::{self, webdriver};
 /// Everything required to configure the `wasm-pack test` command.
 pub struct TestOptions {
     #[structopt(parse(from_os_str))]
-    /// The path to the Rust crate.
+    /// The path to the Rust crate. If not set, searches up the path from the current dirctory.
     pub path: Option<PathBuf>,
 
     #[structopt(long = "node")]
@@ -118,7 +118,7 @@ impl Test {
             extra_options,
         } = test_opts;
 
-        let crate_path = set_crate_path(path)?;
+        let crate_path = get_crate_path(path)?;
         let crate_data = manifest::CrateData::new(&crate_path, None)?;
         let any_browser = chrome || firefox || safari;
 

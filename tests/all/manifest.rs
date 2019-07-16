@@ -4,6 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 use utils::{self, fixture};
 use wasm_pack::command::build::Target;
+use wasm_pack::command::utils::get_crate_path;
 use wasm_pack::{self, license, manifest};
 
 #[test]
@@ -480,4 +481,47 @@ fn it_lists_license_files_in_files_field_of_package_json() {
         "LICENSE-MIT is not in files: {:?}",
         pkg.files,
     );
+}
+
+#[test]
+fn it_recurses_up_the_path_to_find_cargo_toml() {
+    let fixture = utils::fixture::Fixture::new();
+    fixture.hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "recurse-for-manifest-test"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+            homepage = "https://rustwasm.github.io/wasm-pack/"
+        "#,
+    );
+    let path = get_crate_path(None).unwrap();
+    let crate_data = manifest::CrateData::new(&path, None).unwrap();
+    let name = crate_data.crate_name();
+    assert_eq!(name, "wasm_pack");
+}
+
+#[test]
+fn it_doesnt_recurse_up_the_path_to_find_cargo_toml_when_default() {
+    let fixture = utils::fixture::Fixture::new();
+    fixture.hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "recurse-for-manifest-test"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+            homepage = "https://rustwasm.github.io/wasm-pack/"
+        "#,
+    );
+    let path = get_crate_path(Some(PathBuf::from("src"))).unwrap();
+    let crate_data = manifest::CrateData::new(&path, None);
+    assert!(crate_data.is_err());
 }
