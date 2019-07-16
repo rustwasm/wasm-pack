@@ -122,7 +122,7 @@ fn dash_dash_web_target_has_error_on_old_bindgen() {
                 name = 'bar'
 
                 [dependencies]
-                wasm-bindgen = "0.2.37"
+                wasm-bindgen = "=0.2.37"
             "#,
         )
         .file(
