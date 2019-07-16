@@ -174,11 +174,15 @@ fn build_with_and_without_wasm_bindgen_debug() {
 
                 #[wasm_bindgen]
                 impl MyThing {
+                    #[wasm_bindgen(constructor)]
                     pub fn new() -> MyThing {
                         MyThing {}
                     }
+                }
 
-                    pub fn take(self) {}
+                #[wasm_bindgen]
+                pub fn take(foo: MyThing) {
+                    drop(foo);
                 }
                 "#,
             )
@@ -192,10 +196,14 @@ fn build_with_and_without_wasm_bindgen_debug() {
             .success();
 
         let contents = fs::read_to_string(fixture.path.join("pkg/whatever.js")).unwrap();
+        let contains_move_assertions =
+            contents.contains("throw new Error('Attempt to use a moved value')");
         assert_eq!(
-            contents.contains("throw new Error('Attempt to use a moved value')"),
-            debug,
-            "Should only contain moved value assertions when debug assertions are enabled"
+            contains_move_assertions, debug,
+            "Should contain moved value assertions iff debug assertions are enabled. \
+             Contains move assertions? {}. \
+             Is a debug JS glue build? {}.",
+            contains_move_assertions, debug,
         );
     }
 }
