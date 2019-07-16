@@ -368,12 +368,12 @@ impl CrateData {
             .position(|pkg| pkg.name == manifest.package.name)
             .ok_or_else(|| format_err!("failed to find package in metadata"))?;
 
-        return Ok(CrateData {
+        Ok(CrateData {
             data,
             manifest,
             current_idx,
             out_name,
-        });
+        })
     }
 
     /// Read the `manifest_path` file and deserializes it using the toml Deserializer.
