@@ -58,7 +58,7 @@ Visit the [quickstart quide] in our documentation.
 
 ## 🎙️ Commands
 
-- [`generate`](https://rustwasm.github.io/wasm-pack/book/commands/generate.html): Generate a new RustWasm project using a template
+- [`new`](https://rustwasm.github.io/wasm-pack/book/commands/new.html): Generate a new RustWasm project using a template
 - [`build`](https://rustwasm.github.io/wasm-pack/book/commands/build.html): Generate an npm wasm pkg from a rustwasm crate
 - [`test`](https://rustwasm.github.io/wasm-pack/book/commands/test.html): Run browser tests
 - [`pack` and `publish`](https://rustwasm.github.io/wasm-pack/book/commands/pack-and-publish.html): Create a tarball of your rustwasm pkg and/or publish to a registry
