@@ -5,7 +5,6 @@ use child;
 use command::build::{BuildProfile, Target};
 use failure::{self, ResultExt};
 use install::Tool;
-use log::info;
 use manifest::CrateData;
 use std::path::{Path, PathBuf};
 use std::process::Command;
