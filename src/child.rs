@@ -24,7 +24,7 @@ pub fn new_command(program: &str) -> Command {
     }
 }
 
-/// Run the given command and return its stdout.
+/// Run the given command and return on success.
 pub fn run(mut command: Command, command_name: &str) -> Result<(), Error> {
     info!("Running {:?}", command);
 

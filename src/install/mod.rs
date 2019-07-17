@@ -63,7 +63,7 @@ pub fn download_prebuilt_or_cargo_install(
 }
 
 /// Check if the tool dependency is locally satisfied.
-fn check_version(
+pub fn check_version(
     tool: &Tool,
     path: &PathBuf,
     expected_version: &str,
@@ -75,24 +75,24 @@ fn check_version(
         expected_version.to_string()
     };
 
+    let v = get_cli_version(tool, path)?;
+    info!(
+        "Checking installed `{}` version == expected version: {} == {}",
+        tool, v, &expected_version
+    );
+    Ok(v == expected_version)
+}
+
+/// Fetches the version of a CLI tool
+pub fn get_cli_version(tool: &Tool, path: &PathBuf) -> Result<String, failure::Error> {
     let mut cmd = Command::new(path);
     cmd.arg("--version");
-    child::run_capture_stdout(cmd, tool)
-        .map(|stdout| {
-            stdout
-                .trim()
-                .split_whitespace()
-                .nth(1)
-                .map(|v| {
-                    info!(
-                        "Checking installed `{}` version == expected version: {} == {}",
-                        tool, v, &expected_version
-                    );
-                    Ok(v == expected_version)
-                })
-                .unwrap_or(Ok(false))
-        })
-        .unwrap_or(Ok(false))
+    let stdout = child::run_capture_stdout(cmd, tool)?;
+    let version = stdout.trim().split_whitespace().nth(1);
+    match version {
+        Some(v) => Ok(v.to_string()),
+        None => bail!("Something went wrong! We couldn't determine your version of the wasm-bindgen CLI. We were supposed to set that up for you, so it's likely not your fault! You should file an issue: https://github.com/rustwasm/wasm-pack/issues/new?template=bug_report.md.")
+    }
 }
 
 /// Downloads a precompiled copy of the tool, if available.
