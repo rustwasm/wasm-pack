@@ -1,5 +1,6 @@
 //! Implementation of the `wasm-pack build` command.
 
+use crate::wasm_opt;
 use binary_install::{Cache, Download};
 use bindgen;
 use build;
@@ -254,6 +255,7 @@ impl Build {
             step_copy_license,
             step_install_wasm_bindgen,
             step_run_wasm_bindgen,
+            step_run_wasm_opt,
             step_create_json,
         ]);
         steps
@@ -359,6 +361,25 @@ impl Build {
             self.profile,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
+        Ok(())
+    }
+
+    fn step_run_wasm_opt(&mut self) -> Result<(), Error> {
+        let args = match self
+            .crate_data
+            .configured_profile(self.profile)
+            .wasm_opt_args()
+        {
+            Some(args) => args,
+            None => return Ok(()),
+        };
+        info!("executing wasm-opt with {:?}", args);
+        wasm_opt::run(
+            &self.cache,
+            &self.out_dir,
+            &args,
+            self.mode.install_permitted(),
+        )?;
         Ok(())
     }
 }

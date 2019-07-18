@@ -215,6 +215,10 @@ impl Fixture {
     /// Takes care not to re-install for every fixture, but only the one time
     /// for the whole test suite.
     pub fn install_local_wasm_bindgen(&self) -> PathBuf {
+        // If wasm-bindgen is being used then it's very likely wasm-opt is going
+        // to be used as well.
+        self.install_wasm_opt();
+
         static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
         let cache = self.cache();
         let version = "0.2.37";
@@ -237,6 +241,15 @@ impl Fixture {
         download().unwrap().binary("wasm-bindgen").unwrap()
     }
 
+    pub fn install_wasm_opt(&self) {
+        static INSTALL_WASM_OPT: Once = ONCE_INIT;
+        let cache = self.cache();
+
+        INSTALL_WASM_OPT.call_once(|| {
+            wasm_pack::wasm_opt::find_wasm_opt(&cache, true).unwrap();
+        });
+    }
+  
     /// Install a local cargo-generate for this fixture.
     ///
     /// Takes care not to re-install for every fixture, but only the one time

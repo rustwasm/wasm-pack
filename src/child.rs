@@ -34,9 +34,10 @@ pub fn run(mut command: Command, command_name: &str) -> Result<(), Error> {
         Ok(())
     } else {
         bail!(
-            "failed to execute `{}`: exited with {}",
+            "failed to execute `{}`: exited with {}\n  full command: {:?}",
             command_name,
-            status
+            status,
+            command,
         )
     }
 }
@@ -54,9 +55,10 @@ pub fn run_capture_stdout(mut command: Command, command_name: &Tool) -> Result<S
         Ok(String::from_utf8_lossy(&output.stdout).into_owned())
     } else {
         bail!(
-            "failed to execute `{}`: exited with {}",
+            "failed to execute `{}`: exited with {}\n  full command: {:?}",
             command_name,
-            output.status
+            output.status,
+            command,
         )
     }
 }

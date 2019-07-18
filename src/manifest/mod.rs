@@ -110,6 +110,8 @@ impl Default for CargoWasmPackProfiles {
 pub struct CargoWasmPackProfile {
     #[serde(default, rename = "wasm-bindgen")]
     wasm_bindgen: CargoWasmPackProfileWasmBindgen,
+    #[serde(default, rename = "wasm-opt")]
+    wasm_opt: Option<CargoWasmPackProfileWasmOpt>,
 }
 
 #[derive(Default, Deserialize)]
@@ -242,6 +244,19 @@ impl Crate {
     }
 }
 
+#[derive(Clone, Deserialize)]
+#[serde(untagged)]
+enum CargoWasmPackProfileWasmOpt {
+    Enabled(bool),
+    ExplicitArgs(Vec<String>),
+}
+
+impl Default for CargoWasmPackProfileWasmOpt {
+    fn default() -> Self {
+        CargoWasmPackProfileWasmOpt::Enabled(false)
+    }
+}
+
 impl CargoWasmPackProfile {
     fn default_dev() -> Self {
         CargoWasmPackProfile {
@@ -250,6 +265,7 @@ impl CargoWasmPackProfile {
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
             },
+            wasm_opt: None,
         }
     }
 
@@ -260,6 +276,7 @@ impl CargoWasmPackProfile {
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
             },
+            wasm_opt: Some(CargoWasmPackProfileWasmOpt::Enabled(true)),
         }
     }
 
@@ -270,6 +287,7 @@ impl CargoWasmPackProfile {
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
             },
+            wasm_opt: Some(CargoWasmPackProfileWasmOpt::Enabled(true)),
         }
     }
 
@@ -309,6 +327,10 @@ impl CargoWasmPackProfile {
         d!(wasm_bindgen.debug_js_glue);
         d!(wasm_bindgen.demangle_name_section);
         d!(wasm_bindgen.dwarf_debug_info);
+
+        if self.wasm_opt.is_none() {
+            self.wasm_opt = defaults.wasm_opt.clone();
+        }
     }
 
     /// Get this profile's configured `[wasm-bindgen.debug-js-glue]` value.
@@ -324,6 +346,15 @@ impl CargoWasmPackProfile {
     /// Get this profile's configured `[wasm-bindgen.dwarf-debug-info]` value.
     pub fn wasm_bindgen_dwarf_debug_info(&self) -> bool {
         self.wasm_bindgen.dwarf_debug_info.unwrap()
+    }
+
+    /// Get this profile's configured arguments for `wasm-opt`, if enabled.
+    pub fn wasm_opt_args(&self) -> Option<Vec<String>> {
+        match self.wasm_opt.as_ref()? {
+            CargoWasmPackProfileWasmOpt::Enabled(false) => None,
+            CargoWasmPackProfileWasmOpt::Enabled(true) => Some(vec!["-O".to_string()]),
+            CargoWasmPackProfileWasmOpt::ExplicitArgs(s) => Some(s.clone()),
+        }
     }
 }
 
