@@ -1,8 +1,8 @@
 //! Getting WebDriver client binaries.
 
 use binary_install::Cache;
-use command::build::BuildMode;
 use failure;
+use install::InstallMode;
 use std::path::PathBuf;
 use target;
 use PBAR;
@@ -29,16 +29,12 @@ fn get_and_notify(
 /// binary is found.
 pub fn get_or_install_chromedriver(
     cache: &Cache,
-    mode: BuildMode,
+    mode: InstallMode,
 ) -> Result<PathBuf, failure::Error> {
     if let Ok(path) = which::which("chromedriver") {
         return Ok(path);
     }
-    let installation_allowed = match mode {
-        BuildMode::Noinstall => false,
-        _ => true,
-    };
-    install_chromedriver(cache, installation_allowed)
+    install_chromedriver(cache, mode.install_permitted())
 }
 
 /// Download and install a pre-built `chromedriver` binary.
@@ -74,16 +70,12 @@ pub fn install_chromedriver(
 /// binary is found.
 pub fn get_or_install_geckodriver(
     cache: &Cache,
-    mode: BuildMode,
+    mode: InstallMode,
 ) -> Result<PathBuf, failure::Error> {
     if let Ok(path) = which::which("geckodriver") {
         return Ok(path);
     }
-    let installation_allowed = match mode {
-        BuildMode::Noinstall => false,
-        _ => true,
-    };
-    install_geckodriver(cache, installation_allowed)
+    install_geckodriver(cache, mode.install_permitted())
 }
 
 /// Download and install a pre-built `geckodriver` binary.

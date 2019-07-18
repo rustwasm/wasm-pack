@@ -5,9 +5,10 @@ use binary_install::{Cache, Download};
 use bindgen;
 use build;
 use cache;
-use command::utils::{create_pkg_dir, set_crate_path};
+use command::utils::{create_pkg_dir, get_crate_path};
 use emoji;
 use failure::Error;
+use install::{self, InstallMode, Tool};
 use license;
 use lockfile::Lockfile;
 use log::info;
@@ -27,53 +28,12 @@ pub struct Build {
     pub disable_dts: bool,
     pub target: Target,
     pub profile: BuildProfile,
-    pub mode: BuildMode,
+    pub mode: InstallMode,
     pub out_dir: PathBuf,
     pub out_name: Option<String>,
     pub bindgen: Option<Download>,
     pub cache: Cache,
     pub extra_options: Vec<String>,
-}
-
-/// The `BuildMode` determines which mode of initialization we are running, and
-/// what build and install steps we perform.
-#[derive(Clone, Copy, Debug)]
-pub enum BuildMode {
-    /// Perform all the build and install steps.
-    Normal,
-    /// Don't install tools like `wasm-bindgen`, just use the global
-    /// environment's existing versions to do builds.
-    Noinstall,
-    /// Skip the rustc version check
-    Force,
-}
-
-impl BuildMode {
-    fn install_permitted(&self) -> bool {
-        match self {
-            BuildMode::Normal => true,
-            BuildMode::Force => true,
-            BuildMode::Noinstall => false,
-        }
-    }
-}
-
-impl Default for BuildMode {
-    fn default() -> BuildMode {
-        BuildMode::Normal
-    }
-}
-
-impl FromStr for BuildMode {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Error> {
-        match s {
-            "no-install" => Ok(BuildMode::Noinstall),
-            "normal" => Ok(BuildMode::Normal),
-            "force" => Ok(BuildMode::Force),
-            _ => bail!("Unknown build mode: {}", s),
-        }
-    }
 }
 
 /// What sort of output we're going to be generating and flags we're invoking
@@ -129,7 +89,7 @@ pub enum BuildProfile {
 /// Everything required to configure and run the `wasm-pack build` command.
 #[derive(Debug, StructOpt)]
 pub struct BuildOptions {
-    /// The path to the Rust crate.
+    /// The path to the Rust crate. If not set, searches up the path from the current directory.
     #[structopt(parse(from_os_str))]
     pub path: Option<PathBuf>,
 
@@ -139,15 +99,15 @@ pub struct BuildOptions {
 
     #[structopt(long = "mode", short = "m", default_value = "normal")]
     /// Sets steps to be run. [possible values: no-install, normal, force]
-    pub mode: BuildMode,
+    pub mode: InstallMode,
 
     #[structopt(long = "no-typescript")]
     /// By default a *.d.ts file is generated for the generated JS file, but
     /// this flag will disable generating this TypeScript file.
     pub disable_dts: bool,
 
-    #[structopt(long = "target", short = "t", default_value = "browser")]
-    /// Sets the target environment. [possible values: browser, nodejs, web, no-modules]
+    #[structopt(long = "target", short = "t", default_value = "bundler")]
+    /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
 
     #[structopt(long = "debug")]
@@ -185,7 +145,7 @@ impl Default for BuildOptions {
         Self {
             path: None,
             scope: None,
-            mode: BuildMode::default(),
+            mode: InstallMode::default(),
             disable_dts: false,
             target: Target::default(),
             debug: false,
@@ -204,7 +164,7 @@ type BuildStep = fn(&mut Build) -> Result<(), Error>;
 impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
-        let crate_path = set_crate_path(build_opts.path)?;
+        let crate_path = get_crate_path(build_opts.path)?;
         let crate_data = manifest::CrateData::new(&crate_path, build_opts.out_name.clone())?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
 
@@ -266,7 +226,7 @@ impl Build {
         Ok(())
     }
 
-    fn get_process_steps(mode: BuildMode) -> Vec<(&'static str, BuildStep)> {
+    fn get_process_steps(mode: InstallMode) -> Vec<(&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {
@@ -279,7 +239,7 @@ impl Build {
         }
         let mut steps = Vec::new();
         match &mode {
-            BuildMode::Force => {}
+            InstallMode::Force => {}
             _ => {
                 steps.extend(steps![
                     step_check_rustc_version,
@@ -350,7 +310,7 @@ impl Build {
             &self.out_dir,
             &self.scope,
             self.disable_dts,
-            &self.target,
+            self.target,
         )?;
         info!(
             "Wrote a package.json at {:#?}.",
@@ -378,7 +338,8 @@ impl Build {
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
         info!("Installing wasm-bindgen-cli...");
-        let bindgen = bindgen::install_wasm_bindgen(
+        let bindgen = install::download_prebuilt_or_cargo_install(
+            Tool::WasmBindgen,
             &self.cache,
             &bindgen_version,
             self.mode.install_permitted(),
@@ -396,7 +357,7 @@ impl Build {
             &self.out_dir,
             &self.out_name,
             self.disable_dts,
-            &self.target,
+            self.target,
             self.profile,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);

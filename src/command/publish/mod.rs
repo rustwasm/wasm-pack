@@ -3,7 +3,7 @@ pub mod access;
 
 use self::access::Access;
 use command::build::{Build, BuildOptions, Target};
-use command::utils::{find_pkg_directory, set_crate_path};
+use command::utils::{find_pkg_directory, get_crate_path};
 use dialoguer::{Confirmation, Input, Select};
 use failure::Error;
 use log::info;
@@ -20,7 +20,7 @@ pub fn publish(
     path: Option<PathBuf>,
     access: Option<Access>,
 ) -> result::Result<(), Error> {
-    let crate_path = set_crate_path(path)?;
+    let crate_path = get_crate_path(path)?;
 
     info!("Publishing the npm package...");
     info!("npm info located in the npm debug log");
@@ -41,8 +41,8 @@ pub fn publish(
                     .interact()?;
                 let out_dir = format!("{}/pkg", out_dir);
                 let target = Select::new()
-                    .with_prompt("target[default: browser]")
-                    .items(&["browser", "nodejs", "no-modules"])
+                    .with_prompt("target[default: bundler]")
+                    .items(&["bundler", "nodejs", "web", "no-modules"])
                     .default(0)
                     .interact()?
                     .to_string();

@@ -1,6 +1,8 @@
 //! CLI command structures, parsing, and execution.
+#![allow(clippy::redundant_closure)]
 
 pub mod build;
+mod generate;
 mod login;
 mod pack;
 /// Data structures and functions for publishing a package.
@@ -9,10 +11,12 @@ pub mod test;
 pub mod utils;
 
 use self::build::{Build, BuildOptions};
+use self::generate::generate;
 use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
+use crate::install::InstallMode;
 use failure::Error;
 use log::info;
 use std::path::PathBuf;
@@ -28,23 +32,40 @@ pub enum Command {
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish!
     Pack {
-        /// The path to the Rust crate.
+        /// The path to the Rust crate. If not set, searches up the path from the current dirctory.
         #[structopt(parse(from_os_str))]
         path: Option<PathBuf>,
+    },
+
+    #[structopt(name = "new")]
+    /// 🐑 create a new project with a template
+    Generate {
+        /// The name of the project
+        name: String,
+        /// The URL to the template
+        #[structopt(
+            long = "template",
+            short = "temp",
+            default_value = "https://github.com/rustwasm/wasm-pack-template"
+        )]
+        template: String,
+        #[structopt(long = "mode", short = "m", default_value = "normal")]
+        /// Should we install or check the presence of binary tools. [possible values: no-install, normal, force]
+        mode: InstallMode,
     },
 
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish!
     Publish {
-        #[structopt(long = "target", short = "t", default_value = "browser")]
-        /// Sets the target environment. [possible values: browser, nodejs, no-modules]
+        #[structopt(long = "target", short = "t", default_value = "bundler")]
+        /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
         target: String,
 
         /// The access level for the package to be published
         #[structopt(long = "access", short = "a")]
         access: Option<Access>,
 
-        /// The path to the Rust crate.
+        /// The path to the Rust crate. If not set, searches up the path from the current dirctory.
         #[structopt(parse(from_os_str))]
         path: Option<PathBuf>,
     },
@@ -99,6 +120,16 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
             info!("Running pack command...");
             info!("Path: {:?}", &path);
             pack(path)
+        }
+        Command::Generate {
+            template,
+            name,
+            mode,
+        } => {
+            info!("Running generate command...");
+            info!("Template: {:?}", &template);
+            info!("Name: {:?}", &name);
+            generate(template, name, mode.install_permitted())
         }
         Command::Publish {
             target,

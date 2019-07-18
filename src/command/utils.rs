@@ -1,4 +1,5 @@
 //! Utility functions for commands.
+#![allow(clippy::redundant_closure)]
 
 use failure;
 use std::fs;
@@ -8,8 +9,30 @@ use walkdir::WalkDir;
 
 /// If an explicit path is given, then use it, otherwise assume the current
 /// directory is the crate path.
-pub fn set_crate_path(path: Option<PathBuf>) -> Result<PathBuf, failure::Error> {
-    Ok(path.unwrap_or_else(|| PathBuf::from(".")))
+pub fn get_crate_path(path: Option<PathBuf>) -> Result<PathBuf, failure::Error> {
+    match path {
+        Some(p) => Ok(p),
+        None => find_manifest_from_cwd(),
+    }
+}
+
+/// Search up the path for the manifest file from the current working directory
+/// If we don't find the manifest file then return back the current working directory
+/// to provide the appropriate error
+fn find_manifest_from_cwd() -> Result<PathBuf, failure::Error> {
+    let mut parent_path = std::env::current_dir()?;
+    let mut manifest_path = parent_path.join("Cargo.toml");
+    loop {
+        if !manifest_path.is_file() {
+            if parent_path.pop() {
+                manifest_path = parent_path.join("Cargo.toml");
+            } else {
+                return Ok(PathBuf::from("."));
+            }
+        } else {
+            return Ok(parent_path.to_owned());
+        }
+    }
 }
 
 /// Construct our `pkg` directory in the crate.

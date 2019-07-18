@@ -21,13 +21,17 @@ pub struct NpmPackage {
     pub browser: String,
     #[serde(default = "default_none")]
     pub types: String,
-    #[serde(default = "default_none", rename = "sideEffects")]
-    pub side_effects: String,
+    #[serde(default = "default_false", rename = "sideEffects")]
+    pub side_effects: bool,
     pub homepage: Option<String>,
 }
 
 fn default_none() -> String {
     "".to_string()
+}
+
+fn default_false() -> bool {
+    false
 }
 
 #[derive(Deserialize)]

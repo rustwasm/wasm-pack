@@ -1,10 +1,12 @@
 # Summary
 
 - [Introduction](./introduction.md)
+- [Quickstart](./quickstart.md)
 - [Prerequisites](./prerequisites/index.md)
   - [npm (optional)](./prerequisites/npm.md)
   - [Non-`rustup` setups](./prerequisites/non-rustup-setups.md)
 - [Commands](./commands/index.md)
+  - [`new`](./commands/new.md)
   - [`build`](./commands/build.md)
   - [`test`](./commands/test.md)
   - [`pack` and `publish`](./commands/pack-and-publish.md)

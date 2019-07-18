@@ -9,6 +9,7 @@ extern crate strsim;
 extern crate failure;
 extern crate glob;
 extern crate parking_lot;
+extern crate semver;
 extern crate serde;
 extern crate which;
 #[macro_use]
@@ -31,6 +32,8 @@ pub mod cache;
 pub mod child;
 pub mod command;
 pub mod emoji;
+pub mod generate;
+pub mod install;
 pub mod license;
 pub mod lockfile;
 pub mod manifest;

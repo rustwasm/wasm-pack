@@ -1,6 +1,10 @@
 //! Reading and writing Cargo.toml and package.json manifests.
 
-#![allow(clippy::new_ret_no_self, clippy::needless_pass_by_value)]
+#![allow(
+    clippy::new_ret_no_self,
+    clippy::needless_pass_by_value,
+    clippy::redundant_closure
+)]
 
 mod npm;
 
@@ -26,6 +30,8 @@ use toml;
 use PBAR;
 
 const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
+const WASM_PACK_VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
+const WASM_PACK_REPO_URL: &str = "https://github.com/rustwasm/wasm-pack";
 
 /// Store for metadata learned about a crate
 pub struct CrateData {
@@ -175,7 +181,7 @@ impl Crate {
 
     fn override_stamp_file(
         current_time: DateTime<offset::Local>,
-        version: &String,
+        version: &str,
     ) -> Result<(), failure::Error> {
         let path = env::current_exe()?;
 
@@ -212,20 +218,23 @@ impl Crate {
     }
 
     /// Read the stamp file and return value assigned to a certain key.
-    fn return_stamp_file_value(file: &String, word: &str) -> Option<String> {
+    fn return_stamp_file_value(file: &str, word: &str) -> Option<String> {
         let created = file
             .lines()
             .find(|line| line.starts_with(word))
             .and_then(|l| l.split_whitespace().nth(1));
 
-        let value = created.map(|s| s.to_string());
-
-        value
+        created.map(|s| s.to_string())
     }
 
     /// Call to the crates.io api and return the latest version of `wasm-pack`
     fn check_wasm_pack_latest_version() -> Result<Crate, Error> {
         let mut easy = easy::Easy2::new(Collector(Vec::new()));
+        easy.useragent(&format!(
+            "wasm-pack/{} ({})",
+            WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),
+            WASM_PACK_REPO_URL
+        ))?;
         easy.get(true)?;
         easy.url("https://crates.io/api/v1/crates/wasm-pack")?;
         easy.perform()?;
@@ -376,8 +385,9 @@ impl CrateData {
             )
         }
 
-        let data =
-            cargo_metadata::metadata(Some(&manifest_path)).map_err(error_chain_to_failure)?;
+        let data = cargo_metadata::MetadataCommand::new()
+            .manifest_path(&manifest_path)
+            .exec()?;
 
         let manifest_and_keys = CrateData::parse_crate_data(&manifest_path)?;
         CrateData::warn_for_unused_keys(&manifest_and_keys);
@@ -389,24 +399,12 @@ impl CrateData {
             .position(|pkg| pkg.name == manifest.package.name)
             .ok_or_else(|| format_err!("failed to find package in metadata"))?;
 
-        return Ok(CrateData {
+        Ok(CrateData {
             data,
             manifest,
             current_idx,
             out_name,
-        });
-
-        fn error_chain_to_failure(err: cargo_metadata::Error) -> Error {
-            let errors = err.iter().collect::<Vec<_>>();
-            let mut err: Error = match errors.last() {
-                Some(e) => format_err!("{}", e),
-                None => return format_err!("{}", err),
-            };
-            for e in errors[..errors.len() - 1].iter().rev() {
-                err = err.context(e.to_string()).into();
-            }
-            err
-        }
+        })
     }
 
     /// Read the `manifest_path` file and deserializes it using the toml Deserializer.
@@ -534,7 +532,7 @@ impl CrateData {
         out_dir: &Path,
         scope: &Option<String>,
         disable_dts: bool,
-        target: &Target,
+        target: Target,
     ) -> Result<(), Error> {
         let pkg_file_path = out_dir.join("package.json");
         let npm_data = match target {
@@ -622,7 +620,7 @@ impl CrateData {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
+            version: pkg.version.to_string(),
             license: self.license(),
             repository: self
                 .manifest
@@ -655,7 +653,7 @@ impl CrateData {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
+            version: pkg.version.to_string(),
             license: self.license(),
             repository: self
                 .manifest
@@ -670,7 +668,7 @@ impl CrateData {
             module: data.main,
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: "false".to_string(),
+            side_effects: false,
         })
     }
 
@@ -684,7 +682,7 @@ impl CrateData {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
+            version: pkg.version.to_string(),
             license: self.license(),
             repository: self
                 .manifest
@@ -699,7 +697,7 @@ impl CrateData {
             module: data.main,
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: "false".to_string(),
+            side_effects: false,
         })
     }
 
@@ -718,7 +716,7 @@ impl CrateData {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
-            version: pkg.version.clone(),
+            version: pkg.version.to_string(),
             license: self.license(),
             repository: self
                 .manifest

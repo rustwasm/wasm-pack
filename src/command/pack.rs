@@ -1,4 +1,4 @@
-use command::utils::{find_pkg_directory, set_crate_path};
+use command::utils::{find_pkg_directory, get_crate_path};
 use failure::Error;
 use log::info;
 use npm;
@@ -9,7 +9,7 @@ use PBAR;
 /// Executes the 'npm pack' command on the 'pkg' directory
 /// which creates a tarball that can be published to the NPM registry
 pub fn pack(path: Option<PathBuf>) -> result::Result<(), Error> {
-    let crate_path = set_crate_path(path)?;
+    let crate_path = get_crate_path(path)?;
 
     info!("Packing up the npm package...");
     let pkg_directory = find_pkg_directory(&crate_path).ok_or_else(|| {
