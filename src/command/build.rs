@@ -8,6 +8,7 @@ use cache;
 use command::utils::{create_pkg_dir, get_crate_path};
 use emoji;
 use failure::Error;
+use std::fmt;
 use install::{self, InstallMode, Tool};
 use license;
 use lockfile::Lockfile;
@@ -58,6 +59,18 @@ pub enum Target {
 impl Default for Target {
     fn default() -> Target {
         Target::Bundler
+    }
+}
+
+impl fmt::Display for Target {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match self {
+            Target::Bundler => "bundler",
+            Target::Web => "web",
+            Target::Nodejs => "nodejs",
+            Target::NoModules => "no-modules",
+        }; 
+        write!(f, "{}", s)
     }
 }
 
