@@ -8,13 +8,13 @@ use cache;
 use command::utils::{create_pkg_dir, get_crate_path};
 use emoji;
 use failure::Error;
-use std::fmt;
 use install::{self, InstallMode, Tool};
 use license;
 use lockfile::Lockfile;
 use log::info;
 use manifest;
 use readme;
+use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
@@ -69,7 +69,7 @@ impl fmt::Display for Target {
             Target::Web => "web",
             Target::Nodejs => "nodejs",
             Target::NoModules => "no-modules",
-        }; 
+        };
         write!(f, "{}", s)
     }
 }
