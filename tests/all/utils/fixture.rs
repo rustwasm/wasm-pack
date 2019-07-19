@@ -249,7 +249,7 @@ impl Fixture {
             wasm_pack::wasm_opt::find_wasm_opt(&cache, true).unwrap();
         });
     }
-  
+
     /// Install a local cargo-generate for this fixture.
     ///
     /// Takes care not to re-install for every fixture, but only the one time

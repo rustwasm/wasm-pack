@@ -14,6 +14,7 @@ use lockfile::Lockfile;
 use log::info;
 use manifest;
 use readme;
+use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
@@ -58,6 +59,18 @@ pub enum Target {
 impl Default for Target {
     fn default() -> Target {
         Target::Bundler
+    }
+}
+
+impl fmt::Display for Target {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match self {
+            Target::Bundler => "bundler",
+            Target::Web => "web",
+            Target::Nodejs => "nodejs",
+            Target::NoModules => "no-modules",
+        };
+        write!(f, "{}", s)
     }
 }
 
