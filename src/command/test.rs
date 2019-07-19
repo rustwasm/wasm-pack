@@ -268,14 +268,17 @@ impl Test {
             )
         }
 
-        let dl = install::download_prebuilt_or_cargo_install(
+        let status = install::download_prebuilt_or_cargo_install(
             Tool::WasmBindgen,
             &self.cache,
             &bindgen_version,
             self.mode.install_permitted(),
         )?;
 
-        self.test_runner_path = Some(dl.binary("wasm-bindgen-test-runner")?);
+        self.test_runner_path = match status {
+            install::Status::Found(dl) => Some(dl.binary("wasm-bindgen-test-runner")?),
+            _ => bail!("Could not find 'wasm-bindgen-test-runner'."),
+        };
 
         info!("Getting wasm-bindgen-cli was successful.");
         Ok(())

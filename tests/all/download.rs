@@ -11,9 +11,14 @@ use wasm_pack::install::{self, Tool};
 fn can_download_prebuilt_wasm_bindgen() {
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
-    let dl = install::download_prebuilt(&Tool::WasmBindgen, &cache, "0.2.37", true).unwrap();
-    assert!(dl.binary("wasm-bindgen").unwrap().is_file());
-    assert!(dl.binary("wasm-bindgen-test-runner").unwrap().is_file())
+    if let install::Status::Found(dl) =
+        install::download_prebuilt(&Tool::WasmBindgen, &cache, "0.2.37", true).unwrap()
+    {
+        assert!(dl.binary("wasm-bindgen").unwrap().is_file());
+        assert!(dl.binary("wasm-bindgen-test-runner").unwrap().is_file())
+    } else {
+        assert!(false, "Download failed")
+    }
 }
 
 #[test]
@@ -45,6 +50,11 @@ fn downloading_prebuilt_wasm_bindgen_handles_http_errors() {
 fn can_download_prebuilt_cargo_generate() {
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
-    let dl = install::download_prebuilt(&Tool::CargoGenerate, &cache, "latest", true).unwrap();
-    assert!(dl.binary("cargo-generate").unwrap().is_file());
+    if let install::Status::Found(dl) =
+        install::download_prebuilt(&Tool::CargoGenerate, &cache, "latest", true).unwrap()
+    {
+        assert!(dl.binary("cargo-generate").unwrap().is_file());
+    } else {
+        assert!(false, "Download Failed");
+    }
 }
