@@ -19,6 +19,7 @@ pub fn publish(
     _target: &str,
     path: Option<PathBuf>,
     access: Option<Access>,
+    tag: Option<String>,
 ) -> result::Result<(), Error> {
     let crate_path = get_crate_path(path)?;
 
@@ -74,7 +75,7 @@ pub fn publish(
             }
         }
     }?;
-    npm::npm_publish(&pkg_directory.to_string_lossy(), access)?;
+    npm::npm_publish(&pkg_directory.to_string_lossy(), access, tag)?;
     info!("Published your package!");
 
     PBAR.info("💥  published your package!");

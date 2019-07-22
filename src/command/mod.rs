@@ -65,6 +65,11 @@ pub enum Command {
         #[structopt(long = "access", short = "a")]
         access: Option<Access>,
 
+        /// The distribution tag being used for publishing.
+        /// See https://docs.npmjs.com/cli/dist-tag
+        #[structopt(long = "tag")]
+        tag: Option<String>,
+
         /// The path to the Rust crate. If not set, searches up the path from the current dirctory.
         #[structopt(parse(from_os_str))]
         path: Option<PathBuf>,
@@ -135,10 +140,11 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
             target,
             path,
             access,
+            tag,
         } => {
             info!("Running publish command...");
             info!("Path: {:?}", &path);
-            publish(&target, path, access)
+            publish(&target, path, access, tag)
         }
         Command::Login {
             registry,
