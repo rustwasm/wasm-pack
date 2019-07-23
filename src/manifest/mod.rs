@@ -742,7 +742,7 @@ impl CrateData {
         if self.manifest.package.repository.is_none() {
             messages.push("repository");
         }
-        if self.manifest.package.license.is_none() {
+        if self.manifest.package.license.is_none() && self.manifest.package.license_file.is_none() {
             messages.push("license");
         }
 
