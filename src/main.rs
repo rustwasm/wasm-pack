@@ -76,6 +76,12 @@ fn run() -> Result<(), failure::Error> {
     }
 
     let args = Cli::from_args();
+
+    if args.quiet {
+        PBAR.set_quiet(true);
+        log::set_max_level(log::LevelFilter::Error);
+    }
+
     run_wasm_pack(args.cmd)?;
 
     if let Ok(wasm_pack_version) = wasm_pack_version.try_recv() {
