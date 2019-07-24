@@ -1,8 +1,8 @@
 //! Fancy progress bar functionality.
 
-use std::sync::atomic::{AtomicBool, Ordering};
 use console::style;
 use emoji;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 /// Synchronized progress bar and status message printing.
 pub struct ProgressOutput {
