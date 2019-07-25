@@ -2,6 +2,7 @@
 
 pub mod webdriver;
 
+use crate::PBAR;
 use child;
 use failure::{self, ResultExt};
 use std::ffi::OsStr;
@@ -22,13 +23,22 @@ where
     V: AsRef<OsStr>,
 {
     let mut cmd = Command::new("cargo");
+
     cmd.envs(envs);
     cmd.current_dir(path).arg("test");
+
+    if PBAR.quiet() {
+        cmd.arg("--quiet");
+    }
+
     if release {
         cmd.arg("--release");
     }
+
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+
     cmd.args(extra_options);
+
     child::run(cmd, "cargo test").context("Running Wasm tests with wasm-bindgen-test failed")?;
 
     // NB: `child::run` took care of ensuring that test output gets printed.

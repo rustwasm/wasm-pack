@@ -44,7 +44,7 @@ pub mod target;
 pub mod test;
 pub mod wasm_opt;
 
-use progressbar::ProgressOutput;
+use progressbar::{LogLevel, ProgressOutput};
 
 /// The global progress bar and user-facing message output.
 pub static PBAR: ProgressOutput = ProgressOutput::new();
@@ -63,4 +63,8 @@ pub struct Cli {
     #[structopt(long = "quiet")]
     /// Silences wasm-pack warnings.
     pub quiet: bool,
+
+    #[structopt(long = "log-level", default_value = "info")]
+    /// The maximum level of messages that should be logged by wasm-pack. [possible values: info, warn, error]
+    pub log_level: LogLevel,
 }

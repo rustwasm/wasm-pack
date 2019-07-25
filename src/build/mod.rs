@@ -85,8 +85,14 @@ pub fn cargo_build_wasm(
 ) -> Result<(), Error> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.info(&msg);
+
     let mut cmd = Command::new("cargo");
     cmd.current_dir(path).arg("build").arg("--lib");
+
+    if PBAR.quiet() {
+        cmd.arg("--quiet");
+    }
+
     match profile {
         BuildProfile::Profiling => {
             // Once there are DWARF debug info consumers, force enable debug
@@ -104,6 +110,7 @@ pub fn cargo_build_wasm(
             // debug info by default.
         }
     }
+
     cmd.arg("--target").arg("wasm32-unknown-unknown");
     cmd.args(extra_options);
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
@@ -116,11 +123,19 @@ pub fn cargo_build_wasm(
 /// wasm-bindgen-cli to use when running tests.
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
     let mut cmd = Command::new("cargo");
+
     cmd.current_dir(path).arg("build").arg("--tests");
+
+    if PBAR.quiet() {
+        cmd.arg("--quiet");
+    }
+
     if !debug {
         cmd.arg("--release");
     }
+
     cmd.arg("--target").arg("wasm32-unknown-unknown");
+
     child::run(cmd, "cargo build").context("Compilation of your program failed")?;
     Ok(())
 }
