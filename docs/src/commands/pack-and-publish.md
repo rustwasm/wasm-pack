@@ -3,7 +3,7 @@
 The `publish` and `pack` commands interact with the pkg directory that's
 created when you run `wasm-pack build`. The `pack` command creates a tarball
 from the pkg directory and the `publish` command creates a tarball from the
-pkg directory __and__ publishes it to the NPM registry.
+pkg directory **and** publishes it to the NPM registry.
 
 Underneath, these commands use `npm pack` and `npm publish`. You can read
 more about these in the NPM documentation:
@@ -30,3 +30,16 @@ Unable to find the pkg directory at path 'myproject/src/', or in a child directo
 ```
 
 If you don't set a path, they use the current directory as the path.
+
+## Publishing tagged releases
+
+You can also publish tagged releases with the optional `--tag` argument, e.g.
+
+```
+wasm-pack publish --tag next
+```
+
+By default, the `latest` tag is used to identify the current version of a package,
+and npm install \<pkg\> (without any @\<version\> or @\<tag\> specifier) installs the latest tag.
+
+You can read more about [distribution tags](https://docs.npmjs.com/cli/dist-tag) on NPM.
