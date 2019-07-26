@@ -60,8 +60,8 @@ pub struct Cli {
     #[structopt(long = "verbose", short = "v", parse(from_occurrences))]
     pub verbosity: u8,
 
-    #[structopt(long = "quiet")]
-    /// Silences wasm-pack warnings.
+    #[structopt(long = "quiet", short = "q")]
+    /// No output printed to stdout
     pub quiet: bool,
 
     #[structopt(long = "log-level", default_value = "info")]
