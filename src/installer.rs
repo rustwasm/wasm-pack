@@ -56,6 +56,7 @@ fn do_install() -> Result<(), failure::Error> {
     match cargo_home {
         Ok(path) => {
             installation_dir.push(path);
+            installation_dir.push("bin");
         }
         Err(_) => {
             println!("$CARGO_HOME not set, default to rustup location for install");
