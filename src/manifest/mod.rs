@@ -764,8 +764,8 @@ impl CrateData {
                 files: data.files,
                 main: data.main,
                 // TODO: The other formats
-                // module: data.main,
-                // browser: data.main,
+                module: "".to_string(),
+                browser: "".to_string(),
                 homepage: data.homepage,
                 types: data.dts_file,
                 side_effects: false,
