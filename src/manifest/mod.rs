@@ -12,7 +12,7 @@ use std::fs;
 use std::path::Path;
 
 use self::npm::{
-    repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
+    repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, AllPackage, NpmPackage,
 };
 use cargo_metadata::Metadata;
 use chrono::offset;
@@ -540,6 +540,7 @@ impl CrateData {
             Target::NoModules => self.to_nomodules(scope, disable_dts, out_dir),
             Target::Bundler => self.to_esmodules(scope, disable_dts, out_dir),
             Target::Web => self.to_web(scope, disable_dts, out_dir),
+            Target::All => self.to_all(scope, disable_dts, out_dir),
         };
 
         let npm_json = serde_json::to_string_pretty(&npm_data)?;
@@ -731,6 +732,43 @@ impl CrateData {
             browser: data.main,
             homepage: data.homepage,
             types: data.dts_file,
+        })
+    }
+
+    fn to_all(
+        &self,
+        scope: &Option<String>,
+        disable_dts: bool,
+        out_dir: &Path,
+        ) -> NpmPackage {
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let pkg = &self.data.packages[self.current_idx];
+
+        self.check_optional_fields();
+
+        NpmPackage::AllPackage(AllPackage {
+            name: data.name,
+            collaborators: pkg.authors.clone(),
+            description: self.manifest.package.description.clone(),
+            version: pkg.version.to_string(),
+            license: self.license(),
+            repository: self
+                .manifest
+                .package
+                .repository
+                .clone()
+                .map(|repo_url| Repository {
+                    ty: "git".to_string(),
+                    url: repo_url,
+                }),
+                files: data.files,
+                main: data.main,
+                // TODO: The other formats
+                // module: data.main,
+                // browser: data.main,
+                homepage: data.homepage,
+                types: data.dts_file,
+                side_effects: false,
         })
     }
 

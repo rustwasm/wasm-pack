@@ -115,6 +115,7 @@ fn build_target_arg_legacy(target: Target, cli_path: &PathBuf) -> Result<String,
             }
         }
         Target::Bundler => "--browser",
+        Target::All => "--all",
     };
     Ok(target_arg.to_string())
 }
