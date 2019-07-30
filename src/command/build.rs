@@ -226,6 +226,8 @@ impl Build {
             process_step(self)?;
         }
 
+        info!("TODO Testing!");
+
         let duration = crate::command::utils::elapsed(started.elapsed());
         info!("Done in {}.", &duration);
         info!(
@@ -373,7 +375,7 @@ impl Build {
 
         match self.target {
             Target::All => {
-            
+                info!("TODO Target all!"); 
             },
             _ => {
                 bindgen::wasm_bindgen_build(
