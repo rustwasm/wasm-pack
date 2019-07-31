@@ -226,7 +226,7 @@ impl Build {
             process_step(self)?;
         }
 
-        info!("TODO Testing!");
+        PBAR.info("TODO Testing!");
 
         let duration = crate::command::utils::elapsed(started.elapsed());
         info!("Done in {}.", &duration);
