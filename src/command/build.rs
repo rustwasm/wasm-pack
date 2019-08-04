@@ -226,8 +226,6 @@ impl Build {
             process_step(self)?;
         }
 
-        PBAR.info("TODO Testing!");
-
         let duration = crate::command::utils::elapsed(started.elapsed());
         info!("Done in {}.", &duration);
         info!(
@@ -370,25 +368,15 @@ impl Build {
 
     fn step_run_wasm_bindgen(&mut self) -> Result<(), Error> {
         info!("Building the wasm bindings...");
-
-        info!("target {}", self.target);
-
-        match self.target {
-            Target::All => {
-                info!("TODO Target all!"); 
-            },
-            _ => {
-                bindgen::wasm_bindgen_build(
-                    &self.crate_data,
-                    self.bindgen.as_ref().unwrap(),
-                    &self.out_dir,
-                    &self.out_name,
-                    self.disable_dts,
-                    self.target,
-                    self.profile,
-                    )?;
-            }
-        }
+        bindgen::wasm_bindgen_build(
+            &self.crate_data,
+            self.bindgen.as_ref().unwrap(),
+            &self.out_dir,
+            &self.out_name,
+            self.disable_dts,
+            self.target,
+            self.profile,
+        )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())
     }

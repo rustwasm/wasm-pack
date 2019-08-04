@@ -17,6 +17,7 @@ pub struct AllPackage {
     pub main: String,
     pub module: String, 
     pub browser: String,
+    pub web: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub homepage: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]

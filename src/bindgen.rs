@@ -10,6 +10,9 @@ use semver;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
+// torch2424 TODO Remove this
+use PBAR;
+
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
 /// `.wasm`.
 pub fn wasm_bindgen_build(
@@ -21,12 +24,76 @@ pub fn wasm_bindgen_build(
     target: Target,
     profile: BuildProfile,
 ) -> Result<(), failure::Error> {
+    // torch2424 
+    PBAR.info(" ");
+    PBAR.info(&format!("torch2424: wasm_bindgen target {}", target));
+    PBAR.info(" ");
+
+    match target {
+        Target::All => {
+            PBAR.info("TODO Target all!"); 
+
+
+            // Bundler
+            let mut out_name_for_bundler = Some(format!("{}.cjs", data.crate_name()));
+            if let Some(value) = out_name {
+                
+            }            
+            run_wasm_bindgen(
+                data,
+                bindgen,
+                out_dir,
+                &out_name_for_bundler,
+                disable_dts,
+                Target::Bundler,
+                profile
+                )?;
+
+
+            // Web
+            
+            // Nodejs
+
+            // NoModules
+
+        },
+        _ => {
+            run_wasm_bindgen(
+                    data,
+                    bindgen,
+                    out_dir,
+                    out_name,
+                    disable_dts,
+                    target,
+                    profile
+                )?;
+        }
+    }
+    Ok(())
+}
+
+fn run_wasm_bindgen(
+    data: &CrateData,
+    bindgen: &Download,
+    out_dir: &Path,
+    out_name: &Option<String>,
+    disable_dts: bool,
+    target: Target,
+    profile: BuildProfile,
+    ) -> Result<(), failure::Error> {
+
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
         BuildProfile::Dev => "debug",
     };
 
     let out_dir = out_dir.to_str().unwrap();
+
+    // torch2424 
+    PBAR.info(" ");
+    PBAR.info(&format!("torch2424: wasm_bindgen out_dir {}", out_dir));
+    PBAR.info(" ");
+
 
     let wasm_path = data
         .target_directory()
@@ -115,7 +182,7 @@ fn build_target_arg_legacy(target: Target, cli_path: &PathBuf) -> Result<String,
             }
         }
         Target::Bundler => "--browser",
-        Target::All => "--all",
+        _ => bail!(format!("The passed target, {}, is not supported", target))
     };
     Ok(target_arg.to_string())
 }

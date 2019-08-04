@@ -363,6 +363,9 @@ struct NpmData {
     files: Vec<String>,
     dts_file: Option<String>,
     main: String,
+    module: String,
+    browser: String,
+    web: String,
     homepage: Option<String>, // https://docs.npmjs.com/files/package.json#homepage
 }
 
@@ -558,10 +561,19 @@ impl CrateData {
     ) -> NpmData {
         let name_prefix = self.name_prefix();
         let wasm_file = format!("{}_bg.wasm", name_prefix);
-        let js_file = format!("{}.js", name_prefix);
+
+
+        // Target::Nodejs
+        let cjs_js_file = format!("{}.cjs.js", name_prefix);
+        // Target::NoModules
+        let nomodules_js_file = format!("{}.no-modules.js", name_prefix);
+        // Target::Bundler
+        let esm_js_file = format!("{}.esm.js", name_prefix);
+        // Target::Web
+        let web_js_file = format!("{}.web.js", name_prefix);
+
         let mut files = vec![wasm_file];
 
-        files.push(js_file.clone());
         if include_commonjs_shim {
             let js_bg_file = format!("{}_bg.js", name_prefix);
             files.push(js_bg_file.to_string());
@@ -597,7 +609,10 @@ impl CrateData {
             name: npm_name,
             dts_file,
             files,
-            main: js_file,
+            main: cjs_js_file,
+            module: esm_js_file,
+            browser: nomodules_js_file,
+            web: web_js_file,
             homepage: self.manifest.package.homepage.clone(),
         }
     }
@@ -614,6 +629,9 @@ impl CrateData {
     fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
         let data = self.npm_data(scope, true, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
+
+        let mut files = data.files.to_vec();
+        files.push(data.main.clone());
 
         self.check_optional_fields();
 
@@ -632,7 +650,7 @@ impl CrateData {
                     ty: "git".to_string(),
                     url: repo_url,
                 }),
-            files: data.files,
+            files: files,
             main: data.main,
             homepage: data.homepage,
             types: data.dts_file,
@@ -648,6 +666,9 @@ impl CrateData {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
+        let mut files = data.files.to_vec();
+        files.push(data.module.clone());
+
         self.check_optional_fields();
 
         NpmPackage::ESModulesPackage(ESModulesPackage {
@@ -665,8 +686,8 @@ impl CrateData {
                     ty: "git".to_string(),
                     url: repo_url,
                 }),
-            files: data.files,
-            module: data.main,
+            files: files,
+            module: data.module,
             homepage: data.homepage,
             types: data.dts_file,
             side_effects: false,
@@ -677,6 +698,9 @@ impl CrateData {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
+        let mut files = data.files.to_vec();
+        files.push(data.web.clone());
+
         self.check_optional_fields();
 
         NpmPackage::ESModulesPackage(ESModulesPackage {
@@ -694,8 +718,8 @@ impl CrateData {
                     ty: "git".to_string(),
                     url: repo_url,
                 }),
-            files: data.files,
-            module: data.main,
+            files: files,
+            module: data.web,
             homepage: data.homepage,
             types: data.dts_file,
             side_effects: false,
@@ -710,6 +734,9 @@ impl CrateData {
     ) -> NpmPackage {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
+
+        let mut files = data.files.to_vec();
+        files.push(data.browser.clone());
 
         self.check_optional_fields();
 
@@ -728,8 +755,8 @@ impl CrateData {
                     ty: "git".to_string(),
                     url: repo_url,
                 }),
-            files: data.files,
-            browser: data.main,
+            files: files,
+            browser: data.browser,
             homepage: data.homepage,
             types: data.dts_file,
         })
@@ -743,6 +770,12 @@ impl CrateData {
         ) -> NpmPackage {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
+
+        let mut files = data.files.to_vec();
+        files.push(data.main.clone());
+        files.push(data.module.clone());
+        files.push(data.browser.clone());
+        files.push(data.web.clone());
 
         self.check_optional_fields();
 
@@ -761,11 +794,11 @@ impl CrateData {
                     ty: "git".to_string(),
                     url: repo_url,
                 }),
-                files: data.files,
+                files: files,
                 main: data.main,
-                // TODO: The other formats
-                module: "".to_string(),
-                browser: "".to_string(),
+                module: data.module,
+                browser: data.browser,
+                web: data.web,
                 homepage: data.homepage,
                 types: data.dts_file,
                 side_effects: false,
