@@ -10,9 +10,6 @@ use semver;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-// torch2424 TODO Remove this
-use PBAR;
-
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
 /// `.wasm`.
 pub fn wasm_bindgen_build(
@@ -24,20 +21,15 @@ pub fn wasm_bindgen_build(
     target: Target,
     profile: BuildProfile,
 ) -> Result<(), failure::Error> {
-    // torch2424 
-    PBAR.info(" ");
-    PBAR.info(&format!("torch2424: wasm_bindgen target {}", target));
-    PBAR.info(" ");
 
     match target {
         Target::All => {
-            PBAR.info("TODO Target all!"); 
-
 
             // Bundler
-            let mut out_name_for_bundler = Some(format!("{}.cjs", data.crate_name()));
+            // NOTE: We only generate our type definitions here if we want them
+            let mut out_name_for_bundler = Some(format!("{}.esm.js", data.crate_name()));
             if let Some(value) = out_name {
-                
+                out_name_for_bundler = Some(format!("{}.esm.js", value));
             }            
             run_wasm_bindgen(
                 data,
@@ -49,13 +41,50 @@ pub fn wasm_bindgen_build(
                 profile
                 )?;
 
-
             // Web
-            
+            let mut out_name_for_web = Some(format!("{}.web.js", data.crate_name()));
+            if let Some(value) = out_name {
+                out_name_for_web = Some(format!("{}.web.js", value));
+            }            
+            run_wasm_bindgen(
+                data,
+                bindgen,
+                out_dir,
+                &out_name_for_web,
+                false,
+                Target::Web,
+                profile
+                )?;
+        
             // Nodejs
+            let mut out_name_for_nodejs = Some(format!("{}.cjs.js", data.crate_name()));
+            if let Some(value) = out_name {
+                out_name_for_nodejs = Some(format!("{}.cjs.js", value));
+            }            
+            run_wasm_bindgen(
+                data,
+                bindgen,
+                out_dir,
+                &out_name_for_nodejs,
+                false,
+                Target::Nodejs,
+                profile
+                )?;
 
             // NoModules
-
+            let mut out_name_for_nomodules = Some(format!("{}.browser.js", data.crate_name()));
+            if let Some(value) = out_name {
+                out_name_for_nomodules = Some(format!("{}.browser.js", value));
+            }            
+            run_wasm_bindgen(
+                data,
+                bindgen,
+                out_dir,
+                &out_name_for_nomodules,
+                false,
+                Target::NoModules,
+                profile
+                )?;
         },
         _ => {
             run_wasm_bindgen(
@@ -88,12 +117,6 @@ fn run_wasm_bindgen(
     };
 
     let out_dir = out_dir.to_str().unwrap();
-
-    // torch2424 
-    PBAR.info(" ");
-    PBAR.info(&format!("torch2424: wasm_bindgen out_dir {}", out_dir));
-    PBAR.info(" ");
-
 
     let wasm_path = data
         .target_directory()

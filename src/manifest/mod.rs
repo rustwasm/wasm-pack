@@ -566,7 +566,7 @@ impl CrateData {
         // Target::Nodejs
         let cjs_js_file = format!("{}.cjs.js", name_prefix);
         // Target::NoModules
-        let nomodules_js_file = format!("{}.no-modules.js", name_prefix);
+        let nomodules_js_file = format!("{}.browser.js", name_prefix);
         // Target::Bundler
         let esm_js_file = format!("{}.esm.js", name_prefix);
         // Target::Web
