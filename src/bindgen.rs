@@ -55,7 +55,7 @@ pub fn wasm_bindgen_build(
                 Target::Web,
                 profile
                 )?;
-        
+
             // Nodejs
             let mut out_name_for_nodejs = Some(format!("{}.cjs.js", data.crate_name()));
             if let Some(value) = out_name {
