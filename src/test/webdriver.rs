@@ -53,7 +53,7 @@ pub fn install_chromedriver(
     };
 
     let url = format!(
-        "https://chromedriver.storage.googleapis.com/2.46/chromedriver_{}.zip",
+        "https://chromedriver.storage.googleapis.com/76.0.3809.68/chromedriver_{}.zip",
         target
     );
     match get_and_notify(cache, installation_allowed, "chromedriver", &url)? {
