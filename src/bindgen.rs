@@ -7,6 +7,7 @@ use failure::{self, ResultExt};
 use install;
 use manifest::CrateData;
 use semver;
+use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -25,12 +26,15 @@ pub fn wasm_bindgen_build(
     match target {
         Target::All => {
 
+            // Get our base name for our was output
+            let mut out_base_name_for_bundler = data.crate_name();
+            if let Some(value) = out_name {
+                out_base_name_for_bundler = value.to_string();
+            }  
+
             // Bundler
             // NOTE: We only generate our type definitions here if we want them
-            let mut out_name_for_bundler = Some(format!("{}.esm.js", data.crate_name()));
-            if let Some(value) = out_name {
-                out_name_for_bundler = Some(format!("{}.esm.js", value));
-            }            
+            let mut out_name_for_bundler = Some(format!("{}_esm", out_base_name_for_bundler));
             run_wasm_bindgen(
                 data,
                 bindgen,
@@ -41,47 +45,84 @@ pub fn wasm_bindgen_build(
                 profile
                 )?;
 
+            // Rename our typescript definition files
+            if !disable_dts {
+                // Get our input filenames
+                let typescript_definition_input = format!(
+                    "{}/{}_esm.d.ts", 
+                    out_dir.to_str().unwrap(), 
+                    &out_base_name_for_bundler
+                    );
+                let typescript_bg_definition_input = format!(
+                    "{}/{}_esm_bg.d.ts", 
+                    out_dir.to_str().unwrap(), 
+                    &out_base_name_for_bundler                    
+                    );
+
+                // Get our output file names
+                let typescript_definition_output = format!(
+                    "{}/{}.d.ts", 
+                    out_dir.to_str().unwrap(), 
+                    &out_base_name_for_bundler
+                    );
+                let typescript_bg_definition_output = format!(
+                    "{}/{}_bg.d.ts", 
+                    out_dir.to_str().unwrap(), 
+                    out_base_name_for_bundler
+                    );
+
+
+                // Rename the type definition paths
+                if Path::new(&typescript_definition_input).exists() {
+                    fs::rename(&typescript_definition_input, &typescript_definition_output)?;
+                }
+                if Path::new(&typescript_bg_definition_input).exists() {
+                    fs::rename(&typescript_bg_definition_input, &typescript_bg_definition_output)?;
+                }
+            }
+
+
             // Web
-            let mut out_name_for_web = Some(format!("{}.web.js", data.crate_name()));
+            let mut out_name_for_web = Some(format!("{}_web", data.crate_name()));
             if let Some(value) = out_name {
-                out_name_for_web = Some(format!("{}.web.js", value));
+                out_name_for_web = Some(format!("{}_web", value));
             }            
             run_wasm_bindgen(
                 data,
                 bindgen,
                 out_dir,
                 &out_name_for_web,
-                false,
+                true,
                 Target::Web,
                 profile
                 )?;
 
             // Nodejs
-            let mut out_name_for_nodejs = Some(format!("{}.cjs.js", data.crate_name()));
+            let mut out_name_for_nodejs = Some(format!("{}_cjs", data.crate_name()));
             if let Some(value) = out_name {
-                out_name_for_nodejs = Some(format!("{}.cjs.js", value));
+                out_name_for_nodejs = Some(format!("{}_cjs", value));
             }            
             run_wasm_bindgen(
                 data,
                 bindgen,
                 out_dir,
                 &out_name_for_nodejs,
-                false,
+                true,
                 Target::Nodejs,
                 profile
                 )?;
 
             // NoModules
-            let mut out_name_for_nomodules = Some(format!("{}.browser.js", data.crate_name()));
+            let mut out_name_for_nomodules = Some(format!("{}_browser", data.crate_name()));
             if let Some(value) = out_name {
-                out_name_for_nomodules = Some(format!("{}.browser.js", value));
+                out_name_for_nomodules = Some(format!("{}_browser", value));
             }            
             run_wasm_bindgen(
                 data,
                 bindgen,
                 out_dir,
                 &out_name_for_nomodules,
-                false,
+                true,
                 Target::NoModules,
                 profile
                 )?;

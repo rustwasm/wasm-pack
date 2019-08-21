@@ -564,13 +564,13 @@ impl CrateData {
 
 
         // Target::Nodejs
-        let cjs_js_file = format!("{}.cjs.js", name_prefix);
+        let cjs_js_file = format!("{}_cjs.js", name_prefix);
         // Target::NoModules
-        let nomodules_js_file = format!("{}.browser.js", name_prefix);
+        let nomodules_js_file = format!("{}_browser.js", name_prefix);
         // Target::Bundler
-        let esm_js_file = format!("{}.esm.js", name_prefix);
+        let esm_js_file = format!("{}_esm.js", name_prefix);
         // Target::Web
-        let web_js_file = format!("{}.web.js", name_prefix);
+        let web_js_file = format!("{}_web.js", name_prefix);
 
         let mut files = vec![wasm_file];
 
