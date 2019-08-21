@@ -15,7 +15,7 @@ pub struct AllPackage {
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub files: Vec<String>,
     pub main: String,
-    pub module: String, 
+    pub module: String,
     pub browser: String,
     pub web: String,
     #[serde(skip_serializing_if = "Option::is_none")]
