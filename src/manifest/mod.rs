@@ -554,15 +554,19 @@ impl CrateData {
 
     fn npm_data(
         &self,
+        target: Target,
         scope: &Option<String>,
-        include_commonjs_shim: bool,
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmData {
+
+        let pkg = &self.data.packages[self.current_idx];
+        let npm_name = match scope {
+            Some(s) => format!("@{}/{}", s, pkg.name),
+            None => pkg.name.clone(),
+        };
+
         let name_prefix = self.name_prefix();
-        let wasm_file = format!("{}_bg.wasm", name_prefix);
-
-
         // Target::Nodejs
         let cjs_js_file = format!("{}_cjs.js", name_prefix);
         // Target::NoModules
@@ -572,26 +576,58 @@ impl CrateData {
         // Target::Web
         let web_js_file = format!("{}_web.js", name_prefix);
 
-        let mut files = vec![wasm_file];
+        let mut files: Vec<String> = vec![];
+        let mut dts_file = None;
+        match target {
+            Target::All => {
+                let js_bg_file = format!("{}_cjs_bg.js", name_prefix);
+                files.push(js_bg_file);
 
-        if include_commonjs_shim {
-            let js_bg_file = format!("{}_bg.js", name_prefix);
-            files.push(js_bg_file.to_string());
+                let module_type_prefixes = vec!["_cjs", "_browser", "_esm", "_web"];
+                for module_type_prefix in module_type_prefixes.iter() {
+                    let wasm_file = format!("{}{}.wasm", name_prefix, module_type_prefix);
+                    files.push(wasm_file);
+
+                    dts_file = if !disable_dts {
+                        let type_file = format!("{}{}.d.ts", name_prefix, module_type_prefix);
+                        files.push(type_file.to_string());
+                        if *module_type_prefix != "_cjs" {
+                            let type_bg_file = format!("{}{}_bg.d.ts", name_prefix, module_type_prefix);
+                            files.push(type_bg_file.to_string());
+                        }
+                        Some(type_file)
+                    } else {
+                        None
+                    };
+                }
+            },
+            Target::Nodejs => {
+                let js_bg_file = format!("{}_bg.js", name_prefix);
+                files.push(js_bg_file);
+                let wasm_file = format!("{}_bg.wasm", name_prefix);
+                files.push(wasm_file);
+
+                dts_file = if !disable_dts {
+                    let file = format!("{}.d.ts", name_prefix);
+                    files.push(file.to_string());
+                    Some(file)
+                } else {
+                    None
+                };
+            }
+            _ => {
+                let wasm_file = format!("{}_bg.wasm", name_prefix);
+                files.push(wasm_file);
+
+                dts_file = if !disable_dts {
+                    let file = format!("{}.d.ts", name_prefix);
+                    files.push(file.to_string());
+                    Some(file)
+                } else {
+                    None
+                };
+            }
         }
-
-        let pkg = &self.data.packages[self.current_idx];
-        let npm_name = match scope {
-            Some(s) => format!("@{}/{}", s, pkg.name),
-            None => pkg.name.clone(),
-        };
-
-        let dts_file = if !disable_dts {
-            let file = format!("{}.d.ts", name_prefix);
-            files.push(file.to_string());
-            Some(file)
-        } else {
-            None
-        };
 
         if let Ok(entries) = fs::read_dir(out_dir) {
             let file_names = entries
@@ -627,7 +663,7 @@ impl CrateData {
     }
 
     fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
-        let data = self.npm_data(scope, true, disable_dts, out_dir);
+        let data = self.npm_data(Target::Nodejs, scope, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         let mut files = data.files.to_vec();
@@ -663,7 +699,7 @@ impl CrateData {
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let data = self.npm_data(Target::Bundler, scope, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         let mut files = data.files.to_vec();
@@ -695,7 +731,7 @@ impl CrateData {
     }
 
     fn to_web(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let data = self.npm_data(Target::Web, scope, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         let mut files = data.files.to_vec();
@@ -732,7 +768,7 @@ impl CrateData {
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let data = self.npm_data(Target::NoModules, scope, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         let mut files = data.files.to_vec();
@@ -768,7 +804,7 @@ impl CrateData {
         disable_dts: bool,
         out_dir: &Path,
         ) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let data = self.npm_data(Target::All, scope, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         let mut files = data.files.to_vec();

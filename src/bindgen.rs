@@ -7,7 +7,6 @@ use failure::{self, ResultExt};
 use install;
 use manifest::CrateData;
 use semver;
-use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -25,16 +24,12 @@ pub fn wasm_bindgen_build(
 
     match target {
         Target::All => {
-
-            // Get our base name for our was output
-            let mut out_base_name_for_bundler = data.crate_name();
-            if let Some(value) = out_name {
-                out_base_name_for_bundler = value.to_string();
-            }  
-
             // Bundler
             // NOTE: We only generate our type definitions here if we want them
-            let mut out_name_for_bundler = Some(format!("{}_esm", out_base_name_for_bundler));
+            let mut out_name_for_bundler = Some(format!("{}_esm", data.crate_name()));
+            if let Some(value) = out_name {
+                out_name_for_bundler = Some(format!("{}_esm", value));
+            }   
             run_wasm_bindgen(
                 data,
                 bindgen,
@@ -44,43 +39,6 @@ pub fn wasm_bindgen_build(
                 Target::Bundler,
                 profile
                 )?;
-
-            // Rename our typescript definition files
-            if !disable_dts {
-                // Get our input filenames
-                let typescript_definition_input = format!(
-                    "{}/{}_esm.d.ts", 
-                    out_dir.to_str().unwrap(), 
-                    &out_base_name_for_bundler
-                    );
-                let typescript_bg_definition_input = format!(
-                    "{}/{}_esm_bg.d.ts", 
-                    out_dir.to_str().unwrap(), 
-                    &out_base_name_for_bundler                    
-                    );
-
-                // Get our output file names
-                let typescript_definition_output = format!(
-                    "{}/{}.d.ts", 
-                    out_dir.to_str().unwrap(), 
-                    &out_base_name_for_bundler
-                    );
-                let typescript_bg_definition_output = format!(
-                    "{}/{}_bg.d.ts", 
-                    out_dir.to_str().unwrap(), 
-                    out_base_name_for_bundler
-                    );
-
-
-                // Rename the type definition paths
-                if Path::new(&typescript_definition_input).exists() {
-                    fs::rename(&typescript_definition_input, &typescript_definition_output)?;
-                }
-                if Path::new(&typescript_bg_definition_input).exists() {
-                    fs::rename(&typescript_bg_definition_input, &typescript_bg_definition_output)?;
-                }
-            }
-
 
             // Web
             let mut out_name_for_web = Some(format!("{}_web", data.crate_name()));
@@ -92,7 +50,7 @@ pub fn wasm_bindgen_build(
                 bindgen,
                 out_dir,
                 &out_name_for_web,
-                true,
+                disable_dts,
                 Target::Web,
                 profile
                 )?;
@@ -122,7 +80,7 @@ pub fn wasm_bindgen_build(
                 bindgen,
                 out_dir,
                 &out_name_for_nomodules,
-                true,
+                disable_dts,
                 Target::NoModules,
                 profile
                 )?;
