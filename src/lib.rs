@@ -40,6 +40,7 @@ pub mod manifest;
 pub mod npm;
 pub mod progressbar;
 pub mod readme;
+pub mod stamps;
 pub mod target;
 pub mod test;
 pub mod wasm_opt;

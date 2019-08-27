@@ -37,6 +37,13 @@ fn get_and_notify(
 
 struct Collector(Vec<u8>);
 
+impl Collector {
+    pub fn take_content(&mut self) -> Vec<u8> {
+        // TODO: replace with `std::mem::take` once stable
+        std::mem::replace(&mut self.0, Vec::default())
+    }
+}
+
 impl curl::easy::Handler for Collector {
     fn write(&mut self, data: &[u8]) -> Result<usize, curl::easy::WriteError> {
         self.0.extend_from_slice(data);

@@ -17,6 +17,10 @@ This is a list of the things that need to happen during a release.
 1. Create a new branch "#.#.#" where "#.#.#" is the release's version.
 1. Add this release to the `CHANGELOG.md`. Use the structure of previous 
   entries.
+1. Update `DEFAULT_CHROMEDRIVER_VERSION` in `chromedriver.rs`. 
+  Version is the response of `https://chromedriver.storage.googleapis.com/LATEST_RELEASE`.
+1. Update `DEFAULT_GECKODRIVER_VERSION` in `geckodriver.rs`.
+  Version is the name of the latest tag - `https://github.com/mozilla/geckodriver/releases/latest`.
 1. Update the version in `Cargo.toml`.
 1. Update the version number and date in `docs/index.html`.
 1. Run `cargo update`.
