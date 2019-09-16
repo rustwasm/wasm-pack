@@ -149,39 +149,49 @@ struct CrateInformation {
 
 impl Crate {
     /// Returns latest wasm-pack version
-    pub fn return_wasm_pack_latest_version() -> Option<String> {
+    pub fn return_wasm_pack_latest_version() -> Result<Option<String>, failure::Error> {
         let current_time = chrono::offset::Local::now();
+        let old_metadata_file = Self::return_wasm_pack_file();
 
-        Self::return_wasm_pack_file()
-            .and_then(|contents| {
-                let last_updated = Self::return_stamp_file_value(&contents, "created")
+        match old_metadata_file {
+            Some(ref file_contents) => {
+                let last_updated = Self::return_stamp_file_value(&file_contents, "created")
                     .and_then(|t| DateTime::parse_from_str(t.as_str(), "%+").ok());
 
-                Self::return_stamp_file_value(&contents, "version").and_then(|v| {
-                    last_updated.and_then(|last_updated| {
+                last_updated
+                    .map(|last_updated| {
                         if current_time.signed_duration_since(last_updated).num_hours() > 24 {
-                            Self::return_api_call_result(current_time)
+                            Self::return_api_call_result(current_time).map(Some)
                         } else {
-                            Some(v)
+                            Ok(Self::return_stamp_file_value(&file_contents, "version"))
                         }
                     })
-                })
-            })
-            .map_or(Self::return_api_call_result(current_time), |value| {
-                Some(value)
-            })
+                    .unwrap_or_else(|| Ok(None))
+            }
+            None => Self::return_api_call_result(current_time).map(Some),
+        }
     }
 
-    fn return_api_call_result(current_time: DateTime<offset::Local>) -> Option<String> {
-        Self::return_latest_wasm_pack_version().and_then(|v| {
-            Self::override_stamp_file(current_time, &v).ok();
-            Some(v)
-        })
+    fn return_api_call_result(
+        current_time: DateTime<offset::Local>,
+    ) -> Result<String, failure::Error> {
+        let version = Self::return_latest_wasm_pack_version();
+
+        // We always override the stamp file with the current time because we don't
+        // want to hit the API all the time if it fails. It should follow the same
+        // "policy" as the success. This means that the 24 hours rate limiting
+        // will be active regardless if the check succeeded or failed.
+        match version {
+            Ok(ref version) => Self::override_stamp_file(current_time, Some(&version)).ok(),
+            Err(_) => Self::override_stamp_file(current_time, None).ok(),
+        };
+
+        version
     }
 
     fn override_stamp_file(
         current_time: DateTime<offset::Local>,
-        version: &str,
+        version: Option<&str>,
     ) -> Result<(), failure::Error> {
         let path = env::current_exe()?;
 
@@ -194,7 +204,11 @@ impl Crate {
 
         file.set_len(0)?;
 
-        write!(file, "created {:?}\nversion {}", current_time, version)?;
+        write!(file, "created {:?}", current_time)?;
+
+        if let Some(version) = version {
+            write!(file, "\nversion {}", version)?;
+        }
 
         Ok(())
     }
@@ -210,11 +224,8 @@ impl Crate {
     }
 
     /// Returns wasm-pack latest version (if it's received) by executing check_wasm_pack_latest_version function.
-    fn return_latest_wasm_pack_version() -> Option<String> {
-        if let Ok(crt) = Self::check_wasm_pack_latest_version() {
-            return Some(crt.crt.max_version);
-        }
-        None
+    fn return_latest_wasm_pack_version() -> Result<String, failure::Error> {
+        Self::check_wasm_pack_latest_version().map(|crt| crt.crt.max_version)
     }
 
     /// Read the stamp file and return value assigned to a certain key.
@@ -229,18 +240,34 @@ impl Crate {
 
     /// Call to the crates.io api and return the latest version of `wasm-pack`
     fn check_wasm_pack_latest_version() -> Result<Crate, Error> {
+        let url = "https://crates.io/api/v1/crates/wasm-pack";
+
         let mut easy = easy::Easy2::new(Collector(Vec::new()));
+
         easy.useragent(&format!(
             "wasm-pack/{} ({})",
             WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),
             WASM_PACK_REPO_URL
         ))?;
+
+        easy.url(url)?;
         easy.get(true)?;
-        easy.url("https://crates.io/api/v1/crates/wasm-pack")?;
         easy.perform()?;
-        let contents = easy.get_ref();
-        let result = String::from_utf8_lossy(&contents.0);
-        Ok(serde_json::from_str(result.into_owned().as_str())?)
+
+        let status_code = easy.response_code()?;
+
+        if 200 <= status_code && status_code < 300 {
+            let contents = easy.get_ref();
+            let result = String::from_utf8_lossy(&contents.0);
+
+            Ok(serde_json::from_str(result.into_owned().as_str())?)
+        } else {
+            bail!(
+                "Received a bad HTTP status code ({}) when checking for newer wasm-pack version at: {}",
+                status_code,
+                url
+            )
+        }
     }
 }
 

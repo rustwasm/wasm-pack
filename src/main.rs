@@ -23,17 +23,21 @@ use wasm_pack::{
 
 mod installer;
 
-fn background_check_for_updates() -> mpsc::Receiver<WasmPackVersion> {
+fn background_check_for_updates() -> mpsc::Receiver<Result<WasmPackVersion, failure::Error>> {
     let (sender, receiver) = mpsc::channel();
 
     let _detached_thread = thread::spawn(move || {
-        if let Ok(wasm_pack_version) = build::check_wasm_pack_versions() {
+        let wasm_pack_version = build::check_wasm_pack_versions();
+
+        if let Ok(wasm_pack_version) = wasm_pack_version {
             if !wasm_pack_version.local.is_empty()
                 && !wasm_pack_version.latest.is_empty()
                 && wasm_pack_version.local != wasm_pack_version.latest
             {
-                let _ = sender.send(wasm_pack_version);
+                let _ = sender.send(Ok(wasm_pack_version));
             }
+        } else {
+            let _ = sender.send(wasm_pack_version);
         }
     });
 
@@ -79,8 +83,12 @@ fn run() -> Result<(), failure::Error> {
     run_wasm_pack(args.cmd)?;
 
     if let Ok(wasm_pack_version) = wasm_pack_version.try_recv() {
-        PBAR.warn(&format!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}. \
-            To update, navigate to: https://rustwasm.github.io/wasm-pack/installer/", wasm_pack_version.latest, wasm_pack_version.local));
+        match wasm_pack_version {
+            Ok(wasm_pack_version) =>
+                PBAR.warn(&format!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}. \
+                To update, navigate to: https://rustwasm.github.io/wasm-pack/installer/", wasm_pack_version.latest, wasm_pack_version.local)),
+            Err(err) => PBAR.warn(&format!("{}", err))
+        }
     }
 
     Ok(())

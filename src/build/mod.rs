@@ -62,12 +62,7 @@ fn rustc_minor_version() -> Option<u32> {
 /// Checks and returns local and latest versions of wasm-pack
 pub fn check_wasm_pack_versions() -> Result<WasmPackVersion, Error> {
     match wasm_pack_local_version() {
-        Some(local) => {
-            match Crate::return_wasm_pack_latest_version() {
-                Some(latest) => Ok(WasmPackVersion {local, latest}),
-                None => Ok(WasmPackVersion {local, latest: "".to_string()})
-            }
-        },
+        Some(local) => Ok(WasmPackVersion {local, latest: Crate::return_wasm_pack_latest_version()?.unwrap_or_else(|| "".to_string())}),
         None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")
     }
 }
