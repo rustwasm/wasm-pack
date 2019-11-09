@@ -493,18 +493,24 @@ impl CrateData {
         Ok(())
     }
 
-    fn check_crate_type(&self) -> Result<(), Error> {
+    fn valid_targets(&self) -> impl Iterator<Item = &cargo_metadata::Target> {
+        fn valid_kind(x: &str) -> bool {
+            x == "cdylib" || x == "bin"
+        }
         let pkg = &self.data.packages[self.current_idx];
-        let any_cdylib = pkg
-            .targets
+        pkg.targets
             .iter()
-            .filter(|target| target.kind.iter().any(|k| k == "cdylib"))
-            .any(|target| target.crate_types.iter().any(|s| s == "cdylib"));
-        if any_cdylib {
+            .filter(|target| target.kind.iter().any(|k| valid_kind(k)))
+            .filter(|target| target.crate_types.iter().any(|s| valid_kind(s)))
+    }
+
+    fn check_crate_type(&self) -> Result<(), Error> {
+        let any_valid = self.valid_targets().count() > 0;
+        if any_valid {
             return Ok(());
         }
         bail!(
-            "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
+            "library crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
              Cargo.toml file:\n\n\
              [lib]\n\
              crate-type = [\"cdylib\", \"rlib\"]"
@@ -522,6 +528,17 @@ impl CrateData {
             Some(lib) => lib.name.replace("-", "_"),
             None => pkg.name.replace("-", "_"),
         }
+    }
+
+    /// Get the target names that will be built for the current crate.
+    pub fn targets(&self) -> impl Iterator<Item = String> + '_ {
+        self.valid_targets().map(|x| {
+            if x.kind.iter().any(|x| x.ends_with("lib")) {
+                x.name.replace("-", "_")
+            } else {
+                x.name.clone()
+            }
+        })
     }
 
     /// Get the prefix for output file names

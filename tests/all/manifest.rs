@@ -64,6 +64,13 @@ fn it_checks_has_cdylib_wrong_crate_type() {
 }
 
 #[test]
+fn it_accepts_binary_crates_without_cdylib() {
+    let fixture = fixture::bin_crate();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
+    crate_data.check_crate_config().unwrap();
+}
+
+#[test]
 fn it_recognizes_a_map_during_depcheck() {
     let fixture = fixture::serde_feature();
     // Ensure that there is a `Cargo.lock`.

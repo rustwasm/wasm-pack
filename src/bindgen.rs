@@ -28,49 +28,52 @@ pub fn wasm_bindgen_build(
 
     let out_dir = out_dir.to_str().unwrap();
 
-    let wasm_path = data
-        .target_directory()
-        .join("wasm32-unknown-unknown")
-        .join(release_or_debug)
-        .join(data.crate_name())
-        .with_extension("wasm");
+    for target_name in data.targets() {
+        let wasm_path = data
+            .target_directory()
+            .join("wasm32-unknown-unknown")
+            .join(release_or_debug)
+            .join(target_name)
+            .with_extension("wasm");
 
-    let dts_arg = if disable_dts {
-        "--no-typescript"
-    } else {
-        "--typescript"
-    };
-    let bindgen_path = bindgen.binary("wasm-bindgen")?;
+        let dts_arg = if disable_dts {
+            "--no-typescript"
+        } else {
+            "--typescript"
+        };
+        let bindgen_path = bindgen.binary("wasm-bindgen")?;
 
-    let mut cmd = Command::new(&bindgen_path);
-    cmd.arg(&wasm_path)
-        .arg("--out-dir")
-        .arg(out_dir)
-        .arg(dts_arg);
+        let mut cmd = Command::new(&bindgen_path);
+        cmd.arg(&wasm_path)
+            .arg("--out-dir")
+            .arg(out_dir)
+            .arg(dts_arg);
 
-    let target_arg = build_target_arg(target, &bindgen_path)?;
-    if supports_dash_dash_target(&bindgen_path)? {
-        cmd.arg("--target").arg(target_arg);
-    } else {
-        cmd.arg(target_arg);
+        let target_arg = build_target_arg(target, &bindgen_path)?;
+        if supports_dash_dash_target(&bindgen_path)? {
+            cmd.arg("--target").arg(target_arg);
+        } else {
+            cmd.arg(target_arg);
+        }
+
+        if let Some(value) = out_name {
+            cmd.arg("--out-name").arg(value);
+        }
+
+        let profile = data.configured_profile(profile);
+        if profile.wasm_bindgen_debug_js_glue() {
+            cmd.arg("--debug");
+        }
+        if !profile.wasm_bindgen_demangle_name_section() {
+            cmd.arg("--no-demangle");
+        }
+        if profile.wasm_bindgen_dwarf_debug_info() {
+            cmd.arg("--keep-debug");
+        }
+
+        child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     }
 
-    if let Some(value) = out_name {
-        cmd.arg("--out-name").arg(value);
-    }
-
-    let profile = data.configured_profile(profile);
-    if profile.wasm_bindgen_debug_js_glue() {
-        cmd.arg("--debug");
-    }
-    if !profile.wasm_bindgen_demangle_name_section() {
-        cmd.arg("--no-demangle");
-    }
-    if profile.wasm_bindgen_dwarf_debug_info() {
-        cmd.arg("--keep-debug");
-    }
-
-    child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())
 }
 

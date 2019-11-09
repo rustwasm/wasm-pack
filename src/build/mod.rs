@@ -81,7 +81,7 @@ pub fn cargo_build_wasm(
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.info(&msg);
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(path).arg("build").arg("--lib");
+    cmd.current_dir(path).arg("build");
     match profile {
         BuildProfile::Profiling => {
             // Once there are DWARF debug info consumers, force enable debug
