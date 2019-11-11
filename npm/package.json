@@ -1,0 +1,36 @@
+{
+  "name": "wasm-pack",
+  "version": "0.8.1",
+  "description": "📦✨ your favorite rust -> wasm workflow tool!",
+  "main": "binary.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "node -e 'require(\"./binary.js\").install()'",
+    "preuninstall": "node -e 'require(\"./binary.js\").uninstall()'"
+  },
+  "bin": {
+    "wasm-pack": "./run.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rustwasm/wasm-pack.git"
+  },
+  "keywords": [
+    "wasm",
+    "rust-wasm",
+    "registry",
+    "cli",
+    "rust",
+    "npm",
+    "package"
+  ],
+  "author": "ashley666ashley@gmail.com",
+  "license": "MIT OR Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/rustwasm/wasm-pack/issues"
+  },
+  "homepage": "https://github.com/rustwasm/wasm-pack#readme",
+  "dependencies": {
+    "binary-install": "github:EverlastingBugstopper/binary-install#master"
+  }
+}
