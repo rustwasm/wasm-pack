@@ -19,6 +19,7 @@ pub fn wasm_bindgen_build(
     out_name: &Option<String>,
     disable_dts: bool,
     target: Target,
+    inline: bool,
     profile: BuildProfile,
 ) -> Result<(), failure::Error> {
     let release_or_debug = match profile {
@@ -53,6 +54,10 @@ pub fn wasm_bindgen_build(
         cmd.arg("--target").arg(target_arg);
     } else {
         cmd.arg(target_arg);
+    }
+
+    if inline {
+        cmd.arg("--inline");
     }
 
     if let Some(value) = out_name {

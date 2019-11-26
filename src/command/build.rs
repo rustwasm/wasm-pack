@@ -28,6 +28,7 @@ pub struct Build {
     pub scope: Option<String>,
     pub disable_dts: bool,
     pub target: Target,
+    pub inline: bool,
     pub profile: BuildProfile,
     pub mode: InstallMode,
     pub out_dir: PathBuf,
@@ -123,6 +124,10 @@ pub struct BuildOptions {
     /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
 
+    #[structopt(long = "inline", short = "i")]
+    /// Will output wasm inline with JS, encoded as base64
+    pub inline: bool,
+
     #[structopt(long = "debug")]
     /// Deprecated. Renamed to `--dev`.
     pub debug: bool,
@@ -161,6 +166,7 @@ impl Default for BuildOptions {
             mode: InstallMode::default(),
             disable_dts: false,
             target: Target::default(),
+            inline: false,
             debug: false,
             dev: false,
             release: false,
@@ -196,6 +202,7 @@ impl Build {
             crate_data,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
+            inline: build_opts.inline,
             target: build_opts.target,
             profile,
             mode: build_opts.mode,
@@ -371,6 +378,7 @@ impl Build {
             &self.out_name,
             self.disable_dts,
             self.target,
+            self.inline,
             self.profile,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
