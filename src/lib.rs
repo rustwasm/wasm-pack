@@ -22,7 +22,9 @@ extern crate binary_install;
 extern crate chrono;
 extern crate curl;
 extern crate dialoguer;
+extern crate hyper;
 extern crate log;
+extern crate notify;
 extern crate toml;
 extern crate walkdir;
 

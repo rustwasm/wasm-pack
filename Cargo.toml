@@ -20,7 +20,10 @@ env_logger = { version = "0.5.13", default-features = false }
 failure = "0.1.2"
 human-panic = "1.0.1"
 glob = "0.2"
+hyper = "0.12.35"
+hyper-staticfile = "0.4.2"
 log = "0.4.6"
+notify = "4.0.14"
 openssl = { version = '0.10.11', optional = true }
 parking_lot = "0.6"
 reqwest = "0.9.14"
