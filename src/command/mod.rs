@@ -7,15 +7,19 @@ mod login;
 mod pack;
 /// Data structures and functions for publishing a package.
 pub mod publish;
+mod serve;
 pub mod test;
 pub mod utils;
+mod watch;
 
 use self::build::{Build, BuildOptions};
 use self::generate::generate;
 use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
+use self::serve::serve;
 use self::test::{Test, TestOptions};
+use self::watch::watch;
 use crate::install::InstallMode;
 use failure::Error;
 use log::info;
@@ -110,6 +114,30 @@ pub enum Command {
     #[structopt(name = "test")]
     /// 👩‍🔬  test your wasm!
     Test(TestOptions),
+
+    #[structopt(name = "watch")]
+    /// watch for changes
+    Watch(BuildOptions),
+
+    #[structopt(name = "serve")]
+    /// run a web server
+    Serve {
+        #[allow(missing_docs)]
+        #[structopt(flatten)]
+        build: BuildOptions,
+
+        #[structopt(long = "no-watch")]
+        /// don't rebuild the crate every time a file changes
+        no_watch: bool,
+
+        #[structopt(long = "port", short = "p")]
+        /// port to run the HTTP server on
+        port: Option<u16>,
+
+        #[structopt(parse(from_os_str))]
+        /// root to host the HTTP server from
+        root: Option<PathBuf>,
+    },
 }
 
 /// Run a command with the given logger!
@@ -162,6 +190,19 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
         Command::Test(test_opts) => {
             info!("Running test command...");
             Test::try_from_opts(test_opts).and_then(|t| t.run())
+        }
+        Command::Watch(build_opts) => {
+            info!("Running watch command...");
+            Build::try_from_opts(build_opts).and_then(|b| watch(b))
+        }
+        Command::Serve {
+            build,
+            no_watch,
+            port,
+            root,
+        } => {
+            info!("Running serve command...");
+            Build::try_from_opts(build).and_then(|b| serve(b, no_watch, port, root))
         }
     }
 }
