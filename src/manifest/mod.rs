@@ -495,7 +495,7 @@ impl CrateData {
 
     fn valid_targets(&self) -> impl Iterator<Item = &cargo_metadata::Target> {
         fn valid_kind(x: &str) -> bool {
-            x == "cdylib" || x == "bin"
+            x == "cdylib" || x == "bin" || x == "example"
         }
         let pkg = &self.data.packages[self.current_idx];
         pkg.targets

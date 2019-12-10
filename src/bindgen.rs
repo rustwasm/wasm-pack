@@ -33,8 +33,20 @@ pub fn wasm_bindgen_build(
             .target_directory()
             .join("wasm32-unknown-unknown")
             .join(release_or_debug)
-            .join(target_name)
+            .join(&target_name)
             .with_extension("wasm");
+
+        // TODO have a better way to detect examples
+        let wasm_path = if wasm_path.exists() {
+            wasm_path
+        } else {
+            data.target_directory()
+                .join("wasm32-unknown-unknown")
+                .join(release_or_debug)
+                .join("examples")
+                .join(target_name)
+                .with_extension("wasm")
+        };
 
         let dts_arg = if disable_dts {
             "--no-typescript"

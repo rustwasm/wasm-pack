@@ -537,6 +537,63 @@ pub fn multi_bin_crate() -> Fixture {
     fixture
 }
 
+pub fn bin_example_crate() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .hello_world_src_main()
+        .file(
+            "examples/example.rs",
+            r#"
+            extern crate wasm_bindgen;
+            use wasm_bindgen::prelude::*;
+
+            // Import the `console.log` function from the Web.
+            #[wasm_bindgen]
+            extern {
+                #[wasm_bindgen(js_namespace = console, js_name = log)]
+                fn console_log(s: &str);
+            }
+
+            // On wasm, print() should forward to console.log.
+            #[cfg(target_arch = "wasm32")]
+            fn print(text: &str) {
+                console_log(text);
+            }
+
+            // On not-wasm, print() should forward to println!().
+            #[cfg(not(target_arch = "wasm32"))]
+            fn print(text: &str) {
+                println!("{}", text);
+            }
+
+            // Write a main() that will print slightly different text.
+            fn main() {
+                print("Sample Text");
+            }
+        "#,
+        )
+        .file(
+            "Cargo.toml",
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "foo"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "0.2"
+        "#,
+        );
+    fixture
+}
+
 pub fn not_a_crate() -> Fixture {
     let fixture = Fixture::new();
     fixture.file("README.md", "This is not a Rust crate!");

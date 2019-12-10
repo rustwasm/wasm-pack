@@ -335,3 +335,23 @@ fn multi_bin_crate_procs_all() {
     assert!(pkg_path("foo.js").exists());
     assert!(pkg_path("sample.js").exists());
 }
+
+#[test]
+fn builds_examples() {
+    let fixture = utils::fixture::bin_example_crate();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--target")
+        .arg("nodejs")
+        .arg("--")
+        .arg("--bins")
+        .arg("--examples")
+        .assert()
+        .success();
+    let mut path = fixture.path.clone();
+    path.push("pkg");
+    path.push("example.js");
+    assert!(path.exists());
+}
