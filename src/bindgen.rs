@@ -29,21 +29,17 @@ pub fn wasm_bindgen_build(
     let out_dir = out_dir.to_str().unwrap();
 
     for target_name in data.targets() {
-        let wasm_path = data
-            .target_directory()
-            .join("wasm32-unknown-unknown")
-            .join(release_or_debug)
-            .join(&target_name)
-            .with_extension("wasm");
-
-        // TODO have a better way to detect examples
-        let wasm_path = if wasm_path.exists() {
-            wasm_path
-        } else {
-            data.target_directory()
+        let wasm_path = {
+            let wasm_path = data
+                .target_directory()
                 .join("wasm32-unknown-unknown")
-                .join(release_or_debug)
-                .join("examples")
+                .join(release_or_debug);
+            let wasm_path = if data.is_example() {
+                wasm_path.join("examples")
+            } else {
+                wasm_path
+            };
+            wasm_path
                 .join(target_name)
                 .with_extension("wasm")
         };

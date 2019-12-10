@@ -345,9 +345,8 @@ fn builds_examples() {
         .arg("build")
         .arg("--target")
         .arg("nodejs")
-        .arg("--")
-        .arg("--bins")
-        .arg("--examples")
+        .arg("--example")
+        .arg("example")
         .assert()
         .success();
     let mut path = fixture.path.clone();

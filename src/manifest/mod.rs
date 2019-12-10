@@ -39,6 +39,7 @@ pub struct CrateData {
     current_idx: usize,
     manifest: CargoManifest,
     out_name: Option<String>,
+    example: Option<String>,
 }
 
 #[doc(hidden)]
@@ -402,7 +403,7 @@ pub struct ManifestAndUnsedKeys {
 impl CrateData {
     /// Reads all metadata for the crate whose manifest is inside the directory
     /// specified by `path`.
-    pub fn new(crate_path: &Path, out_name: Option<String>) -> Result<CrateData, Error> {
+    pub fn new(crate_path: &Path, out_name: Option<String>, example: Option<String>) -> Result<CrateData, Error> {
         let manifest_path = crate_path.join("Cargo.toml");
         if !manifest_path.is_file() {
             bail!(
@@ -431,6 +432,7 @@ impl CrateData {
             manifest,
             current_idx,
             out_name,
+            example,
         })
     }
 
@@ -494,14 +496,20 @@ impl CrateData {
     }
 
     fn valid_targets(&self) -> impl Iterator<Item = &cargo_metadata::Target> {
-        fn valid_kind(x: &str) -> bool {
-            x == "cdylib" || x == "bin" || x == "example"
+        fn valid(target: &cargo_metadata::Target, example: &Option<String>) -> bool {
+            if let Some(example) = example {
+                target.name == *example && target.kind.iter().any(|k| k == "example")
+            } else {
+                fn valid_kind(x: &str) -> bool {
+                    x == "cdylib" || x == "bin"
+                }
+                target.kind.iter().any(|x| valid_kind(x))
+            }
         }
         let pkg = &self.data.packages[self.current_idx];
         pkg.targets
             .iter()
-            .filter(|target| target.kind.iter().any(|k| valid_kind(k)))
-            .filter(|target| target.crate_types.iter().any(|s| valid_kind(s)))
+            .filter(move |target| valid(target, &self.example))
     }
 
     fn check_crate_type(&self) -> Result<(), Error> {
@@ -539,6 +547,11 @@ impl CrateData {
                 x.name.clone()
             }
         })
+    }
+
+    /// Check if we are building an example.
+    pub fn is_example(&self) -> bool {
+        self.example.is_some()
     }
 
     /// Get the prefix for output file names
