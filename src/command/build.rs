@@ -184,7 +184,11 @@ impl Build {
     /// Construct a build command from the given options.
     pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
         let crate_path = get_crate_path(build_opts.path)?;
-        let crate_data = manifest::CrateData::new(&crate_path, build_opts.out_name.clone(), build_opts.example.clone())?;
+        let crate_data = manifest::CrateData::new(
+            &crate_path,
+            build_opts.out_name.clone(),
+            build_opts.example.clone(),
+        )?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
 
         let dev = build_opts.dev || build_opts.debug;
@@ -305,7 +309,12 @@ impl Build {
 
     fn step_build_wasm(&mut self) -> Result<(), Error> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, &self.example, &self.extra_options)?;
+        build::cargo_build_wasm(
+            &self.crate_path,
+            self.profile,
+            &self.example,
+            &self.extra_options,
+        )?;
 
         info!(
             "wasm built at {:#?}.",

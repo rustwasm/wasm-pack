@@ -243,7 +243,8 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
 fn it_creates_a_package_json_with_correct_files_when_out_name_is_provided() {
     let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
-    let crate_data = manifest::CrateData::new(&fixture.path, Some("index".to_owned()), None).unwrap();
+    let crate_data =
+        manifest::CrateData::new(&fixture.path, Some("index".to_owned()), None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
     assert!(crate_data
         .write_package_json(&out_dir, &None, false, Target::Bundler)

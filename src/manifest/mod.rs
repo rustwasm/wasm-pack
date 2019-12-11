@@ -403,7 +403,11 @@ pub struct ManifestAndUnsedKeys {
 impl CrateData {
     /// Reads all metadata for the crate whose manifest is inside the directory
     /// specified by `path`.
-    pub fn new(crate_path: &Path, out_name: Option<String>, example: Option<String>) -> Result<CrateData, Error> {
+    pub fn new(
+        crate_path: &Path,
+        out_name: Option<String>,
+        example: Option<String>,
+    ) -> Result<CrateData, Error> {
         let manifest_path = crate_path.join("Cargo.toml");
         if !manifest_path.is_file() {
             bail!(

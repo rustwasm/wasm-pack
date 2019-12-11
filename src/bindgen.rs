@@ -39,9 +39,7 @@ pub fn wasm_bindgen_build(
             } else {
                 wasm_path
             };
-            wasm_path
-                .join(target_name)
-                .with_extension("wasm")
+            wasm_path.join(target_name).with_extension("wasm")
         };
 
         let dts_arg = if disable_dts {
