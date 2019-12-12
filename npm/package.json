@@ -4,7 +4,6 @@
   "description": "📦✨ your favorite rust -> wasm workflow tool!",
   "main": "binary.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
     "postinstall": "node -e 'require(\"./binary.js\").install()'",
     "preuninstall": "node -e 'require(\"./binary.js\").uninstall()'"
   },
@@ -24,13 +23,13 @@
     "npm",
     "package"
   ],
-  "author": "ashley666ashley@gmail.com",
+  "author": "Ashley Williams <ashley666ashley@gmail.com>",
   "license": "MIT OR Apache-2.0",
   "bugs": {
     "url": "https://github.com/rustwasm/wasm-pack/issues"
   },
   "homepage": "https://github.com/rustwasm/wasm-pack#readme",
   "dependencies": {
-    "binary-install": "github:EverlastingBugstopper/binary-install#master"
+    "binary-install": "0.0.0"
   }
 }
