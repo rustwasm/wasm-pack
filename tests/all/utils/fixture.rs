@@ -4,7 +4,7 @@ use std::fs;
 use std::mem::ManuallyDrop;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
-use std::sync::{MutexGuard, Once, ONCE_INIT};
+use std::sync::{MutexGuard, Once};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
@@ -24,7 +24,7 @@ impl Fixture {
     pub fn new() -> Fixture {
         // Make sure that all fixtures end up sharing a target dir, and we don't
         // recompile wasm-bindgen and friends many times over.
-        static SET_TARGET_DIR: Once = ONCE_INIT;
+        static SET_TARGET_DIR: Once = Once::new();
         let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
         SET_TARGET_DIR.call_once(|| {
             env::set_var("CARGO_TARGET_DIR", &target_dir);
@@ -219,7 +219,7 @@ impl Fixture {
         // to be used as well.
         self.install_wasm_opt();
 
-        static INSTALL_WASM_BINDGEN: Once = ONCE_INIT;
+        static INSTALL_WASM_BINDGEN: Once = Once::new();
         let cache = self.cache();
         let version = "0.2.37";
 
@@ -242,7 +242,7 @@ impl Fixture {
     }
 
     pub fn install_wasm_opt(&self) {
-        static INSTALL_WASM_OPT: Once = ONCE_INIT;
+        static INSTALL_WASM_OPT: Once = Once::new();
         let cache = self.cache();
 
         INSTALL_WASM_OPT.call_once(|| {
@@ -255,7 +255,7 @@ impl Fixture {
     /// Takes care not to re-install for every fixture, but only the one time
     /// for the whole test suite.
     pub fn install_local_cargo_generate(&self) -> PathBuf {
-        static INSTALL_CARGO_GENERATE: Once = ONCE_INIT;
+        static INSTALL_CARGO_GENERATE: Once = Once::new();
         let cache = self.cache();
 
         let download = || {
@@ -281,7 +281,7 @@ impl Fixture {
     /// Takes care to ensure that only one `geckodriver` is downloaded for the whole
     /// test suite.
     pub fn install_local_geckodriver(&self) -> PathBuf {
-        static FETCH_GECKODRIVER: Once = ONCE_INIT;
+        static FETCH_GECKODRIVER: Once = Once::new();
         let cache = self.cache();
 
         // like above for synchronization
@@ -296,7 +296,7 @@ impl Fixture {
     /// Takes care to ensure that only one `chromedriver` is downloaded for the whole
     /// test suite.
     pub fn install_local_chromedriver(&self) -> PathBuf {
-        static FETCH_CHROMEDRIVER: Once = ONCE_INIT;
+        static FETCH_CHROMEDRIVER: Once = Once::new();
         let cache = self.cache();
 
         // like above for synchronization
