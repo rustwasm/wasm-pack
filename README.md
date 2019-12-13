@@ -52,7 +52,7 @@ This project requires Rust 1.30.0 or later.
 
 ## ⚡ Quickstart Guide
 
-Visit the [quickstart quide] in our documentation.
+Visit the [quickstart guide] in our documentation.
 
 [quickstart guide]: https://rustwasm.github.io/wasm-pack/book/quickstart.html
 
