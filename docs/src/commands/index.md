@@ -13,5 +13,4 @@ a Rust-generated WebAssembly project.
 
 [new]: ./new.html
 [build]: ./build.html
-[new]: ./new.html
 [pack-pub]: ./pack-and-publish.html
