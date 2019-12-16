@@ -54,6 +54,8 @@ pub enum Target {
     /// in a browser but pollutes the global namespace and must be manually
     /// instantiated.
     NoModules,
+    /// Correspond to `--target all` where the output is all other targets
+    All,
 }
 
 impl Default for Target {
@@ -69,6 +71,7 @@ impl fmt::Display for Target {
             Target::Web => "web",
             Target::Nodejs => "nodejs",
             Target::NoModules => "no-modules",
+            Target::All => "all",
         };
         write!(f, "{}", s)
     }
@@ -82,6 +85,7 @@ impl FromStr for Target {
             "web" => Ok(Target::Web),
             "nodejs" => Ok(Target::Nodejs),
             "no-modules" => Ok(Target::NoModules),
+            "all" => Ok(Target::All),
             _ => bail!("Unknown target: {}", s),
         }
     }
@@ -120,7 +124,7 @@ pub struct BuildOptions {
     pub disable_dts: bool,
 
     #[structopt(long = "target", short = "t", default_value = "bundler")]
-    /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
+    /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules, all]
     pub target: Target,
 
     #[structopt(long = "debug")]
