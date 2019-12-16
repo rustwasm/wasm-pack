@@ -1,10 +1,29 @@
-# 📦✨  wasm-pack
-> Your favorite rust -> wasm workflow tool!
+<div align="center">
 
-[![Build Status](https://travis-ci.com/rustwasm/wasm-pack.svg?branch=master)](https://travis-ci.com/rustwasm/wasm-pack)
-[![Build status](https://ci.appveyor.com/api/projects/status/iv1qtnqtv168ef8h?svg=true)](https://ci.appveyor.com/project/ashleygwilliams/wasm-pack-071k0)
-[![crates.io](https://meritbadge.herokuapp.com/wasm-pack)](https://crates.io/crates/wasm-pack)
+  <h1>📦✨  wasm-pack</h1>
 
+  <p>
+    <strong>Your favorite Rust → Wasm workflow tool!</strong>
+  </p>
+
+  <p>
+    <a href="https://travis-ci.com/rustwasm/wasm-pack"><img alt="Build Status" src="https://travis-ci.com/rustwasm/wasm-pack.svg?branch=master"/></a>
+    <a href="https://ci.appveyor.com/project/ashleygwilliams/wasm-pack-071k0"><img alt="Build status" src="https://ci.appveyor.com/api/projects/status/iv1qtnqtv168ef8h?svg=true"/></a>
+    <a href="https://crates.io/crates/wasm-pack"><img alt="crates.io" src="https://meritbadge.herokuapp.com/wasm-pack"/></a>
+  </p>
+
+  <h3>
+    <a href="https://rustwasm.github.io/docs/wasm-pack/">Docs</a>
+    <span> | </span>
+    <a href="https://github.com/rustwasm/wasm-pack/blob/master/CONTRIBUTING.md">Contributing</a>
+    <span> | </span>
+    <a href="https://discordapp.com/channels/442252698964721669/443151097398296587">Chat</a>
+  </h3>
+
+  <sub>Built with 🦀🕸 by <a href="https://rustwasm.github.io/">The Rust and WebAssembly Working Group</a></sub>
+</div>
+
+## About
 
 This tool seeks to be a one-stop shop for building and working with rust-
 generated WebAssembly that you would like to interop with JavaScript, in the
@@ -30,17 +49,23 @@ This project requires Rust 1.30.0 or later.
 
 - [Development Environment](https://rustwasm.github.io/wasm-pack/book/prerequisites/index.html)
 - [Installation](https://rustwasm.github.io/wasm-pack/installer)
-- [Project Setup](https://rustwasm.github.io/wasm-pack/book/project-setup/index.html)
+
+## ⚡ Quickstart Guide
+
+Visit the [quickstart guide] in our documentation.
+
+[quickstart guide]: https://rustwasm.github.io/wasm-pack/book/quickstart.html
 
 ## 🎙️ Commands
 
+- [`new`](https://rustwasm.github.io/wasm-pack/book/commands/new.html): Generate a new RustWasm project using a template
 - [`build`](https://rustwasm.github.io/wasm-pack/book/commands/build.html): Generate an npm wasm pkg from a rustwasm crate
 - [`test`](https://rustwasm.github.io/wasm-pack/book/commands/test.html): Run browser tests
 - [`pack` and `publish`](https://rustwasm.github.io/wasm-pack/book/commands/pack-and-publish.html): Create a tarball of your rustwasm pkg and/or publish to a registry
 
 ## 📝 Logging
 
-`wasm-pack` uses [`env_logger`] to produces logs when `wasm-pack` runs.
+`wasm-pack` uses [`env_logger`] to produce logs when `wasm-pack` runs.
 
 To configure your log level, use the `RUST_LOG` environment variable. For example:
 
@@ -64,40 +89,6 @@ This project is part of the [rustwasm Working Group].
 
 This project was started by [ashleygwilliams] and is co-maintained by [ashleygwilliams], [drager] and the Rust Wasm Working Group Core Team.
 
-## ⚡ Quickstart Guide
-
-1. Write a crate in Rust.
-2. Add `wasm-bindgen` to your `Cargo.toml`:
-
-  ```toml
-  [lib]
-  crate-type = ["cdylib"]
-
-  [dependencies]
-  wasm-bindgen = "0.2"
-  ```
-3. Add this to the top of your `src/lib.rs`:
-
-  ```rust
-  use wasm_bindgen::prelude::*;
-  ```
-
-4. Annotate your public functions with `#[wasm_bindgen]`, for example:
-
-  ```rust
-  #[wasm_bindgen]
-  extern {
-      pub fn alert(s: &str);
-  }
-
-  #[wasm_bindgen]
-  pub fn greet(name: &str) {
-      alert(&format!("Hello, {}!", name));
-  }
-  ```
-
-5. Install this tool: `cargo install wasm-pack`
-6. Run `wasm-pack build`, optionally, pass a path to a dir or a scope (see above for details)
-7. This tool generates files in a `pkg` dir
-8. To publish to npm, run `wasm-pack publish`. You may need to login to the
-   registry you want to publish to. You can login using `wasm-pack login`.
+[ashleygwilliams]: https://github.com/ashleygwilliams
+[drager]: https://github.com/drager
+[rustwasm Working Group]: https://github.com/rustwasm/team
