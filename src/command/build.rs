@@ -44,6 +44,10 @@ pub enum Target {
     /// Default output mode or `--target bundler`, indicates output will be
     /// used with a bundle in a later step.
     Bundler,
+    /// Correspond to `--target electron-rerender` where the output is similar
+    /// to `--target web` except that node module imports are split into a
+    /// separate `preload.js` file.
+    ElectronRenderer,
     /// Correspond to `--target web` where the output is natively usable as an
     /// ES module in a browser and the wasm is manually instantiated.
     Web,
@@ -66,6 +70,7 @@ impl fmt::Display for Target {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         let s = match self {
             Target::Bundler => "bundler",
+            Target::ElectronRenderer => "electron-renderer",
             Target::Web => "web",
             Target::Nodejs => "nodejs",
             Target::NoModules => "no-modules",
@@ -82,6 +87,7 @@ impl FromStr for Target {
             "web" => Ok(Target::Web),
             "nodejs" => Ok(Target::Nodejs),
             "no-modules" => Ok(Target::NoModules),
+            "electron-renderer" => Ok(Target::ElectronRenderer),
             _ => bail!("Unknown target: {}", s),
         }
     }

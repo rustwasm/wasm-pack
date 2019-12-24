@@ -563,6 +563,7 @@ impl CrateData {
     ) -> Result<(), Error> {
         let pkg_file_path = out_dir.join("package.json");
         let npm_data = match target {
+            Target::ElectronRenderer => self.to_electron_renderer(scope, disable_dts, out_dir),
             Target::Nodejs => self.to_commonjs(scope, disable_dts, out_dir),
             Target::NoModules => self.to_nomodules(scope, disable_dts, out_dir),
             Target::Bundler => self.to_esmodules(scope, disable_dts, out_dir),
@@ -663,6 +664,15 @@ impl CrateData {
             homepage: data.homepage,
             types: data.dts_file,
         })
+    }
+
+    fn to_electron_renderer(
+        &self,
+        scope: &Option<String>,
+        disable_dts: bool,
+        out_dir: &Path,
+    ) -> NpmPackage {
+        self.to_web(scope, disable_dts, out_dir)
     }
 
     fn to_esmodules(

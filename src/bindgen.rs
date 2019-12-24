@@ -105,6 +105,7 @@ fn build_target_arg(target: Target, cli_path: &PathBuf) -> Result<String, failur
 fn build_target_arg_legacy(target: Target, cli_path: &PathBuf) -> Result<String, failure::Error> {
     log::info!("Your version of wasm-bindgen is out of date. You should consider updating your Cargo.toml to a version >= 0.2.40.");
     let target_arg = match target {
+        Target::ElectronRenderer => "--electron-renderer",
         Target::Nodejs => "--nodejs",
         Target::NoModules => "--no-modules",
         Target::Web => {
