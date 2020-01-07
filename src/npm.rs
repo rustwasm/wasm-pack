@@ -28,7 +28,7 @@ pub fn npm_publish(
         None => cmd.current_dir(path).arg("publish"),
     };
     if let Some(tag) = tag {
-        cmd.arg("--tag").arg(&tag.to_string());
+        cmd.arg("--tag").arg(tag);
     };
 
     child::run(cmd, "npm publish").context("Publishing to npm failed")?;
