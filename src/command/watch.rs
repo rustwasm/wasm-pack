@@ -15,6 +15,16 @@ pub fn watch(build: Build) -> Result<(), Error> {
 
 pub fn watch_lock(mut build: Build, build_lock: Arc<RwLock<()>>) -> Result<(), Error> {
     // TODO make this more reasonable
+
+    // start by building
+    {
+        let _guard = build_lock.write();
+        match build.run() {
+            Ok(_) => (),
+            Err(e) => eprintln!("Error: {}", e),
+        }
+    }
+
     let watch_path = build.crate_path.join("src");
 
     let (event_tx, event_rx) = channel();
