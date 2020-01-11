@@ -42,6 +42,10 @@ pub fn wasm_bindgen_build(
             wasm_path.join(target_name).with_extension("wasm")
         };
 
+        if !wasm_path.exists() {
+            continue;
+        }
+
         let dts_arg = if disable_dts {
             "--no-typescript"
         } else {
