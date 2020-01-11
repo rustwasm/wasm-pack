@@ -134,7 +134,7 @@ pub enum Command {
         /// port to run the HTTP server on
         port: Option<u16>,
 
-        #[structopt(parse(from_os_str))]
+        #[structopt(long = "root", short = "r", parse(from_os_str))]
         /// root to host the HTTP server from
         root: Option<PathBuf>,
     },
