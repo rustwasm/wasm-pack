@@ -295,3 +295,62 @@ fn build_force() {
         .assert()
         .success();
 }
+
+#[test]
+fn bin_crate_behavior_identical() {
+    let fixture = utils::fixture::bin_crate();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--target")
+        .arg("nodejs")
+        .assert()
+        .success();
+    let native_output = fixture.command("cargo").arg("run").output().unwrap();
+    assert!(native_output.status.success());
+    assert_eq!(native_output.stdout, b"Hello, World\n");
+    let wasm_output = fixture.command("node").arg("pkg/foo.js").output().unwrap();
+    assert!(wasm_output.status.success());
+    assert_eq!(wasm_output.stdout, b"Hello, World\n");
+}
+
+#[test]
+fn multi_bin_crate_procs_all() {
+    let fixture = utils::fixture::multi_bin_crate();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--target")
+        .arg("nodejs")
+        .assert()
+        .success();
+    let pkg_path = |x: &str| {
+        let mut path = fixture.path.clone();
+        path.push("pkg");
+        path.push(x);
+        path
+    };
+    assert!(pkg_path("foo.js").exists());
+    assert!(pkg_path("sample.js").exists());
+}
+
+#[test]
+fn builds_examples() {
+    let fixture = utils::fixture::bin_example_crate();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--target")
+        .arg("nodejs")
+        .arg("--example")
+        .arg("example")
+        .assert()
+        .success();
+    let mut path = fixture.path.clone();
+    path.push("pkg");
+    path.push("example.js");
+    assert!(path.exists());
+}
