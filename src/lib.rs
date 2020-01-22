@@ -45,10 +45,10 @@ pub mod target;
 pub mod test;
 pub mod wasm_opt;
 
-use progressbar::ProgressOutput;
+use progressbar::{LogLevel, ProgressOutput};
 
 /// The global progress bar and user-facing message output.
-pub static PBAR: ProgressOutput = ProgressOutput;
+pub static PBAR: ProgressOutput = ProgressOutput::new();
 
 /// 📦 ✨  pack and publish your wasm!
 #[derive(Debug, StructOpt)]
@@ -60,4 +60,12 @@ pub struct Cli {
     /// Log verbosity is based off the number of v used
     #[structopt(long = "verbose", short = "v", parse(from_occurrences))]
     pub verbosity: u8,
+
+    #[structopt(long = "quiet", short = "q")]
+    /// No output printed to stdout
+    pub quiet: bool,
+
+    #[structopt(long = "log-level", default_value = "info")]
+    /// The maximum level of messages that should be logged by wasm-pack. [possible values: info, warn, error]
+    pub log_level: LogLevel,
 }
