@@ -80,6 +80,13 @@ fn run() -> Result<(), failure::Error> {
     }
 
     let args = Cli::from_args();
+
+    PBAR.set_log_level(args.log_level);
+
+    if args.quiet {
+        PBAR.set_quiet(true);
+    }
+
     run_wasm_pack(args.cmd)?;
 
     if let Ok(wasm_pack_version) = wasm_pack_version.try_recv() {
