@@ -210,6 +210,10 @@ pub fn cargo_install(
         .arg("--root")
         .arg(&tmp);
 
+    if PBAR.quiet() {
+        cmd.arg("--quiet");
+    }
+
     let context = format!("Installing {} with cargo", tool);
     child::run(cmd, "cargo install").context(context)?;
 

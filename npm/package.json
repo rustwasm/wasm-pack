@@ -4,8 +4,8 @@
   "description": "📦✨ your favorite rust -> wasm workflow tool!",
   "main": "binary.js",
   "scripts": {
-    "postinstall": "node -e 'require(\"./binary.js\").install()'",
-    "preuninstall": "node -e 'require(\"./binary.js\").uninstall()'"
+    "postinstall": "node ./install.js",
+    "preuninstall": "node ./uninstall.js"
   },
   "bin": {
     "wasm-pack": "./run.js"
@@ -30,6 +30,6 @@
   },
   "homepage": "https://github.com/rustwasm/wasm-pack#readme",
   "dependencies": {
-    "binary-install": "0.0.0"
+    "binary-install": "0.0.1"
   }
 }

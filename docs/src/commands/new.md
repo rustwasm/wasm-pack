@@ -40,8 +40,8 @@ The `wasm-pack new` command can be given an optional mode argument, e.g.:
 wasm-pack new myproject --mode noinstall
 ```
 
-The mode pass can be either "normal", "noinstall", or "force". "normal is passed by
-degault.
+The mode passed can be either "normal", "noinstall", or "force". "normal" is passed by
+default.
 
 `noinstall` means that wasm-pack should not attempt to install any underlying tools.
 If a necessary tool cannot be found, the command will error.

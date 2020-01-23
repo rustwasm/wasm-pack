@@ -14,11 +14,11 @@ The available configuration options and their default values are shown below:
 # the Rust compiler has finished? Using `wasm-opt` can often further decrease
 # binary size or do clever tricks that haven't made their way into LLVM yet.
 #
-# Configuration can be set to `false` if you want to disable it (as is the
-# default for the dev profile), or it can be an array of strings which are
-# explicit arguments to pass to `wasm-opt`. For example `['-Os']` would optimize
-# for size while `['-O4']` would execute very expensive optimizations passes
-wasm-opt = false
+# Configuration is set to `false` by default for the dev profile, but it can
+# be set to an array of strings which are explicit arguments to pass to
+# `wasm-opt`. For example `['-Os']` would optimize for size while `['-O4']`
+# would execute very expensive optimizations passes
+wasm-opt = ['-O']
 
 [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
 # Should we enable wasm-bindgen's debug assertions in its generated JS glue?
@@ -36,8 +36,10 @@ debug-js-glue = false
 demangle-name-section = true
 dwarf-debug-info = false
 
+# `wasm-opt` is on by default in for the release profile, but it can be
+# disabled by setting it to `false`
 [package.metadata.wasm-pack.profile.release]
-wasm-opt = ['-O']
+wasm-opt = false
 
 [package.metadata.wasm-pack.profile.release.wasm-bindgen]
 debug-js-glue = false

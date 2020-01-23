@@ -590,7 +590,7 @@ impl CrateData {
         files.push(js_file.clone());
         if include_commonjs_shim {
             let js_bg_file = format!("{}_bg.js", name_prefix);
-            files.push(js_bg_file.to_string());
+            files.push(js_bg_file);
         }
 
         let pkg = &self.data.packages[self.current_idx];

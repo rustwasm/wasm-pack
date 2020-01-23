@@ -30,7 +30,7 @@ fn find_manifest_from_cwd() -> Result<PathBuf, failure::Error> {
                 return Ok(PathBuf::from("."));
             }
         } else {
-            return Ok(parent_path.to_owned());
+            return Ok(parent_path);
         }
     }
 }

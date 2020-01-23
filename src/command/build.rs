@@ -392,7 +392,10 @@ impl Build {
             &self.out_dir,
             &args,
             self.mode.install_permitted(),
-        )?;
-        Ok(())
+        ).map_err(|e| {
+            format_err!(
+                "{}\nTo disable `wasm-opt`, add `wasm-opt = false` to your package metadata in your `Cargo.toml`.", e
+            )
+        })
     }
 }
