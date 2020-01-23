@@ -3,13 +3,14 @@ use binary_install::Cache;
 use chrono::DateTime;
 use failure::{self, ResultExt};
 use install::InstallMode;
+use log::info;
 use stamps;
 use std::path::PathBuf;
 use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://github.com/mozilla/geckodriver/releases/latest
-const DEFAULT_GECKODRIVER_VERSION: &str = "v0.24.0";
+const DEFAULT_GECKODRIVER_VERSION: &str = "v0.26.0";
 
 const GECKODRIVER_LAST_UPDATED_STAMP: &str = "geckodriver_last_updated";
 const GECKODRIVER_VERSION_STAMP: &str = "geckodriver_version";
@@ -21,6 +22,7 @@ pub fn get_or_install_geckodriver(
     mode: InstallMode,
 ) -> Result<PathBuf, failure::Error> {
     if let Ok(path) = which::which("geckodriver") {
+        info!("GECKODRIVER PATH IS {:?}", path);
         return Ok(path);
     }
     install_geckodriver(cache, mode.install_permitted())
@@ -46,6 +48,7 @@ pub fn install_geckodriver(
     };
 
     let url = get_geckodriver_url(target, ext);
+    info!("GECKODRIVER URL IS {:?}", url);
 
     match get_and_notify(cache, installation_allowed, "geckodriver", &url)? {
         Some(path) => Ok(path),
