@@ -1,0 +1,185 @@
+trigger:
+  branches:
+    include:
+      - refs/heads/master
+      - refs/tags/*
+
+jobs:
+  - job: test_wasm_pack
+    displayName: "Run wasm-pack tests, fmt, clippy"
+    steps:
+      - template: ci/azure-install-rust.yml
+      - template: ci/azure-install-node.yml
+      - script: cargo test --locked
+        displayName: "cargo test --locked"
+        env:
+          RUST_LOG: warn,wrangler=info
+          RUST_BACKTRACE: 1
+      - script: cargo fmt -- --check
+        displayName: "cargo fmt -- --check"
+      - script: cargo clippy
+        displayName: "cargo clippy"
+
+  - job: test_wasm_pack_windows
+    displayName: "Run wasm-pack tests (Windows)"
+    pool:
+      vmImage: vs2017-win2016
+    steps:
+      - template: ci/azure-install-rust.yml
+      - template: ci/azure-install-node.yml
+      - template: ci/azure-install-geckodriver.yml
+      - script: cargo test --locked
+        displayName: "cargo test --locked"
+        env:
+          RUST_LOG: warn,wrangler=info
+          RUST_BACKTRACE: 1
+
+  - job: test_wasm_pack_nightly
+    displayName: "Run wasm-pack tests (nightly)"
+    steps:
+      - template: ci/azure-install-rust.yml
+        parameters:
+            toolchain: 'nightly'
+      - template: ci/azure-install-node.yml
+      - script: cargo test --locked
+        displayName: "cargo test --locked"
+        env:
+          RUST_LOG: warn,wrangler=info
+          RUST_BACKTRACE: 1
+      - script: cargo fmt -- --check
+        displayName: "cargo fmt -- --check"
+      - script: cargo clippy
+        displayName: "cargo clippy"
+
+  - job: dist_linux
+    displayName: "Dist Linux binary"
+    steps:
+      - template: ci/azure-install-rust.yml
+      - script: rustup target add x86_64-unknown-linux-musl
+      - script: |
+          sudo apt update -y
+          sudo apt install musl-tools -y
+        displayName: "Install musl-tools"
+      - script: |
+          set -ex
+          cargo build --target x86_64-unknown-linux-musl --features vendored-openssl --release
+      - template: ci/azure-create-tarball.yml
+        parameters:
+          artifacts: target/x86_64-unknown-linux-musl/release/wasm-pack
+          name: dist_linux
+
+  - job: dist_darwin
+    displayName: "Dist Darwin binary"
+    pool:
+      vmImage: macOS-10.13
+    steps:
+      - template: ci/azure-install-rust.yml
+      - script: cargo build --release
+        env:
+          MACOSX_DEPLOYMENT_TARGET: 10.7
+      - template: ci/azure-create-tarball.yml
+        parameters:
+          name: dist_darwin
+
+  - job: dist_windows
+    displayName: "Dist Windows binary"
+    pool:
+      vmImage: vs2017-win2016
+    steps:
+      - template: ci/azure-install-rust.yml
+      - script: cargo build --release
+      - template: ci/azure-create-tarball.yml
+        parameters:
+          name: dist_windows
+
+  - job: doc_book
+    displayName: "Doc - build the book"
+    steps:
+      - script: (test -x $HOME/.cargo/bin/cargo-install-update || cargo install cargo-update)
+        displayName: "Install cargo-update"
+      - script: (test -x $HOME/.cargo/bin/mdbook || cargo install --vers "^0.2" mdbook)
+        displayName: "Install mdbook ^0.2"
+      - script: |
+            set -ex
+            cargo install-update -a
+            mdbook --version
+        displayName: "Update mdbook"
+      - script: (cd docs && mv _theme theme && mdbook build)
+        displayName: "Build book"
+      - script: |
+            set -ex
+            rustc ./docs/_installer/build-installer.rs
+            ./build-installer
+            displayName: "Build installer"
+      - task: PublishPipelineArtifact@0
+        inputs:
+          artifactName: doc_book
+          targetPath: docs
+
+  - job: deploy
+    dependsOn:
+      - doc_book
+      - dist_linux
+      - dist_darwin
+      - dist_windows
+    displayName: "Deploy everything"
+    steps:
+      - template: ci/azure-install-rust.yml
+      - task: DownloadPipelineArtifact@0
+        displayName: "Download docs - book"
+        inputs:
+          artifactName: doc_book
+          targetPath: gh-pages
+      - task: DownloadPipelineArtifact@0
+        displayName: "Download dist - windows"
+        inputs:
+          artifactName: dist_windows
+          targetPath: tmp/windows
+      - task: DownloadPipelineArtifact@0
+        displayName: "Download dist - linux"
+        inputs:
+          artifactName: dist_linux
+          targetPath: tmp/linux
+      - task: DownloadPipelineArtifact@0
+        displayName: "Download dist - darwin"
+        inputs:
+          artifactName: dist_darwin
+          targetPath: tmp/darwin
+      - script: |
+          set -ex
+          mkdir -p gh-release
+          find .
+          tag=`git describe --tags`
+          mk() {
+            target=$1
+            src=$2
+            name=wasm-pack-$tag-$target
+            mkdir -p tmp/$name
+            cp README.md \
+              LICENSE-MIT \
+              LICENSE-APACHE \
+              tmp/$src/wasm-pack* \
+            chmod +x tmp/$name/wasm-pack*
+            tar czvf gh-release/$name.tar.gz -C tmp $name
+          }
+          mk x86_64-unknown-linux-musl linux
+          mk x86_64-apple-darwin darwin
+          mk x86_64-pc-windows-msvc windows
+        displayName: "prepare the github releases tarball artifacts"
+      - task: PublishPipelineArtifact@0
+        displayName: "publish gh_release artifact"
+        inputs:
+          artifactName: gh_release
+          targetPath: gh-release
+      - task: PublishPipelineArtifact@0
+        displayName: "publish gh_pages artifact"
+        inputs:
+          artifactName: gh_pages
+          targetPath: gh-pages
+      - task: GithubRelease@0
+        condition: and(succeeded(), startsWith(variables['Build.SourceBranch'], 'refs/tags/'))
+        displayName: 'Create GitHub Release'
+        inputs:
+          gitHubConnection: ashleygwilliams-token
+          repositoryName: rustwasm/wasm-pack
+          assets: gh-release/*.tar.gz

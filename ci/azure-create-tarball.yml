@@ -1,0 +1,14 @@
+parameters:
+  artifacts: 'target/release/wasm-pack'
+  name: ''
+
+steps:
+  - bash: |
+      set -ex
+      dst=$BUILD_ARTIFACTSTAGINGDIRECTORY
+      cp ${{ parameters.artifacts }} $dst/
+    displayName: Create distribution tarball
+  - task: PublishPipelineArtifact@0
+    inputs:
+      artifactName: ${{ parameters.name }}
+      targetPath: '$(Build.ArtifactStagingDirectory)'
