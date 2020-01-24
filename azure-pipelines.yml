@@ -27,7 +27,7 @@ jobs:
     steps:
       - template: ci/azure-install-rust.yml
       - template: ci/azure-install-node.yml
-      - template: ci/azure-install-geckodriver.yml
+      # - template: ci/azure-install-geckodriver.yml
       - script: cargo test --locked
         displayName: "cargo test --locked"
         env:
