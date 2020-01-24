@@ -46,10 +46,6 @@ jobs:
         env:
           RUST_LOG: warn,wrangler=info
           RUST_BACKTRACE: 1
-      - script: cargo fmt -- --check
-        displayName: "cargo fmt -- --check"
-      - script: cargo clippy
-        displayName: "cargo clippy"
 
   - job: dist_linux
     displayName: "Dist Linux binary"
