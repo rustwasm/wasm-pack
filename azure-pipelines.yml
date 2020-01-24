@@ -110,7 +110,7 @@ jobs:
             set -ex
             rustc ./docs/_installer/build-installer.rs
             ./build-installer
-            displayName: "Build installer"
+        displayName: "Build installer"
       - task: PublishPipelineArtifact@0
         inputs:
           artifactName: doc_book
