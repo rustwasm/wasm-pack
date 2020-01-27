@@ -26,6 +26,9 @@ This is a list of the things that need to happen during a release.
 1. Run `cargo update`.
 1. Run `cargo test`.
 1. Run `cargo build`.
+1. Copy `README.md` to `npm/README.md`
+1. Bump the version number in `npm/package.json`
+1. `cd npm && npm install`
 1. Push up a commit with the `Cargo.toml`, `Cargo.lock`, `docs/index.html`,
   and `CHANGELOG.md` changes. The commit message can just be "#.#.#".
 1. Request review from `@ashleygwilliams` and `@drager`.
@@ -39,4 +42,5 @@ This is a list of the things that need to happen during a release.
 1. `git checkout master` and `git pull --rebase origin master`
 1. Run `cargo test`.
 1. `cargo publish`
+1. `cd npm && npm publish`
 1. Tweet.
