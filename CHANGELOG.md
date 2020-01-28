@@ -4,6 +4,15 @@
 
 - ### ✨ Features
 
+  - **Adding in `--quiet` and `--log-level` flags to control the console output - [Pauan], [pull/694]**
+
+    The `--verbose` flag has long existed as a way to get more console output, but now there are two flags to get *less* console output:
+
+    * `--quiet` will silence *all* stdout, so only errors will be displayed.
+    * `--log-level` can be used to silence `[INFO]` or `[WARN]` output from wasm-pack.
+
+    [Pauan]: https://github.com/Pauan
+    [pull/694]: https://github.com/rustwasm/wasm-pack/pull/694
   - **Wrap `cargo-generate` with `wasm-pack new` - [ashleygwilliams], [issue/373] [pull/623]**
 
     One of the first steps in getting started with `wasm-pack` is to `cargo install cargo-generate` to bootstrap some project templates. This can take a while and is an extra burden on users just getting started with `wasm-pack`. `wasm-pack new` uses `cargo-generate` to bootstrap new projects, removing the need to install the tool on your own. You can read more about this feature [here](https://github.com/rustwasm/wasm-pack/blob/master/docs/src/commands/new.md).
