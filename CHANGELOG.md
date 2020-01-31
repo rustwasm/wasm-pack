@@ -1,5 +1,204 @@
 # Changelog
 
+## 🌥️ 0.9.0
+
+- ### ✨ Features
+
+  - **Adding in `--quiet` and `--log-level` flags to control the console output - [Pauan], [pull/694]**
+
+    The `--verbose` flag has long existed as a way to get more console output, but now there are two flags to get *less* console output:
+
+    * `--quiet` will silence *all* stdout, so only errors will be displayed.
+    * `--log-level` can be used to silence `[INFO]` or `[WARN]` output from wasm-pack.
+
+    You can cause it to display even *more* information by using `--verbose`, or you can silence *all* stdout by using `--quiet`.
+
+    You can also use `--log-level` to have fine-grained control over wasm-pack's log output:
+
+    * `--log-level info` is the default, it causes all messages to be logged.
+    * `--log-level warn` causes warnings and errors to be displayed, but not info.
+    * `--log-level error` causes only errors to be displayed.
+
+    These flags are global flags, so they can be used with every command, and they must come *before* the command:
+
+    ```sh
+    wasm-pack --log-level error build
+    wasm-pack --quiet build
+    ```
+
+    [Pauan]: https://github.com/Pauan
+    [pull/694]: https://github.com/rustwasm/wasm-pack/pull/694
+
+  - **Wrap `cargo-generate` with `wasm-pack new` - [ashleygwilliams], [issue/373] [pull/623]**
+
+    One of the first steps in getting started with `wasm-pack` is to `cargo install cargo-generate` to bootstrap some project templates. This can take a while and is an extra burden on users just getting started with `wasm-pack`. `wasm-pack new` uses `cargo-generate` to bootstrap new projects, removing the need to install the tool on your own. You can read more about this feature [here](https://github.com/rustwasm/wasm-pack/blob/master/docs/src/commands/new.md).
+
+    [ashleygwilliams]: https://github.com/ashleygwilliams
+    [pull/623]: https://github.com/rustwasm/wasm-pack/pull/623
+    [issue/373]: https://github.com/rustwasm/wasm-pack/issues/373
+
+  - **Allow `wasm-pack` to be run from subdirectories - [gameldar], [issue/620] [pull/624]**
+
+    If a crate path is not specified when running `wasm-pack` and there is no `Cargo.toml` in the current working directory, `wasm-pack` will walk up the directory structure to find a `Cargo.toml`.
+
+    [gameldar]: https://github.com/gameldar
+    [pull/624]: https://github.com/rustwasm/wasm-pack/pull/624
+    [issue/620]: https://github.com/rustwasm/wasm-pack/issues/620
+
+  - **Automatically execute `wasm-opt` on produced binaries - [alexcrichton], [issue/159] [pull/625]**
+
+    When `wasm-pack` builds binaries in released and profiling modes, it will execute `wasm-opt` on the binary, making the result smaller and more performant.
+
+    [alexcrichton]: https://github.com/alexcrichton
+    [pull/625]: https://github.com/rustwasm/wasm-pack/pull/625
+    [issue/159]: https://github.com/rustwasm/wasm-pack/issues/159  
+
+  - **Helpful error message when wasm-bindgen fails because of an old version - [gameldar], [ashleygwilliams], [issue/627] [pull/633]**
+
+    `wasm-pack` will pass a `--web` flag to `wasm-bindgen` when `wasm-pack build --target web` is run. Before, if the user had an old version of `wasm-bindgen` in their dependencies, they would receive a cryptic error message. Now they will be notified that they need to update their `wasm-bindgen` dependency if they want to build for the `web` target.
+
+    [gameldar]: https://github.com/gameldar
+    [pull/633]: https://github.com/rustwasm/wasm-pack/pull/633
+    [issue/627]: https://github.com/rustwasm/wasm-pack/issues/627
+
+  - **Publish releases by tag to npm - [Tarnadas], [pull/690]**
+
+    You can now use `wasm-pack publish` to publish tagged releases with the optional `--tag` argument. You can read more about [distribution tags](https://docs.npmjs.com/cli/dist-tag) on NPM, and more about this feature in [our docs](https://github.com/Tarnadas/wasm-pack/blob/master/docs/src/commands/pack-and-publish.md#publishing-tagged-releases).
+
+    [Tarnadas]: https://github.com/Tarnadas
+    [pull/690]: https://github.com/rustwasm/wasm-pack/pull/690
+
+- ### 🤕 Fixes
+
+  - **Only use exactly v0.24.0 geckodriver on Windows - [ashleygwilliams], [issue/770] [pull/774]**
+
+    `wasm-pack test` is a great way to test your web Wasm modules- and it very nicely sets up and configures
+    the necessary browser engine drivers to do so!
+
+    For the v0.25.0 release of geckodriver, the team switched their build environment- which introduced a new
+    surprise runtime dependency, Visual C++ redistributable package, to their windows binaries. You can read
+    more about the issue here, [mozilla/geckodriver/issue/1617].
+
+    Becuase the introduction of this runtime dependency is considered a bug, and should be eventually fixed,
+    the team decided that the least invasive solution would be to hold geckodriver binaries, on Windows, at
+    v0.24.0, and to disable the auto-update logic, until the bug is fixed.
+
+    [ashleygwilliams]: https://github.com/ashleygwilliams
+    [issue/770]: https://github.com/rustwasm/wasm-pack/issues/770
+    [pull/774]: https://github.com/rustwasm/wasm-pack/pull/774
+    [mozilla/geckodriver/issue/1617]: https://github.com/mozilla/geckodriver/issues/1617#issuecomment-532168958
+
+  - **Handle version check failures - [drager], [issue/652], [issue/653] [pull/660]**
+
+    Every day, `wasm-pack` checks the crates.io API for the latest version number and lets the user know if their installation is out of date. Now, when these API calls fail, `wasm-pack` alerts the user of the failure and waits until the next day to make another call to crates.io.
+
+    [drager]: https://github.com/drager
+    [pull/660]: https://github.com/rustwasm/wasm-pack/pull/660
+    [issue/652]: https://github.com/rustwasm/wasm-pack/issues/652
+    [issue/653]: https://github.com/rustwasm/wasm-pack/issues/653
+
+  - **Add user agent for version check - [drager], [issue/651] [pull/658]**
+
+    crates.io requires tools to set a version check `User-Agent` header when requesting the latest version. Now, when `wasm-pack` performs an API request to crates.io, it sends `User-Agent: wasm-pack/0.9.0`.
+
+    [drager]: https://github.com/drager
+    [pull/658]: https://github.com/rustwasm/wasm-pack/pull/658
+    [issue/651]: https://github.com/rustwasm/wasm-pack/issues/651
+
+  - **Remove broken link from the README - [drager], [pull/635]**
+
+    [drager]: https://github.com/drager
+    [pull/635]: https://github.com/rustwasm/wasm-pack/pull/635 
+
+  - **Make `sideEffects` in generated `package.json` a boolean instead of a string - [rhysd], [pull/649]**
+
+    [rhysd]: https://github.com/rhysd
+    [pull/649]: https://github.com/rustwasm/wasm-pack/pull/649
+
+  - **Don't warn if license-file is present - [ashleygwilliams], [issue/692] [pull/693]**
+
+    Previously, `wasm-pack` would warn that the `license` field was missing if the `license-file` field was used instead. This warning is now only surfaced if both `license` and `license-field` are absent from a `Cargo.toml`.
+
+    [ashleygwilliams]: https://github.com/ashleygwilliams
+    [pull/693]: https://github.com/rustwasm/wasm-pack/pull/693
+    [issue/692]: https://github.com/rustwasm/wasm-pack/issues/692
+
+  - **Select correct webdriver version - [MartinKavik], [issue/611] [pull/706]**
+
+    `wasm-pack` used to install a pinned version of the Chrome, Gecko, and Safari drivers. Now when a driver needs to be installed, `wasm-pack` will pull the latest version from the API and install that instead.
+
+    [MartinKavik]: https://github.com/MartinKavik
+    [pull/706]: https://github.com/rustwasm/wasm-pack/pull/706
+    [issue/611]: https://github.com/rustwasm/wasm-pack/issues/611
+
+  - **Only run node tests on `wasm-pack test --node` - [alexcrichton], [pull/630]**
+
+    [alexcrichton]: https://github.com/alexcrichton
+    [pull/630]: https://github.com/rustwasm/wasm-pack/pull/630
+
+  - **Fix npm installs for Windows Users - [EverlastingBugstopper], [issue/757] [pull/759]**
+
+    We recently published `wasm-pack` on the npm registry but forgot to test on Windows! `npm install -g wasm-pack` now works on Windows machines.
+
+    [EverlastingBugstopper]: https://github.com/EverlastingBugstopper
+    [pull/759]: https://github.com/rustwasm/wasm-pack/pull/759
+    [issue/757]: https://github.com/rustwasm/wasm-pack/issues/757
+
+  - **Clean up `cargo test` warnings - [ashleygwilliams], [issue/752] [pull/753]**
+
+    Tests now use `std::sync::Once::new()` instead of the deprecated `std::sync::ONCE_INIT`
+
+    [ashleygwilliams]: https://github.com/ashleygwilliams
+    [pull/753]: https://github.com/rustwasm/wasm-pack/pull/753
+    [issue/752]: https://github.com/rustwasm/wasm-pack/issues/752
+
+- ### 📖 Documentation
+
+  - **Document npm installer - [drager], [issue/751] [pull/767]**
+
+    [drager]: https://github.com/drager
+    [issue/751]: https://github.com/rustwasm/wasm-pack/issues/751
+    [pull/767]: https://github.com/rustwasm/wasm-pack/pull/767
+
+  - **Update help message for `build` and `publish` subcommands - [ibaryshnikov], [issue/636] [pull/640]**
+
+    `wasm-bindgen` recently changed the default target from `browser` to `bundler` and deprecated `browser`. This change is now reflected in the help message for `wasm-pack build`.
+
+    [ibaryshnikov]: https://github.com/ibaryshnikov
+    [pull/640]: https://github.com/rustwasm/wasm-pack/pull/640
+    [issue/636]: https://github.com/rustwasm/wasm-pack/issues/636
+
+  - **Add Release Checklist - [ashleygwilliams], [issue/370] [pull/626]**
+
+    While we try to automate releases of `wasm-pack` as much as possible, there are still some manual steps that need to be completed when releasing a new version (like writing a changelog 😉). These steps now live in [`RELEASE_CHECKLIST.md`](https://github.com/rustwasm/wasm-pack/blob/master/RELEASE_CHECKLIST.md).
+
+    [ashleygwilliams]: https://github.com/ashleygwilliams
+    [pull/626]: https://github.com/rustwasm/wasm-pack/pull/626
+    [issue/370]: https://github.com/rustwasm/wasm-pack/issues/370  
+
+- ### 🛠️ Maintenance
+
+  - **Ensure that `wasm-bindgen` generates move assertions - [fitzgen], [issue/677] [pull/683]**
+
+    `wasm-pack` now creates `wasm-bindgen` test fixtures that must generate move assertions for both free functions and methods.
+
+    [fitzgen]: https://github.com/fitzgen
+    [pull/683]: https://github.com/rustwasm/wasm-pack/pull/683
+    [issue/677]: https://github.com/rustwasm/wasm-pack/issues/677
+
+  - **Update `cargo_metadata` to v0.8.0 - [ThomasdenH], [pull/670]**
+
+    [ThomasdenH]: https://github.com/ThomasdenH
+    [pull/670]: https://github.com/rustwasm/wasm-pack/pull/670
+
+  - **Update `rustfmt` install snippet in PR template` - [data-pup], [issue/639] [pull/664]**
+
+    `rustfmt` is now available on Rust's stable channel so now the `wasm-pack` PR template recommends installing the stable version instead of the nightly version.
+
+    [data-pup]: https://github.com/data-pup
+    [pull/664]: https://github.com/rustwasm/wasm-pack/pull/664
+    [issue/639]: https://github.com/rustwasm/wasm-pack/issues/639  
+
 ## 🛠️ 0.8.1
 
 - ### 🤕 Fixes
