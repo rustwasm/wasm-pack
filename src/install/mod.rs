@@ -167,10 +167,23 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
             Tool::WasmOpt => "x86-linux",
             _ => "x86_64-unknown-linux-musl",
         }
+    } else if target::LINUX && target::x86 {
+        match tool {
+            Tool::WasmOpt => "x86-linux",
+            _ => bail!("Unrecognized target!"),
+        }
     } else if target::MACOS && target::x86_64 {
         "x86_64-apple-darwin"
     } else if target::WINDOWS && target::x86_64 {
-        "x86_64-pc-windows-msvc"
+        match tool {
+            Tool::WasmOpt => "x86-windows",
+            _ => "x86_64-pc-windows-msvc",
+        }
+    } else if target::WINDOWS && target::x86 {
+        match tool {
+            Tool::WasmOpt => "x86-windows",
+            _ => bail!("Unrecognized target!"),
+        }
     } else {
         bail!("Unrecognized target!")
     };
