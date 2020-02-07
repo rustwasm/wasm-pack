@@ -1,7 +1,7 @@
 //! Implementation of the `wasm-pack build` command.
 
 use crate::wasm_opt;
-use binary_install::{Cache, Download};
+use binary_install::Cache;
 use bindgen;
 use build;
 use cache;
@@ -32,7 +32,7 @@ pub struct Build {
     pub mode: InstallMode,
     pub out_dir: PathBuf,
     pub out_name: Option<String>,
-    pub bindgen: Option<Download>,
+    pub bindgen: Option<install::Status>,
     pub cache: Cache,
     pub extra_options: Vec<String>,
 }
@@ -366,7 +366,7 @@ impl Build {
         info!("Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_data,
-            self.bindgen.as_ref().unwrap(),
+            &self.bindgen.as_ref().unwrap(),
             &self.out_dir,
             &self.out_name,
             self.disable_dts,

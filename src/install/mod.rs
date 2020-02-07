@@ -5,6 +5,7 @@ use binary_install::{Cache, Download};
 use child;
 use emoji;
 use failure::{self, ResultExt};
+use install;
 use log::debug;
 use log::{info, warn};
 use std::env;
@@ -21,6 +22,27 @@ mod tool;
 pub use self::mode::InstallMode;
 pub use self::tool::Tool;
 
+/// Possible outcomes of attempting to find/install a tool
+pub enum Status {
+    /// Couldn't install tool because downloads are forbidden by user
+    CannotInstall,
+    /// The current platform doesn't support precompiled binaries for this tool
+    PlatformNotSupported,
+    /// We found the tool at the specified path
+    Found(Download),
+}
+
+/// Handles possible installs status and returns the download or a error message
+pub fn get_tool_path(status: &Status, tool: Tool) -> Result<&Download, failure::Error> {
+    match status {
+        Status::Found(download) => Ok(download),
+        Status::CannotInstall => bail!("Not able to find or install a local {}.", tool),
+        install::Status::PlatformNotSupported => {
+            bail!("{} does not currently support your platform.", tool)
+        }
+    }
+}
+
 /// Install a cargo CLI tool
 ///
 /// Prefers an existing local install, if any exists. Then checks if there is a
@@ -32,7 +54,7 @@ pub fn download_prebuilt_or_cargo_install(
     cache: &Cache,
     version: &str,
     install_permitted: bool,
-) -> Result<Download, failure::Error> {
+) -> Result<Status, failure::Error> {
     // If the tool is installed globally and it has the right version, use
     // that. Assume that other tools are installed next to it.
     //
@@ -41,7 +63,8 @@ pub fn download_prebuilt_or_cargo_install(
     if let Ok(path) = which(tool.to_string()) {
         debug!("found global {} binary at: {}", tool, path.display());
         if check_version(&tool, &path, version)? {
-            return Ok(Download::at(path.parent().unwrap()));
+            let download = Download::at(path.parent().unwrap());
+            return Ok(Status::Found(download));
         }
     }
 
@@ -101,7 +124,7 @@ pub fn download_prebuilt(
     cache: &Cache,
     version: &str,
     install_permitted: bool,
-) -> Result<Download, failure::Error> {
+) -> Result<Status, failure::Error> {
     let url = match prebuilt_url(tool, version) {
         Ok(url) => url,
         Err(e) => bail!(
@@ -114,15 +137,23 @@ pub fn download_prebuilt(
         Tool::WasmBindgen => {
             let binaries = &["wasm-bindgen", "wasm-bindgen-test-runner"];
             match cache.download(install_permitted, "wasm-bindgen", binaries, &url)? {
-                Some(download) => Ok(download),
+                Some(download) => Ok(Status::Found(download)),
                 None => bail!("wasm-bindgen v{} is not installed!", version),
             }
         }
         Tool::CargoGenerate => {
             let binaries = &["cargo-generate"];
             match cache.download(install_permitted, "cargo-generate", binaries, &url)? {
-                Some(download) => Ok(download),
+                Some(download) => Ok(Status::Found(download)),
                 None => bail!("cargo-generate v{} is not installed!", version),
+            }
+        }
+        Tool::WasmOpt => {
+            let binaries = &["wasm-opt"];
+            match cache.download(install_permitted, "wasm-opt", binaries, &url)? {
+                Some(download) => Ok(Status::Found(download)),
+                // TODO(ag_dubs): why is this different? i forget...
+                None => Ok(Status::CannotInstall),
             }
         }
     }
@@ -132,11 +163,27 @@ pub fn download_prebuilt(
 /// available for our host platform.
 fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
     let target = if target::LINUX && target::x86_64 {
-        "x86_64-unknown-linux-musl"
+        match tool {
+            Tool::WasmOpt => "x86-linux",
+            _ => "x86_64-unknown-linux-musl",
+        }
+    } else if target::LINUX && target::x86 {
+        match tool {
+            Tool::WasmOpt => "x86-linux",
+            _ => bail!("Unrecognized target!"),
+        }
     } else if target::MACOS && target::x86_64 {
         "x86_64-apple-darwin"
     } else if target::WINDOWS && target::x86_64 {
-        "x86_64-pc-windows-msvc"
+        match tool {
+            Tool::WasmOpt => "x86-windows",
+            _ => "x86_64-pc-windows-msvc",
+        }
+    } else if target::WINDOWS && target::x86 {
+        match tool {
+            Tool::WasmOpt => "x86-windows",
+            _ => bail!("Unrecognized target!"),
+        }
     } else {
         bail!("Unrecognized target!")
     };
@@ -155,6 +202,13 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
                 Krate::new(&Tool::CargoGenerate)?.max_version,
                 target
             ))
+        },
+        Tool::WasmOpt => {
+            Ok(format!(
+        "https://github.com/WebAssembly/binaryen/releases/download/{vers}/binaryen-{vers}-{target}.tar.gz",
+        vers = "version_90",
+        target = target,
+            ))
         }
     }
 }
@@ -166,7 +220,7 @@ pub fn cargo_install(
     cache: &Cache,
     version: &str,
     install_permitted: bool,
-) -> Result<Download, failure::Error> {
+) -> Result<Status, failure::Error> {
     debug!(
         "Attempting to use a `cargo install`ed version of `{}={}`",
         tool, version,
@@ -181,11 +235,12 @@ pub fn cargo_install(
             version,
             destination.display()
         );
-        return Ok(Download::at(&destination));
+        let download = Download::at(&destination);
+        return Ok(Status::Found(download));
     }
 
     if !install_permitted {
-        bail!("{} v{} is not installed!", tool, version)
+        return Ok(Status::CannotInstall);
     }
 
     // Run `cargo install` to a temporary location to handle ctrl-c gracefully
@@ -210,10 +265,6 @@ pub fn cargo_install(
         .arg("--root")
         .arg(&tmp);
 
-    if PBAR.quiet() {
-        cmd.arg("--quiet");
-    }
-
     let context = format!("Installing {} with cargo", tool);
     child::run(cmd, "cargo install").context(context)?;
 
@@ -221,12 +272,13 @@ pub fn cargo_install(
     // just want them in `$root/*` directly (which matches how the tarballs are
     // laid out, and where the rest of our code expects them to be). So we do a
     // little renaming here.
-    let binaries = match tool {
-        Tool::WasmBindgen => vec!["wasm-bindgen", "wasm-bindgen-test-runner"],
-        Tool::CargoGenerate => vec!["cargo-genrate"],
+    let binaries: Result<Vec<&str>, failure::Error> = match tool {
+        Tool::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
+        Tool::CargoGenerate => Ok(vec!["cargo-genrate"]),
+        Tool::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
     };
 
-    for b in binaries.iter().cloned() {
+    for b in binaries?.iter().cloned() {
         let from = tmp
             .join("bin")
             .join(b)
@@ -245,5 +297,6 @@ pub fn cargo_install(
     // Finally, move the `tmp` directory into our binary cache.
     fs::rename(&tmp, &destination)?;
 
-    Ok(Download::at(&destination))
+    let download = Download::at(&destination);
+    Ok(Status::Found(download))
 }

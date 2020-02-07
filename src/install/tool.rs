@@ -6,13 +6,17 @@ pub enum Tool {
     CargoGenerate,
     /// wasm-bindgen CLI tools
     WasmBindgen,
+    /// wasm-opt CLI tool
+    WasmOpt,
 }
 
 impl fmt::Display for Tool {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Tool::CargoGenerate => write!(f, "cargo-generate"),
-            Tool::WasmBindgen => write!(f, "wasm-bindgen"),
-        }
+        let s = match self {
+            Tool::CargoGenerate => "cargo-generate",
+            Tool::WasmBindgen => "wasm-bindgen",
+            Tool::WasmOpt => "wasm-opt",
+        };
+        write!(f, "{}", s)
     }
 }
