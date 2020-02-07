@@ -1,33 +1,5 @@
 # Changelog
 
-## ☁️  0.9.1
-
-- ### 🤕 Fixes
-
-  - **Bump binaryen to version_90 - [ashleygwilliams], [issue/781] [issue/782] [pull/687]**
-
-    Previously, wasm-pack was hardcoded to install and attempt to execute wasm-opt on every build
-    using binaryen version 78. This version had various issues on Unix/Linux and caused broken CI
-    builds for many folks (we're so sorry!).
-
-    This PR updates the binaryen version to 90, which should fix the issues folks were having. 
-
-    Long-term, we'd like to create an auto-updating mechanism so that we can install and use the
-    latest release of binaryen as we do for other binaries we orchestrate.
-
-    [ashleygwilliams]: https://github.com/ashleygwilliams
-    [pull/687]: https://github.com/rustwasm/wasm-pack/pull/687
-    [issue/782]: https://github.com/rustwasm/wasm-pack/issues/782
-    [issue/781]: https://github.com/rustwasm/wasm-pack/issues/781
-
-- ### 🛠️ Maintenance
-
-  - **Consolidate wasm-opt installation into existing binary install logic - [ashleygwilliams], [issue/685] [pull/687]**
-
-    [ashleygwilliams]: https://github.com/ashleygwilliams
-    [pull/687]: https://github.com/rustwasm/wasm-pack/pull/687
-    [issue/685]: https://github.com/rustwasm/wasm-pack/issues/685
-
 ## 🌥️ 0.9.0
 
 - ### ✨ Features
