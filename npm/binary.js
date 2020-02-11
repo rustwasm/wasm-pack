@@ -27,7 +27,7 @@ const getBinary = () => {
   const url = `https://github.com/${author}/${name}/releases/download/v${version}/${name}-v${version}-${platform}.tar.gz`;
   return new Binary(url, {
     name,
-    installDirectory: join(__dirname, "..", "bin")
+    installDirectory: join(__dirname, "bin")
   });
 };
 
