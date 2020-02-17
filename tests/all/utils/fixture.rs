@@ -8,7 +8,7 @@ use std::sync::{MutexGuard, Once};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
-use wasm_pack::install::{self, Tool};
+use wasm_pack::tool::{self, Tool};
 
 /// A test fixture in a temporary directory.
 pub struct Fixture {
@@ -224,13 +224,12 @@ impl Fixture {
         let version = "0.2.37";
 
         let download = || {
-            if let Ok(download) =
-                install::download_prebuilt(&Tool::WasmBindgen, &cache, version, true)
+            if let Ok(download) = tool::download_prebuilt(&Tool::WasmBindgen, &cache, version, true)
             {
                 return Ok(download);
             }
 
-            install::cargo_install(Tool::WasmBindgen, &cache, version, true)
+            tool::cargo_install(Tool::WasmBindgen, &cache, version, true)
         };
 
         // Only one thread can perform the actual download, and then afterwards
@@ -238,7 +237,7 @@ impl Fixture {
         INSTALL_WASM_BINDGEN.call_once(|| {
             download().unwrap();
         });
-        if let install::Status::Found(dl) = download().unwrap() {
+        if let tool::Status::Found(dl) = download().unwrap() {
             dl.binary("wasm-bindgen").unwrap()
         } else {
             panic!("Download failed")
@@ -250,7 +249,7 @@ impl Fixture {
         let cache = self.cache();
 
         INSTALL_WASM_OPT.call_once(|| {
-            wasm_pack::wasm_opt::find_wasm_opt(&cache, true).unwrap();
+            wasm_pack::tool::wasm_opt::find_wasm_opt(&cache, true).unwrap();
         });
     }
 
@@ -264,12 +263,12 @@ impl Fixture {
 
         let download = || {
             if let Ok(download) =
-                install::download_prebuilt(&Tool::CargoGenerate, &cache, "latest", true)
+                tool::download_prebuilt(&Tool::CargoGenerate, &cache, "latest", true)
             {
                 return Ok(download);
             }
 
-            install::cargo_install(Tool::CargoGenerate, &cache, "latest", true)
+            tool::cargo_install(Tool::CargoGenerate, &cache, "latest", true)
         };
 
         // Only one thread can perform the actual download, and then afterwards
@@ -277,7 +276,7 @@ impl Fixture {
         INSTALL_CARGO_GENERATE.call_once(|| {
             download().unwrap();
         });
-        if let install::Status::Found(dl) = download().unwrap() {
+        if let tool::Status::Found(dl) = download().unwrap() {
             dl.binary("cargo-generate").unwrap()
         } else {
             panic!("Download failed")

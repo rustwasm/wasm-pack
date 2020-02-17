@@ -1,9 +1,9 @@
 use cache;
 use failure::Error;
 use generate;
-use install::{self, Tool};
 use log::info;
 use std::result;
+use tool::{self, Tool};
 use PBAR;
 
 /// Executes the 'cargo-generate' command in the current directory
@@ -14,7 +14,7 @@ pub fn generate(
     install_permitted: bool,
 ) -> result::Result<(), Error> {
     info!("Generating a new rustwasm project...");
-    let download = install::download_prebuilt_or_cargo_install(
+    let download = tool::download_prebuilt_or_cargo_install(
         Tool::CargoGenerate,
         &cache::get_wasm_pack_cache()?,
         "latest",

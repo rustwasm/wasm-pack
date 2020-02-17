@@ -6,13 +6,13 @@ use cache;
 use command::utils::get_crate_path;
 use console::style;
 use failure::Error;
-use install::{self, InstallMode, Tool};
 use lockfile::Lockfile;
 use log::info;
 use manifest;
 use std::path::PathBuf;
 use std::time::Instant;
 use test::{self, webdriver};
+use tool::{self, InstallMode, Tool};
 
 #[derive(Debug, Default, StructOpt)]
 /// Everything required to configure the `wasm-pack test` command.
@@ -268,7 +268,7 @@ impl Test {
             )
         }
 
-        let status = install::download_prebuilt_or_cargo_install(
+        let status = tool::download_prebuilt_or_cargo_install(
             Tool::WasmBindgen,
             &self.cache,
             &bindgen_version,
@@ -276,7 +276,7 @@ impl Test {
         )?;
 
         self.test_runner_path = match status {
-            install::Status::Found(dl) => Some(dl.binary("wasm-bindgen-test-runner")?),
+            tool::Status::Found(dl) => Some(dl.binary("wasm-bindgen-test-runner")?),
             _ => bail!("Could not find 'wasm-bindgen-test-runner'."),
         };
 

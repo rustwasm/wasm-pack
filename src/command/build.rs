@@ -1,6 +1,6 @@
 //! Implementation of the `wasm-pack build` command.
 
-use crate::wasm_opt;
+use crate::tool::wasm_opt;
 use binary_install::Cache;
 use bindgen;
 use build;
@@ -8,7 +8,6 @@ use cache;
 use command::utils::{create_pkg_dir, get_crate_path};
 use emoji;
 use failure::Error;
-use install::{self, InstallMode, Tool};
 use license;
 use lockfile::Lockfile;
 use log::info;
@@ -18,6 +17,7 @@ use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
+use tool::{self, InstallMode, Status, Tool};
 use PBAR;
 
 /// Everything required to configure and run the `wasm-pack build` command.
@@ -32,7 +32,7 @@ pub struct Build {
     pub mode: InstallMode,
     pub out_dir: PathBuf,
     pub out_name: Option<String>,
-    pub bindgen: Option<install::Status>,
+    pub bindgen: Option<Status>,
     pub cache: Cache,
     pub extra_options: Vec<String>,
 }
@@ -351,7 +351,7 @@ impl Build {
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
         info!("Installing wasm-bindgen-cli...");
-        let bindgen = install::download_prebuilt_or_cargo_install(
+        let bindgen = tool::download_prebuilt_or_cargo_install(
             Tool::WasmBindgen,
             &self.cache,
             &bindgen_version,

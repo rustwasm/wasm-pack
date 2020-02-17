@@ -3,17 +3,17 @@
 use child;
 use command::build::{BuildProfile, Target};
 use failure::{self, ResultExt};
-use install::{self, Tool};
 use manifest::CrateData;
 use semver;
 use std::path::{Path, PathBuf};
 use std::process::Command;
+use tool::{self, Tool};
 
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
 /// `.wasm`.
 pub fn wasm_bindgen_build(
     data: &CrateData,
-    install_status: &install::Status,
+    install_status: &tool::Status,
     out_dir: &Path,
     out_name: &Option<String>,
     disable_dts: bool,
@@ -39,7 +39,7 @@ pub fn wasm_bindgen_build(
     } else {
         "--typescript"
     };
-    let bindgen_path = install::get_tool_path(install_status, Tool::WasmBindgen)?
+    let bindgen_path = tool::get_tool_path(install_status, Tool::WasmBindgen)?
         .binary(&Tool::WasmBindgen.to_string())?;
 
     let mut cmd = Command::new(&bindgen_path);
@@ -76,20 +76,16 @@ pub fn wasm_bindgen_build(
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied for the web target
 fn supports_web_target(cli_path: &PathBuf) -> Result<bool, failure::Error> {
-    let cli_version = semver::Version::parse(&install::get_cli_version(
-        &install::Tool::WasmBindgen,
-        cli_path,
-    )?)?;
+    let cli_version =
+        semver::Version::parse(&tool::get_cli_version(&tool::Tool::WasmBindgen, cli_path)?)?;
     let expected_version = semver::Version::parse("0.2.39")?;
     Ok(cli_version >= expected_version)
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied for the --target flag
 fn supports_dash_dash_target(cli_path: PathBuf) -> Result<bool, failure::Error> {
-    let cli_version = semver::Version::parse(&install::get_cli_version(
-        &install::Tool::WasmBindgen,
-        &cli_path,
-    )?)?;
+    let cli_version =
+        semver::Version::parse(&tool::get_cli_version(&tool::Tool::WasmBindgen, &cli_path)?)?;
     let expected_version = semver::Version::parse("0.2.40")?;
     Ok(cli_version >= expected_version)
 }

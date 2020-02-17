@@ -16,7 +16,7 @@ use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
-use crate::install::InstallMode;
+use crate::tool::InstallMode;
 use failure::Error;
 use log::info;
 use std::path::PathBuf;

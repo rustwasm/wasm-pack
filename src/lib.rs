@@ -33,7 +33,6 @@ pub mod child;
 pub mod command;
 pub mod emoji;
 pub mod generate;
-pub mod install;
 pub mod license;
 pub mod lockfile;
 pub mod manifest;
@@ -43,7 +42,7 @@ pub mod readme;
 pub mod stamps;
 pub mod target;
 pub mod test;
-pub mod wasm_opt;
+pub mod tool;
 
 use progressbar::{LogLevel, ProgressOutput};
 

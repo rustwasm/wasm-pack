@@ -4,9 +4,9 @@
 //! properly logged and their output is logged as well.
 
 use failure::Error;
-use install::Tool;
 use log::info;
 use std::process::{Command, Stdio};
+use tool::Tool;
 
 /// Return a new Command object
 pub fn new_command(program: &str) -> Command {

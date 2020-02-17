@@ -5,10 +5,10 @@ use binary_install::{Cache, Download};
 use child;
 use emoji;
 use failure::{self, ResultExt};
-use install;
 use log::debug;
 use log::{info, warn};
 use std::env;
+use std::fmt;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
@@ -18,9 +18,29 @@ use PBAR;
 
 mod krate;
 mod mode;
-mod tool;
+pub mod wasm_opt;
 pub use self::mode::InstallMode;
-pub use self::tool::Tool;
+
+/// Represents the set of CLI tools wasm-pack uses
+pub enum Tool {
+    /// cargo-generate CLI tool
+    CargoGenerate,
+    /// wasm-bindgen CLI tools
+    WasmBindgen,
+    /// wasm-opt CLI tool
+    WasmOpt,
+}
+
+impl fmt::Display for Tool {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match self {
+            Tool::CargoGenerate => "cargo-generate",
+            Tool::WasmBindgen => "wasm-bindgen",
+            Tool::WasmOpt => "wasm-opt",
+        };
+        write!(f, "{}", s)
+    }
+}
 
 /// Possible outcomes of attempting to find/install a tool
 pub enum Status {
@@ -37,9 +57,7 @@ pub fn get_tool_path(status: &Status, tool: Tool) -> Result<&Download, failure::
     match status {
         Status::Found(download) => Ok(download),
         Status::CannotInstall => bail!("Not able to find or install a local {}.", tool),
-        install::Status::PlatformNotSupported => {
-            bail!("{} does not currently support your platform.", tool)
-        }
+        Status::PlatformNotSupported => bail!("{} does not currently support your platform.", tool),
     }
 }
 
