@@ -17,6 +17,7 @@ pub fn wasm_bindgen_build(
     out_dir: &Path,
     out_name: &Option<String>,
     disable_dts: bool,
+    omit_imports: bool,
     target: Target,
     profile: BuildProfile,
 ) -> Result<(), failure::Error> {
@@ -34,19 +35,21 @@ pub fn wasm_bindgen_build(
         .join(data.crate_name())
         .with_extension("wasm");
 
-    let dts_arg = if disable_dts {
-        "--no-typescript"
-    } else {
-        "--typescript"
-    };
     let bindgen_path = install::get_tool_path(install_status, Tool::WasmBindgen)?
         .binary(&Tool::WasmBindgen.to_string())?;
 
     let mut cmd = Command::new(&bindgen_path);
-    cmd.arg(&wasm_path)
-        .arg("--out-dir")
-        .arg(out_dir)
-        .arg(dts_arg);
+    cmd.arg(&wasm_path).arg("--out-dir").arg(out_dir);
+
+    if disable_dts {
+        cmd.arg("--no-typescript");
+    } else {
+        cmd.arg("--typescript");
+    };
+
+    if omit_imports {
+        cmd.arg("--omit-imports");
+    }
 
     let target_arg = build_target_arg(target, &bindgen_path)?;
     if supports_dash_dash_target(bindgen_path.to_path_buf())? {

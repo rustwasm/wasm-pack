@@ -27,6 +27,7 @@ pub struct Build {
     pub crate_data: manifest::CrateData,
     pub scope: Option<String>,
     pub disable_dts: bool,
+    pub omit_imports: bool,
     pub target: Target,
     pub profile: BuildProfile,
     pub mode: InstallMode,
@@ -119,6 +120,12 @@ pub struct BuildOptions {
     /// this flag will disable generating this TypeScript file.
     pub disable_dts: bool,
 
+    #[structopt(long = "omit-imports")]
+    /// When "module" is used in bindings to bring items into scope, the JS code
+    /// generator automatically creates corresponding import statements in the
+    /// output. This flag causes those import statements to be omitted.
+    pub omit_imports: bool,
+
     #[structopt(long = "target", short = "t", default_value = "bundler")]
     /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
@@ -160,6 +167,7 @@ impl Default for BuildOptions {
             scope: None,
             mode: InstallMode::default(),
             disable_dts: false,
+            omit_imports: false,
             target: Target::default(),
             debug: false,
             dev: false,
@@ -196,6 +204,7 @@ impl Build {
             crate_data,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
+            omit_imports: build_opts.omit_imports,
             target: build_opts.target,
             profile,
             mode: build_opts.mode,
@@ -370,6 +379,7 @@ impl Build {
             &self.out_dir,
             &self.out_name,
             self.disable_dts,
+            self.omit_imports,
             self.target,
             self.profile,
         )?;
