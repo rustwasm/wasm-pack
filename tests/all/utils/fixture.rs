@@ -8,7 +8,7 @@ use std::sync::{MutexGuard, Once};
 use std::thread;
 use tempfile::TempDir;
 use wasm_pack;
-use wasm_pack::tool::{self, Tool};
+use wasm_pack::tool::{self, Kind, Tool};
 
 /// A test fixture in a temporary directory.
 pub struct Fixture {
@@ -224,12 +224,12 @@ impl Fixture {
         let version = "0.2.37";
 
         let download = || {
-            if let Ok(download) = tool::download_prebuilt(&Tool::WasmBindgen, &cache, version, true)
+            if let Ok(download) = tool::download_prebuilt(Kind::WasmBindgen, &cache, version, true)
             {
                 return Ok(download);
             }
 
-            tool::cargo_install(Tool::WasmBindgen, &cache, version, true)
+            tool::cargo_install(Kind::WasmBindgen, &cache, version, true)
         };
 
         // Only one thread can perform the actual download, and then afterwards
@@ -249,7 +249,9 @@ impl Fixture {
         let cache = self.cache();
 
         INSTALL_WASM_OPT.call_once(|| {
-            wasm_pack::tool::wasm_opt::find_wasm_opt(&cache, true).unwrap();
+            Tool::new(Kind::WasmOpt, "version_78".to_string())
+                .install(&cache, true)
+                .unwrap();
         });
     }
 
@@ -263,12 +265,12 @@ impl Fixture {
 
         let download = || {
             if let Ok(download) =
-                tool::download_prebuilt(&Tool::CargoGenerate, &cache, "latest", true)
+                tool::download_prebuilt(Kind::CargoGenerate, &cache, "latest", true)
             {
                 return Ok(download);
             }
 
-            tool::cargo_install(Tool::CargoGenerate, &cache, "latest", true)
+            tool::cargo_install(Kind::CargoGenerate, &cache, "latest", true)
         };
 
         // Only one thread can perform the actual download, and then afterwards

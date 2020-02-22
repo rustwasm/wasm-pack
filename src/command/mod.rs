@@ -16,10 +16,11 @@ use self::login::login;
 use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
-use crate::tool::InstallMode;
+use crate::cache;
+use crate::tool::{InstallMode, Kind, Tool};
 use failure::Error;
 use log::info;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::result;
 
 /// The various kinds of commands that `wasm-pack` can execute.
@@ -134,7 +135,14 @@ pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
             info!("Running generate command...");
             info!("Template: {:?}", &template);
             info!("Name: {:?}", &name);
-            generate(template, name, mode.install_permitted())
+            let version = String::from("latest");
+            let cargo_gen = Tool::new(Kind::CargoGenerate, version);
+            let cache = cache::get_wasm_pack_cache()?;
+            cargo_gen.run(&cache, mode.install_permitted(), |exec: &Path| {
+                generate(template, &name, exec)?;
+                Ok(())
+            })?;
+            Ok(())
         }
         Command::Publish {
             target,

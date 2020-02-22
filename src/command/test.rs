@@ -12,7 +12,7 @@ use manifest;
 use std::path::PathBuf;
 use std::time::Instant;
 use test::{self, webdriver};
-use tool::{self, InstallMode, Tool};
+use tool::{self, InstallMode};
 
 #[derive(Debug, Default, StructOpt)]
 /// Everything required to configure the `wasm-pack test` command.
@@ -268,14 +268,10 @@ impl Test {
             )
         }
 
-        let status = tool::download_prebuilt_or_cargo_install(
-            Tool::WasmBindgen,
-            &self.cache,
-            &bindgen_version,
-            self.mode.install_permitted(),
-        )?;
+        let wasm_bindgen = tool::Tool::new(tool::Kind::WasmBindgen, bindgen_version.to_string())
+            .install(&self.cache, self.mode.install_permitted())?;
 
-        self.test_runner_path = match status {
+        self.test_runner_path = match wasm_bindgen {
             tool::Status::Found(dl) => Some(dl.binary("wasm-bindgen-test-runner")?),
             _ => bail!("Could not find 'wasm-bindgen-test-runner'."),
         };

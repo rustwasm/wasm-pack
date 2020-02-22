@@ -7,13 +7,13 @@ use manifest::CrateData;
 use semver;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use tool::{self, Tool};
+use tool::{self, Kind};
 
 /// Run the `wasm-bindgen` CLI to generate bindings for the current crate's
 /// `.wasm`.
 pub fn wasm_bindgen_build(
     data: &CrateData,
-    install_status: &tool::Status,
+    bindgen_path: &Path,
     out_dir: &Path,
     out_name: &Option<String>,
     disable_dts: bool,
@@ -39,8 +39,6 @@ pub fn wasm_bindgen_build(
     } else {
         "--typescript"
     };
-    let bindgen_path = tool::get_tool_path(install_status, Tool::WasmBindgen)?
-        .binary(&Tool::WasmBindgen.to_string())?;
 
     let mut cmd = Command::new(&bindgen_path);
     cmd.arg(&wasm_path)
@@ -75,9 +73,9 @@ pub fn wasm_bindgen_build(
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied for the web target
-fn supports_web_target(cli_path: &PathBuf) -> Result<bool, failure::Error> {
+fn supports_web_target(cli_path: &Path) -> Result<bool, failure::Error> {
     let cli_version =
-        semver::Version::parse(&tool::get_cli_version(&tool::Tool::WasmBindgen, cli_path)?)?;
+        semver::Version::parse(&tool::get_cli_version(tool::Kind::WasmBindgen, cli_path)?)?;
     let expected_version = semver::Version::parse("0.2.39")?;
     Ok(cli_version >= expected_version)
 }
@@ -85,12 +83,12 @@ fn supports_web_target(cli_path: &PathBuf) -> Result<bool, failure::Error> {
 /// Check if the `wasm-bindgen` dependency is locally satisfied for the --target flag
 fn supports_dash_dash_target(cli_path: PathBuf) -> Result<bool, failure::Error> {
     let cli_version =
-        semver::Version::parse(&tool::get_cli_version(&tool::Tool::WasmBindgen, &cli_path)?)?;
+        semver::Version::parse(&tool::get_cli_version(Kind::WasmBindgen, &cli_path)?)?;
     let expected_version = semver::Version::parse("0.2.40")?;
     Ok(cli_version >= expected_version)
 }
 
-fn build_target_arg(target: Target, cli_path: &PathBuf) -> Result<String, failure::Error> {
+fn build_target_arg(target: Target, cli_path: &Path) -> Result<String, failure::Error> {
     if !supports_dash_dash_target(cli_path.to_path_buf())? {
         Ok(build_target_arg_legacy(target, cli_path)?)
     } else {
@@ -98,7 +96,7 @@ fn build_target_arg(target: Target, cli_path: &PathBuf) -> Result<String, failur
     }
 }
 
-fn build_target_arg_legacy(target: Target, cli_path: &PathBuf) -> Result<String, failure::Error> {
+fn build_target_arg_legacy(target: Target, cli_path: &Path) -> Result<String, failure::Error> {
     log::info!("Your version of wasm-bindgen is out of date. You should consider updating your Cargo.toml to a version >= 0.2.40.");
     let target_arg = match target {
         Target::Nodejs => "--nodejs",

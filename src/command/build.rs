@@ -1,6 +1,6 @@
 //! Implementation of the `wasm-pack build` command.
 
-use crate::tool::wasm_opt;
+use crate::child;
 use binary_install::Cache;
 use bindgen;
 use build;
@@ -14,10 +14,11 @@ use log::info;
 use manifest;
 use readme;
 use std::fmt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
+use std::process::Command;
 use std::str::FromStr;
 use std::time::Instant;
-use tool::{self, InstallMode, Status, Tool};
+use tool::{InstallMode, Kind, Status, Tool};
 use PBAR;
 
 /// Everything required to configure and run the `wasm-pack build` command.
@@ -266,7 +267,6 @@ impl Build {
             step_create_dir,
             step_copy_readme,
             step_copy_license,
-            step_install_wasm_bindgen,
             step_run_wasm_bindgen,
             step_run_wasm_opt,
             step_create_json,
@@ -346,34 +346,24 @@ impl Build {
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self) -> Result<(), failure::Error> {
+    fn step_run_wasm_bindgen(&mut self) -> Result<(), failure::Error> {
         info!("Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
-        info!("Installing wasm-bindgen-cli...");
-        let bindgen = tool::download_prebuilt_or_cargo_install(
-            Tool::WasmBindgen,
-            &self.cache,
-            &bindgen_version,
-            self.mode.install_permitted(),
-        )?;
-        self.bindgen = Some(bindgen);
-        info!("Installing wasm-bindgen-cli was successful.");
-        Ok(())
-    }
-
-    fn step_run_wasm_bindgen(&mut self) -> Result<(), Error> {
-        info!("Building the wasm bindings...");
-        bindgen::wasm_bindgen_build(
-            &self.crate_data,
-            &self.bindgen.as_ref().unwrap(),
-            &self.out_dir,
-            &self.out_name,
-            self.disable_dts,
-            self.target,
-            self.profile,
-        )?;
-        info!("wasm bindings were built at {:#?}.", &self.out_dir);
+        let bindgen = Tool::new(Kind::WasmBindgen, bindgen_version.to_string());
+        bindgen.run(&self.cache, self.mode.install_permitted(), |exec: &Path| {
+            bindgen::wasm_bindgen_build(
+                &self.crate_data,
+                exec,
+                &self.out_dir,
+                &self.out_name,
+                self.disable_dts,
+                self.target,
+                self.profile,
+            )?;
+            info!("wasm bindings were built at {:#?}.", &self.out_dir);
+            Ok(())
+        })?;
         Ok(())
     }
 
@@ -387,15 +377,28 @@ impl Build {
             None => return Ok(()),
         };
         info!("executing wasm-opt with {:?}", args);
-        wasm_opt::run(
-            &self.cache,
-            &self.out_dir,
-            &args,
-            self.mode.install_permitted(),
-        ).map_err(|e| {
+        let version = String::from("version_78");
+        let wasm_opt = Tool::new(Kind::WasmOpt, version);
+        wasm_opt.run(&self.cache,self.mode.install_permitted(), |exec: &Path| {
+            for file in self.out_dir.read_dir()? {
+                let file = file?;
+                let path = file.path();
+                if path.extension().and_then(|s| s.to_str()) != Some("wasm") {
+                    continue;
+                }
+                let tmp = path.with_extension("wasm-opt.wasm");
+                let mut cmd = Command::new(exec);
+                cmd.arg(&path).arg("-o").arg(&tmp).args(&args);
+                child::run(cmd, "wasm-opt")?;
+                std::fs::rename(&tmp, &path)?;
+            }
+            Ok(())
+        })
+        .map_err(|e| {
             format_err!(
                 "{}\nTo disable `wasm-opt`, add `wasm-opt = false` to your package metadata in your `Cargo.toml`.", e
             )
-        })
+        })?;
+        Ok(())
     }
 }

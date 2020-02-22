@@ -1,6 +1,6 @@
 use binary_install::Cache;
 use tempfile;
-use wasm_pack::tool::{self, Tool};
+use wasm_pack::tool::{self, Kind};
 
 #[test]
 #[cfg(any(
@@ -12,7 +12,7 @@ fn can_download_prebuilt_wasm_bindgen() {
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
     if let tool::Status::Found(dl) =
-        tool::download_prebuilt(&Tool::WasmBindgen, &cache, "0.2.37", true).unwrap()
+        tool::download_prebuilt(Kind::WasmBindgen, &cache, "0.2.37", true).unwrap()
     {
         assert!(dl.binary("wasm-bindgen").unwrap().is_file());
         assert!(dl.binary("wasm-bindgen-test-runner").unwrap().is_file())
@@ -31,7 +31,7 @@ fn downloading_prebuilt_wasm_bindgen_handles_http_errors() {
     let dir = tempfile::TempDir::new().unwrap();
     let bad_version = "0.2.37-some-trailing-version-stuff-that-does-not-exist";
     let cache = Cache::at(dir.path());
-    let result = tool::download_prebuilt(&Tool::WasmBindgen, &cache, bad_version, true);
+    let result = tool::download_prebuilt(Kind::WasmBindgen, &cache, bad_version, true);
     assert!(result.is_err());
     let error = result.err().unwrap();
 
@@ -51,7 +51,7 @@ fn can_download_prebuilt_cargo_generate() {
     let dir = tempfile::TempDir::new().unwrap();
     let cache = Cache::at(dir.path());
     if let tool::Status::Found(dl) =
-        tool::download_prebuilt(&Tool::CargoGenerate, &cache, "latest", true).unwrap()
+        tool::download_prebuilt(Kind::CargoGenerate, &cache, "latest", true).unwrap()
     {
         assert!(dl.binary("cargo-generate").unwrap().is_file());
     } else {

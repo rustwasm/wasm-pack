@@ -1,26 +1,15 @@
-use cache;
 use failure::Error;
 use generate;
 use log::info;
+use std::path::Path;
 use std::result;
-use tool::{self, Tool};
 use PBAR;
 
 /// Executes the 'cargo-generate' command in the current directory
 /// which generates a new rustwasm project from a template.
-pub fn generate(
-    template: String,
-    name: String,
-    install_permitted: bool,
-) -> result::Result<(), Error> {
+pub fn generate(template: String, name: &str, exec_path: &Path) -> result::Result<(), Error> {
     info!("Generating a new rustwasm project...");
-    let download = tool::download_prebuilt_or_cargo_install(
-        Tool::CargoGenerate,
-        &cache::get_wasm_pack_cache()?,
-        "latest",
-        install_permitted,
-    )?;
-    generate::generate(&template, &name, &download)?;
+    generate::generate(&template, &name, exec_path)?;
 
     let msg = format!("🐑 Generated new project at /{}", name);
     PBAR.info(&msg);

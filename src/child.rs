@@ -6,7 +6,6 @@
 use failure::Error;
 use log::info;
 use std::process::{Command, Stdio};
-use tool::Tool;
 
 /// Return a new Command object
 pub fn new_command(program: &str) -> Command {
@@ -43,7 +42,7 @@ pub fn run(mut command: Command, command_name: &str) -> Result<(), Error> {
 }
 
 /// Run the given command and return its stdout.
-pub fn run_capture_stdout(mut command: Command, command_name: &Tool) -> Result<String, Error> {
+pub fn run_capture_stdout(mut command: Command, command_name: &str) -> Result<String, Error> {
     info!("Running {:?}", command);
 
     let output = command
