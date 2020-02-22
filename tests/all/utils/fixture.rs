@@ -249,7 +249,7 @@ impl Fixture {
         let cache = self.cache();
 
         INSTALL_WASM_OPT.call_once(|| {
-            Tool::new(Kind::WasmOpt, "version_78".to_string())
+            Tool::new(Kind::WasmOpt, "version_90".to_string())
                 .install(&cache, true)
                 .unwrap();
         });

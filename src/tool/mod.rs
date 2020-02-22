@@ -31,12 +31,14 @@ pub struct Tool {
 /// Represents the set of CLI tools wasm-pack uses
 #[derive(Clone, Copy)]
 pub enum Kind {
-    /// cargo-generate CLI tool
+    /// cargo-generate
     CargoGenerate,
-    /// wasm-bindgen CLI tools
+    /// wasm-bindgen
     WasmBindgen,
-    /// wasm-opt CLI tool
+    /// wasm-opt
     WasmOpt,
+    /// wasm-dis
+    WasmDis,
 }
 
 impl Tool {
@@ -45,12 +47,12 @@ impl Tool {
         Self { kind, version }
     }
 
-    /// Run with closure
+    /// Execute the CLI
     pub fn run(
         &self,
         cache: &Cache,
         install_permitted: bool,
-        f: impl FnOnce(&Path) -> Result<(), failure::Error>,
+        execute: impl FnOnce(&Path) -> Result<(), failure::Error>,
     ) -> Result<(), failure::Error> {
         let exec = match self.install(cache, install_permitted)? {
             Status::Found(path) => path,
@@ -72,16 +74,16 @@ impl Tool {
 
         let exec_path = exec.binary(&self.kind.to_string())?;
         PBAR.info(&format!("Executing `{}`...", self.kind));
-        f(&exec_path)?;
+        execute(&exec_path)?;
 
         Ok(())
     }
 
-    /// Attempts to find `wasm-opt` in `PATH` locally, or failing that downloads a
+    /// Attempts to find CLIs in `PATH` locally, or failing that downloads a
     /// precompiled binary.
     ///
-    /// Returns `Some` if a binary was found or it was successfully downloaded.
-    /// Returns `None` if a binary wasn't found in `PATH` and this platform doesn't
+    /// Returns `Ok` if a binary was found or it was successfully downloaded.
+    /// Returns `Err` if a binary wasn't found in `PATH` and this platform doesn't
     /// have precompiled binaries. Returns an error if we failed to download the
     /// binary.
     pub fn install(
@@ -89,12 +91,11 @@ impl Tool {
         cache: &Cache,
         install_permitted: bool,
     ) -> Result<Status, failure::Error> {
-        Ok(download_prebuilt_or_cargo_install(
-            self.kind,
-            cache,
-            &self.version,
-            install_permitted,
-        )?)
+        let status =
+            download_prebuilt_or_cargo_install(self.kind, cache, &self.version, install_permitted)?;
+        let msg = format!("`{}` installed successfully", self.kind);
+        PBAR.info(&msg);
+        Ok(status)
     }
 }
 
@@ -104,8 +105,19 @@ impl fmt::Display for Kind {
             Self::CargoGenerate => "cargo-generate",
             Self::WasmBindgen => "wasm-bindgen",
             Self::WasmOpt => "wasm-opt",
+            Self::WasmDis => "wasm-dis",
         };
         write!(f, "{}", s)
+    }
+}
+
+impl Kind {
+    fn is_from_binaryen(self) -> bool {
+        use self::Kind::*;
+        match self {
+            WasmOpt | WasmDis => true,
+            _ => false,
+        }
     }
 }
 
@@ -151,6 +163,9 @@ fn download_prebuilt_or_cargo_install(
     match dl {
         Ok(dl) => return Ok(dl),
         Err(e) => {
+            if tool.is_from_binaryen() {
+                bail!("Could not install {} with {}", tool, version);
+            }
             warn!(
                 "could not download pre-built `{}`: {}. Falling back to `cargo install`.",
                 tool, e
@@ -233,6 +248,13 @@ pub fn download_prebuilt(
                 None => Ok(Status::CannotInstall),
             }
         }
+        WasmDis => {
+            let binaries = &["wasm-dis"];
+            match cache.download(install_permitted, "wasm-dis", binaries, &url)? {
+                Some(dl) => Ok(Status::Found(dl)),
+                None => bail!("{} version({}) is not installed!", tool, version),
+            }
+        }
     }
 }
 
@@ -241,7 +263,7 @@ pub fn download_prebuilt(
 fn prebuilt_url(tool: Kind, version: &str) -> Result<String, failure::Error> {
     let target = if target::LINUX && target::x86_64 {
         match tool {
-            Kind::WasmOpt => "x86-linux",
+            Kind::WasmOpt | Kind::WasmDis => "x86-linux",
             _ => "x86_64-unknown-linux-musl",
         }
     } else if target::LINUX && target::x86 {
@@ -253,12 +275,12 @@ fn prebuilt_url(tool: Kind, version: &str) -> Result<String, failure::Error> {
         "x86_64-apple-darwin"
     } else if target::WINDOWS && target::x86_64 {
         match tool {
-            Kind::WasmOpt => "x86-windows",
+            Kind::WasmOpt | Kind::WasmDis => "x86-windows",
             _ => "x86_64-pc-windows-msvc",
         }
     } else if target::WINDOWS && target::x86 {
         match tool {
-            Kind::WasmOpt => "x86-windows",
+            Kind::WasmOpt | Kind::WasmDis => "x86-windows",
             _ => bail!("Unrecognized target!"),
         }
     } else {
@@ -280,10 +302,10 @@ fn prebuilt_url(tool: Kind, version: &str) -> Result<String, failure::Error> {
                 target
             ))
         },
-        Kind::WasmOpt => {
+        Kind::WasmOpt | Kind::WasmDis => {
             Ok(format!(
         "https://github.com/WebAssembly/binaryen/releases/download/{vers}/binaryen-{vers}-{target}.tar.gz",
-        vers = "version_90",
+        vers = version,
         target = target,
             ))
         }
@@ -352,7 +374,7 @@ pub fn cargo_install(
     let binaries: Result<Vec<&str>, failure::Error> = match tool {
         Kind::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
         Kind::CargoGenerate => Ok(vec!["cargo-genrate"]),
-        Kind::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
+        Kind::WasmOpt | Kind::WasmDis => bail!("Cannot install with cargo."),
     };
 
     for b in binaries?.iter().cloned() {

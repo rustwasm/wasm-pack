@@ -34,6 +34,7 @@ pub struct Build {
     pub out_dir: PathBuf,
     pub out_name: Option<String>,
     pub bindgen: Option<Status>,
+    pub wat: bool,
     pub cache: Cache,
     pub extra_options: Vec<String>,
 }
@@ -141,6 +142,10 @@ pub struct BuildOptions {
     /// Create a profiling build. Enable optimizations and debug info.
     pub profiling: bool,
 
+    #[structopt(long = "wat")]
+    /// Dis-assemble .wasm(webassembly binary) into webassembly text.
+    pub wat: bool,
+
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
@@ -166,6 +171,7 @@ impl Default for BuildOptions {
             dev: false,
             release: false,
             profiling: false,
+            wat: false,
             out_dir: String::new(),
             out_name: None,
             extra_options: Vec::new(),
@@ -203,6 +209,7 @@ impl Build {
             out_dir,
             out_name: build_opts.out_name,
             bindgen: None,
+            wat: build_opts.wat,
             cache: cache::get_wasm_pack_cache()?,
             extra_options: build_opts.extra_options,
         })
@@ -215,7 +222,7 @@ impl Build {
 
     /// Execute this `Build` command.
     pub fn run(&mut self) -> Result<(), Error> {
-        let process_steps = Build::get_process_steps(self.mode);
+        let process_steps = self.get_process_steps(self.mode);
 
         let started = Instant::now();
 
@@ -240,7 +247,7 @@ impl Build {
         Ok(())
     }
 
-    fn get_process_steps(mode: InstallMode) -> Vec<(&'static str, BuildStep)> {
+    fn get_process_steps(&mut self, mode: InstallMode) -> Vec<(&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {
@@ -271,6 +278,9 @@ impl Build {
             step_run_wasm_opt,
             step_create_json,
         ]);
+        if self.wat {
+            steps.extend(steps![step_run_wasm_dis]);
+        }
         steps
     }
 
@@ -376,10 +386,10 @@ impl Build {
             Some(args) => args,
             None => return Ok(()),
         };
-        info!("executing wasm-opt with {:?}", args);
-        let version = String::from("version_78");
+        info!("trying to execute wasm-opt with {:?}", args);
+        let version = String::from("version_90");
         let wasm_opt = Tool::new(Kind::WasmOpt, version);
-        wasm_opt.run(&self.cache,self.mode.install_permitted(), |exec: &Path| {
+        wasm_opt.run(&self.cache, self.mode.install_permitted(), |exec: &Path| {
             for file in self.out_dir.read_dir()? {
                 let file = file?;
                 let path = file.path();
@@ -398,6 +408,27 @@ impl Build {
             format_err!(
                 "{}\nTo disable `wasm-opt`, add `wasm-opt = false` to your package metadata in your `Cargo.toml`.", e
             )
+        })?;
+        Ok(())
+    }
+
+    fn step_run_wasm_dis(&mut self) -> Result<(), Error> {
+        info!("trying to execute wasm-dis ..");
+        let version = String::from("version_90");
+        let wasm_opt = Tool::new(Kind::WasmDis, version);
+        wasm_opt.run(&self.cache, self.mode.install_permitted(), |exec: &Path| {
+            for file in self.out_dir.read_dir()? {
+                let file = file?;
+                let path = file.path();
+                if path.extension().and_then(|s| s.to_str()) != Some("wasm") {
+                    continue;
+                }
+                let tmp = path.with_extension("wast");
+                let mut cmd = Command::new(exec);
+                cmd.arg(&path).arg("-o").arg(&tmp);
+                child::run(cmd, "wasm-dis")?;
+            }
+            Ok(())
         })?;
         Ok(())
     }

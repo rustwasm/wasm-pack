@@ -106,9 +106,7 @@ fn enable_in_dev() {
         .arg("build")
         .arg("--dev")
         .assert()
-        .stderr(predicates::str::contains(
-            "Optimizing wasm binaries with `wasm-opt`",
-        ))
+        .stderr(predicates::str::contains("Executing `wasm-opt`"))
         .success();
 }
 
