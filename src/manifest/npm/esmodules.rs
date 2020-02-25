@@ -1,4 +1,4 @@
-use manifest::npm::repository::Repository;
+use crate::manifest::npm::repository::Repository;
 
 #[derive(Serialize)]
 pub struct ESModulesPackage {

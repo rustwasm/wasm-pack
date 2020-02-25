@@ -1,18 +1,18 @@
 //! Implementation of the `wasm-pack test` command.
 
+use crate::build;
+use crate::cache;
+use crate::command::utils::get_crate_path;
+use crate::install::{self, InstallMode, Tool};
+use crate::lockfile::Lockfile;
+use crate::manifest;
+use crate::test::{self, webdriver};
 use binary_install::Cache;
-use build;
-use cache;
-use command::utils::get_crate_path;
 use console::style;
 use failure::Error;
-use install::{self, InstallMode, Tool};
-use lockfile::Lockfile;
 use log::info;
-use manifest;
 use std::path::PathBuf;
 use std::time::Instant;
-use test::{self, webdriver};
 
 #[derive(Debug, Default, StructOpt)]
 /// Everything required to configure the `wasm-pack test` command.

@@ -1,9 +1,9 @@
 //! Functionality related to running `cargo-generate`.
 
-use child;
-use emoji;
+use crate::child;
+use crate::emoji;
+use crate::install::{self, Tool};
 use failure::{self, ResultExt};
-use install::{self, Tool};
 use std::process::Command;
 
 /// Run `cargo generate` in the current directory to create a new
