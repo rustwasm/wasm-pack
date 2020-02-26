@@ -261,7 +261,7 @@ pub fn cargo_install(
         .arg("--force")
         .arg(crate_name)
         .arg("--version")
-        .arg(version)
+        .arg(if version == "latest" { "*" } else { version })
         .arg("--root")
         .arg(&tmp);
 
