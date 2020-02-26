@@ -274,7 +274,7 @@ pub fn cargo_install(
     // little renaming here.
     let binaries: Result<Vec<&str>, failure::Error> = match tool {
         Tool::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
-        Tool::CargoGenerate => Ok(vec!["cargo-genrate"]),
+        Tool::CargoGenerate => Ok(vec!["cargo-generate"]),
         Tool::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
     };
 
