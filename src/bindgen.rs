@@ -19,6 +19,7 @@ pub fn wasm_bindgen_build(
     disable_dts: bool,
     target: Target,
     profile: BuildProfile,
+    wasm_bindgen_options: &[String],
 ) -> Result<(), failure::Error> {
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
@@ -69,6 +70,8 @@ pub fn wasm_bindgen_build(
     if profile.wasm_bindgen_dwarf_debug_info() {
         cmd.arg("--keep-debug");
     }
+
+    cmd.args(wasm_bindgen_options);
 
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())

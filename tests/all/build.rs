@@ -309,3 +309,79 @@ fn build_from_new() {
         .assert()
         .success();
 }
+
+#[test]
+fn dash_dash_args_allowed_with_warning() {
+    use predicates::prelude::*;
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--")
+        .arg("--help")
+        .assert()
+        .stderr(predicate::str::contains(
+            "`-- <extra_options>` is deprecated; use `--cargo-build` instead",
+        ))
+        .stdout(predicate::str::contains(
+            "Compile a local package and all of its dependencies",
+        ))
+        .success();
+}
+
+#[test]
+fn dash_dash_args_ignored_with_cargo_build_options() {
+    use predicates::prelude::*;
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--cargo-build=--no-default-features --verbose")
+        .arg("--")
+        .arg("--help")
+        .assert()
+        .stderr(predicate::str::contains(
+            "`-- <extra_options>` is deprecated; use `--cargo-build` instead",
+        ))
+        .stderr(predicate::str::contains(
+            "cargo build options already specified with `--cargo-build`; ignoring `-- <extra_options>`",
+        ))
+        .stdout(predicate::str::contains(
+            "Compile a local package and all of its dependencies",
+        ).not())
+        .success();
+}
+
+#[test]
+fn cargo_build_options_passthrough() {
+    use predicates::prelude::*;
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--cargo-build=--no-default-features --help")
+        .assert()
+        .stdout(predicate::str::contains(
+            "Compile a local package and all of its dependencies",
+        ))
+        .success();
+}
+
+#[test]
+fn wasm_bindgen_options_passthrough() {
+    use predicates::prelude::*;
+    let fixture = utils::fixture::js_hello_world();
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--wasm-bindgen=--debug --help")
+        .assert()
+        .stdout(predicate::str::contains(
+            "Generating JS bindings for a wasm file",
+        ))
+        .success();
+}

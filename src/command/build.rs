@@ -35,6 +35,8 @@ pub struct Build {
     pub bindgen: Option<install::Status>,
     pub cache: Cache,
     pub extra_options: Vec<String>,
+    pub cargo_build_options: Vec<String>,
+    pub wasm_bindgen_options: Vec<String>,
 }
 
 /// What sort of output we're going to be generating and flags we're invoking
@@ -149,8 +151,19 @@ pub struct BuildOptions {
     pub out_name: Option<String>,
 
     #[structopt(last = true)]
-    /// List of extra options to pass to `cargo build`
+    /// Deprecated. Use `--cargo-build` instead. List of extra options to pass
+    /// to `cargo build`
     pub extra_options: Vec<String>,
+
+    #[structopt(long = "cargo-build", use_delimiter(true), value_delimiter(" "))]
+    /// List of extra options to pass to `cargo build. Example:
+    /// --cargo-build="--foo --bar --baz"`
+    pub cargo_build_options: Vec<String>,
+
+    #[structopt(long = "wasm-bindgen", use_delimiter(true), value_delimiter(" "))]
+    /// List of extra options to pass to `cargo build. Example:
+    /// --wasm-bindgen="--foo --bar --baz"`
+    pub wasm_bindgen_options: Vec<String>,
 }
 
 impl Default for BuildOptions {
@@ -168,6 +181,8 @@ impl Default for BuildOptions {
             out_dir: String::new(),
             out_name: None,
             extra_options: Vec::new(),
+            cargo_build_options: Vec::new(),
+            wasm_bindgen_options: Vec::new(),
         }
     }
 }
@@ -204,6 +219,8 @@ impl Build {
             bindgen: None,
             cache: cache::get_wasm_pack_cache()?,
             extra_options: build_opts.extra_options,
+            cargo_build_options: build_opts.cargo_build_options,
+            wasm_bindgen_options: build_opts.wasm_bindgen_options,
         })
     }
 
@@ -298,7 +315,12 @@ impl Build {
 
     fn step_build_wasm(&mut self) -> Result<(), Error> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
+        build::cargo_build_wasm(
+            &self.crate_path,
+            self.profile,
+            &self.cargo_build_options,
+            &self.extra_options,
+        )?;
 
         info!(
             "wasm built at {:#?}.",
@@ -372,6 +394,7 @@ impl Build {
             self.disable_dts,
             self.target,
             self.profile,
+            &self.wasm_bindgen_options,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())
