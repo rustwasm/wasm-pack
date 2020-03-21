@@ -107,6 +107,7 @@ fn setup_panic_hooks() {
         name: env!("CARGO_PKG_NAME").into(),
         authors: env!("CARGO_PKG_AUTHORS").replace(":", ", ").into(),
         homepage: env!("CARGO_PKG_HOMEPAGE").into(),
+        repository: env!("CARGO_PKG_REPOSITORY").into(),
     };
 
     let default_hook = panic::take_hook();

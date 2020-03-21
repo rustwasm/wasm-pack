@@ -18,7 +18,7 @@ curl = "0.4.13"
 dirs = "1.0.4"
 env_logger = { version = "0.5.13", default-features = false }
 failure = "0.1.2"
-human-panic = "1.0.1"
+human-panic = "1.0.2"
 glob = "0.2"
 log = "0.4.6"
 openssl = { version = '0.10.11', optional = true }
