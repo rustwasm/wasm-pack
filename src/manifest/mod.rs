@@ -390,7 +390,8 @@ struct NpmData {
     files: Vec<String>,
     dts_file: Option<String>,
     main: String,
-    homepage: Option<String>, // https://docs.npmjs.com/files/package.json#homepage
+    homepage: Option<String>, // https://docs.npmjs.com/files/package.json#homepage,
+    keywords: Option<Vec<String>>, // https://docs.npmjs.com/files/package.json#keywords
 }
 
 #[doc(hidden)]
@@ -607,6 +608,12 @@ impl CrateData {
             None
         };
 
+        let keywords = if pkg.keywords.len() > 0 {
+            Some(pkg.keywords.clone())
+        } else {
+            None
+        };
+
         if let Ok(entries) = fs::read_dir(out_dir) {
             let file_names = entries
                 .filter_map(|e| e.ok())
@@ -625,6 +632,7 @@ impl CrateData {
             files,
             main: js_file,
             homepage: self.manifest.package.homepage.clone(),
+            keywords: keywords,
         }
     }
 
@@ -662,6 +670,7 @@ impl CrateData {
             main: data.main,
             homepage: data.homepage,
             types: data.dts_file,
+            keywords: data.keywords,
         })
     }
 
@@ -696,6 +705,7 @@ impl CrateData {
             homepage: data.homepage,
             types: data.dts_file,
             side_effects: false,
+            keywords: data.keywords,
         })
     }
 
@@ -725,6 +735,7 @@ impl CrateData {
             homepage: data.homepage,
             types: data.dts_file,
             side_effects: false,
+            keywords: data.keywords,
         })
     }
 
@@ -758,6 +769,7 @@ impl CrateData {
             browser: data.main,
             homepage: data.homepage,
             types: data.dts_file,
+            keywords: data.keywords,
         })
     }
 
