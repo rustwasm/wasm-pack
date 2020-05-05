@@ -191,7 +191,6 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
         "js_hello_world_bg.wasm",
-        "js_hello_world_bg.js",
         "js_hello_world.d.ts",
         "js_hello_world.js",
     ]
@@ -226,7 +225,6 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
         "js_hello_world.d.ts",
-        "js_hello_world_bg.js",
         "js_hello_world_bg.wasm",
         "js_hello_world.js",
     ]
