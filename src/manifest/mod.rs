@@ -579,7 +579,7 @@ impl CrateData {
     fn npm_data(
         &self,
         scope: &Option<String>,
-        include_commonjs_shim: bool,
+        add_js_bg_to_package_json: bool,
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmData {
@@ -589,7 +589,7 @@ impl CrateData {
         let mut files = vec![wasm_file];
 
         files.push(js_file.clone());
-        if include_commonjs_shim {
+        if add_js_bg_to_package_json {
             let js_bg_file = format!("{}_bg.js", name_prefix);
             files.push(js_bg_file);
         }
@@ -646,7 +646,7 @@ impl CrateData {
     }
 
     fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
-        let data = self.npm_data(scope, true, disable_dts, out_dir);
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -680,7 +680,7 @@ impl CrateData {
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let data = self.npm_data(scope, true, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
