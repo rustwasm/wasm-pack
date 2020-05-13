@@ -423,6 +423,36 @@ pub fn no_cdylib() -> Fixture {
     fixture
 }
 
+pub fn cdylib_on_wrong_target() -> Fixture {
+    let fixture = Fixture::new();
+    fixture.readme().hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "foo"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [[example]]
+            name = "my-example"
+            crate-type = ["lib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "0.2"
+        "#,
+    );
+    fixture
+}
+
 pub fn not_a_crate() -> Fixture {
     let fixture = Fixture::new();
     fixture.file("README.md", "This is not a Rust crate!");

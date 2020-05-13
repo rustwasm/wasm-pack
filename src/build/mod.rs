@@ -1,7 +1,7 @@
 //! Building a Rust crate into a `.wasm` binary.
 
 use child;
-use command::build::BuildProfile;
+use command::build::{BuildProfile, CargoTarget};
 use emoji;
 use failure::{Error, ResultExt};
 use manifest::Crate;
@@ -76,13 +76,14 @@ fn wasm_pack_local_version() -> Option<String> {
 pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
+    target: &CargoTarget,
     extra_options: &[String],
 ) -> Result<(), Error> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.info(&msg);
 
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(path).arg("build").arg("--lib");
+    cmd.current_dir(path).arg("build").args(target.as_args());
 
     if PBAR.quiet() {
         cmd.arg("--quiet");

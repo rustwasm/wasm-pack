@@ -17,7 +17,7 @@ use self::npm::{
 use cargo_metadata::Metadata;
 use chrono::offset;
 use chrono::DateTime;
-use command::build::{BuildProfile, Target};
+use command::build::{BuildProfile, CargoTarget, Target};
 use curl::easy;
 use failure::{Error, ResultExt};
 use serde::{self, Deserialize};
@@ -489,27 +489,27 @@ impl CrateData {
     }
 
     /// Check that the crate the given path is properly configured.
-    pub fn check_crate_config(&self) -> Result<(), Error> {
-        self.check_crate_type()?;
+    pub fn check_crate_config(&self, target: &CargoTarget) -> Result<(), Error> {
+        self.check_crate_type(target)?;
         Ok(())
     }
 
-    fn check_crate_type(&self) -> Result<(), Error> {
+    fn check_crate_type(&self, target: &CargoTarget) -> Result<(), Error> {
         let pkg = &self.data.packages[self.current_idx];
-        let any_cdylib = pkg
-            .targets
-            .iter()
-            .filter(|target| target.kind.iter().any(|k| k == "cdylib"))
-            .any(|target| target.crate_types.iter().any(|s| s == "cdylib"));
-        if any_cdylib {
-            return Ok(());
+
+        if let Some(selected_target) = pkg.targets.iter().find(|t| target.matches(t)) {
+            if !selected_target.crate_types.iter().any(|c| c == "cdylib") {
+                bail!(
+                    "crate-type must be cdylib to compile to wasm32-unknown-unknown. \
+                    Add the following to your Cargo.toml file:\n\n\
+                    {}\n\
+                    crate-type = [\"cdylib\", \"rlib\"]",
+                    target.as_manifest()
+                )
+            }
         }
-        bail!(
-            "crate-type must be cdylib to compile to wasm32-unknown-unknown. Add the following to your \
-             Cargo.toml file:\n\n\
-             [lib]\n\
-             crate-type = [\"cdylib\", \"rlib\"]"
-        )
+
+        Ok(())
     }
 
     /// Get the crate name for the crate at the given path.

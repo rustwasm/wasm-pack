@@ -14,6 +14,7 @@ use lockfile::Lockfile;
 use log::info;
 use manifest;
 use readme;
+use std::convert::TryFrom;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -34,6 +35,7 @@ pub struct Build {
     pub out_name: Option<String>,
     pub bindgen: Option<install::Status>,
     pub cache: Cache,
+    pub cargo_target: CargoTarget,
     pub extra_options: Vec<String>,
 }
 
@@ -99,6 +101,143 @@ pub enum BuildProfile {
     Profiling,
 }
 
+/// The [Cargo target] we're going to build or test.
+///
+/// [Cargo target]: https://doc.rust-lang.org/cargo/reference/cargo-targets.html
+#[derive(Clone, Debug)]
+pub enum CargoTarget {
+    /// Build the package's library target.
+    Library,
+    /// Build the specified binary.
+    Binary(String),
+    /// Build the specified example.
+    Example(String),
+    /// Build the specified test.
+    Test(String),
+    /// Build the specified benchmark.
+    Benchmark(String),
+}
+
+impl CargoTarget {
+    pub(crate) fn matches(&self, target: &cargo_metadata::Target) -> bool {
+        match self {
+            Self::Library => target.kind.iter().any(|k| k == "lib"),
+            Self::Binary(b) => target.kind.iter().any(|k| k == "bin") && &target.name == b,
+            Self::Example(e) => target.kind.iter().any(|k| k == "example") && &target.name == e,
+            Self::Test(t) => target.kind.iter().any(|k| k == "test") && &target.name == t,
+            Self::Benchmark(b) => target.kind.iter().any(|k| k == "bench") && &target.name == b,
+        }
+    }
+
+    pub(crate) fn as_args(&self) -> Vec<&str> {
+        match self {
+            Self::Library => vec!["--lib"],
+            Self::Binary(b) => vec!["--bin", b],
+            Self::Example(e) => vec!["--example", e],
+            Self::Test(t) => vec!["--test", t],
+            Self::Benchmark(b) => vec!["--bench", b],
+        }
+    }
+
+    pub(crate) fn as_manifest(&self) -> String {
+        match self {
+            Self::Library => "[lib]".into(),
+            Self::Binary(b) => format!("[[bin]]\nname = {}", b),
+            Self::Example(e) => format!("[[example]]\nname = {}", e),
+            Self::Test(t) => format!("[[test]]\nname = {}", t),
+            Self::Benchmark(b) => format!("[[bench]]\nname = {}", b),
+        }
+    }
+}
+
+impl TryFrom<CargoTargetOptions> for CargoTarget {
+    type Error = Error;
+
+    fn try_from(opts: CargoTargetOptions) -> Result<Self, Self::Error> {
+        // the verbosity here (including all the None fields) is load bearing. it would be an
+        // invalid state to specify multiple targets, and we should let the user know that rather
+        // than failing silently.
+        match opts {
+            CargoTargetOptions {
+                binary: None,
+                example: None,
+                test: None,
+                bench: None,
+            } => Ok(Self::Library),
+            CargoTargetOptions {
+                binary: Some(bin),
+                example: None,
+                test: None,
+                bench: None,
+            } => Ok(Self::Binary(bin)),
+            CargoTargetOptions {
+                binary: None,
+                example: Some(example),
+                test: None,
+                bench: None,
+            } => Ok(Self::Example(example)),
+            CargoTargetOptions {
+                binary: None,
+                example: None,
+                test: Some(test),
+                bench: None,
+            } => Ok(Self::Test(test)),
+            CargoTargetOptions {
+                binary: None,
+                example: None,
+                test: None,
+                bench: Some(bench),
+            } => Ok(Self::Benchmark(bench)),
+            CargoTargetOptions {
+                binary,
+                example,
+                test,
+                bench,
+            } => {
+                let mut requested = Vec::new();
+
+                if let Some(b) = binary {
+                    requested.push(Self::Binary(b));
+                }
+
+                if let Some(e) = example {
+                    requested.push(Self::Example(e));
+                }
+
+                if let Some(t) = test {
+                    requested.push(Self::Test(t));
+                }
+
+                if let Some(b) = bench {
+                    requested.push(Self::Benchmark(b));
+                }
+
+                bail!("Can only specify one Cargo target. Attempted to select multiple targets at the same time: {:?}", requested)
+            }
+        }
+    }
+}
+
+/// Specific, mutually exclusive CLI options for Cargo target selection
+#[derive(Debug, Default, StructOpt)]
+pub struct CargoTargetOptions {
+    #[structopt(long = "bin", group = "cargo-target")]
+    /// Build only the specified binary.
+    pub binary: Option<String>,
+
+    #[structopt(long = "example", group = "cargo-target")]
+    /// Build only the specified example.
+    pub example: Option<String>,
+
+    #[structopt(long = "test", group = "cargo-target")]
+    /// Build only the specified test target.
+    pub test: Option<String>,
+
+    #[structopt(long = "bench", group = "cargo-target")]
+    /// Build only the specified bench target.
+    pub bench: Option<String>,
+}
+
 /// Everything required to configure and run the `wasm-pack build` command.
 #[derive(Debug, StructOpt)]
 pub struct BuildOptions {
@@ -148,6 +287,10 @@ pub struct BuildOptions {
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
+    #[allow(missing_docs)]
+    #[structopt(flatten)]
+    pub cargo_target: CargoTargetOptions,
+
     #[structopt(last = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
@@ -167,6 +310,7 @@ impl Default for BuildOptions {
             profiling: false,
             out_dir: String::new(),
             out_name: None,
+            cargo_target: CargoTargetOptions::default(),
             extra_options: Vec::new(),
         }
     }
@@ -203,6 +347,7 @@ impl Build {
             out_name: build_opts.out_name,
             bindgen: None,
             cache: cache::get_wasm_pack_cache()?,
+            cargo_target: CargoTarget::try_from(build_opts.cargo_target)?,
             extra_options: build_opts.extra_options,
         })
     }
@@ -284,7 +429,7 @@ impl Build {
 
     fn step_check_crate_config(&mut self) -> Result<(), Error> {
         info!("Checking crate configuration...");
-        self.crate_data.check_crate_config()?;
+        self.crate_data.check_crate_config(&self.cargo_target)?;
         info!("Crate is correctly configured.");
         Ok(())
     }
@@ -298,7 +443,12 @@ impl Build {
 
     fn step_build_wasm(&mut self) -> Result<(), Error> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
+        build::cargo_build_wasm(
+            &self.crate_path,
+            self.profile,
+            &self.cargo_target,
+            &self.extra_options,
+        )?;
 
         info!(
             "wasm built at {:#?}.",

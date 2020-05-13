@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
 use utils::{self, fixture};
-use wasm_pack::command::build::Target;
+use wasm_pack::command::build::{CargoTarget, Target};
 use wasm_pack::command::utils::get_crate_path;
 use wasm_pack::{self, license, manifest};
 
@@ -44,7 +44,20 @@ fn it_checks_has_cdylib_default_path() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
-    assert!(crate_data.check_crate_config().is_err());
+    assert!(crate_data
+        .check_crate_config(&CargoTarget::Library)
+        .is_err());
+}
+
+#[test]
+fn it_checks_specified_target_has_cdylib_default_path() {
+    let fixture = fixture::cdylib_on_wrong_target();
+    // Ensure that there is a `Cargo.lock`.
+    fixture.cargo_check();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
+    assert!(crate_data
+        .check_crate_config(&CargoTarget::Example("my-example".into()))
+        .is_err());
 }
 
 #[test]
@@ -53,14 +66,18 @@ fn it_checks_has_cdylib_provided_path() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
-    crate_data.check_crate_config().unwrap();
+    crate_data
+        .check_crate_config(&CargoTarget::Library)
+        .unwrap();
 }
 
 #[test]
 fn it_checks_has_cdylib_wrong_crate_type() {
     let fixture = fixture::bad_cargo_toml();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
-    assert!(crate_data.check_crate_config().is_err());
+    assert!(crate_data
+        .check_crate_config(&CargoTarget::Library)
+        .is_err());
 }
 
 #[test]
@@ -69,7 +86,9 @@ fn it_recognizes_a_map_during_depcheck() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
-    crate_data.check_crate_config().unwrap();
+    crate_data
+        .check_crate_config(&CargoTarget::Library)
+        .unwrap();
 }
 
 #[test]
@@ -318,7 +337,9 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
 fn it_errors_when_wasm_bindgen_is_not_declared() {
     let fixture = fixture::bad_cargo_toml();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
-    assert!(crate_data.check_crate_config().is_err());
+    assert!(crate_data
+        .check_crate_config(&CargoTarget::Library)
+        .is_err());
 }
 
 #[test]
@@ -439,7 +460,9 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
-    crate_data.check_crate_config().unwrap();
+    crate_data
+        .check_crate_config(&CargoTarget::Library)
+        .unwrap();
 }
 
 #[test]
