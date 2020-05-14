@@ -121,7 +121,7 @@ pub enum CargoTarget {
 impl CargoTarget {
     pub(crate) fn matches(&self, target: &cargo_metadata::Target) -> bool {
         match self {
-            Self::Library => target.kind.iter().any(|k| k == "lib"),
+            Self::Library => target.kind.iter().any(|k| k.ends_with("lib")),
             Self::Binary(b) => target.kind.iter().any(|k| k == "bin") && &target.name == b,
             Self::Example(e) => target.kind.iter().any(|k| k == "example") && &target.name == e,
             Self::Test(t) => target.kind.iter().any(|k| k == "test") && &target.name == t,

@@ -50,7 +50,7 @@ fn it_checks_has_cdylib_default_path() {
 }
 
 #[test]
-fn it_checks_specified_target_has_cdylib_default_path() {
+fn it_checks_example_target_has_cdylib_fail() {
     let fixture = fixture::cdylib_on_wrong_target();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
@@ -58,6 +58,17 @@ fn it_checks_specified_target_has_cdylib_default_path() {
     assert!(crate_data
         .check_crate_config(&CargoTarget::Example("my-example".into()))
         .is_err());
+}
+
+#[test]
+fn it_checks_example_target_has_cdylib_success() {
+    let fixture = fixture::cdylib_on_correct_example_target();
+    // Ensure that there is a `Cargo.lock`.
+    fixture.cargo_check();
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
+    assert!(crate_data
+        .check_crate_config(&CargoTarget::Example("my-example".into()))
+        .is_ok());
 }
 
 #[test]

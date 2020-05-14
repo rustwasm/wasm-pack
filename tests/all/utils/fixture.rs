@@ -210,6 +210,26 @@ impl Fixture {
         )
     }
 
+    pub fn example_src_lib(&self, name: &str) -> &Self {
+        self.file(
+            "examples/my-example.rs",
+            &format!(
+                r#"
+                extern crate wasm_bindgen;
+                use wasm_bindgen::prelude::*;
+
+                use {}::greet;
+
+                #[wasm_bindgen]
+                pub fn greet_ferris() {{
+                    greet("ferris");
+                }}
+                "#,
+                name
+            ),
+        )
+    }
+
     /// Install a local wasm-bindgen for this fixture.
     ///
     /// Takes care not to re-install for every fixture, but only the one time
@@ -425,9 +445,13 @@ pub fn no_cdylib() -> Fixture {
 
 pub fn cdylib_on_wrong_target() -> Fixture {
     let fixture = Fixture::new();
-    fixture.readme().hello_world_src_lib().file(
-        "Cargo.toml",
-        r#"
+    fixture
+        .readme()
+        .hello_world_src_lib()
+        .example_src_lib("foo")
+        .file(
+            "Cargo.toml",
+            r#"
             [package]
             authors = ["The wasm-pack developers"]
             description = "so awesome rust+wasm package"
@@ -449,7 +473,41 @@ pub fn cdylib_on_wrong_target() -> Fixture {
             [dev-dependencies]
             wasm-bindgen-test = "0.2"
         "#,
-    );
+        );
+    fixture
+}
+
+pub fn cdylib_on_correct_example_target() -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .hello_world_src_lib()
+        .example_src_lib("foo")
+        .file(
+            "Cargo.toml",
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "foo"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["lib"]
+
+            [[example]]
+            name = "my-example"
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "0.2"
+        "#,
+        );
     fixture
 }
 

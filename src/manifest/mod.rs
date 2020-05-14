@@ -497,19 +497,19 @@ impl CrateData {
     fn check_crate_type(&self, target: &CargoTarget) -> Result<(), Error> {
         let pkg = &self.data.packages[self.current_idx];
 
-        if let Some(selected_target) = pkg.targets.iter().find(|t| target.matches(t)) {
-            if !selected_target.crate_types.iter().any(|c| c == "cdylib") {
-                bail!(
-                    "crate-type must be cdylib to compile to wasm32-unknown-unknown. \
-                    Add the following to your Cargo.toml file:\n\n\
-                    {}\n\
-                    crate-type = [\"cdylib\", \"rlib\"]",
-                    target.as_manifest()
-                )
+        for selected_target in pkg.targets.iter().filter(|t| target.matches(t)) {
+            if selected_target.crate_types.iter().any(|c| c == "cdylib") {
+                return Ok(());
             }
         }
 
-        Ok(())
+        bail!(
+            "crate-type must be cdylib to compile to wasm32-unknown-unknown. \
+            Add the following to your Cargo.toml file:\n\n\
+            {}\n\
+            crate-type = [\"cdylib\", \"rlib\"]",
+            target.as_manifest()
+        )
     }
 
     /// Get the crate name for the crate at the given path.
