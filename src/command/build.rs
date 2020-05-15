@@ -514,6 +514,15 @@ impl Build {
 
     fn step_run_wasm_bindgen(&mut self) -> Result<(), Error> {
         info!("Building the wasm bindings...");
+
+        let artifact_name = match &self.cargo_target {
+            CargoTarget::Library => self.crate_data.crate_name().into(),
+            CargoTarget::Binary(b) => b.into(),
+            CargoTarget::Example(e) => PathBuf::from("examples").join(e),
+            CargoTarget::Test(t) => t.into(),
+            CargoTarget::Benchmark(b) => b.into(),
+        };
+
         bindgen::wasm_bindgen_build(
             &self.crate_data,
             &self.bindgen.as_ref().unwrap(),
@@ -522,6 +531,7 @@ impl Build {
             self.disable_dts,
             self.target,
             self.profile,
+            &artifact_name,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())

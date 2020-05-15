@@ -19,6 +19,7 @@ pub fn wasm_bindgen_build(
     disable_dts: bool,
     target: Target,
     profile: BuildProfile,
+    artifact_name: &Path,
 ) -> Result<(), failure::Error> {
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
@@ -31,7 +32,7 @@ pub fn wasm_bindgen_build(
         .target_directory()
         .join("wasm32-unknown-unknown")
         .join(release_or_debug)
-        .join(data.crate_name())
+        .join(artifact_name)
         .with_extension("wasm");
 
     let dts_arg = if disable_dts {
