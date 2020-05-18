@@ -243,7 +243,7 @@ impl Test {
     fn step_build_tests(&mut self) -> Result<(), Error> {
         info!("Compiling tests to wasm...");
 
-        build::cargo_build_wasm_tests(&self.crate_path, !self.release)?;
+        build::cargo_build_wasm_tests(&self.crate_path, !self.release, &self.extra_options)?;
 
         info!("Finished compiling tests to wasm.");
         Ok(())
