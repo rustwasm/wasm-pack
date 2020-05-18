@@ -243,7 +243,15 @@ impl Test {
     fn step_build_tests(&mut self) -> Result<(), Error> {
         info!("Compiling tests to wasm...");
 
-        build::cargo_build_wasm_tests(&self.crate_path, !self.release, &self.extra_options)?;
+        // If the user has run `wasm-pack test -- --features "f1" -- test_name`, then we want to only pass through
+        // `--features "f1"` to `cargo build`
+        let extra_options =
+            if let Some(index) = self.extra_options.iter().position(|arg| arg == "--") {
+                &self.extra_options[..index]
+            } else {
+                &self.extra_options
+            };
+        build::cargo_build_wasm_tests(&self.crate_path, !self.release, extra_options)?;
 
         info!("Finished compiling tests to wasm.");
         Ok(())

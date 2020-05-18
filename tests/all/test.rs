@@ -380,13 +380,25 @@ fn extra_options_is_passed_to_cargo_when_building_tests() {
                 fn smoke() {
                     foo::foo();
                 }
+
+                #[wasm_bindgen_test]
+                fn fire() {
+                    panic!("This should be filtered from test execution.");
+                }
             "#,
         )
         .install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
         .wasm_pack()
-        .args(&["test", "--node", "--", "--no-default-features"])
+        .args(&[
+            "test",
+            "--node",
+            "--",
+            "--no-default-features",
+            "--",
+            "smoke",
+        ])
         .assert()
         .success();
 }
