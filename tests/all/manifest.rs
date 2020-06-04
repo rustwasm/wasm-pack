@@ -97,8 +97,9 @@ fn it_creates_a_package_json_default_path() {
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
-        "js_hello_world_bg.wasm",
         "js_hello_world.d.ts",
+        "js_hello_world_bg.js",
+        "js_hello_world_bg.wasm",
         "js_hello_world.js",
     ]
     .iter()
@@ -125,8 +126,9 @@ fn it_creates_a_package_json_provided_path() {
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
-        "js_hello_world_bg.wasm",
         "js_hello_world.d.ts",
+        "js_hello_world_bg.js",
+        "js_hello_world_bg.wasm",
         "js_hello_world.js",
     ]
     .iter()
@@ -153,8 +155,9 @@ fn it_creates_a_package_json_provided_path_with_scope() {
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
-        "js_hello_world_bg.wasm",
         "js_hello_world.d.ts",
+        "js_hello_world_bg.js",
+        "js_hello_world_bg.wasm",
         "js_hello_world.js",
     ]
     .iter()
@@ -188,7 +191,6 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
         "js_hello_world_bg.wasm",
-        "js_hello_world_bg.js",
         "js_hello_world.d.ts",
         "js_hello_world.js",
     ]
@@ -222,9 +224,9 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
+        "js_hello_world.d.ts",
         "js_hello_world_bg.wasm",
         "js_hello_world.js",
-        "js_hello_world.d.ts",
     ]
     .iter()
     .map(|&s| String::from(s))
@@ -256,10 +258,11 @@ fn it_creates_a_package_json_with_correct_files_when_out_name_is_provided() {
     assert_eq!(pkg.side_effects, false);
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
-    let expected_files: HashSet<String> = ["index_bg.wasm", "index.d.ts", "index.js"]
-        .iter()
-        .map(|&s| String::from(s))
-        .collect();
+    let expected_files: HashSet<String> =
+        ["index_bg.wasm", "index_bg.js", "index.d.ts", "index.js"]
+            .iter()
+            .map(|&s| String::from(s))
+            .collect();
     assert_eq!(actual_files, expected_files);
 }
 
@@ -300,10 +303,14 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     assert_eq!(pkg.module, "js_hello_world.js");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
-    let expected_files: HashSet<String> = ["js_hello_world_bg.wasm", "js_hello_world.js"]
-        .iter()
-        .map(|&s| String::from(s))
-        .collect();
+    let expected_files: HashSet<String> = [
+        "js_hello_world_bg.wasm",
+        "js_hello_world_bg.js",
+        "js_hello_world.js",
+    ]
+    .iter()
+    .map(|&s| String::from(s))
+    .collect();
     assert_eq!(actual_files, expected_files);
 }
 
@@ -367,6 +374,63 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
 
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     assert_eq!(pkg.homepage, None);
+}
+
+#[test]
+fn it_sets_keywords_field_if_available_in_cargo_toml() {
+    // When 'homepage' is available
+    let fixture = utils::fixture::Fixture::new();
+    fixture.hello_world_src_lib().file(
+        "Cargo.toml",
+        r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "homepage-field-test"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+            keywords = ["wasm"]
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "=0.2"
+
+            [dev-dependencies]
+            wasm-bindgen-test = "=0.2"
+        "#,
+    );
+
+    let out_dir = fixture.path.join("pkg");
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
+
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
+    crate_data
+        .write_package_json(&out_dir, &None, true, Target::Bundler)
+        .unwrap();
+
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    let keywords = pkg.keywords.clone().unwrap();
+    assert!(
+        keywords.contains(&"wasm".to_string()),
+        "keywords is not in files: {:?}",
+        keywords,
+    );
+
+    // When 'keywords' is unavailable
+    let fixture = fixture::js_hello_world();
+    let out_dir = fixture.path.join("pkg");
+    let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
+
+    wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
+    crate_data
+        .write_package_json(&out_dir, &None, true, Target::Bundler)
+        .unwrap();
+
+    let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
+    assert_eq!(pkg.keywords, None);
 }
 
 #[test]

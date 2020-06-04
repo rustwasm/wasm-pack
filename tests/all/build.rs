@@ -244,7 +244,7 @@ fn build_with_and_without_wasm_bindgen_debug() {
             .assert()
             .success();
 
-        let contents = fs::read_to_string(fixture.path.join("pkg/whatever.js")).unwrap();
+        let contents = fs::read_to_string(fixture.path.join("pkg/whatever_bg.js")).unwrap();
         let contains_move_assertions =
             contents.contains("throw new Error('Attempt to use a moved value')");
         assert_eq!(

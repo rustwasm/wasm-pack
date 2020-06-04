@@ -390,7 +390,8 @@ struct NpmData {
     files: Vec<String>,
     dts_file: Option<String>,
     main: String,
-    homepage: Option<String>, // https://docs.npmjs.com/files/package.json#homepage
+    homepage: Option<String>, // https://docs.npmjs.com/files/package.json#homepage,
+    keywords: Option<Vec<String>>, // https://docs.npmjs.com/files/package.json#keywords
 }
 
 #[doc(hidden)]
@@ -590,7 +591,7 @@ impl CrateData {
     fn npm_data(
         &self,
         scope: &Option<String>,
-        include_commonjs_shim: bool,
+        add_js_bg_to_package_json: bool,
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmData {
@@ -600,7 +601,7 @@ impl CrateData {
         let mut files = vec![wasm_file];
 
         files.push(js_file.clone());
-        if include_commonjs_shim {
+        if add_js_bg_to_package_json {
             let js_bg_file = format!("{}_bg.js", name_prefix);
             files.push(js_bg_file);
         }
@@ -615,6 +616,12 @@ impl CrateData {
             let file = format!("{}.d.ts", name_prefix);
             files.push(file.to_string());
             Some(file)
+        } else {
+            None
+        };
+
+        let keywords = if pkg.keywords.len() > 0 {
+            Some(pkg.keywords.clone())
         } else {
             None
         };
@@ -637,6 +644,7 @@ impl CrateData {
             files,
             main: js_file,
             homepage: self.manifest.package.homepage.clone(),
+            keywords: keywords,
         }
     }
 
@@ -650,7 +658,7 @@ impl CrateData {
     }
 
     fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
-        let data = self.npm_data(scope, true, disable_dts, out_dir);
+        let data = self.npm_data(scope, false, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -674,6 +682,7 @@ impl CrateData {
             main: data.main,
             homepage: data.homepage,
             types: data.dts_file,
+            keywords: data.keywords,
         })
     }
 
@@ -683,7 +692,7 @@ impl CrateData {
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let data = self.npm_data(scope, true, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -708,6 +717,7 @@ impl CrateData {
             homepage: data.homepage,
             types: data.dts_file,
             side_effects: false,
+            keywords: data.keywords,
         })
     }
 
@@ -737,6 +747,7 @@ impl CrateData {
             homepage: data.homepage,
             types: data.dts_file,
             side_effects: false,
+            keywords: data.keywords,
         })
     }
 
@@ -770,6 +781,7 @@ impl CrateData {
             browser: data.main,
             homepage: data.homepage,
             types: data.dts_file,
+            keywords: data.keywords,
         })
     }
 
