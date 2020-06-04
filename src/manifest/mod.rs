@@ -424,7 +424,10 @@ impl CrateData {
         let current_idx = data
             .packages
             .iter()
-            .position(|pkg| pkg.name == manifest.package.name)
+            .position(|pkg| {
+                pkg.name == manifest.package.name
+                    && CrateData::is_same_path(&pkg.manifest_path, &manifest_path)
+            })
             .ok_or_else(|| format_err!("failed to find package in metadata"))?;
 
         Ok(CrateData {
@@ -433,6 +436,15 @@ impl CrateData {
             current_idx,
             out_name,
         })
+    }
+
+    fn is_same_path(path1: &Path, path2: &Path) -> bool {
+        if let Ok(path1) = fs::canonicalize(&path1) {
+            if let Ok(path2) = fs::canonicalize(&path2) {
+                return path1 == path2;
+            }
+        }
+        path1 == path2
     }
 
     /// Read the `manifest_path` file and deserializes it using the toml Deserializer.

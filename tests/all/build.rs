@@ -309,3 +309,70 @@ fn build_from_new() {
         .assert()
         .success();
 }
+
+#[test]
+fn build_crates_with_same_names() {
+    let fixture = utils::fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "somename1/Cargo.toml",
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "somename"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+            somenameother = { path = "../somename2", package = "somename" }
+            "#,
+        )
+        .file(
+            "somename1/src/lib.rs",
+            r#"
+            extern crate wasm_bindgen;
+            use wasm_bindgen::prelude::*;
+            #[wasm_bindgen]
+            pub fn method() -> i32 {
+                somenameother::method()
+            }
+            "#,
+        )
+        .file(
+            "somename2/Cargo.toml",
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "somename"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.1"
+
+            [lib]
+            crate-type = ["rlib"]
+            "#,
+        )
+        .file(
+            "somename2/src/lib.rs",
+            r#"
+            pub fn method() -> i32 {
+                0
+            }
+            "#,
+        );
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .current_dir(fixture.path.join("somename1"))
+        .arg("build")
+        .assert()
+        .success();
+}
