@@ -3,7 +3,8 @@
 use crate::child;
 use crate::install::{self, Tool};
 use crate::PBAR;
-use binary_install::Cache;
+use binary_install::{Cache, Download};
+use log::debug;
 use std::path::Path;
 use std::process::Command;
 
@@ -49,20 +50,15 @@ pub fn run(
 
 /// Attempts to find `wasm-opt` in `PATH` locally, or failing that downloads a
 /// precompiled binary.
-///
-/// Returns `Some` if a binary was found or it was successfully downloaded.
-/// Returns `None` if a binary wasn't found in `PATH` and this platform doesn't
-/// have precompiled binaries. Returns an error if we failed to download the
-/// binary.
 pub fn find_wasm_opt(
     cache: &Cache,
     install_permitted: bool,
 ) -> Result<install::Status, failure::Error> {
+    if let Ok(path) = which::which("wasm-opt") {
+        debug!("found wasm-opt at {:?}", path);
+        return Ok(install::Status::Found(Download::at(path.parent().unwrap())));
+    }
+
     let version = "version_78";
-    Ok(install::download_prebuilt(
-        &install::Tool::WasmOpt,
-        cache,
-        version,
-        install_permitted,
-    )?)
+    install::download_prebuilt(&install::Tool::WasmOpt, cache, version, install_permitted)
 }
