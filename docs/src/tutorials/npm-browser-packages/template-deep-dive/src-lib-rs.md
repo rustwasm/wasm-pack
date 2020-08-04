@@ -6,7 +6,7 @@ It contains three key parts:
 
 1. [Using `wasm_bindgen`](#1-using-wasm_bindgen)
 2. [`#[wasm_bindgen] functions`](#1-wasm_bindgen-functions)
-4. [`wee_alloc` dependecy](#a3-wee_alloc-dependecy)
+3. [`wee_alloc` dependecy](#a3-wee_alloc-dependecy)
 
 ---
 
