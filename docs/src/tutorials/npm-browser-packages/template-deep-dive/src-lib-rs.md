@@ -5,8 +5,8 @@
 It contains three key parts:
 
 1. [Using `wasm_bindgen`](#1-using-wasm_bindgen)
-2. [`#[wasm_bindgen] functions`](#1-wasm_bindgen-functions)
-3. [`wee_alloc` dependecy](#a3-wee_alloc-dependecy)
+2. [`#[wasm_bindgen] functions`](#2-wasm_bindgen-functions)
+3. [`wee_alloc` dependecy](#3-wee_alloc-dependecy)
 
 ---
 
@@ -58,11 +58,9 @@ pub fn greet() {
 If we were to write the `greet` function without the `#[wasm_bindgen]` attribute, then `greet` would not be easily accessible within JavaScript. Furthermore, we wouldn't be able to natively convert certain types such as `&str` between JavaScript and Rust. So, both the `#[wasm_bindgen]` attribute and the prior import of `alert` allow `greet` to be called from JavaScript.
 
 This is all you need to know to interface with JavaScript, at least to start! You can learn a bunch more by reading the
-[`wasm-bindgen` documentation]!
+[`wasm-bindgen` documentation]! We also will discuss this just a few [sections ahead](https://rustwasm.github.io/docs/wasm-pack/tutorials/npm-browser-packages/template-deep-dive/wee_alloc.html).
 
 [`wasm-bindgen` documentation]: https://rustwasm.github.io/docs/wasm-bindgen/
-
-If you are curious about the rest, read on.
 
 ## 3. `wee_alloc` dependecy
 
