@@ -4,10 +4,9 @@
 
 It contains three key parts:
 
-1. [`#[wasm_bindgen] functions`](#a1-wasm_bindgen-functions)
-2. [Crate imports](#a2-crate-imports)
-3. [`wee_alloc` optional dependecy](#a3-wee_alloc-optional-dependecy)
-	- [What is `wee_alloc`?](#what-is-wee_alloc)
+1. [Using `wasm_bindgen`](#1-using-wasm_bindgen)
+2. [`#[wasm_bindgen] functions`](#1-wasm_bindgen-functions)
+4. [`wee_alloc` dependecy](#a3-wee_alloc-dependecy)
 
 ---
 
@@ -32,7 +31,7 @@ The asterisk at the end of this `use` indicates that everything inside the modul
 
 For example, `#[wasm_bindgen]` could also be written as `#[wasm_bindgen::prelude::wasm_bindgen]`, although this is not recommended.
 
-## 1. `#[wasm_bindgen]` functions
+## 2. `#[wasm_bindgen]` functions
 
 The `#[wasm_bindgen]` attribute indicates that the function below it will be accessible both in JavaScript and Rust.
 
@@ -65,7 +64,26 @@ This is all you need to know to interface with JavaScript, at least to start! Yo
 
 If you are curious about the rest, read on.
 
-## 2. Crate Organization
+## 3. `wee_alloc` dependecy
+
+
+```rust
+	// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
+	// allocator.
+	#[cfg(feature = "wee_alloc")]
+	#[global_allocator]
+	static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+```
+
+At compile time this will enable the `wee_alloc` feature and a global allocator (according to
+[`wee_alloc`'s docs][wee-alloc-docs]).
+
+[wee-alloc-docs]: https://docs.rs/wee_alloc/0.4.3/wee_alloc/
+
+As we saw earlier, the `default` vector in `[features]` only contains `"console_error_panic_hook"` and not `"wee_alloc"`. So, in this case, this 
+block will be replaced by no code at all, and hence the default memory allocator will be used instead of `wee_alloc`.
+
+## Crate Organization
 
 ```rust
 mod utils;
@@ -78,23 +96,4 @@ mod utils {
 }
 ```
 
-Either way, the contents of `utils.rs` define a single public function `set_panic_hook`. Because we are placing it inside the `utils` module, we will be able to call the function directly by writing `utils::set_panic_hook()`. We will discuss how and why to use this function in `src/utils.rs`.
-
-
-```rust
-    // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
-    // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global	// allocator.
-    // allocator.	#[cfg(feature = "wee_alloc")]
-    if #[cfg(feature = "wee_alloc")] {	#[global_allocator]
-        #[global_allocator]	static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-```
-
-At compile time this will test if the `wee_alloc` feature is enabled for this
-compilation. If it's enabled we'll configure a global allocator (according to
-[`wee_alloc`'s docs][wee-alloc-docs]), otherwise it'll compile to nothing.
-
-[wee-alloc-docs]: https://docs.rs/wee_alloc/0.4.3/wee_alloc/
-
-As we saw earlier, the `default` vector in `[features]` only contains `"console_error_panic_hook"` and not `"wee_alloc"`. So, in this case, this 
-block will be replaced by no code at all, and hence the default memory allocator will be used instead of `wee_alloc`.
-
+Either way, the contents of `utils.rs` define a single public function `set_panic_hook`. Because we are placing it inside the `utils` module, we will be able to call the function directly by writing `utils::set_panic_hook()`. Next we will discuss how and why to use this function in `src/utils.rs`.
