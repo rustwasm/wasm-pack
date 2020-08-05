@@ -66,7 +66,7 @@ import("../crate/pkg").then(module => {
 
 ## Install `npm` Dependencies
 
-Before your first run, don't forget to install npm dependancies in your project's root directories:
+Before your first run, don't forget to install npm dependencies in your project's root directories:
 
 ```bash
 npm install
