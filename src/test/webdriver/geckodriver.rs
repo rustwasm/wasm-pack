@@ -198,8 +198,8 @@ fn get_version_from_json(json: impl AsRef<str>) -> Result<String, failure::Error
 fn assemble_geckodriver_url(tag: &str, target: &str, ext: &str) -> String {
     format!(
         "https://github.com/mozilla/geckodriver/releases/download/{tag}/geckodriver-{tag}-{target}.{ext}",
-        tag=tag,
-        target=target,
-        ext=ext,
+        tag = tag,
+        target = target,
+        ext = ext,
     )
 }
