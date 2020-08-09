@@ -91,19 +91,19 @@ fn get_geckodriver_url(target: &str, ext: &str) -> String {
     };
     let specified_geckodriver_version: Result<String, VarError> =
         std::env::var("SPECIFIED_GECKO_DRIVER_VERSION");
-    let geckodriver_version = if target::WINDOWS {
-        log::info!(
-            "[geckodriver] Windows detected, holding geckodriver version to {}",
-            DEFAULT_WINDOWS_GECKODRIVER_VERSION
-        );
-        DEFAULT_WINDOWS_GECKODRIVER_VERSION.to_owned()
-    } else if specified_geckodriver_version.is_ok() {
+    let geckodriver_version = if specified_geckodriver_version.is_ok() {
         let version = specified_geckodriver_version.unwrap();
         log::info!(
             "[geckodriver] Looking up specified version of geckodriver : {}",
             version
         );
         version
+    } else if target::WINDOWS {
+        log::info!(
+            "[geckodriver] Windows detected, holding geckodriver version to {}",
+            DEFAULT_WINDOWS_GECKODRIVER_VERSION
+        );
+        DEFAULT_WINDOWS_GECKODRIVER_VERSION.to_owned()
     } else {
         log::info!("[geckodriver] Looking up latest version of geckodriver...");
         match stamps::read_stamps_file_to_json() {
