@@ -4,6 +4,7 @@ use chrono::DateTime;
 use failure::{self, ResultExt};
 use install::InstallMode;
 use stamps;
+use std::env::VarError;
 use std::path::PathBuf;
 use target;
 
@@ -88,13 +89,21 @@ fn get_geckodriver_url(target: &str, ext: &str) -> String {
             .and_then(get_version_from_json)
             .and_then(save_geckodriver_version)
     };
-
+    let specified_geckodriver_version: Result<String, VarError> =
+        std::env::var("SPECIFIED_GECKO_DRIVER_VERSION");
     let geckodriver_version = if target::WINDOWS {
         log::info!(
             "[geckodriver] Windows detected, holding geckodriver version to {}",
             DEFAULT_WINDOWS_GECKODRIVER_VERSION
         );
         DEFAULT_WINDOWS_GECKODRIVER_VERSION.to_owned()
+    } else if specified_geckodriver_version.is_ok() {
+        let version = specified_geckodriver_version.unwrap();
+        log::info!(
+            "[geckodriver] Looking up specified version of geckodriver : {}",
+            version
+        );
+        version
     } else {
         log::info!("[geckodriver] Looking up latest version of geckodriver...");
         match stamps::read_stamps_file_to_json() {
