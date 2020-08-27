@@ -55,7 +55,7 @@ pub enum Target {
     /// instantiated.
     NoModules,
     /// Correspond to --target deno here the output is Modules available for deno
-    Deno
+    Deno,
 }
 
 impl Default for Target {
@@ -71,7 +71,7 @@ impl fmt::Display for Target {
             Target::Web => "web",
             Target::Nodejs => "nodejs",
             Target::NoModules => "no-modules",
-            Target::Deno => "deno"
+            Target::Deno => "deno",
         };
         write!(f, "{}", s)
     }
