@@ -317,7 +317,7 @@ impl Build {
 
     fn step_create_dir(&mut self) -> Result<(), Error> {
         info!("Creating a pkg directory...");
-        create_pkg_dir(&self.out_dir)?;
+        create_pkg_dir(&self.out_dir, &self.target)?;
         info!("Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }
