@@ -17,7 +17,10 @@ use test::{self, webdriver};
 
 #[derive(Debug, Default, StructOpt)]
 #[structopt(
+    // Allows unknown `--option`s to be parsed as positional arguments, so we can forward it to `cargo`.
     setting = AppSettings::AllowLeadingHyphen,
+
+    // Allows `--` to be parsed as an argument, so we can forward it to `cargo`.
     setting = AppSettings::TrailingVarArg,
 )]
 /// Everything required to configure the `wasm-pack test` command.
