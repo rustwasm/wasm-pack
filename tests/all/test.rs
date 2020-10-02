@@ -391,14 +391,7 @@ fn extra_options_is_passed_to_cargo_when_building_tests() {
     let _lock = fixture.lock();
     fixture
         .wasm_pack()
-        .args(&[
-            "test",
-            "--node",
-            "--",
-            "--no-default-features",
-            "--",
-            "smoke",
-        ])
+        .args(&["test", "--node", "--no-default-features", "--", "smoke"])
         .assert()
         .success();
 }

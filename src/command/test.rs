@@ -12,12 +12,17 @@ use log::info;
 use manifest;
 use std::path::PathBuf;
 use std::time::Instant;
+use structopt::clap::AppSettings;
 use test::{self, webdriver};
 
 #[derive(Debug, Default, StructOpt)]
+#[structopt(
+    setting = AppSettings::AllowLeadingHyphen,
+    setting = AppSettings::TrailingVarArg,
+)]
 /// Everything required to configure the `wasm-pack test` command.
 pub struct TestOptions {
-    #[structopt(parse(from_os_str))]
+    #[structopt(parse(from_os_str), long = "manifest-path")]
     /// The path to the Rust crate. If not set, searches up the path from the current dirctory.
     pub path: Option<PathBuf>,
 
@@ -74,7 +79,6 @@ pub struct TestOptions {
     /// Build with the release profile.
     pub release: bool,
 
-    #[structopt(last = true)]
     /// List of extra options to pass to `cargo test`
     pub extra_options: Vec<String>,
 }
