@@ -82,4 +82,8 @@ pub struct GlobalOpts {
     /// May be repeated to pass multiple options.
     #[structopt(long = "cargo-opt", number_of_values = 1)]
     pub cargo_opt: Vec<String>,
+
+    /// Path to cargo.  `cargo`, by default.
+    #[structopt(long = "cargo-path", default_value = "cargo")]
+    pub cargo_path: String,
 }

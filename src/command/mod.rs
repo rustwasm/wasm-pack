@@ -136,7 +136,7 @@ impl GlobalOpts {
     /// The caller should use `.args` to specify the cargo subcommand,
     /// and set the current directory, and so on.
     pub fn cargo_cmd(&self) -> std::process::Command {
-        let mut cmd = std::process::Command::new("cargo");
+        let mut cmd = std::process::Command::new(&self.cargo_path);
         cmd.args(&self.cargo_opt);
         cmd
     }
