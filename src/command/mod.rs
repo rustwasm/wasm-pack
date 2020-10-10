@@ -18,6 +18,8 @@ use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
 use crate::install::InstallMode;
 use failure::Error;
+use parking_lot::{const_rwlock, MappedRwLockReadGuard, RwLock, RwLockReadGuard};
+use GlobalOpts;
 use log::info;
 use std::path::PathBuf;
 use std::result;
@@ -110,6 +112,23 @@ pub enum Command {
     #[structopt(name = "test")]
     /// 👩‍🔬  test your wasm!
     Test(TestOptions),
+}
+
+type GlobalOptsContainer = RwLock<Option<GlobalOpts>>;
+static GLOBAL_OPTS_CONTAINER: GlobalOptsContainer = const_rwlock(None);
+
+/// Retrieves the global options for use by all wasm-pack subcommands
+/// Panics if `set_global_opts` has not yet been called.
+pub fn global_opts() -> MappedRwLockReadGuard<'static, GlobalOpts> {
+    RwLockReadGuard::map(GLOBAL_OPTS_CONTAINER.read(), |g| {
+        g.as_ref()
+            .expect("global_opts() permitted only after run_wasm_pack entered")
+    })
+}
+
+/// Sets the global options for use by all wasm-pack subcommands.
+pub fn set_global_opts(g: GlobalOpts) {
+    *GLOBAL_OPTS_CONTAINER.write() = Some(g);
 }
 
 /// Run a command with the given logger!
