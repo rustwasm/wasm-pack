@@ -18,6 +18,7 @@ use structopt::StructOpt;
 use wasm_pack::{
     build::{self, WasmPackVersion},
     command::run_wasm_pack,
+    command::set_global_opts,
     Cli, PBAR,
 };
 
@@ -82,6 +83,7 @@ fn run() -> Result<(), failure::Error> {
     let args = Cli::from_args();
 
     PBAR.set_log_level(args.log_level);
+    set_global_opts(args.global_opts);
 
     if args.quiet {
         PBAR.set_quiet(true);

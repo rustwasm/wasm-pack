@@ -68,4 +68,22 @@ pub struct Cli {
     #[structopt(long = "log-level", default_value = "info")]
     /// The maximum level of messages that should be logged by wasm-pack. [possible values: info, warn, error]
     pub log_level: LogLevel,
+
+    #[allow(missing_docs)] // avoids "methods and doc comments are not allowed for flattened entry"
+    #[structopt(flatten)]
+    pub global_opts: GlobalOpts,
+}
+
+#[derive(Debug, StructOpt)]
+/// Global options, passed to every subcommand.
+pub struct GlobalOpts {
+    /// Additional global argument to pass to `cargo`, before the cargo subcommand.
+    /// For example, `--cargo-opt=--locked`.
+    /// May be repeated to pass multiple options.
+    #[structopt(long = "cargo-opt", number_of_values = 1)]
+    pub cargo_opt: Vec<String>,
+
+    /// Path to cargo.  `cargo`, by default.
+    #[structopt(long = "cargo-path", default_value = "cargo")]
+    pub cargo_path: String,
 }

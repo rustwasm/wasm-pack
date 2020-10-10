@@ -4,10 +4,10 @@ pub mod webdriver;
 
 use crate::PBAR;
 use child;
+use command::global_opts;
 use failure::{self, ResultExt};
 use std::ffi::OsStr;
 use std::path::Path;
-use std::process::Command;
 
 /// Run `cargo test` with the `nightly` toolchain and targeting
 /// `wasm32-unknown-unknown`.
@@ -22,7 +22,7 @@ where
     K: AsRef<OsStr>,
     V: AsRef<OsStr>,
 {
-    let mut cmd = Command::new("cargo");
+    let mut cmd = global_opts().cargo_cmd();
 
     cmd.envs(envs);
     cmd.current_dir(path).arg("test");
