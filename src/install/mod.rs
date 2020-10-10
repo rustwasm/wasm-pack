@@ -3,6 +3,7 @@
 use self::krate::Krate;
 use binary_install::{Cache, Download};
 use child;
+use command::global_opts;
 use emoji;
 use failure::{self, ResultExt};
 use install;
@@ -256,7 +257,7 @@ pub fn cargo_install(
         Tool::WasmBindgen => "wasm-bindgen-cli".to_string(),
         _ => tool.to_string(),
     };
-    let mut cmd = Command::new("cargo");
+    let mut cmd = global_opts().cargo_cmd();
     cmd.arg("install")
         .arg("--force")
         .arg(crate_name)

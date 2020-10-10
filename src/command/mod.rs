@@ -131,6 +131,15 @@ pub fn set_global_opts(g: GlobalOpts) {
     *GLOBAL_OPTS_CONTAINER.write() = Some(g);
 }
 
+impl GlobalOpts {
+    /// Starts building a cargo command.  By default, just `cargo`.
+    /// The caller should use `.args` to specify the cargo subcommand,
+    /// and set the current directory, and so on.
+    pub fn cargo_cmd(&self) -> std::process::Command {
+        std::process::Command::new("cargo")
+    }
+}
+
 /// Run a command with the given logger!
 pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
     // Run the correct command based off input and store the result of it so that we can clear

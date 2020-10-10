@@ -2,6 +2,7 @@
 
 use child;
 use command::build::BuildProfile;
+use command::global_opts;
 use emoji;
 use failure::{Error, ResultExt};
 use manifest::Crate;
@@ -81,7 +82,7 @@ pub fn cargo_build_wasm(
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.info(&msg);
 
-    let mut cmd = Command::new("cargo");
+    let mut cmd = global_opts().cargo_cmd();
     cmd.current_dir(path).arg("build").arg("--lib");
 
     if PBAR.quiet() {
@@ -117,7 +118,7 @@ pub fn cargo_build_wasm(
 /// This generates the `Cargo.lock` file that we use in order to know which version of
 /// wasm-bindgen-cli to use when running tests.
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool) -> Result<(), Error> {
-    let mut cmd = Command::new("cargo");
+    let mut cmd = global_opts().cargo_cmd();
 
     cmd.current_dir(path).arg("build").arg("--tests");
 
