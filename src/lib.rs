@@ -77,5 +77,9 @@ pub struct Cli {
 #[derive(Debug, StructOpt)]
 /// Global options, passed to every subcommand.
 pub struct GlobalOpts {
-    // global options will go here in StructOpt format
+    /// Additional global argument to pass to `cargo`, before the cargo subcommand.
+    /// For example, `--cargo-opt=--locked`.
+    /// May be repeated to pass multiple options.
+    #[structopt(long = "cargo-opt", number_of_values = 1)]
+    pub cargo_opt: Vec<String>,
 }
