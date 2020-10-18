@@ -11,6 +11,7 @@ use lockfile::Lockfile;
 use log::info;
 use manifest;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::time::Instant;
 use structopt::clap::AppSettings;
 use test::{self, webdriver};
@@ -25,10 +26,6 @@ use test::{self, webdriver};
 )]
 /// Everything required to configure the `wasm-pack test` command.
 pub struct TestOptions {
-    #[structopt(parse(from_os_str), long = "manifest-path")]
-    /// The path to the Rust crate. If not set, searches up the path from the current dirctory.
-    pub path: Option<PathBuf>,
-
     #[structopt(long = "node")]
     /// Run the tests in Node.js.
     pub node: bool,
@@ -82,8 +79,14 @@ pub struct TestOptions {
     /// Build with the release profile.
     pub release: bool,
 
-    /// List of extra options to pass to `cargo test`
-    pub extra_options: Vec<String>,
+    /// Path to the Rust crate, and extra options to pass to `cargo test`.
+    ///
+    /// If the path is not provided, this command searches up the path from the current dirctory
+    ///
+    /// This is a workaround to allow wasm pack to provide the same command line interface as `cargo`.
+    /// See <https://github.com/rustwasm/wasm-pack/pull/851> for more information.
+    #[structopt(allow_hyphen_values = true)]
+    pub path_and_extra_options: Vec<String>,
 }
 
 /// A configured `wasm-pack test` command.
@@ -111,7 +114,6 @@ impl Test {
     /// Construct a test command from the given options.
     pub fn try_from_opts(test_opts: TestOptions) -> Result<Self, Error> {
         let TestOptions {
-            path,
             node,
             mode,
             headless,
@@ -122,8 +124,22 @@ impl Test {
             geckodriver,
             safari,
             safaridriver,
-            extra_options,
+            mut path_and_extra_options,
         } = test_opts;
+
+        let first_arg_is_path = path_and_extra_options
+            .get(0)
+            .map(|first_arg| !first_arg.starts_with("-"))
+            .unwrap_or(false);
+
+        let (path, extra_options) = if first_arg_is_path {
+            let path = PathBuf::from_str(&path_and_extra_options.remove(0))?;
+            let extra_options = path_and_extra_options;
+
+            (Some(path), extra_options)
+        } else {
+            (None, path_and_extra_options)
+        };
 
         let crate_path = get_crate_path(path)?;
         let crate_data = manifest::CrateData::new(&crate_path, None)?;
