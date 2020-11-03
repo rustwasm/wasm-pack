@@ -620,7 +620,7 @@ impl CrateData {
             None
         };
 
-        let keywords = if pkg.keywords.len() > 0 {
+        let keywords = if !pkg.keywords.is_empty() {
             Some(pkg.keywords.clone())
         } else {
             None
@@ -644,7 +644,7 @@ impl CrateData {
             files,
             main: js_file,
             homepage: self.manifest.package.homepage.clone(),
-            keywords: keywords,
+            keywords,
         }
     }
 
