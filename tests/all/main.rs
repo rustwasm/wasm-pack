@@ -25,4 +25,5 @@ mod stamps;
 mod test;
 mod utils;
 mod wasm_opt;
+mod wasm_dis;
 mod webdriver;
