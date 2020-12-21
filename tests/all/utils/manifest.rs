@@ -24,6 +24,7 @@ pub struct NpmPackage {
     #[serde(default = "default_false", rename = "sideEffects")]
     pub side_effects: bool,
     pub homepage: Option<String>,
+    pub keywords: Option<Vec<String>>,
 }
 
 fn default_none() -> String {
