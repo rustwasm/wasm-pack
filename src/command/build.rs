@@ -268,7 +268,6 @@ impl Build {
             step_copy_license,
             step_install_wasm_bindgen,
             step_run_wasm_bindgen,
-            step_run_wasm_opt,
             step_create_json,
         ]);
         steps
