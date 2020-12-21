@@ -1,0 +1,66 @@
+name: Tests
+
+on: [pull_request]
+
+jobs:
+  test:
+    name: Test
+
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        build:
+          [
+            linux-stable,
+            macos-stable,
+            windows-stable,
+          ]
+        include:
+          - build: linux-stable
+            os: ubuntu-latest
+            rust: stable
+          - build: macos-stable
+            os: macos-latest
+            rust: stable
+          - build: windows-stable
+            os: windows-latest
+            rust: stable
+
+    steps:
+      - uses: actions/checkout@v2
+
+      # for some reason our caching is causing flakiness
+      # temporarily disable it
+
+      # - name: Cache Cargo registry
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ~/.cargo/registry
+      #     key: ${{ matrix.build }}-cargo-registry-${{ hashFiles('**/Cargo.lock') }}
+      #     restore-keys: |
+      #       ${{ matrix.build }}-cargo-registry-
+
+      # - name: Cache Cargo index
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: ~/.cargo/git
+      #     key: ${{ matrix.build }}-cargo-index-${{ hashFiles('**/Cargo.lock') }}
+      #     restore-keys: |
+      #       ${{ matrix.build }}-cargo-index-
+
+      # - name: Cache Cargo build
+      #   uses: actions/cache@v2
+      #   with:
+      #     path: target
+      #     key: ${{ matrix.build }}-target-${{ hashFiles('**/Cargo.lock') }}
+      #     restore-keys: |
+      #       ${{ matrix.build }}-target-
+
+      - name: Install Rust
+        run: |
+          rustup update ${{ matrix.rust }} --no-self-update
+          rustup default ${{ matrix.rust }}
+      - name: Run Tests
+        run: cargo test --features "strict"
+        env:
+          RUST_BACKTRACE: 1
