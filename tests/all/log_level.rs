@@ -16,7 +16,7 @@ fn matches_info() -> impl Predicate<str> + PredicateReflection {
 }
 
 fn matches_warn() -> impl Predicate<str> + PredicateReflection {
-    contains(":-) [WARN]: origin crate has no README")
+    contains("[WARN]: :-) origin crate has no README")
 }
 
 fn matches_cargo() -> impl Predicate<str> + PredicateReflection {

@@ -82,9 +82,9 @@ impl ProgressOutput {
     pub fn warn(&self, message: &str) {
         if !self.quiet() && self.is_log_enabled(LogLevel::Warn) {
             let warn = format!(
-                "{} {}: {}",
-                emoji::WARN,
+                "{}: {} {}",
                 style("[WARN]").bold().dim(),
+                emoji::WARN,
                 message
             );
             self.message(&warn);
@@ -95,9 +95,9 @@ impl ProgressOutput {
     pub fn error(&self, message: &str) {
         if self.is_log_enabled(LogLevel::Error) {
             let err = format!(
-                "{} {}: {}",
-                emoji::ERROR,
+                "{}: {} {}",
                 style("[ERR]").bold().dim(),
+                emoji::ERROR,
                 message
             );
             self.message(&err);
