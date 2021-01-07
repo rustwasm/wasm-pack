@@ -64,7 +64,7 @@ pub fn find_wasm_opt(
 
         match path.as_path().parent() {
             Some(path) => return Ok(install::Status::Found(Download::at(path))),
-            _ => {}
+            None => {}
         }
     }
 
