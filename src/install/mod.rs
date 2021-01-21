@@ -260,10 +260,13 @@ pub fn cargo_install(
     cmd.arg("install")
         .arg("--force")
         .arg(crate_name)
-        .arg("--version")
-        .arg(version)
         .arg("--root")
         .arg(&tmp);
+
+    if version != "latest" {
+        cmd.arg("--version")
+           .arg(version);
+    }
 
     let context = format!("Installing {} with cargo", tool);
     child::run(cmd, "cargo install").context(context)?;
