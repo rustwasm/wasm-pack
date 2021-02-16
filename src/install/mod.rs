@@ -198,7 +198,7 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
         },
         Tool::CargoGenerate => {
             Ok(format!(
-                "https://github.com/ashleygwilliams/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
+                "https://github.com/cargo-generate/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
                 Krate::new(&Tool::CargoGenerate)?.max_version,
                 target
             ))
