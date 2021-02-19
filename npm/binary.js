@@ -12,7 +12,7 @@ const getPlatform = () => {
   if (type === "Linux" && arch === "x64") {
     return "x86_64-unknown-linux-musl";
   }
-  if (type === "Darwin" && arch === "x64") {
+  if (type === "Darwin" && (arch === "x64" || arch === "arm64")) {
     return "x86_64-apple-darwin";
   }
 
