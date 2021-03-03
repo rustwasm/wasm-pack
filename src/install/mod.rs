@@ -257,13 +257,22 @@ pub fn cargo_install(
         _ => tool.to_string(),
     };
     let mut cmd = Command::new("cargo");
-    cmd.arg("install")
-        .arg("--force")
-        .arg(crate_name)
-        .arg("--version")
-        .arg(version)
-        .arg("--root")
-        .arg(&tmp);
+
+    if version == "latest" {
+        cmd.arg("install")
+            .arg("--force")
+            .arg(crate_name)
+            .arg("--root")
+            .arg(&tmp);
+    } else {
+        cmd.arg("install")
+            .arg("--force")
+            .arg(crate_name)
+            .arg("--version")
+            .arg(version)
+            .arg("--root")
+            .arg(&tmp);
+    }
 
     let context = format!("Installing {} with cargo", tool);
     child::run(cmd, "cargo install").context(context)?;
@@ -274,7 +283,7 @@ pub fn cargo_install(
     // little renaming here.
     let binaries: Result<Vec<&str>, failure::Error> = match tool {
         Tool::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
-        Tool::CargoGenerate => Ok(vec!["cargo-genrate"]),
+        Tool::CargoGenerate => Ok(vec!["cargo-generate"]),
         Tool::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
     };
 
