@@ -198,8 +198,9 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
         },
         Tool::CargoGenerate => {
             Ok(format!(
-                "https://github.com/ashleygwilliams/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
-                Krate::new(&Tool::CargoGenerate)?.max_version,
+                "https://github.com/cargo-generate/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
+                // Krate::new(&Tool::CargoGenerate)?.max_version,
+                "0.5.1", // latest released binary [#907](https://github.com/rustwasm/wasm-pack/issues/907)
                 target
             ))
         },
@@ -258,20 +259,14 @@ pub fn cargo_install(
     };
     let mut cmd = Command::new("cargo");
 
-    if version == "latest" {
-        cmd.arg("install")
-            .arg("--force")
-            .arg(crate_name)
-            .arg("--root")
-            .arg(&tmp);
-    } else {
-        cmd.arg("install")
-            .arg("--force")
-            .arg(crate_name)
-            .arg("--version")
-            .arg(version)
-            .arg("--root")
-            .arg(&tmp);
+    cmd.arg("install")
+        .arg("--force")
+        .arg(crate_name)
+        .arg("--root")
+        .arg(&tmp);
+
+    if version != "latest" {
+        cmd.arg("--version").arg(version);
     }
 
     let context = format!("Installing {} with cargo", tool);
