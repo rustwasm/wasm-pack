@@ -9,7 +9,7 @@ It takes 3 parameters, name, template, and mode:
 wasm-pack new <name> --template <template> --mode <normal|noinstall|force>
 ```
 
-The template will default to the `rustwasm/wasm-pack-template`.
+The default template is [`rustwasm/wasm-pack-template`](https://github.com/rustwasm/wasm-pack-template).
 
 ## Name
 

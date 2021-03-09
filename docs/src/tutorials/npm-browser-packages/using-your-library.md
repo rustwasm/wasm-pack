@@ -14,10 +14,11 @@ project:
 [`create-wasm-app`]: https://github.com/rustwasm/create-wasm-app
 
 ```
-npm init wasm-app
+npm init wasm-app my-new-wasm-app
 ```
 
-This tool will ask you for the name of a project, and then create a directory with that name.
+Instead of `my-new-wasm-app` you can choose a different project name.
+The tool will create a directory with that name.
 
 If we look in that directory, we'll see the following:
 
