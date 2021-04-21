@@ -1,6 +1,6 @@
 //! Functionality related to installing prebuilt binaries and/or running cargo install.
 
-use self::krate::Krate;
+pub use self::krate::Krate;
 use binary_install::{Cache, Download};
 use child;
 use emoji;
@@ -258,11 +258,12 @@ pub fn cargo_install(
         _ => tool.to_string(),
     };
     let mut cmd = Command::new("cargo");
+    let max_version = Krate::new(&tool)?.max_version;
     cmd.arg("install")
         .arg("--force")
         .arg(crate_name)
         .arg("--version")
-        .arg(version)
+        .arg(max_version)
         .arg("--root")
         .arg(&tmp);
 
