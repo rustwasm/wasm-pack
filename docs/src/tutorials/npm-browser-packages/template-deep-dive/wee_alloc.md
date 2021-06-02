@@ -2,7 +2,6 @@
 
 1. [What is `wee_alloc`?](#what-is-wee_alloc)
 2. [Enabling `wee_alloc`](#enabling-wee_alloc)
-3. [Rust nightly](#rust-nightly)
 
 ## What is `wee_alloc`?
 
