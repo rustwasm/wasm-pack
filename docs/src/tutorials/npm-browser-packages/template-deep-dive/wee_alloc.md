@@ -14,7 +14,7 @@ responsive.
 [An analysis](http://fitzgeraldnick.com/2018/02/09/wee-alloc.html) suggests that over half of the bare minimum WebAssembly memory footprint is required by Rust's default memory allocator. Yet, WebAssembly code often does not require a sophisticated allocator, since it often just requests a couple of large initial allocations.
 
 `wee_alloc` trades off size for speed. It has a tiny code-size
-footprint, but it is is not competitive in terms of performance with the
+footprint, but it is not competitive in terms of performance with the
 default global allocator, for example.
 
 For even more details, see the [`wee_alloc`
