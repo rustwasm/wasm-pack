@@ -46,4 +46,12 @@ serial_test_derive = "0.2"
 tempfile = "3"
 
 [features]
+# OpenSSL is vendored by default, can use system OpenSSL through feature flag.
+default = ['openssl/vendored']
+
+# Treat compiler warnings as a build error.
+# This only runs in CI by default
+strict = ['openssl/vendored']
+sys-openssl = ['openssl']
+# Keeping feature for users already using this feature flag
 vendored-openssl = ['openssl/vendored']
