@@ -9,7 +9,7 @@ use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://github.com/mozilla/geckodriver/releases/latest
-const DEFAULT_GECKODRIVER_VERSION: &str = "v0.26.0";
+const DEFAULT_GECKODRIVER_VERSION: &str = "v0.29.1";
 const DEFAULT_WINDOWS_GECKODRIVER_VERSION: &str = "v0.24.0";
 
 const GECKODRIVER_LAST_UPDATED_STAMP: &str = "geckodriver_last_updated";
@@ -186,11 +186,10 @@ fn get_version_from_json(json: impl AsRef<str>) -> Result<String, failure::Error
         })
 }
 
-fn assemble_geckodriver_url(_tag: &str, target: &str, ext: &str) -> String {
+fn assemble_geckodriver_url(tag: &str, target: &str, ext: &str) -> String {
     format!(
         "https://github.com/mozilla/geckodriver/releases/download/{tag}/geckodriver-{tag}-{target}.{ext}",
-        // TODO: Temporary use v0.24.0 instead of latest. Latest is currently not working...
-        tag="v0.24.0",
+        tag=tag,
         target=target,
         ext=ext,
     )
