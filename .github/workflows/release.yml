@@ -1,14 +1,14 @@
 on:
   push:
     tags:
-      - "v*" # Run when tag matches v*, i.e. v1.0, v20.15.10
+      - 'v*' # Run when tag matches v*, i.e. v1.0, v20.15.10
 
 name: Release
 
 env:
   RELEASE_BIN: wasm-pack
   RELEASE_DIR: artifacts
-  GITHUB_REF: "${{ github.ref }}"
+  GITHUB_REF: '${{ github.ref }}'
   WINDOWS_TARGET: x86_64-pc-windows-msvc
   MACOS_TARGET: x86_64-apple-darwin
   LINUX_TARGET: x86_64-unknown-linux-musl
@@ -36,6 +36,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          target: wasm32-unknown-unknow
 
       - name: Query version number
         id: get_version
@@ -43,12 +48,6 @@ jobs:
         run: |
           echo "using version tag ${GITHUB_REF:10}"
           echo ::set-output name=version::"${GITHUB_REF:10}"
-
-      - name: Install Rust
-        if: matrix.rust
-        run: |
-          rustup update ${{ matrix.rust }} --no-self-update
-          rustup default ${{ matrix.rust }}
 
       - name: Install musl-tools (Linux)
         if: matrix.build == 'linux'
