@@ -8,7 +8,7 @@
 
   <p>
     <a href="https://github.com/rustwasm/wasm-pack/actions/workflows/test.yml"><img alt="Build Status" src="https://github.com/rustwasm/wasm-pack/actions/workflows/test.yml/badge.svg?branch=master"/></a>
-    <a href="https://crates.io/crates/wasm-pack"><img alt="crates.io" src="https://meritbadge.herokuapp.com/wasm-pack"/></a>
+    <a href="https://crates.io/crates/wasm-pack"><img alt="crates.io" src="https://img.shields.io/crates/v/wasm-pack"/></a>
   </p>
 
   <h3>

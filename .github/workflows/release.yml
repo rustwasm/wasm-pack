@@ -1,20 +1,20 @@
 on:
   push:
     tags:
-      - "v*" # Run when tag matches v*, i.e. v1.0, v20.15.10
+      - 'v*' # Run when tag matches v*, i.e. v1.0, v20.15.10
 
 name: Release
 
 env:
   RELEASE_BIN: wasm-pack
   RELEASE_DIR: artifacts
-  GITHUB_REF: "${{ github.ref }}"
+  GITHUB_REF: '${{ github.ref }}'
   WINDOWS_TARGET: x86_64-pc-windows-msvc
   MACOS_TARGET: x86_64-apple-darwin
   LINUX_TARGET: x86_64-unknown-linux-musl
 
   # Space separated paths to include in the archive.
-  RELEASE_ADDS: README.md
+  RELEASE_ADDS: README.md LICENSE-APACHE LICENSE-MIT
 
 jobs:
   build:
@@ -36,6 +36,11 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: ${{ matrix.rust }}
+          override: true
+          target: wasm32-unknown-unknown
 
       - name: Query version number
         id: get_version
@@ -43,12 +48,6 @@ jobs:
         run: |
           echo "using version tag ${GITHUB_REF:10}"
           echo ::set-output name=version::"${GITHUB_REF:10}"
-
-      - name: Install Rust
-        if: matrix.rust
-        run: |
-          rustup update ${{ matrix.rust }} --no-self-update
-          rustup default ${{ matrix.rust }}
 
       - name: Install musl-tools (Linux)
         if: matrix.build == 'linux'
@@ -86,7 +85,7 @@ jobs:
         run: |
           mv ./target/${{ env.LINUX_TARGET }}/release/${{ env.RELEASE_BIN }} ./dist/${{ env.RELEASE_BIN }}
           mv ${{ env.RELEASE_ADDS }} ./dist
-          7z a -ttar -so -an ./dist | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_TARGET }}.tar.gz
+          7z a -ttar -so -an ./dist/* | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_TARGET }}.tar.gz
 
       - name: Create tarball (Windows)
         if: matrix.build == 'windows'
@@ -94,14 +93,14 @@ jobs:
         run: |
           mv ./target/release/${{ env.RELEASE_BIN }}.exe ./dist/${{ env.RELEASE_BIN }}.exe
           mv ${{ env.RELEASE_ADDS }} ./dist
-          7z a -ttar -so -an ./dist | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
+          7z a -ttar -so -an ./dist/* | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
 
       - name: Create tarball (MacOS)
         if: matrix.build == 'macos'
         run: |
           mv ./target/release/${{ env.RELEASE_BIN }} ./dist/${{ env.RELEASE_BIN }}
           mv ${{ env.RELEASE_ADDS }} ./dist
-          7z a -ttar -so -an ./dist | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
+          7z a -ttar -so -an ./dist/* | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
 
       - name: Upload Zip
         uses: actions/upload-artifact@v1
