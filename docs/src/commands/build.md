@@ -127,13 +127,13 @@ wasm-pack build examples/js-hello-world --mode no-install
 
 ## Extra options
 
-The `build` command can pass extra options straight to `cargo build` even if they are not
-supported in wasm-pack. To use them you should add standalone `--` argument at the very
-end of your command, and all the arguments you want to pass to cargo should go after.
-For example, to build the previous example using cargo's offline feature:
+The `build` command can pass extra options straight to `cargo build` even if
+they are not supported in wasm-pack. To use them simply add the extra arguments
+at the very end of your command, just as you would for `cargo build`. For
+example, to build the previous example using cargo's offline feature:
 
 ```
-wasm-pack build examples/js-hello-world --mode no-install -- --offline
+wasm-pack build examples/js-hello-world --mode no-install --offline
 ```
 
 <hr style="font-size: 1.5em; margin-top: 2.5em"/>
