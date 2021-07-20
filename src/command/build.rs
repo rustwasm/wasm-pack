@@ -18,6 +18,7 @@ use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
+use structopt::clap::AppSettings;
 use PBAR;
 
 /// Everything required to configure and run the `wasm-pack build` command.
@@ -101,6 +102,13 @@ pub enum BuildProfile {
 
 /// Everything required to configure and run the `wasm-pack build` command.
 #[derive(Debug, StructOpt)]
+#[structopt(
+    // Allows unknown `--option`s to be parsed as positional arguments, so we can forward it to `cargo`.
+    setting = AppSettings::AllowLeadingHyphen,
+
+    // Allows `--` to be parsed as an argument, so we can forward it to `cargo`.
+    setting = AppSettings::TrailingVarArg,
+)]
 pub struct BuildOptions {
     /// The path to the Rust crate. If not set, searches up the path from the current directory.
     #[structopt(parse(from_os_str))]
@@ -148,7 +156,7 @@ pub struct BuildOptions {
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
-    #[structopt(last = true)]
+    #[structopt(allow_hyphen_values = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
 }
