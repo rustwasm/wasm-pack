@@ -40,7 +40,7 @@ allocator, but only if the `wee_alloc` feature is enabled at compile time. The
 feature can be enabled by passing extra options while building:
 
 ```
-$ wasm-pack build -- --features wee_alloc
+$ wasm-pack build --features wee_alloc
 ```
 
 or alternatively you could turn it on by default in `Cargo.toml`:
