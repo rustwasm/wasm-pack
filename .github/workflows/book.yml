@@ -2,8 +2,7 @@ name: Build and deploy documentation book
 
 on:
   push:
-    branches:
-      - master
+  pull_request:    
 
 jobs:
   book:
@@ -31,6 +30,7 @@ jobs:
 
       - name: Deploy book
         uses: JamesIves/github-pages-deploy-action@4.1.4
+        if: ${{ github.ref == 'refs/heads/master' }}
         with:
           branch: gh-pages
           folder: docs
