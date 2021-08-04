@@ -264,7 +264,6 @@ fn build_with_arbitrary_cargo_options() {
     fixture
         .wasm_pack()
         .arg("build")
-        .arg("--")
         .arg("--no-default-features")
         .assert()
         .success();
