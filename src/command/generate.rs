@@ -1,10 +1,10 @@
-use cache;
+use crate::cache;
 use failure::Error;
-use generate;
-use install::{self, Tool};
+use crate::generate;
+use crate::install::{self, Tool};
 use log::info;
 use std::result;
-use PBAR;
+use crate::PBAR;
 
 /// Executes the 'cargo-generate' command in the current directory
 /// which generates a new rustwasm project from a template.

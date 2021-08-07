@@ -1,4 +1,4 @@
-use install::Tool;
+use crate::install::Tool;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]

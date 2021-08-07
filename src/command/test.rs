@@ -1,20 +1,20 @@
 //! Implementation of the `wasm-pack test` command.
 
 use binary_install::Cache;
-use build;
-use cache;
-use command::utils::get_crate_path;
+use crate::build;
+use crate::cache;
+use crate::command::utils::get_crate_path;
 use console::style;
 use failure::Error;
-use install::{self, InstallMode, Tool};
-use lockfile::Lockfile;
+use crate::install::{self, InstallMode, Tool};
+use crate::lockfile::Lockfile;
 use log::info;
-use manifest;
+use crate::manifest;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 use structopt::clap::AppSettings;
-use test::{self, webdriver};
+use crate::test::{self, webdriver};
 
 #[derive(Debug, Default, StructOpt)]
 #[structopt(

@@ -2,16 +2,16 @@
 pub mod access;
 
 use self::access::Access;
-use command::build::{Build, BuildOptions, Target};
-use command::utils::{find_pkg_directory, get_crate_path};
+use crate::command::build::{Build, BuildOptions, Target};
+use crate::command::utils::{find_pkg_directory, get_crate_path};
 use dialoguer::{Confirmation, Input, Select};
 use failure::Error;
 use log::info;
-use npm;
+use crate::npm;
 use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
-use PBAR;
+use crate::PBAR;
 
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry

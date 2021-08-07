@@ -1,7 +1,7 @@
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
-use std::env;
-use utils::fixture;
+
+use crate::utils::fixture;
 
 #[test]
 fn it_can_run_node_tests() {

@@ -7,7 +7,7 @@ mod safaridriver;
 use binary_install::Cache;
 use failure;
 use std::path::PathBuf;
-use PBAR;
+use crate::PBAR;
 
 pub use self::{
     chromedriver::{get_or_install_chromedriver, install_chromedriver},

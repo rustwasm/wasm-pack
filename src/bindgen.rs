@@ -1,10 +1,10 @@
 //! Functionality related to running `wasm-bindgen`.
 
-use child;
-use command::build::{BuildProfile, Target};
+use crate::child;
+use crate::command::build::{BuildProfile, Target};
 use failure::{self, ResultExt};
-use install::{self, Tool};
-use manifest::CrateData;
+use crate::install::{self, Tool};
+use crate::manifest::CrateData;
 use semver;
 use std::path::{Path, PathBuf};
 use std::process::Command;

@@ -17,7 +17,7 @@ use self::npm::{
 use cargo_metadata::Metadata;
 use chrono::offset;
 use chrono::DateTime;
-use command::build::{BuildProfile, Target};
+use crate::command::build::{BuildProfile, Target};
 use curl::easy;
 use failure::{Error, ResultExt};
 use serde::{self, Deserialize};
@@ -27,7 +27,7 @@ use std::env;
 use std::io::Write;
 use strsim::levenshtein;
 use toml;
-use PBAR;
+use crate::PBAR;
 
 const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
 const WASM_PACK_VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");

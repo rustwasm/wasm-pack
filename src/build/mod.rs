@@ -1,14 +1,14 @@
 //! Building a Rust crate into a `.wasm` binary.
 
-use child;
-use command::build::BuildProfile;
-use emoji;
+use crate::child;
+use crate::command::build::BuildProfile;
+use crate::emoji;
 use failure::{Error, ResultExt};
-use manifest::Crate;
+use crate::manifest::Crate;
 use std::path::Path;
 use std::process::Command;
 use std::str;
-use PBAR;
+use crate::PBAR;
 
 pub mod wasm_target;
 

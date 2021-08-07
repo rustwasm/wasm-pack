@@ -2,24 +2,24 @@
 
 use crate::wasm_opt;
 use binary_install::Cache;
-use bindgen;
-use build;
-use cache;
-use command::utils::{create_pkg_dir, get_crate_path};
-use emoji;
+use crate::bindgen;
+use crate::build;
+use crate::cache;
+use crate::command::utils::{create_pkg_dir, get_crate_path};
+use crate::emoji;
 use failure::Error;
-use install::{self, InstallMode, Tool};
-use license;
-use lockfile::Lockfile;
+use crate::install::{self, InstallMode, Tool};
+use crate::license;
+use crate::lockfile::Lockfile;
 use log::info;
-use manifest;
-use readme;
+use crate::manifest;
+use crate::readme;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 use structopt::clap::AppSettings;
-use PBAR;
+use crate::PBAR;
 
 /// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]

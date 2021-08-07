@@ -3,7 +3,7 @@ use predicates::boolean::PredicateBooleanExt;
 use predicates::prelude::predicate::str::contains;
 use predicates::reflection::PredicateReflection;
 use predicates::Predicate;
-use utils;
+use crate::utils;
 
 fn matches_info() -> impl Predicate<str> + PredicateReflection {
     contains("[INFO]: Checking for the Wasm target...")

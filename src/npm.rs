@@ -1,7 +1,7 @@
 //! Functionality related to publishing to npm.
 
-use child;
-use command::publish::access::Access;
+use crate::child;
+use crate::command::publish::access::Access;
 use failure::{self, ResultExt};
 use log::info;
 

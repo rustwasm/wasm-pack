@@ -4,7 +4,7 @@
 //! properly logged and their output is logged as well.
 
 use failure::Error;
-use install::Tool;
+use crate::install::Tool;
 use log::info;
 use std::process::{Command, Stdio};
 

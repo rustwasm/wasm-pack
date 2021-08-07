@@ -1,5 +1,5 @@
 use assert_cmd::prelude::*;
-use utils;
+use crate::utils;
 
 #[test]
 fn new_with_no_name_errors() {

@@ -1,6 +1,6 @@
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
-use utils;
+use crate::utils;
 
 #[test]
 fn off_in_dev() {

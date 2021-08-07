@@ -3,7 +3,7 @@ extern crate wasm_pack;
 
 use std::fs;
 
-use utils::{self, fixture};
+use crate::utils::{self, fixture};
 use wasm_pack::readme;
 
 #[test]

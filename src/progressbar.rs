@@ -1,7 +1,7 @@
 //! Fancy progress bar functionality.
 
 use console::style;
-use emoji;
+use crate::emoji;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 #[repr(u8)]

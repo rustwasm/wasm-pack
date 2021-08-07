@@ -7,7 +7,7 @@ use std::path::PathBuf;
 
 use console::style;
 use failure::{Error, ResultExt};
-use manifest::CrateData;
+use crate::manifest::CrateData;
 use toml;
 
 /// This struct represents the contents of `Cargo.lock`.

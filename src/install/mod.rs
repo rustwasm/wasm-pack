@@ -2,19 +2,19 @@
 
 use self::krate::Krate;
 use binary_install::{Cache, Download};
-use child;
-use emoji;
+use crate::child;
+use crate::emoji;
 use failure::{self, ResultExt};
-use install;
+use crate::install;
 use log::debug;
 use log::{info, warn};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use target;
+use crate::target;
 use which::which;
-use PBAR;
+use crate::PBAR;
 
 mod krate;
 mod mode;

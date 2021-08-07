@@ -45,7 +45,7 @@ pub mod target;
 pub mod test;
 pub mod wasm_opt;
 
-use progressbar::{LogLevel, ProgressOutput};
+use crate::progressbar::{LogLevel, ProgressOutput};
 
 /// The global progress bar and user-facing message output.
 pub static PBAR: ProgressOutput = ProgressOutput::new();
