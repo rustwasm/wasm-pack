@@ -32,7 +32,10 @@ fn it_can_run_tests_with_different_wbg_test_and_wbg_versions() {
 #[test]
 #[cfg(any(
     all(target_os = "linux", target_arch = "x86_64"),
-    all(target_os = "macos", any(target_arch = "x86_64", target_arch = "aarch64")),
+    all(
+        target_os = "macos",
+        any(target_arch = "x86_64", target_arch = "aarch64")
+    ),
     all(target_os = "windows", target_arch = "x86"),
     all(target_os = "windows", target_arch = "x86_64")
 ))]
@@ -43,7 +46,10 @@ fn it_can_run_browser_tests() {
     let firefox = cfg!(any(
         all(target_os = "linux", target_arch = "x86"),
         all(target_os = "linux", target_arch = "x86_64"),
-        all(target_os = "macos", any(target_arch = "x86_64", target_arch = "aarch64")),
+        all(
+            target_os = "macos",
+            any(target_arch = "x86_64", target_arch = "aarch64")
+        ),
         all(target_os = "windows", target_arch = "x86"),
         all(target_os = "windows", target_arch = "x86_64")
     ));
@@ -53,7 +59,10 @@ fn it_can_run_browser_tests() {
 
     let chrome = cfg!(any(
         all(target_os = "linux", target_arch = "x86_64"),
-        all(target_os = "macos", any(target_arch = "x86_64", target_arch = "aarch64")),
+        all(
+            target_os = "macos",
+            any(target_arch = "x86_64", target_arch = "aarch64")
+        ),
         all(target_os = "windows", target_arch = "x86")
     ));
     if chrome {
@@ -103,7 +112,10 @@ fn it_can_run_failing_tests() {
 #[cfg(any(
     all(target_os = "linux", target_arch = "x86"),
     all(target_os = "linux", target_arch = "x86_64"),
-    all(target_os = "macos", any(target_arch = "x86_64", target_arch = "aarch64")),
+    all(
+        target_os = "macos",
+        any(target_arch = "x86_64", target_arch = "aarch64")
+    ),
     all(target_os = "windows", target_arch = "x86"),
     all(target_os = "windows", target_arch = "x86_64")
 ))]

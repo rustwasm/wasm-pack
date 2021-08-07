@@ -1,7 +1,10 @@
 #[test]
 #[cfg(any(
     all(target_os = "linux", target_arch = "x86_64"),
-    all(target_os = "macos", any(target_arch = "x86_64", target_arch = "aarch64")),
+    all(
+        target_os = "macos",
+        any(target_arch = "x86_64", target_arch = "aarch64")
+    ),
     all(target_os = "windows", target_arch = "x86"),
     all(target_os = "windows", target_arch = "x86_64")
 ))]
@@ -15,7 +18,10 @@ fn can_install_chromedriver() {
 #[cfg(any(
     all(target_os = "linux", target_arch = "x86"),
     all(target_os = "linux", target_arch = "x86_64"),
-    all(target_os = "macos", any(target_arch = "x86_64", target_arch = "aarch64")),
+    all(
+        target_os = "macos",
+        any(target_arch = "x86_64", target_arch = "aarch64")
+    ),
     all(target_os = "windows", target_arch = "x86"),
     all(target_os = "windows", target_arch = "x86_64")
 ))]
