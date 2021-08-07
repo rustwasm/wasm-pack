@@ -11,40 +11,40 @@ documentation = "https://rustwasm.github.io/wasm-pack/"
 edition = "2018"
 
 [dependencies]
-atty = "0.2.11"
+atty = "0.2.14"
 cargo_metadata = "0.8.0"
 console = "0.14.1"
 dialoguer = "0.8.0"
-curl = "0.4.13"
-env_logger = { version = "0.5.13", default-features = false }
-failure = "0.1.2"
-human-panic = "1.0.1"
-glob = "0.2"
-log = "0.4.6"
-openssl = { version = '0.10.11', optional = true }
+curl = "0.4.38"
+env_logger = { version = "0.9.0", default-features = false }
+failure = "0.1.8"
+human-panic = "1.0.3"
+glob = "0.3.0"
+log = "0.4.14"
+openssl = { version = '0.10.35', optional = true }
 parking_lot = "0.11.1"
 reqwest = { version = "0.11.4", features = ["blocking"] }
 semver = "0.9.0"
-serde = "1.0.74"
-serde_derive = "1.0.74"
-serde_ignored = "0.0.4"
-serde_json = "1.0.26"
+serde = "1.0.127"
+serde_derive = "1.0.127"
+serde_ignored = "0.1.2"
+serde_json = "1.0.66"
 strsim = "0.8.0"
 siphasher = "0.2.3"
-structopt = "0.3"
+structopt = "0.3.22"
 toml = "0.5.8"
-which = "2.0.0"
+which = "4.2.2"
 binary-install = "0.0.2"
-walkdir = "2"
-chrono = "0.4.6"
+walkdir = "2.3.2"
+chrono = "0.4.19"
 
 [dev-dependencies]
-assert_cmd = "0.11"
-lazy_static = "1.1.0"
-predicates = "1.0.0"
+assert_cmd = "2.0.0"
+lazy_static = "1.4.0"
+predicates = "2.0.1"
 serial_test = "0.5.1"
 serial_test_derive = "0.5.1"
-tempfile = "3"
+tempfile = "3.2.0"
 
 [features]
 # OpenSSL is vendored by default, can use system OpenSSL through feature flag.
