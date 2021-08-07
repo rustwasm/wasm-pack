@@ -1,11 +1,11 @@
+use crate::utils::{self, fixture};
 use assert_cmd::prelude::*;
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
-use utils::{self, fixture};
 use wasm_pack::command::build::Target;
 use wasm_pack::command::utils::get_crate_path;
-use wasm_pack::{self, license, manifest};
+use wasm_pack::{self, emoji, license, manifest};
 
 #[test]
 fn it_gets_the_crate_name_default_path() {
@@ -511,10 +511,11 @@ fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
         .arg("build")
         .assert()
         .success()
-        .stderr(predicates::str::contains(
-        "[WARN]: :-) \"package.metadata.wasm-pack.profile.production\" is an unknown key and will \
+        .stderr(predicates::str::contains(format!(
+        "[WARN]: {} \"package.metadata.wasm-pack.profile.production\" is an unknown key and will \
          be ignored. Please check your Cargo.toml.",
-    ));
+        emoji::WARN
+    )));
 }
 
 #[test]

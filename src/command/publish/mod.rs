@@ -2,16 +2,16 @@
 pub mod access;
 
 use self::access::Access;
-use command::build::{Build, BuildOptions, Target};
-use command::utils::{find_pkg_directory, get_crate_path};
-use dialoguer::{Confirmation, Input, Select};
+use crate::command::build::{Build, BuildOptions, Target};
+use crate::command::utils::{find_pkg_directory, get_crate_path};
+use crate::npm;
+use crate::PBAR;
+use dialoguer::{Confirm, Input, Select};
 use failure::Error;
 use log::info;
-use npm;
 use std::path::PathBuf;
 use std::result;
 use std::str::FromStr;
-use PBAR;
 
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry
@@ -31,8 +31,8 @@ pub fn publish(
         None => {
             // while `wasm-pack publish`, if the pkg directory cannot be found,
             // then try to `wasm-pack build`
-            if Confirmation::new()
-                .with_text("Your package hasn't been built, build it?")
+            if Confirm::new()
+                .with_prompt("Your package hasn't been built, build it?")
                 .interact()?
             {
                 let out_dir = Input::new()

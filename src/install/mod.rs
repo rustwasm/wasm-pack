@@ -1,20 +1,20 @@
 //! Functionality related to installing prebuilt binaries and/or running cargo install.
 
 use self::krate::Krate;
+use crate::child;
+use crate::emoji;
+use crate::install;
+use crate::target;
+use crate::PBAR;
 use binary_install::{Cache, Download};
-use child;
-use emoji;
 use failure::{self, ResultExt};
-use install;
 use log::debug;
 use log::{info, warn};
 use std::env;
 use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use target;
 use which::which;
-use PBAR;
 
 mod krate;
 mod mode;

@@ -2,8 +2,8 @@
 
 pub mod webdriver;
 
+use crate::child;
 use crate::PBAR;
-use child;
 use failure::{self, ResultExt};
 use std::ffi::OsStr;
 use std::path::Path;

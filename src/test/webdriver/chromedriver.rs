@@ -1,11 +1,11 @@
 use super::{get_and_notify, Collector};
+use crate::install::InstallMode;
+use crate::stamps;
+use crate::target;
 use binary_install::Cache;
 use chrono::DateTime;
 use failure::{self, ResultExt};
-use install::InstallMode;
-use stamps;
 use std::path::PathBuf;
-use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://chromedriver.storage.googleapis.com/LATEST_RELEASE

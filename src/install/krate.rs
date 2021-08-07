@@ -1,5 +1,4 @@
-use install::Tool;
-use serde::Deserialize;
+use crate::install::Tool;
 
 #[derive(Debug, Deserialize)]
 pub struct Krate {
@@ -15,8 +14,7 @@ pub struct KrateResponse {
 impl Krate {
     pub fn new(name: &Tool) -> Result<Krate, failure::Error> {
         let krate_address = format!("https://crates.io/api/v1/crates/{}", name);
-        let client = reqwest::Client::new();
-        let mut res = client.get(&krate_address).send()?;
+        let res = reqwest::blocking::get(&krate_address)?;
 
         let kr: KrateResponse = serde_json::from_str(&res.text()?)?;
         Ok(kr.krate)

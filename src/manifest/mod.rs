@@ -14,10 +14,11 @@ use std::path::Path;
 use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
+use crate::command::build::{BuildProfile, Target};
+use crate::PBAR;
 use cargo_metadata::Metadata;
 use chrono::offset;
 use chrono::DateTime;
-use command::build::{BuildProfile, Target};
 use curl::easy;
 use failure::{Error, ResultExt};
 use serde::{self, Deserialize};
@@ -27,7 +28,6 @@ use std::env;
 use std::io::Write;
 use strsim::levenshtein;
 use toml;
-use PBAR;
 
 const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
 const WASM_PACK_VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
@@ -426,7 +426,7 @@ impl CrateData {
             .iter()
             .position(|pkg| {
                 pkg.name == manifest.package.name
-                    && CrateData::is_same_path(&pkg.manifest_path, &manifest_path)
+                    && CrateData::is_same_path(&pkg.manifest_path.as_std_path(), &manifest_path)
             })
             .ok_or_else(|| format_err!("failed to find package in metadata"))?;
 
