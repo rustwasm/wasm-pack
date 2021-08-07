@@ -1,5 +1,4 @@
 use crate::install::Tool;
-use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
 pub struct Krate {
