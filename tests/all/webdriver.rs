@@ -6,9 +6,9 @@
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn can_install_chromedriver() {
-    let fixture = fixture::js_hello_world();
-    let cache = Cache::at(&fixture.path);
-    assert!(webdriver::install_chromedriver(&cache, true).is_ok());
+    let fixture = crate::utils::fixture::js_hello_world();
+    let cache = binary_install::Cache::at(&fixture.path);
+    assert!(wasm_pack::test::webdriver::install_chromedriver(&cache, true).is_ok());
 }
 
 #[test]
@@ -20,7 +20,7 @@ fn can_install_chromedriver() {
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn can_install_geckodriver() {
-    let fixture = fixture::js_hello_world();
-    let cache = Cache::at(&fixture.path);
-    assert!(webdriver::install_geckodriver(&cache, true).is_ok());
+    let fixture = crate::utils::fixture::js_hello_world();
+    let cache = binary_install::Cache::at(&fixture.path);
+    assert!(wasm_pack::test::webdriver::install_geckodriver(&cache, true).is_ok());
 }

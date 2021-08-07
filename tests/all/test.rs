@@ -112,10 +112,10 @@ fn it_can_find_a_webdriver_on_path() {
     let local_geckodriver = fixture.install_local_geckodriver();
     let local_wasm_bindgen = fixture.install_local_wasm_bindgen();
 
-    let mut paths: Vec<_> = env::split_paths(&env::var("PATH").unwrap()).collect();
+    let mut paths: Vec<_> = std::env::split_paths(&std::env::var("PATH").unwrap()).collect();
     paths.insert(0, local_geckodriver.parent().unwrap().to_path_buf());
     paths.insert(0, local_wasm_bindgen.parent().unwrap().to_path_buf());
-    let path = env::join_paths(paths).unwrap();
+    let path = std::env::join_paths(paths).unwrap();
 
     let _lock = fixture.lock();
     fixture
