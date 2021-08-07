@@ -4,7 +4,7 @@ pub mod access;
 use self::access::Access;
 use crate::command::build::{Build, BuildOptions, Target};
 use crate::command::utils::{find_pkg_directory, get_crate_path};
-use dialoguer::{Confirmation, Input, Select};
+use dialoguer::{Confirm, Input, Select};
 use failure::Error;
 use log::info;
 use crate::npm;
@@ -31,8 +31,8 @@ pub fn publish(
         None => {
             // while `wasm-pack publish`, if the pkg directory cannot be found,
             // then try to `wasm-pack build`
-            if Confirmation::new()
-                .with_text("Your package hasn't been built, build it?")
+            if Confirm::new()
+                .with_prompt("Your package hasn't been built, build it?")
                 .interact()?
             {
                 let out_dir = Input::new()

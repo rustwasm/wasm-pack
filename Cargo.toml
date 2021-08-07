@@ -13,8 +13,8 @@ edition = "2018"
 [dependencies]
 atty = "0.2.11"
 cargo_metadata = "0.8.0"
-console = "0.6.1"
-dialoguer = "0.3.0"
+console = "0.14.1"
+dialoguer = "0.8.0"
 curl = "0.4.13"
 env_logger = { version = "0.5.13", default-features = false }
 failure = "0.1.2"
