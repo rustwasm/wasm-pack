@@ -2,8 +2,8 @@
 
 use crate::child;
 use crate::emoji;
-use failure::{self, ResultExt};
 use crate::install::{self, Tool};
+use failure::{self, ResultExt};
 use std::process::Command;
 
 /// Run `cargo generate` in the current directory to create a new

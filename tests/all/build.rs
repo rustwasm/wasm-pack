@@ -1,7 +1,7 @@
+use crate::utils;
 use assert_cmd::prelude::*;
 use std::fs;
 use std::path::Path;
-use crate::utils;
 
 #[test]
 fn build_in_non_crate_directory_doesnt_panic() {

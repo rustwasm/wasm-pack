@@ -4,9 +4,9 @@ use failure;
 use std::fs;
 use std::path::Path;
 
-use glob::glob;
 use crate::manifest::CrateData;
 use crate::PBAR;
+use glob::glob;
 
 fn glob_license_files(path: &Path) -> Result<Vec<String>, failure::Error> {
     let mut license_files: Vec<String> = Vec::new();

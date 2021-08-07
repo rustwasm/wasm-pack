@@ -1,7 +1,7 @@
-use log::info;
 use crate::npm;
-use std::result;
 use crate::PBAR;
+use log::info;
+use std::result;
 
 pub fn login(
     registry: Option<String>,

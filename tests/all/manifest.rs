@@ -1,8 +1,8 @@
+use crate::utils::{self, fixture};
 use assert_cmd::prelude::*;
 use std::collections::HashSet;
 use std::fs;
 use std::path::PathBuf;
-use crate::utils::{self, fixture};
 use wasm_pack::command::build::Target;
 use wasm_pack::command::utils::get_crate_path;
 use wasm_pack::{self, license, manifest};

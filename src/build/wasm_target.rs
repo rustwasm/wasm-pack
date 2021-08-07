@@ -2,12 +2,12 @@
 
 use crate::child;
 use crate::emoji;
+use crate::PBAR;
 use failure::{Error, ResultExt};
 use log::info;
 use std::fmt;
 use std::path::PathBuf;
 use std::process::Command;
-use crate::PBAR;
 
 struct Wasm32Check {
     rustc_path: PathBuf,

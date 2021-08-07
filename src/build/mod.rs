@@ -3,12 +3,12 @@
 use crate::child;
 use crate::command::build::BuildProfile;
 use crate::emoji;
-use failure::{Error, ResultExt};
 use crate::manifest::Crate;
+use crate::PBAR;
+use failure::{Error, ResultExt};
 use std::path::Path;
 use std::process::Command;
 use std::str;
-use crate::PBAR;
 
 pub mod wasm_target;
 
