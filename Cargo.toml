@@ -12,7 +12,7 @@ edition = "2018"
 
 [dependencies]
 atty = "0.2.14"
-cargo_metadata = "0.8.0"
+cargo_metadata = "0.14.0"
 console = "0.14.1"
 dialoguer = "0.8.0"
 curl = "0.4.38"
@@ -24,7 +24,7 @@ log = "0.4.14"
 openssl = { version = '0.10.35', optional = true }
 parking_lot = "0.11.1"
 reqwest = { version = "0.11.4", features = ["blocking"] }
-semver = "0.9.0"
+semver = "1.0.4"
 serde = "1.0.127"
 serde_derive = "1.0.127"
 serde_ignored = "0.1.2"
