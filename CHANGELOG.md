@@ -1,5 +1,132 @@
 # Changelog
 
+## 🤍 Unreleased
+
+## 🌦️ 0.10.0
+
+- ### ✨ Features
+
+  - **Added keywords - [lucashorward], [issue/707] [pull/838]**
+
+    `package.json` files usually contain a keywords array so that npm can make searching easier.
+    This PR extracts keywords from `Cargo.toml` and puts them into `package.json`.
+
+    [lucashorward]: https://github.com/lucashorward
+    [pull/838]: https://github.com/rustwasm/wasm-pack/pull/838
+    [issue/707]: https://github.com/rustwasm/wasm-pack/issues/707
+
+- ### 🤕 Fixes
+
+  - **Update binary-install to get fix for axios security vulnerability - [simlay], [Rizary], [issue/958] [pull/973] [pull/1012]**
+
+    Updates `binary-install` npm package to version `^0.1.0` in order to get security fix for a security vulnerability in axios.
+
+    [simlay]: https://github.com/simlay
+    [rizary]: https://github.com/Rizary
+    [pull/973]: https://github.com/rustwasm/wasm-pack/pull/973
+    [pull/1012]: https://github.com/rustwasm/wasm-pack/pull/1012
+    [issue/958]: https://github.com/rustwasm/wasm-pack/issues/958
+
+  - **Fix cargo-generate installation - [bradyjoslin], [issue/975] [issue/907] [pull/983]**
+
+    `wasm-pack new hello-wasm` didn't work due to a bad link when trying to install `cargo-generate`.
+
+    This PR points the installation to the correct place and makes `wasm-pack new` working again!
+
+    [bradyjoslin]: https://github.com/bradyjoslin
+    [pull/983]: https://github.com/rustwasm/wasm-pack/pull/983
+    [issue/975]: https://github.com/rustwasm/wasm-pack/issues/975
+    [issue/907]: https://github.com/rustwasm/wasm-pack/issues/907
+
+  - **Pass through extra options when building tests - [azriel91], [issue/698] [pull/851]**
+
+    `wasm-pack test` accepts extra options to pass through to `cargo` when running tests.
+    Under the hood, this runs `cargo build` before `cargo test`, and the additional options were only passed through to the `test` command. This meant that crates that enabled native features by default could not be built using `wasm-pack`, as it would attempt to build tests for the `wasm32-unknown-unknown` target with the native features enabled.
+
+    This PR passes through the extra options to `cargo` when building the tests as well.
+
+    [azriel91]: https://github.com/azriel91
+    [pull/851]: https://github.com/rustwasm/wasm-pack/pull/851
+    [issue/698]: https://github.com/rustwasm/wasm-pack/issues/698
+
+  - **Corrected files included in package.json for bundler / no target - [lucashorward], [issue/837] [pull/839]**
+
+    `wasm-pack build` and `wasm-pack build --target bundler` generates a \_bg.js file, but it was not added to the `package.json`.
+    The file that is added, \*.js will however reference the \_bg.js, so when the package was distributed (both through pack or publish) it is not usable.
+
+    This PR includes that \_bg.js file in `package.json`.
+
+    [pull/839]: https://github.com/rustwasm/wasm-pack/pull/839
+    [issue/837]: https://github.com/rustwasm/wasm-pack/issues/837
+
+  - **Find the main package if multiple packages have the same name - [ghost], [pull/830]**
+
+    If there were 2 packages with the same name, `wasm-pack` would sometimes use the wrong one and errored.
+
+    [ghost]: https://github.com/ghost
+    [pull/830]: https://github.com/rustwasm/wasm-pack/pull/830
+    [issue/829]: https://github.com/rustwasm/wasm-pack/issues/829
+
+- ### 📖 Documentation
+
+  - **Remove duplicated "is" in the wee_alloc tutorial- [pione30], [issue/1003] [pull/1004]**
+
+    [pione30]: https://github.com/pione30
+    [pull/1004]: https://github.com/rustwasm/wasm-pack/pull/1004
+    [issue/1003]: https://github.com/rustwasm/wasm-pack/issues/1003
+
+  - **Fix TOC links - [Swaagie], [pull/1007]**
+
+    [swaagie]: https://github.com/Swaagie
+    [pull/1007]: https://github.com/rustwasm/wasm-pack/pull/1007
+
+  - **Remove outdated TOC heading- [gthb], [pull/1011]**
+
+    [gthb]: https://github.com/gthb
+    [pull/1011]: https://github.com/rustwasm/wasm-pack/pull/1011
+
+  - **Add link to template repo - [milahu], [pull/942]**
+
+    [milahu]: https://github.com/milahu
+    [pull/942]: https://github.com/rustwasm/wasm-pack/pull/942
+
+  - **Remove greenkeeper reference - [cdvv7788], [crotwell], [issue/1001] [pull/844] [pull/1002]**
+
+    [cdvv7788]: https://github.com/cdvv7788
+    [crotwell]: https://github.com/crotwell
+    [pull/844]: https://github.com/rustwasm/wasm-pack/pull/844
+    [pull/1002]: https://github.com/rustwasm/wasm-pack/pull/1002
+    [issue/1001]: https://github.com/rustwasm/wasm-pack/issues/1001
+
+- ### 🛠️ Maintenance
+
+  - **Fix CI. Remove appveyor and travis and use Github actions - [ashleygwilliams], [drager], [issue/594] [issue/979] [pull/947]**
+
+    [pull/947]: https://github.com/rustwasm/wasm-pack/pull/947
+    [issue/594]: https://github.com/rustwasm/wasm-pack/issues/594
+    [issue/979]: https://github.com/rustwasm/wasm-pack/issues/979
+
+  - **Cargo update - [ashleygwilliams], [pull/800]**
+
+    [ashleygwilliams]: https://github.com/ashleygwilliams
+    [pull/800]: https://github.com/rustwasm/wasm-pack/pull/800
+
+  - **Remove dirs dependency - [brightly-salty], [issue/943] [pull/944]**
+
+    [brightly-salty]: https://github.com/brightly-salty
+    [pull/944]: https://github.com/rustwasm/wasm-pack/pull/944
+    [issue/943]: https://github.com/rustwasm/wasm-pack/issues/943
+
+  - **Fix logs for uniformity - [petosorus], [issue/716] [pull/723]**
+
+    [petosorus]: https://github.com/petosorus
+    [pull/723]: https://github.com/rustwasm/wasm-pack/pull/723
+    [issue/716]: https://github.com/rustwasm/wasm-pack/issues/716
+
+  - **Fixing build error - [Pauan], [pull/841]**
+
+    [pull/841]: https://github.com/rustwasm/wasm-pack/pull/841
+
 ## ☁️  0.9.1
 
 - ### 🤕 Fixes

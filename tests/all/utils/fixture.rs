@@ -144,10 +144,10 @@ impl Fixture {
                     # bindgen downloaded is what we expect, and if `=` is
                     # removed then it will download whatever the newest version
                     # of wasm-bindgen is which may not be what's listed here.
-                    wasm-bindgen = "=0.2.37"
+                    wasm-bindgen = "=0.2.74"
 
                     [dev-dependencies]
-                    wasm-bindgen-test = "0.2"
+                    wasm-bindgen-test = "0.3"
                 "#,
                 name
             ),
@@ -257,7 +257,7 @@ impl Fixture {
 
         static INSTALL_WASM_BINDGEN: Once = Once::new();
         let cache = self.cache();
-        let version = "0.2.54";
+        let version = "0.2.74";
 
         let download = || {
             if let Ok(download) =
@@ -459,7 +459,7 @@ pub fn no_cdylib() -> Fixture {
             wasm-bindgen = "0.2"
 
             [dev-dependencies]
-            wasm-bindgen-test = "0.2"
+            wasm-bindgen-test = "0.3"
         "#,
     );
     fixture
@@ -769,7 +769,7 @@ pub fn transitive_dependencies() -> Fixture {
             project_b = { path = "../project_b" }
 
             [dev-dependencies]
-            wasm-bindgen-test = "0.2"
+            wasm-bindgen-test = "0.3"
         "#,
         );
         fixture.file(
@@ -818,7 +818,7 @@ pub fn transitive_dependencies() -> Fixture {
             project_b = { path = "../project_b" }
 
             [dev-dependencies]
-            wasm-bindgen-test = "0.2"
+            wasm-bindgen-test = "0.3"
         "#,
         );
         fixture.file(
@@ -867,7 +867,7 @@ pub fn transitive_dependencies() -> Fixture {
             wasm-bindgen = "0.2"
 
             [dev-dependencies]
-            wasm-bindgen-test = "0.2"
+            wasm-bindgen-test = "0.3"
         "#,
         );
         fixture.file(

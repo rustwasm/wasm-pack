@@ -18,6 +18,7 @@ use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
+use structopt::clap::AppSettings;
 use PBAR;
 
 /// Everything required to configure and run the `wasm-pack build` command.
@@ -102,6 +103,13 @@ pub enum BuildProfile {
 
 /// Everything required to configure and run the `wasm-pack build` command.
 #[derive(Debug, StructOpt)]
+#[structopt(
+    // Allows unknown `--option`s to be parsed as positional arguments, so we can forward it to `cargo`.
+    setting = AppSettings::AllowLeadingHyphen,
+
+    // Allows `--` to be parsed as an argument, so we can forward it to `cargo`.
+    setting = AppSettings::TrailingVarArg,
+)]
 pub struct BuildOptions {
     /// The path to the Rust crate. If not set, searches up the path from the current directory.
     #[structopt(parse(from_os_str))]
@@ -153,7 +161,7 @@ pub struct BuildOptions {
     /// Builds the specified example.
     pub example: Option<String>,
 
-    #[structopt(last = true)]
+    #[structopt(allow_hyphen_values = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
 }
@@ -182,7 +190,15 @@ type BuildStep = fn(&mut Build) -> Result<(), Error>;
 
 impl Build {
     /// Construct a build command from the given options.
-    pub fn try_from_opts(build_opts: BuildOptions) -> Result<Self, Error> {
+    pub fn try_from_opts(mut build_opts: BuildOptions) -> Result<Self, Error> {
+        if let Some(path) = &build_opts.path {
+            if path.to_string_lossy().starts_with("--") {
+                let path = build_opts.path.take().unwrap();
+                build_opts
+                    .extra_options
+                    .insert(0, path.to_string_lossy().into_owned().to_string());
+            }
+        }
         let crate_path = get_crate_path(build_opts.path)?;
         let crate_data = manifest::CrateData::new(
             &crate_path,
