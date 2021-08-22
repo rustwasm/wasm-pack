@@ -2401,6 +2401,7 @@ version = "0.10.0"
 dependencies = [
  "assert_cmd",
  "atty",
+ "base64 0.13.0",
  "binary-install",
  "cargo_metadata",
  "chrono",

@@ -28,6 +28,7 @@ pub struct Build {
     pub crate_data: manifest::CrateData,
     pub scope: Option<String>,
     pub disable_dts: bool,
+    pub inline_wasm: bool,
     pub target: Target,
     pub profile: BuildProfile,
     pub mode: InstallMode,
@@ -40,7 +41,7 @@ pub struct Build {
 
 /// What sort of output we're going to be generating and flags we're invoking
 /// `wasm-bindgen` with.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub enum Target {
     /// Default output mode or `--target bundler`, indicates output will be
     /// used with a bundle in a later step.
@@ -127,6 +128,11 @@ pub struct BuildOptions {
     /// this flag will disable generating this TypeScript file.
     pub disable_dts: bool,
 
+    #[structopt(long = "inline")]
+    /// By default .wasm is produced as a standalone file, this flag will inline
+    /// the .wasm file as base64 string as part of generated javascript file.
+    pub inline_wasm: bool,
+
     #[structopt(long = "target", short = "t", default_value = "bundler")]
     /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
@@ -168,6 +174,7 @@ impl Default for BuildOptions {
             scope: None,
             mode: InstallMode::default(),
             disable_dts: false,
+            inline_wasm: false,
             target: Target::default(),
             debug: false,
             dev: false,
@@ -212,6 +219,7 @@ impl Build {
             crate_data,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
+            inline_wasm: build_opts.inline_wasm,
             target: build_opts.target,
             profile,
             mode: build_opts.mode,
@@ -285,6 +293,7 @@ impl Build {
             step_install_wasm_bindgen,
             step_run_wasm_bindgen,
             step_run_wasm_opt,
+            step_run_wasm_inline,
             step_create_json,
         ]);
         steps
@@ -338,6 +347,7 @@ impl Build {
         self.crate_data.write_package_json(
             &self.out_dir,
             &self.scope,
+            self.inline_wasm,
             self.disable_dts,
             self.target,
         )?;
@@ -413,5 +423,29 @@ impl Build {
                 "{}\nTo disable `wasm-opt`, add `wasm-opt = false` to your package metadata in your `Cargo.toml`.", e
             )
         })
+    }
+
+    fn step_run_wasm_inline(&mut self) -> Result<(), Error> {
+        if self.inline_wasm {
+            PBAR.info("Inlining wasm binaries with `wasm2es6js`...");
+            bindgen::wasm_inline_base64(
+                &self.crate_data,
+                &self.bindgen.as_ref().unwrap(),
+                &self.out_dir,
+                &self.out_name,
+                self.disable_dts,
+                self.target,
+            )?;
+
+            info!(
+                "wasm built at {:#?}.",
+                &self
+                    .crate_path
+                    .join("target")
+                    .join("wasm32-unknown-unknown")
+                    .join("release")
+            );
+        }
+        Ok(())
     }
 }

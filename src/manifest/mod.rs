@@ -571,15 +571,16 @@ impl CrateData {
         &self,
         out_dir: &Path,
         scope: &Option<String>,
+        inline_wasm: bool,
         disable_dts: bool,
         target: Target,
     ) -> Result<(), Error> {
         let pkg_file_path = out_dir.join("package.json");
         let npm_data = match target {
-            Target::Nodejs => self.to_commonjs(scope, disable_dts, out_dir),
-            Target::NoModules => self.to_nomodules(scope, disable_dts, out_dir),
-            Target::Bundler => self.to_esmodules(scope, disable_dts, out_dir),
-            Target::Web => self.to_web(scope, disable_dts, out_dir),
+            Target::Nodejs => self.to_commonjs(scope, inline_wasm, disable_dts, out_dir),
+            Target::NoModules => self.to_nomodules(scope, inline_wasm, disable_dts, out_dir),
+            Target::Bundler => self.to_esmodules(scope, inline_wasm, disable_dts, out_dir),
+            Target::Web => self.to_web(scope, inline_wasm, disable_dts, out_dir),
         };
 
         let npm_json = serde_json::to_string_pretty(&npm_data)?;
@@ -592,18 +593,28 @@ impl CrateData {
         &self,
         scope: &Option<String>,
         add_js_bg_to_package_json: bool,
+        inline_wasm: bool,
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmData {
         let name_prefix = self.name_prefix();
         let wasm_file = format!("{}_bg.wasm", name_prefix);
         let js_file = format!("{}.js", name_prefix);
-        let mut files = vec![wasm_file];
+        let mut files = vec![];
+        if !inline_wasm {
+            files.push(wasm_file);
+            if !disable_dts {
+                files.push(format!("{}_bg.wasm.d.ts", name_prefix));
+            }
+        }
 
         files.push(js_file.clone());
         if add_js_bg_to_package_json {
             let js_bg_file = format!("{}_bg.js", name_prefix);
             files.push(js_bg_file);
+            if !disable_dts {
+                files.push(format!("{}_bg.d.ts", name_prefix));
+            }
         }
 
         let pkg = &self.data.packages[self.current_idx];
@@ -657,8 +668,14 @@ impl CrateData {
         })
     }
 
-    fn to_commonjs(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+    fn to_commonjs(
+        &self,
+        scope: &Option<String>,
+        inline_wasm: bool,
+        disable_dts: bool,
+        out_dir: &Path,
+    ) -> NpmPackage {
+        let data = self.npm_data(scope, false, inline_wasm, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -689,10 +706,11 @@ impl CrateData {
     fn to_esmodules(
         &self,
         scope: &Option<String>,
+        inline_wasm: bool,
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmPackage {
-        let data = self.npm_data(scope, true, disable_dts, out_dir);
+        let data = self.npm_data(scope, true, inline_wasm, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -721,8 +739,14 @@ impl CrateData {
         })
     }
 
-    fn to_web(&self, scope: &Option<String>, disable_dts: bool, out_dir: &Path) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+    fn to_web(
+        &self,
+        scope: &Option<String>,
+        inline_wasm: bool,
+        disable_dts: bool,
+        out_dir: &Path,
+    ) -> NpmPackage {
+        let data = self.npm_data(scope, false, inline_wasm, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();
@@ -754,10 +778,11 @@ impl CrateData {
     fn to_nomodules(
         &self,
         scope: &Option<String>,
+        inline_wasm: bool,
         disable_dts: bool,
         out_dir: &Path,
     ) -> NpmPackage {
-        let data = self.npm_data(scope, false, disable_dts, out_dir);
+        let data = self.npm_data(scope, false, inline_wasm, disable_dts, out_dir);
         let pkg = &self.data.packages[self.current_idx];
 
         self.check_optional_fields();

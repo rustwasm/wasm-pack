@@ -135,7 +135,7 @@ pub fn download_prebuilt(
     };
     match tool {
         Tool::WasmBindgen => {
-            let binaries = &["wasm-bindgen", "wasm-bindgen-test-runner"];
+            let binaries = &["wasm-bindgen", "wasm2es6js", "wasm-bindgen-test-runner"];
             match cache.download(install_permitted, "wasm-bindgen", binaries, &url)? {
                 Some(download) => Ok(Status::Found(download)),
                 None => bail!("wasm-bindgen v{} is not installed!", version),
@@ -277,7 +277,11 @@ pub fn cargo_install(
     // laid out, and where the rest of our code expects them to be). So we do a
     // little renaming here.
     let binaries: Result<Vec<&str>, failure::Error> = match tool {
-        Tool::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
+        Tool::WasmBindgen => Ok(vec![
+            "wasm-bindgen",
+            "wasm-bindgen-test-runner",
+            "wasm2es6js",
+        ]),
         Tool::CargoGenerate => Ok(vec!["cargo-generate"]),
         Tool::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
     };

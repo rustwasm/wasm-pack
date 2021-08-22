@@ -6,6 +6,8 @@ use failure::{self, ResultExt};
 use install::{self, Tool};
 use manifest::CrateData;
 use semver;
+use std::fs;
+use std::io::Write;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -71,6 +73,67 @@ pub fn wasm_bindgen_build(
     }
 
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
+    Ok(())
+}
+
+/// Run the `wasm2es6js` CLI to inline .wasm as base64 string into .js file
+pub fn wasm_inline_base64(
+    data: &CrateData,
+    install_status: &install::Status,
+    out_dir: &Path,
+    out_name: &Option<String>,
+    disable_dts: bool,
+    target: Target,
+) -> Result<(), failure::Error> {
+    let name_prefix = match out_name {
+        Some(value) => value.clone(),
+        None => data.crate_name(),
+    };
+
+    if target == Target::Bundler {
+        let wasm_file = out_dir.join(format!("{}_bg.wasm", name_prefix));
+        let wasm2js_path =
+            install::get_tool_path(install_status, Tool::WasmBindgen)?.binary("wasm2es6js")?;
+        let mut cmd = Command::new(&wasm2js_path);
+        cmd.arg(&wasm_file)
+            .arg("--base64")
+            .arg("--out-dir")
+            .arg(out_dir);
+        if !disable_dts {
+            cmd.arg("--typescript");
+        }
+
+        child::run(cmd, "wasm2es6js").context("Running the wasm2es6js CLI")?;
+    }
+
+    // Remove wasm import from entry js file
+    // and replace wasm loading logic
+    let entry_js_file_path = out_dir.join(format!("{}.js", name_prefix));
+    if entry_js_file_path.exists() {
+        let mut base64_encoded_wasm: Option<String> = None;
+        let content = fs::read_to_string(&entry_js_file_path)?;
+        let mut writer = fs::File::create(entry_js_file_path)?;
+        for line in content.split("\n") {
+            if line.contains("import * as wasm from") {
+                continue;
+            } else if line.contains("const bytes = ") {
+                if base64_encoded_wasm.is_none() {
+                    let wasm_file_path = out_dir.join(format!("{}_bg.wasm", name_prefix));
+                    if wasm_file_path.exists() {
+                        let wasm_bytes = fs::read(wasm_file_path)?;
+                        base64_encoded_wasm = Some(base64::encode(&wasm_bytes));
+                    }
+                }
+                if let Some(s) = &base64_encoded_wasm {
+                    writeln!(&mut writer, "const wasmBase64 = '{}'", s)?;
+                    writeln!(&mut writer, "const bytes = (typeof Buffer === 'undefined') ? Uint8Array.from(atob(wasmBase64), c => c.charCodeAt(0)) : Buffer.from(wasmBase64, 'base64')")?;
+                }
+            } else {
+                writeln!(&mut writer, "{}", line.trim())?;
+            }
+        }
+    }
+
     Ok(())
 }
 
