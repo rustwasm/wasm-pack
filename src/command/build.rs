@@ -35,6 +35,7 @@ pub struct Build {
     pub out_name: Option<String>,
     pub bindgen: Option<install::Status>,
     pub cache: Cache,
+    pub example: Option<String>,
     pub extra_options: Vec<String>,
 }
 
@@ -156,6 +157,10 @@ pub struct BuildOptions {
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
+    #[structopt(long = "example")]
+    /// Builds the specified example.
+    pub example: Option<String>,
+
     #[structopt(allow_hyphen_values = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
@@ -175,6 +180,7 @@ impl Default for BuildOptions {
             profiling: false,
             out_dir: String::new(),
             out_name: None,
+            example: None,
             extra_options: Vec::new(),
         }
     }
@@ -194,7 +200,11 @@ impl Build {
             }
         }
         let crate_path = get_crate_path(build_opts.path)?;
-        let crate_data = manifest::CrateData::new(&crate_path, build_opts.out_name.clone())?;
+        let crate_data = manifest::CrateData::new(
+            &crate_path,
+            build_opts.out_name.clone(),
+            build_opts.example.clone(),
+        )?;
         let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
 
         let dev = build_opts.dev || build_opts.debug;
@@ -219,6 +229,7 @@ impl Build {
             out_name: build_opts.out_name,
             bindgen: None,
             cache: cache::get_wasm_pack_cache()?,
+            example: build_opts.example,
             extra_options: build_opts.extra_options,
         })
     }
@@ -314,7 +325,12 @@ impl Build {
 
     fn step_build_wasm(&mut self) -> Result<(), Error> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
+        build::cargo_build_wasm(
+            &self.crate_path,
+            self.profile,
+            &self.example,
+            &self.extra_options,
+        )?;
 
         info!(
             "wasm built at {:#?}.",
