@@ -2,6 +2,15 @@
 
 ## 🤍 Unreleased
 
+## 🌦️ 0.10.1
+
+- ### 🤕 Fixes
+
+  - **Add exe to binary name if windows - [drager], [issue/1038] [pull/1055]**
+
+    [pull/1055]: https://github.com/rustwasm/wasm-pack/pull/1055
+    [issue/1038]: https://github.com/rustwasm/wasm-pack/issues/1038
+
 ## 🌦️ 0.10.0
 
 - ### ✨ Features
