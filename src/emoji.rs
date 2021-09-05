@@ -1,4 +1,4 @@
-//! Emoji contants used by `wasm-pack`.
+//! Emoji constants used by `wasm-pack`.
 //!
 //! For the woefully unfamiliar:
 //!

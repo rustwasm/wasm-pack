@@ -12,7 +12,7 @@
 //! downloaded via curl/sh, and then the shell script downloads this executable
 //! and runs it.
 //!
-//! This may get more complicated over time (self upates anyone?) but for now
+//! This may get more complicated over time (self updates anyone?) but for now
 //! it's pretty simple! We're largely just moving over our currently running
 //! executable to a different path.
 
