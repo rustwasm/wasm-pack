@@ -190,7 +190,7 @@ impl Build {
                 let path = build_opts.path.take().unwrap();
                 build_opts
                     .extra_options
-                    .insert(0, path.to_string_lossy().into_owned().to_string());
+                    .insert(0, path.to_string_lossy().into_owned());
             }
         }
         let crate_path = get_crate_path(build_opts.path)?;
@@ -370,7 +370,7 @@ impl Build {
         let bindgen = install::download_prebuilt_or_cargo_install(
             Tool::WasmBindgen,
             &self.cache,
-            &bindgen_version,
+            bindgen_version,
             self.mode.install_permitted(),
         )?;
         self.bindgen = Some(bindgen);
@@ -382,7 +382,7 @@ impl Build {
         info!("Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_data,
-            &self.bindgen.as_ref().unwrap(),
+            self.bindgen.as_ref().unwrap(),
             &self.out_dir,
             &self.out_name,
             self.disable_dts,
