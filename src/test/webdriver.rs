@@ -39,8 +39,7 @@ struct Collector(Vec<u8>);
 
 impl Collector {
     pub fn take_content(&mut self) -> Vec<u8> {
-        // TODO: replace with `std::mem::take` once stable
-        std::mem::replace(&mut self.0, Vec::default())
+        std::mem::take(&mut self.0)
     }
 }
 
