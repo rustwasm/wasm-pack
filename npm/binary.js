@@ -1,13 +1,14 @@
 const { Binary } = require("binary-install");
 const os = require("os");
-const { join } = require("path");
+
+const windows = "x86_64-pc-windows-msvc";
 
 const getPlatform = () => {
   const type = os.type();
   const arch = os.arch();
 
   if (type === "Windows_NT" && arch === "x64") {
-    return "x86_64-pc-windows-msvc";
+    return windows;
   }
   if (type === "Linux" && arch === "x64") {
     return "x86_64-unknown-linux-musl";
@@ -25,7 +26,7 @@ const getBinary = () => {
   const author = "rustwasm";
   const name = "wasm-pack";
   const url = `https://github.com/${author}/${name}/releases/download/v${version}/${name}-v${version}-${platform}.tar.gz`;
-  return new Binary(name, url );
+  return new Binary(platform === windows ? "wasm-pack.exe" : "wasm-pack", url);
 };
 
 const run = () => {
@@ -46,5 +47,5 @@ const uninstall = () => {
 module.exports = {
   install,
   run,
-  uninstall
+  uninstall,
 };
