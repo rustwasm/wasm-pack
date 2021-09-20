@@ -646,7 +646,7 @@ impl CrateData {
             files,
             main: js_file,
             homepage: self.manifest.package.homepage.clone(),
-            keywords: keywords,
+            keywords,
         }
     }
 

@@ -512,9 +512,9 @@ fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
         .assert()
         .success()
         .stderr(predicates::str::contains(
-            "[WARN]: \"package.metadata.wasm-pack.profile.production\" is an unknown key and will \
-             be ignored. Please check your Cargo.toml.",
-        ));
+        "[WARN]: :-) \"package.metadata.wasm-pack.profile.production\" is an unknown key and will \
+         be ignored. Please check your Cargo.toml.",
+    ));
 }
 
 #[test]

@@ -1,0 +1,51 @@
+name: Build and deploy documentation book
+
+on:
+  push:
+  pull_request:    
+
+jobs:
+  book:
+    name: Build and deploy book
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          override: true
+
+      - name: Cache dependencies
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-mdbook
+        with:
+          path: |
+            ~/.cargo/.crates.toml
+            ~/.cargo/.crates2.json
+            ~/.cargo/bin
+            ~/.cargo/registry/index
+            ~/.cargo/registry/cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-0.3 }}
+
+      - name: Install mdbook
+        run: |
+          (test -x $HOME/.cargo/bin/cargo-install-update || cargo install cargo-update)
+          (test -x $HOME/.cargo/bin/mdbook || cargo install --vers "^0.3" mdbook)
+          cargo install-update -a
+
+      - name: Build book
+        run: |
+          mdbook --version
+          (cd docs && mv _theme theme && mdbook build)
+          rustc ./docs/_installer/build-installer.rs
+          ./build-installer
+
+      - name: Deploy book
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        if: ${{ github.ref == 'refs/heads/master' }}
+        with:
+          branch: gh-pages
+          folder: docs
+          token: ${{ secrets.GITHUB_TOKEN }}
+          single-commit: true

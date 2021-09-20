@@ -10,7 +10,7 @@ use log::debug;
 use log::{info, warn};
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 use target;
 use which::which;
@@ -71,7 +71,7 @@ pub fn download_prebuilt_or_cargo_install(
     let msg = format!("{}Installing {}...", emoji::DOWN_ARROW, tool);
     PBAR.info(&msg);
 
-    let dl = download_prebuilt(&tool, &cache, version, install_permitted);
+    let dl = download_prebuilt(&tool, cache, version, install_permitted);
     match dl {
         Ok(dl) => return Ok(dl),
         Err(e) => {
@@ -82,13 +82,13 @@ pub fn download_prebuilt_or_cargo_install(
         }
     }
 
-    cargo_install(tool, &cache, version, install_permitted)
+    cargo_install(tool, cache, version, install_permitted)
 }
 
 /// Check if the tool dependency is locally satisfied.
 pub fn check_version(
     tool: &Tool,
-    path: &PathBuf,
+    path: &Path,
     expected_version: &str,
 ) -> Result<bool, failure::Error> {
     let expected_version = if expected_version == "latest" {
@@ -107,7 +107,7 @@ pub fn check_version(
 }
 
 /// Fetches the version of a CLI tool
-pub fn get_cli_version(tool: &Tool, path: &PathBuf) -> Result<String, failure::Error> {
+pub fn get_cli_version(tool: &Tool, path: &Path) -> Result<String, failure::Error> {
     let mut cmd = Command::new(path);
     cmd.arg("--version");
     let stdout = child::run_capture_stdout(cmd, tool)?;
@@ -198,8 +198,9 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
         },
         Tool::CargoGenerate => {
             Ok(format!(
-                "https://github.com/ashleygwilliams/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
-                Krate::new(&Tool::CargoGenerate)?.max_version,
+                "https://github.com/cargo-generate/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
+                // Krate::new(&Tool::CargoGenerate)?.max_version,
+                "0.5.1", // latest released binary [#907](https://github.com/rustwasm/wasm-pack/issues/907)
                 target
             ))
         },
@@ -257,13 +258,16 @@ pub fn cargo_install(
         _ => tool.to_string(),
     };
     let mut cmd = Command::new("cargo");
+
     cmd.arg("install")
         .arg("--force")
         .arg(crate_name)
-        .arg("--version")
-        .arg(version)
         .arg("--root")
         .arg(&tmp);
+
+    if version != "latest" {
+        cmd.arg("--version").arg(version);
+    }
 
     let context = format!("Installing {} with cargo", tool);
     child::run(cmd, "cargo install").context(context)?;
@@ -274,7 +278,7 @@ pub fn cargo_install(
     // little renaming here.
     let binaries: Result<Vec<&str>, failure::Error> = match tool {
         Tool::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
-        Tool::CargoGenerate => Ok(vec!["cargo-genrate"]),
+        Tool::CargoGenerate => Ok(vec!["cargo-generate"]),
         Tool::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
     };
 

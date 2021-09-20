@@ -9,14 +9,13 @@ fn matches_info() -> impl Predicate<str> + PredicateReflection {
     contains("[INFO]: Checking for the Wasm target...")
         .and(contains("[INFO]: Compiling to Wasm..."))
         .and(contains("[INFO]: License key is set in Cargo.toml but no LICENSE file(s) were found; Please add the LICENSE file(s) to your project directory"))
-        .and(contains("[INFO]: Installing wasm-bindgen..."))
         .and(contains("[INFO]: Optimizing wasm binaries with `wasm-opt`..."))
         .and(contains("[INFO]: :-) Done in "))
         .and(contains("[INFO]: :-) Your wasm pkg is ready to publish at "))
 }
 
 fn matches_warn() -> impl Predicate<str> + PredicateReflection {
-    contains(":-) [WARN]: origin crate has no README")
+    contains("[WARN]: :-) origin crate has no README")
 }
 
 fn matches_cargo() -> impl Predicate<str> + PredicateReflection {

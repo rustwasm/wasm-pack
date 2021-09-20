@@ -9,7 +9,7 @@ use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://github.com/mozilla/geckodriver/releases/latest
-const DEFAULT_GECKODRIVER_VERSION: &str = "v0.26.0";
+const DEFAULT_GECKODRIVER_VERSION: &str = "v0.29.1";
 const DEFAULT_WINDOWS_GECKODRIVER_VERSION: &str = "v0.24.0";
 
 const GECKODRIVER_LAST_UPDATED_STAMP: &str = "geckodriver_last_updated";

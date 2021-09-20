@@ -23,13 +23,13 @@ fn get_and_notify(
     name: &str,
     url: &str,
 ) -> Result<Option<PathBuf>, failure::Error> {
-    if let Some(dl) = cache.download(false, name, &[name], &url)? {
+    if let Some(dl) = cache.download(false, name, &[name], url)? {
         return Ok(Some(dl.binary(name)?));
     }
     if installation_allowed {
         PBAR.info(&format!("Getting {}...", name));
     }
-    match cache.download(installation_allowed, name, &[name], &url)? {
+    match cache.download(installation_allowed, name, &[name], url)? {
         Some(dl) => Ok(Some(dl.binary(name)?)),
         None => Ok(None),
     }
@@ -39,8 +39,7 @@ struct Collector(Vec<u8>);
 
 impl Collector {
     pub fn take_content(&mut self) -> Vec<u8> {
-        // TODO: replace with `std::mem::take` once stable
-        std::mem::replace(&mut self.0, Vec::default())
+        std::mem::take(&mut self.0)
     }
 }
 
