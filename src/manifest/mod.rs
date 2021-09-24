@@ -699,7 +699,7 @@ impl CrateData {
 
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: data.name,
-            type_: "module".into(),
+            ty: "module".into(),
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.to_string(),
@@ -730,7 +730,7 @@ impl CrateData {
 
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: data.name,
-            type_: "module".into(),
+            ty: "module".into(),
             collaborators: pkg.authors.clone(),
             description: self.manifest.package.description.clone(),
             version: pkg.version.to_string(),

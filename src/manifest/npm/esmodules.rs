@@ -4,7 +4,7 @@ use manifest::npm::repository::Repository;
 pub struct ESModulesPackage {
     pub name: String,
     #[serde(rename = "type")]
-    pub type_: String,
+    pub ty: String,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub collaborators: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
