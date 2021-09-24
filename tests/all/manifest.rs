@@ -86,12 +86,13 @@ fn it_creates_a_package_json_default_path() {
     utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
+    assert_eq!(pkg.ty, "module");
     assert_eq!(pkg.repository.ty, "git");
     assert_eq!(
         pkg.repository.url,
         "https://github.com/rustwasm/wasm-pack.git"
     );
-    assert_eq!(pkg.module, "js_hello_world.js");
+    assert_eq!(pkg.main, "js_hello_world.js");
     assert_eq!(pkg.types, "js_hello_world.d.ts");
     assert_eq!(pkg.side_effects, false);
 
@@ -122,7 +123,8 @@ fn it_creates_a_package_json_provided_path() {
     utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
-    assert_eq!(pkg.module, "js_hello_world.js");
+    assert_eq!(pkg.ty, "module");
+    assert_eq!(pkg.main, "js_hello_world.js");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
@@ -151,7 +153,8 @@ fn it_creates_a_package_json_provided_path_with_scope() {
     utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     assert_eq!(pkg.name, "@test/js-hello-world");
-    assert_eq!(pkg.module, "js_hello_world.js");
+    assert_eq!(pkg.ty, "module");
+    assert_eq!(pkg.main, "js_hello_world.js");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
@@ -248,12 +251,13 @@ fn it_creates_a_package_json_with_correct_files_when_out_name_is_provided() {
     utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
+    assert_eq!(pkg.ty, "module");
     assert_eq!(pkg.repository.ty, "git");
     assert_eq!(
         pkg.repository.url,
         "https://github.com/rustwasm/wasm-pack.git"
     );
-    assert_eq!(pkg.module, "index.js");
+    assert_eq!(pkg.main, "index.js");
     assert_eq!(pkg.types, "index.d.ts");
     assert_eq!(pkg.side_effects, false);
 
@@ -295,12 +299,13 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
     utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     let pkg = utils::manifest::read_package_json(&fixture.path, &out_dir).unwrap();
     assert_eq!(pkg.name, "js-hello-world");
+    assert_eq!(pkg.ty, "module");
     assert_eq!(pkg.repository.ty, "git");
     assert_eq!(
         pkg.repository.url,
         "https://github.com/rustwasm/wasm-pack.git"
     );
-    assert_eq!(pkg.module, "js_hello_world.js");
+    assert_eq!(pkg.main, "js_hello_world.js");
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
