@@ -58,6 +58,7 @@ jobs:
           sudo apt-get update -y
           sudo apt-get install clang libc6-dev-arm64-cross -y
           echo "TARGET_CC=clang" >> $GITHUB_ENV
+          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/usr/aarch64-linux-gnu/bin/ld" >> $GITHUB_ENV
 
       - name: Install p7zip (MacOS)
         if: matrix.os == 'macos-latest'
