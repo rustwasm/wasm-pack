@@ -126,22 +126,22 @@ jobs:
           release_name: ${{ steps.get_version.outputs.VERSION }}
 
       - name: Download Linux amd64 tarball
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: ${{ env.LINUX_AMD64_TARGET }}
 
       - name: Download Linux arm64 tarball
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: ${{ env.LINUX_ARM64_TARGET }}
 
       - name: Download Windows tarball
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: ${{ env.WINDOWS_TARGET }}
 
       - name: Download MacOS tarball
-        uses: actions/download-artifact@v1
+        uses: actions/download-artifact@v2
         with:
           name: ${{ env.MACOS_TARGET }}
 
@@ -151,7 +151,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linux/wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_AMD64_TARGET }}.tar.gz
+          asset_path: ./wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_AMD64_TARGET }}.tar.gz
           asset_content_type: application/gzip
           asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_AMD64_TARGET }}.tar.gz
 
@@ -161,7 +161,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./linux/wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_ARM64_TARGET }}.tar.gz
+          asset_path: ./wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_ARM64_TARGET }}.tar.gz
           asset_content_type: application/gzip
           asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.LINUX_ARM64_TARGET }}.tar.gz
 
@@ -171,7 +171,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./windows/wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
+          asset_path: ./wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
           asset_content_type: application/gzip
           asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.WINDOWS_TARGET }}.tar.gz
 
@@ -181,7 +181,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./windows/wasm-pack-init.exe
+          asset_path: ./wasm-pack-init.exe
           asset_content_type: application/vnd.microsoft.portable-executable
           asset_name: wasm-pack-init.exe
 
@@ -191,6 +191,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./macos/wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
+          asset_path: ./wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
           asset_content_type: application/gzip
           asset_name: wasm-pack-${{ steps.get_version.outputs.VERSION }}-${{ env.MACOS_TARGET }}.tar.gz
