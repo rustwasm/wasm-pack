@@ -56,7 +56,8 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update -y
-          sudo apt-get install musl-tools gcc-10-aarch64-linux-gnu -y
+          sudo apt-get install clang -y
+          echo "TARGET_CC=clang" >> $GITHUB_ENV
 
       - name: Install p7zip (MacOS)
         if: matrix.os == 'macos-latest'
