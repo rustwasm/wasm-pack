@@ -17,6 +17,7 @@ pub fn wasm_bindgen_build(
     out_dir: &Path,
     out_name: &Option<String>,
     disable_dts: bool,
+    no_modules_global: &Option<String>,
     target: Target,
     profile: BuildProfile,
 ) -> Result<(), failure::Error> {
@@ -47,6 +48,10 @@ pub fn wasm_bindgen_build(
         .arg("--out-dir")
         .arg(out_dir)
         .arg(dts_arg);
+
+    if let Some(no_modules_global) = no_modules_global {
+        cmd.arg("--no-modules-global").arg(no_modules_global);
+    }
 
     let target_arg = build_target_arg(target, &bindgen_path)?;
     if supports_dash_dash_target(&bindgen_path)? {

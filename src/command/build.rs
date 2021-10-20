@@ -36,6 +36,7 @@ pub struct Build {
     pub bindgen: Option<install::Status>,
     pub cache: Cache,
     pub extra_options: Vec<String>,
+    pub no_modules_global: Option<String>,
 }
 
 /// What sort of output we're going to be generating and flags we're invoking
@@ -156,6 +157,10 @@ pub struct BuildOptions {
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
+    #[structopt(long = "no-modules-global")]
+    /// Sets the global name for the no-modules target. Defaults to wasm_bindgen.
+    pub no_modules_global: Option<String>,
+
     #[structopt(allow_hyphen_values = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
@@ -175,6 +180,7 @@ impl Default for BuildOptions {
             profiling: false,
             out_dir: String::new(),
             out_name: None,
+            no_modules_global: None,
             extra_options: Vec::new(),
         }
     }
@@ -219,6 +225,7 @@ impl Build {
             out_name: build_opts.out_name,
             bindgen: None,
             cache: cache::get_wasm_pack_cache()?,
+            no_modules_global: build_opts.no_modules_global,
             extra_options: build_opts.extra_options,
         })
     }
@@ -386,6 +393,7 @@ impl Build {
             &self.out_dir,
             &self.out_name,
             self.disable_dts,
+            &self.no_modules_global,
             self.target,
             self.profile,
         )?;
