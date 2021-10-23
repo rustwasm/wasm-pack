@@ -133,7 +133,7 @@ at the very end of your command, just as you would for `cargo build`. For
 example, to build the previous example using cargo's offline feature:
 
 ```
-wasm-pack build examples/js-hello-world --mode no-install --offline
+wasm-pack build examples/js-hello-world --mode no-install -- --offline
 ```
 
 <hr style="font-size: 1.5em; margin-top: 2.5em"/>
