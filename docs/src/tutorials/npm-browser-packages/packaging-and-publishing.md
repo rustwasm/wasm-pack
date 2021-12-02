@@ -7,7 +7,7 @@ command:
 $ wasm-pack build --scope MYSCOPE
 ```
 
-where `MYSCOPE` is your npm username. Normally you could just type `wasm-pack init` but since
+where `MYSCOPE` is your npm username. Normally you could just type `wasm-pack build` but since
 other people are doing this tutorial as well we don't want conflicts with the `wasm-add` package
 name! This command when run does a few things:
 
