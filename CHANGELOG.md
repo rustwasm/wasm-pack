@@ -2,6 +2,48 @@
 
 ## 🤍 Unreleased
 
+## 🌦️ 0.10.2
+
+- ### ✨ Features
+
+  - **Implement support for RFC 8, transitive NPM dependencies - [jpgneves], [issue/606] [pull/986]**
+
+    [pull/986]: https://github.com/rustwasm/wasm-pack/pull/986
+    [issue/606]: https://github.com/rustwasm/wasm-pack/issues/606
+    [jpgneves]: https://github.com/jpgneves
+
+- ### 🤕 Fixes
+
+  - **Add support for macos aarch64 - [d3lm], [issue/913] [pull/1088]**
+
+     This fixes aarch64 for MacOS and will download x86_64-apple-darwin.
+
+    [pull/1088]: https://github.com/rustwasm/wasm-pack/pull/1088
+    [issue/913]: https://github.com/rustwasm/wasm-pack/issues/913
+    [d3lm]: https://github.com/d3lm
+
+  - **Add linux/arm64 to release workflow - [nacardin], [issue/1064] [pull/1065]**
+
+    [pull/1065]: https://github.com/rustwasm/wasm-pack/pull/1065
+    [issue/1064]: https://github.com/rustwasm/wasm-pack/issues/1064
+    [nacardin]: https://github.com/nacardin
+
+  - **Force axios version - [drager], [pull/1094]**
+
+    Forces npm package `axios` to version `0.21.2` in order to get security fix for a security vulnerability present in axios
+    before version `0.21.2`.
+
+    [pull/1094]: https://github.com/rustwasm/wasm-pack/pull/1094
+
+- ### 📖 Documentation
+
+  - **Update docs for how to pass extra options to cargo - [FrankenApps], [issue/1059] [pull/1073]**
+
+    [FrankenApps]: https://github.com/FrankenApps
+    [pull/1073]: https://github.com/rustwasm/wasm-pack/pull/1073
+    [issue/1059]: https://github.com/rustwasm/wasm-pack/issues/1059
+
+
 ## 🌦️ 0.10.1
 
 - ### 🤕 Fixes
