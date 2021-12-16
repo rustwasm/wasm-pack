@@ -44,8 +44,8 @@ wasm-pack test --node --firefox --chrome --safari --headless
 The `test` command can pass extra options straight to `cargo test` even if they are not
 supported in wasm-pack.
 
-To use them you should add standalone `--` argument at the very
-end of your command, and all the arguments you want to pass to cargo should go after.
+To use them simply add the extra arguments at the very end of your command, just
+as you would for `cargo test`.
 
 `cargo test -h` for a list of all options that you can pass through.
 
@@ -72,16 +72,16 @@ $ tree crates/foo
 
 ```
 # Run all tests in tests/diff_patch.rs in Firefox
-wasm-pack test crates/foo --firefox --headless -- --test diff_patch
+wasm-pack test crates/foo --firefox --headless --test diff_patch
 
 # Run all tests in tests/diff_patch.rs that contain the word "replace"
-wasm-pack test crates/foo --firefox --headless -- --test diff_patch replace
+wasm-pack test crates/foo --firefox --headless --test diff_patch replace
 
 # Run all tests inside of a `tests` module inside of src/lib/diff.rs
-wasm-pack test crates/foo --firefox --headless -- --lib diff::tests
+wasm-pack test crates/foo --firefox --headless --lib diff::tests
 
 # Same as the above, but only if they contain the word replace
-wasm-pack test crates/foo --firefox --headless -- --lib diff::tests::replace
+wasm-pack test crates/foo --firefox --headless --lib diff::tests::replace
 ```
 
 Note that you can also filter tests by location in which they're supposed to

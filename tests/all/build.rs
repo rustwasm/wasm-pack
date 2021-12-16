@@ -146,8 +146,8 @@ fn dash_dash_web_target_has_error_on_old_bindgen() {
     let output = String::from_utf8(cmd.get_output().stderr.clone()).unwrap();
 
     assert!(
-        output.contains("0.2.39"),
-        "Output did not contain '0.2.39', output was {}",
+        output.contains("Please update your project to wasm-bindgen version >= 0.2.39"),
+        "Output did not contain 'Please update your project to wasm-bindgen version >= 0.2.39', output was {}",
         output
     );
 }
@@ -264,7 +264,6 @@ fn build_with_arbitrary_cargo_options() {
     fixture
         .wasm_pack()
         .arg("build")
-        .arg("--")
         .arg("--no-default-features")
         .assert()
         .success();

@@ -5,7 +5,7 @@ use emoji;
 use failure::{Error, ResultExt};
 use log::info;
 use std::fmt;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use std::process::Command;
 use PBAR;
 
@@ -81,7 +81,7 @@ fn get_rustc_sysroot() -> Result<PathBuf, Error> {
 }
 
 /// Checks if the wasm32-unknown-unknown is present in rustc's sysroot.
-fn is_wasm32_target_in_sysroot(sysroot: &PathBuf) -> bool {
+fn is_wasm32_target_in_sysroot(sysroot: &Path) -> bool {
     let wasm32_target = "wasm32-unknown-unknown";
 
     let rustlib_path = sysroot.join("lib/rustlib");

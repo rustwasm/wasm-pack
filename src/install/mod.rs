@@ -10,7 +10,7 @@ use log::debug;
 use log::{info, warn};
 use std::env;
 use std::fs;
-use std::path::PathBuf;
+use std::path::Path;
 use std::process::Command;
 use target;
 use which::which;
@@ -71,7 +71,7 @@ pub fn download_prebuilt_or_cargo_install(
     let msg = format!("{}Installing {}...", emoji::DOWN_ARROW, tool);
     PBAR.info(&msg);
 
-    let dl = download_prebuilt(&tool, &cache, version, install_permitted);
+    let dl = download_prebuilt(&tool, cache, version, install_permitted);
     match dl {
         Ok(dl) => return Ok(dl),
         Err(e) => {
@@ -82,13 +82,13 @@ pub fn download_prebuilt_or_cargo_install(
         }
     }
 
-    cargo_install(tool, &cache, version, install_permitted)
+    cargo_install(tool, cache, version, install_permitted)
 }
 
 /// Check if the tool dependency is locally satisfied.
 pub fn check_version(
     tool: &Tool,
-    path: &PathBuf,
+    path: &Path,
     expected_version: &str,
 ) -> Result<bool, failure::Error> {
     let expected_version = if expected_version == "latest" {
@@ -107,7 +107,7 @@ pub fn check_version(
 }
 
 /// Fetches the version of a CLI tool
-pub fn get_cli_version(tool: &Tool, path: &PathBuf) -> Result<String, failure::Error> {
+pub fn get_cli_version(tool: &Tool, path: &Path) -> Result<String, failure::Error> {
     let mut cmd = Command::new(path);
     cmd.arg("--version");
     let stdout = child::run_capture_stdout(cmd, tool)?;
@@ -172,7 +172,7 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
             Tool::WasmOpt => "x86-linux",
             _ => bail!("Unrecognized target!"),
         }
-    } else if target::MACOS && target::x86_64 {
+    } else if target::MACOS && (target::x86_64 || target::aarch64) {
         "x86_64-apple-darwin"
     } else if target::WINDOWS && target::x86_64 {
         match tool {
