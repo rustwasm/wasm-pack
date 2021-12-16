@@ -172,7 +172,7 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
             Tool::WasmOpt => "x86-linux",
             _ => bail!("Unrecognized target!"),
         }
-    } else if target::MACOS && target::x86_64 {
+    } else if target::MACOS && (target::x86_64 || target::aarch64) {
         "x86_64-apple-darwin"
     } else if target::WINDOWS && target::x86_64 {
         match tool {
