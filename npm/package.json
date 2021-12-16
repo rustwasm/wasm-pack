@@ -31,5 +31,8 @@
   "homepage": "https://github.com/rustwasm/wasm-pack#readme",
   "dependencies": {
     "binary-install": "^0.1.0"
+  },
+  "resolutions": {
+    "axios": "0.21.2"
   }
 }
