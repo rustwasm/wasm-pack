@@ -168,6 +168,11 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
             Tool::WasmOpt => "x86-linux",
             _ => "x86_64-unknown-linux-musl",
         }
+    } else if target::LINUX && target::aarch64 {
+        match tool {
+            Tool::WasmOpt => "aarch64-linux",
+            _ => "aarch64-unknown-linux-musl",
+        }
     } else if target::LINUX && target::x86 {
         match tool {
             Tool::WasmOpt => "x86-linux",
