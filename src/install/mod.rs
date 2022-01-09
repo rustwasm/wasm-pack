@@ -162,7 +162,6 @@ pub fn download_prebuilt(
 /// Returns the URL of a precompiled version of wasm-bindgen, if we have one
 /// available for our host platform.
 fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
-    println!("Tool: {}, Version: {:?}", tool, version);
     let target = if target::LINUX && target::x86_64 {
         match tool {
             Tool::WasmOpt => "x86-linux",
