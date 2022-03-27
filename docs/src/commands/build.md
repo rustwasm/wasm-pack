@@ -99,7 +99,7 @@ wasm-pack build --target nodejs
 
 ## Scope
 
-The init command also accepts an optional `--scope` argument. This will scope
+The `build` command also accepts an optional `--scope` argument. This will scope
 your package name, which is useful if your package name might conflict with
 something in the public registry. For example:
 
