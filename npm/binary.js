@@ -34,6 +34,12 @@ const install = () => {
   binary.install();
 };
 
+const run = () => {
+  const binary = getBinary();
+  binary.run();
+}
+
 module.exports = {
   install,
+  run,
 };

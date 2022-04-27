@@ -26,6 +26,6 @@
   },
   "homepage": "https://github.com/rustwasm/wasm-pack#readme",
   "dependencies": {
-    "binary-install": "^1.0.0"
+    "binary-install": "^1.0.1"
   }
 }
