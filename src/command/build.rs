@@ -150,7 +150,7 @@ pub struct BuildOptions {
     pub profiling: bool,
 
     #[structopt(long = "skip-gitignore")]
-    /// Sets the output file names. Defaults to package name.
+    /// Skips generating .gitignore file.
     pub skip_gitignore: bool,
 
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
@@ -220,7 +220,7 @@ impl Build {
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
             profile,
-            skip_gitignore,
+            skip_gitignore: build_opts.skip_gitignore,
             mode: build_opts.mode,
             out_dir,
             out_name: build_opts.out_name,
