@@ -30,6 +30,7 @@ pub struct Build {
     pub disable_dts: bool,
     pub target: Target,
     pub profile: BuildProfile,
+    pub skip_gitignore: bool,
     pub mode: InstallMode,
     pub out_dir: PathBuf,
     pub out_name: Option<String>,
@@ -148,6 +149,10 @@ pub struct BuildOptions {
     /// Create a profiling build. Enable optimizations and debug info.
     pub profiling: bool,
 
+    #[structopt(long = "skip-gitignore")]
+    /// Sets the output file names. Defaults to package name.
+    pub skip_gitignore: bool,
+
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
@@ -173,6 +178,7 @@ impl Default for BuildOptions {
             dev: false,
             release: false,
             profiling: false,
+            skip_gitignore: false,
             out_dir: String::new(),
             out_name: None,
             extra_options: Vec::new(),
@@ -214,6 +220,7 @@ impl Build {
             disable_dts: build_opts.disable_dts,
             target: build_opts.target,
             profile,
+            skip_gitignore,
             mode: build_opts.mode,
             out_dir,
             out_name: build_opts.out_name,
@@ -329,7 +336,7 @@ impl Build {
 
     fn step_create_dir(&mut self) -> Result<(), Error> {
         info!("Creating a pkg directory...");
-        create_pkg_dir(&self.out_dir)?;
+        create_pkg_dir(&self.out_dir, self.skip_gitignore)?;
         info!("Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }

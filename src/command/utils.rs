@@ -36,9 +36,11 @@ fn find_manifest_from_cwd() -> Result<PathBuf, failure::Error> {
 }
 
 /// Construct our `pkg` directory in the crate.
-pub fn create_pkg_dir(out_dir: &Path) -> Result<(), failure::Error> {
+pub fn create_pkg_dir(out_dir: &Path, skip_gitignore: bool) -> Result<(), failure::Error> {
     fs::create_dir_all(&out_dir)?;
-    fs::write(out_dir.join(".gitignore"), "*")?;
+    if !skip_gitignore {
+        fs::write(out_dir.join(".gitignore"), "*")?;
+    };
     Ok(())
 }
 
