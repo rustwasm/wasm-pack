@@ -28,9 +28,9 @@ pub struct Build {
     pub crate_data: manifest::CrateData,
     pub scope: Option<String>,
     pub disable_dts: bool,
+    pub skip_gitignore: bool,
     pub target: Target,
     pub profile: BuildProfile,
-    pub skip_gitignore: bool,
     pub mode: InstallMode,
     pub out_dir: PathBuf,
     pub out_name: Option<String>,
@@ -128,6 +128,10 @@ pub struct BuildOptions {
     /// this flag will disable generating this TypeScript file.
     pub disable_dts: bool,
 
+    #[structopt(long = "skip-gitignore")]
+    /// Skips generating .gitignore file.
+    pub skip_gitignore: bool,
+
     #[structopt(long = "target", short = "t", default_value = "bundler")]
     /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
@@ -149,10 +153,6 @@ pub struct BuildOptions {
     /// Create a profiling build. Enable optimizations and debug info.
     pub profiling: bool,
 
-    #[structopt(long = "skip-gitignore")]
-    /// Skips generating .gitignore file.
-    pub skip_gitignore: bool,
-
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
@@ -173,12 +173,12 @@ impl Default for BuildOptions {
             scope: None,
             mode: InstallMode::default(),
             disable_dts: false,
+            skip_gitignore: false,
             target: Target::default(),
             debug: false,
             dev: false,
             release: false,
             profiling: false,
-            skip_gitignore: false,
             out_dir: String::new(),
             out_name: None,
             extra_options: Vec::new(),
@@ -218,9 +218,9 @@ impl Build {
             crate_data,
             scope: build_opts.scope,
             disable_dts: build_opts.disable_dts,
+            skip_gitignore: build_opts.skip_gitignore,
             target: build_opts.target,
             profile,
-            skip_gitignore: build_opts.skip_gitignore,
             mode: build_opts.mode,
             out_dir,
             out_name: build_opts.out_name,
