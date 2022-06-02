@@ -96,6 +96,7 @@ jobs:
           mv wasm-pack-init.exe ${{ env.RELEASE_DIR }}
 
       - name: Create tarball
+        shell: bash
         run: 7z a -ttar -so -an ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target }} | 7z a -si ./${{ env.RELEASE_DIR }}/${{ env.RELEASE_BIN }}-${{ steps.get_version.outputs.VERSION }}-${{ matrix.target }}.tar.gz
 
       - name: Upload Zip
