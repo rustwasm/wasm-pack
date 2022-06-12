@@ -2,6 +2,51 @@
 
 ## 🤍 Unreleased
 
+## 🌦️ 0.10.3
+
+- ### 🤕 Fixes
+
+  - **Use bash to create release tarballs - [nasso], [issue/1097] [pull/1144]**
+
+     Fixes Windows installer failure due to malformatted tar.
+
+    [pull/1144]: https://github.com/rustwasm/wasm-pack/pull/1144
+    [issue/1097]: https://github.com/rustwasm/wasm-pack/issues/1097
+    [nasso]: https://github.com/nasso
+
+  - **Clean up package.json from previous runs - [main--], [issue/1110-comment] [pull/1119]**
+
+     Remove the package.json file from previous runs to avoid crashes.
+
+    [pull/1119]: https://github.com/rustwasm/wasm-pack/pull/1119
+    [issue/1110-comment]: https://github.com/rustwasm/wasm-pack/pull/1110#issuecomment-1059008962
+    [main--]: https://github.com/main--
+
+  - **Do not remove the pkg directory - [huntc], [issue/1099] [pull/1110]**
+
+     A recent change ensured that the pkg directory was removed as the first step of attempting to create it.
+     Unfortunately, this caused a problem for webpack when watching the pkg directory.
+     Webpack was unable to recover its watching and so any watch server must be restarted,
+     which is a blocker when using it. This PR and release fixes this.
+
+    [pull/1110]: https://github.com/rustwasm/wasm-pack/pull/1110
+    [issue/1099]: https://github.com/rustwasm/wasm-pack/issues/1099
+    [huntc]: https://github.com/huntc
+
+  - **Bump regex from 1.5.4 to 1.5.6 - [dependabot], [pull/1147]**
+
+    Version 1.5.5 of the regex crate fixed a security bug in the regex compiler.
+
+    [pull/1147]: https://github.com/rustwasm/wasm-pack/pull/1147
+
+  - **Bump openssl-src from 111.17.0+1.1.1m to 111.20.0+1.1.1o - [dependabot], [pull/1146]**
+
+    Bring in bug fixes from the new version of openssl-src.
+
+    [pull/1146]: https://github.com/rustwasm/wasm-pack/pull/1146
+    [dependabot]: https://github.com/apps/dependabot
+
+
 ## 🌦️ 0.10.2
 
 - ### ✨ Features
