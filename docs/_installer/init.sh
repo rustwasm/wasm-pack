@@ -85,6 +85,19 @@ get_architecture() {
     local _ostype="$(uname -s)"
     local _cputype="$(uname -m)"
 
+    # This is when installing inside docker, or can be useful to side-step
+    # the script's built-in platform detection heuristic (if it drifts again in the future)
+    set +u
+    if [ -n "$TARGETOS" ]; then
+        _ostype="$TARGETOS" # probably always linux
+    fi
+
+    if [ -n "$TARGETARCH" ]; then
+        _cputype="$TARGETARCH"
+    fi
+    set -u
+
+
     if [ "$_ostype" = Darwin -a "$_cputype" = i386 ]; then
         # Darwin `uname -s` lies
         if sysctl hw.optional.x86_64 | grep -q ': 1'; then
@@ -93,7 +106,7 @@ get_architecture() {
     fi
 
     case "$_ostype" in
-        Linux)
+        Linux | linux)
             local _ostype=unknown-linux-musl
             ;;
 
@@ -114,10 +127,18 @@ get_architecture() {
         x86_64 | x86-64 | x64 | amd64)
             local _cputype=x86_64
             ;;
+        arm64 | aarch64)
+            local _cputype=aarch64
+            ;;
         *)
             err "no precompiled binaries available for CPU architecture: $_cputype"
 
     esac
+
+    # See https://github.com/rustwasm/wasm-pack/pull/1088
+    if [ "$_cputype" == "aarch64" ] && [ "$_ostype" == "apple-darwin" ]; then
+        _cputype="x86_64"
+    fi
 
     local _arch="$_cputype-$_ostype"
 
