@@ -1,5 +1,5 @@
 # Non-Rustup setups
-`wasm-pack` compiles your code using the `wasm32-unknown-unknown` target. `wasm-pack` will automatically add this target for Rustup setups if you don't already have it installed by doing `rustup target add wasm32-unknown-unknown`. However, if you're not using Rustup we won't be able to this automatically and you'll have to do this yourself.
+`wasm-pack` compiles your code using the `wasm32-unknown-unknown` target. `wasm-pack` will automatically add this target for Rustup setups if you don't already have it installed by doing `rustup target add wasm32-unknown-unknown`. However, if you're not using Rustup, then we won't be able to do this automatically, and you'll have to do this yourself.
 
 ## Manually add wasm32-unknown-unknown
 *Disclaimer: This is not guaranteed to work for every setup. These instructions below are specific for setups that match the exact rustc release, which means that the downloaded wasm32 target can be incompatible.*
