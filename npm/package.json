@@ -6,6 +6,9 @@
   "scripts": {
     "postinstall": "node ./install.js"
   },
+  "bin": {
+    "wasm-pack": "node ./run.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/rustwasm/wasm-pack.git"
