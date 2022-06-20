@@ -16,6 +16,7 @@ pub struct NoModulesPackage {
     pub repository: Option<Repository>,
     #[serde(skip_serializing_if = "Vec::is_empty")]
     pub files: Vec<String>,
+    pub main: String,
     pub browser: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub homepage: Option<String>,
