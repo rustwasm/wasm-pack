@@ -29,23 +29,17 @@ const getBinary = () => {
   return new Binary(platform === windows ? "wasm-pack.exe" : "wasm-pack", url);
 };
 
-const run = () => {
-  const binary = getBinary();
-  binary.run();
-};
-
 const install = () => {
   const binary = getBinary();
   binary.install();
 };
 
-const uninstall = () => {
+const run = () => {
   const binary = getBinary();
-  binary.uninstall();
-};
+  binary.run();
+}
 
 module.exports = {
   install,
   run,
-  uninstall,
 };

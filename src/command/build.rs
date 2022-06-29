@@ -56,6 +56,9 @@ pub enum Target {
     /// in a browser but pollutes the global namespace and must be manually
     /// instantiated.
     NoModules,
+    /// Correspond to `--target deno` where the output is natively usable as
+    /// a Deno module loaded with `import`.
+    Deno,
 }
 
 impl Default for Target {
@@ -71,6 +74,7 @@ impl fmt::Display for Target {
             Target::Web => "web",
             Target::Nodejs => "nodejs",
             Target::NoModules => "no-modules",
+            Target::Deno => "deno",
         };
         write!(f, "{}", s)
     }
@@ -84,6 +88,7 @@ impl FromStr for Target {
             "web" => Ok(Target::Web),
             "nodejs" => Ok(Target::Nodejs),
             "no-modules" => Ok(Target::NoModules),
+            "deno" => Ok(Target::Deno),
             _ => bail!("Unknown target: {}", s),
         }
     }
