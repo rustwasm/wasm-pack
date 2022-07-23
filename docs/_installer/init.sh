@@ -136,7 +136,7 @@ get_architecture() {
     esac
 
     # See https://github.com/rustwasm/wasm-pack/pull/1088
-    if [ "$_cputype" == "aarch64" ] && [ "$_ostype" == "apple-darwin" ]; then
+    if [ "$_cputype" = "aarch64" ] && [ "$_ostype" = "apple-darwin" ]; then
         _cputype="x86_64"
     fi
 
