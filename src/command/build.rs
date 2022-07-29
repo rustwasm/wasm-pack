@@ -415,7 +415,7 @@ impl Build {
     }
 
     fn step_run_wasm_opt(&mut self) -> Result<(), Error> {
-        let args = match self
+        let mut args = match self
             .crate_data
             .configured_profile(self.profile)
             .wasm_opt_args()
@@ -423,6 +423,9 @@ impl Build {
             Some(args) => args,
             None => return Ok(()),
         };
+        if self.reference_types {
+            args.push("--enable-reference-types".into());
+        }
         info!("executing wasm-opt with {:?}", args);
         wasm_opt::run(
             &self.cache,
