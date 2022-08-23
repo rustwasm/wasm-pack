@@ -1,6 +1,6 @@
 use binary_install::Cache;
 use tempfile;
-use wasm_pack::install::{self, Tool};
+use wasm_pack::install::{self, Arch, Os, Tool};
 
 #[test]
 #[cfg(any(
@@ -56,5 +56,39 @@ fn can_download_prebuilt_cargo_generate() {
         assert!(dl.binary("cargo-generate").unwrap().is_file());
     } else {
         assert!(false, "Download Failed");
+    }
+}
+
+#[test]
+fn all_latest_tool_download_urls_valid() {
+    let mut errors = Vec::new();
+
+    for tool in [Tool::CargoGenerate, Tool::WasmBindgen, Tool::WasmOpt] {
+        for arch in [Arch::X86_64, Arch::X86, Arch::AArch64] {
+            for os in [Os::Linux, Os::MacOS, Os::Windows] {
+                // For all valid tool, arch & os combinations,
+                // error out when any of them is a 404 or similar
+                if let Ok(url) = install::prebuilt_url_for(&tool, "0.2.82", &arch, &os) {
+                    let client = reqwest::Client::new();
+                    // Use HTTP HEAD instead of GET to avoid fetching lots of stuff
+                    let res = client.head(&url).send().unwrap();
+                    if res.status().is_client_error() {
+                        errors.push(format!(
+                            "Can't download URL {} for {} on {}: {}",
+                            url,
+                            arch,
+                            os,
+                            res.status()
+                        ));
+                    }
+                }
+            }
+        }
+    }
+    if !errors.is_empty() {
+        panic!(
+            "Some URLs for prebuild tools were unavailable:\n{}",
+            errors.join("\n")
+        );
     }
 }
