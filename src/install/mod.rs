@@ -171,7 +171,7 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
         "x86_64-macos"
     } else if target::WINDOWS && target::x86_64 {
         match tool {
-            Tool::WasmOpt => "x86-windows",
+            Tool::WasmOpt => "x86_64-windows",
             _ => "x86_64-pc-windows-msvc",
         }
     } else if target::WINDOWS && target::x86 {
