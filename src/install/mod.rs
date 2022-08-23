@@ -12,14 +12,17 @@ use std::env;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
-use target;
 use which::which;
 use PBAR;
 
+mod arch;
 mod krate;
 mod mode;
+mod os;
 mod tool;
+pub use self::arch::Arch;
 pub use self::mode::InstallMode;
+pub use self::os::Os;
 pub use self::tool::Tool;
 
 /// Possible outcomes of attempting to find/install a tool
@@ -162,27 +165,28 @@ pub fn download_prebuilt(
 /// Returns the URL of a precompiled version of wasm-bindgen, if we have one
 /// available for our host platform.
 fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
-    let target = if target::LINUX && target::x86_64 {
-        match tool {
-            Tool::WasmOpt => "x86_64-linux",
-            _ => "x86_64-unknown-linux-musl",
-        }
-    } else if target::MACOS && (target::x86_64 || target::aarch64) {
-        "x86_64-macos"
-    } else if target::WINDOWS && target::x86_64 {
-        match tool {
-            Tool::WasmOpt => "x86_64-windows",
-            _ => "x86_64-pc-windows-msvc",
-        }
-    } else if target::WINDOWS && target::x86 {
-        match tool {
-            Tool::WasmOpt => "x86-windows",
-            _ => bail!("Unrecognized target!"),
-        }
-    } else {
-        bail!("Unrecognized target!")
-    };
+    let os = Os::get()?;
+    let arch = Arch::get()?;
+    prebuilt_url_for(tool, version, &arch, &os)
+}
 
+/// Get the download URL for some tool at some version, architecture and operating system
+pub fn prebuilt_url_for(
+    tool: &Tool,
+    version: &str,
+    arch: &Arch,
+    os: &Os,
+) -> Result<String, failure::Error> {
+    let target = match (os, arch, tool) {
+        (Os::Linux, Arch::X86_64, Tool::WasmOpt) => "x86_64-linux",
+        (Os::Linux, Arch::X86_64, _) => "x86_64-unknown-linux-musl",
+        (Os::MacOS, Arch::X86, _) => bail!("Unrecognized target!"),
+        (Os::MacOS, _, Tool::WasmOpt) => "x86_64-macos",
+        (Os::MacOS, _, _) => "x86_64-apple-darwin",
+        (Os::Windows, Arch::X86_64, Tool::WasmOpt) => "x86_64-windows",
+        (Os::Windows, Arch::X86_64, _) => "x86_64-pc-windows-msvc",
+        _ => bail!("Unrecognized target!"),
+    };
     match tool {
         Tool::WasmBindgen => {
             Ok(format!(
