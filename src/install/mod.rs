@@ -164,12 +164,12 @@ pub fn download_prebuilt(
 fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
     let target = if target::LINUX && target::x86_64 {
         match tool {
-            Tool::WasmOpt => "x86-linux",
+            Tool::WasmOpt => "x86_64-linux",
             _ => "x86_64-unknown-linux-musl",
         }
     } else if target::LINUX && target::x86 {
         match tool {
-            Tool::WasmOpt => "x86-linux",
+            Tool::WasmOpt => "x86_64-linux",
             _ => bail!("Unrecognized target!"),
         }
     } else if target::MACOS && (target::x86_64 || target::aarch64) {
