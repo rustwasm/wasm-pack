@@ -152,7 +152,7 @@ pub fn download_prebuilt(
             }
         }
         Tool::WasmOpt => {
-            let binaries = &["wasm-opt"];
+            let binaries = &["wasm-opt", "libbinaryen"];
             match cache.download(install_permitted, "wasm-opt", binaries, &url)? {
                 Some(download) => Ok(Status::Found(download)),
                 // TODO(ag_dubs): why is this different? i forget...
@@ -180,9 +180,9 @@ pub fn prebuilt_url_for(
     let target = match (os, arch, tool) {
         (Os::Linux, Arch::X86_64, Tool::WasmOpt) => "x86_64-linux",
         (Os::Linux, Arch::X86_64, _) => "x86_64-unknown-linux-musl",
-        (Os::MacOS, Arch::X86, _) => bail!("Unrecognized target!"),
-        (Os::MacOS, _, Tool::WasmOpt) => "x86_64-macos",
-        (Os::MacOS, _, _) => "x86_64-apple-darwin",
+        (Os::MacOS, Arch::X86_64, Tool::WasmOpt) => "x86_64-macos",
+        (Os::MacOS, Arch::X86_64, _) => "x86_64-apple-darwin",
+        (Os::MacOS, Arch::AArch64, Tool::WasmOpt) => "arm64-macos",
         (Os::Windows, Arch::X86_64, Tool::WasmOpt) => "x86_64-windows",
         (Os::Windows, Arch::X86_64, _) => "x86_64-pc-windows-msvc",
         _ => bail!("Unrecognized target!"),

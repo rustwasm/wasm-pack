@@ -40,6 +40,7 @@ pub fn run(
         let tmp = path.with_extension("wasm-opt.wasm");
         let mut cmd = Command::new(&wasm_opt_path);
         cmd.arg(&path).arg("-o").arg(&tmp).args(args);
+        cmd.env("DYLD_LIBRARY_PATH", &wasm_opt_path.parent().unwrap());
         child::run(cmd, "wasm-opt")?;
         std::fs::rename(&tmp, &path)?;
     }
