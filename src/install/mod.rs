@@ -148,7 +148,11 @@ pub fn download_prebuilt(
             }
         }
         Tool::WasmOpt => {
-            let binaries = &["wasm-opt", "libbinaryen"];
+            let binaries: &[&str] = match Os::get()? {
+                Os::MacOS => &["bin/wasm-opt", "lib/libbinaryen.dylib"],
+                Os::Linux => &["bin/wasm-opt"],
+                Os::Windows => &["bin/wasm-opt.exe"],
+            };
             match cache.download(install_permitted, "wasm-opt", binaries, &url)? {
                 Some(download) => Ok(Status::Found(download)),
                 // TODO(ag_dubs): why is this different? i forget...
