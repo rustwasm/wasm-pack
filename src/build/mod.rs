@@ -1,9 +1,9 @@
 //! Building a Rust crate into a `.wasm` binary.
 
+use anyhow::{bail, Context, Result};
 use child;
 use command::build::BuildProfile;
 use emoji;
-use failure::{Error, ResultExt};
 use manifest::Crate;
 use std::path::Path;
 use std::process::Command;
@@ -23,7 +23,7 @@ pub struct WasmPackVersion {
 }
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
-pub fn check_rustc_version() -> Result<String, Error> {
+pub fn check_rustc_version() -> Result<String> {
     let local_minor_version = rustc_minor_version();
     match local_minor_version {
         Some(mv) => {
@@ -60,7 +60,7 @@ fn rustc_minor_version() -> Option<u32> {
 }
 
 /// Checks and returns local and latest versions of wasm-pack
-pub fn check_wasm_pack_versions() -> Result<WasmPackVersion, Error> {
+pub fn check_wasm_pack_versions() -> Result<WasmPackVersion> {
     match wasm_pack_local_version() {
         Some(local) => Ok(WasmPackVersion {local, latest: Crate::return_wasm_pack_latest_version()?.unwrap_or_else(|| "".to_string())}),
         None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")
@@ -77,7 +77,7 @@ pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
     extra_options: &[String],
-) -> Result<(), Error> {
+) -> Result<()> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.info(&msg);
 
@@ -125,11 +125,7 @@ pub fn cargo_build_wasm(
 /// * `path`: Path to the crate directory to build tests.
 /// * `debug`: Whether to build tests in `debug` mode.
 /// * `extra_options`: Additional parameters to pass to `cargo` when building tests.
-pub fn cargo_build_wasm_tests(
-    path: &Path,
-    debug: bool,
-    extra_options: &[String],
-) -> Result<(), Error> {
+pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]) -> Result<()> {
     let mut cmd = Command::new("cargo");
 
     cmd.current_dir(path).arg("build").arg("--tests");

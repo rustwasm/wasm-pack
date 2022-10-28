@@ -1,6 +1,6 @@
+use anyhow::Result;
 use log::info;
 use npm;
-use std::result;
 use PBAR;
 
 pub fn login(
@@ -8,7 +8,7 @@ pub fn login(
     scope: &Option<String>,
     always_auth: bool,
     auth_type: &Option<String>,
-) -> result::Result<(), failure::Error> {
+) -> Result<()> {
     let registry = registry.unwrap_or_else(|| npm::DEFAULT_NPM_REGISTRY.to_string());
 
     info!("Logging in to npm...");

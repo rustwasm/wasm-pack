@@ -1,13 +1,13 @@
 //! Generating `README` files for the packaged wasm.
 
-use failure::{self, ResultExt};
+use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
 use PBAR;
 
 /// Copy the crate's README into the `pkg` directory.
-pub fn copy_from_crate(path: &Path, out_dir: &Path) -> Result<(), failure::Error> {
+pub fn copy_from_crate(path: &Path, out_dir: &Path) -> Result<()> {
     assert!(
         fs::metadata(path).ok().map_or(false, |m| m.is_dir()),
         "crate directory should exist"

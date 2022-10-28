@@ -1,10 +1,10 @@
 //! Functionality related to installing prebuilt binaries and/or running cargo install.
 
 use self::krate::Krate;
+use anyhow::{anyhow, bail, Context, Result};
 use binary_install::{Cache, Download};
 use child;
 use emoji;
-use failure::{self, ResultExt};
 use install;
 use log::debug;
 use log::{info, warn};
@@ -36,7 +36,7 @@ pub enum Status {
 }
 
 /// Handles possible installs status and returns the download or a error message
-pub fn get_tool_path(status: &Status, tool: Tool) -> Result<&Download, failure::Error> {
+pub fn get_tool_path(status: &Status, tool: Tool) -> Result<&Download> {
     match status {
         Status::Found(download) => Ok(download),
         Status::CannotInstall => bail!("Not able to find or install a local {}.", tool),
@@ -57,7 +57,7 @@ pub fn download_prebuilt_or_cargo_install(
     cache: &Cache,
     version: &str,
     install_permitted: bool,
-) -> Result<Status, failure::Error> {
+) -> Result<Status> {
     // If the tool is installed globally and it has the right version, use
     // that. Assume that other tools are installed next to it.
     //
@@ -89,11 +89,7 @@ pub fn download_prebuilt_or_cargo_install(
 }
 
 /// Check if the tool dependency is locally satisfied.
-pub fn check_version(
-    tool: &Tool,
-    path: &Path,
-    expected_version: &str,
-) -> Result<bool, failure::Error> {
+pub fn check_version(tool: &Tool, path: &Path, expected_version: &str) -> Result<bool> {
     let expected_version = if expected_version == "latest" {
         let krate = Krate::new(tool)?;
         krate.max_version
@@ -110,7 +106,7 @@ pub fn check_version(
 }
 
 /// Fetches the version of a CLI tool
-pub fn get_cli_version(tool: &Tool, path: &Path) -> Result<String, failure::Error> {
+pub fn get_cli_version(tool: &Tool, path: &Path) -> Result<String> {
     let mut cmd = Command::new(path);
     cmd.arg("--version");
     let stdout = child::run_capture_stdout(cmd, tool)?;
@@ -127,7 +123,7 @@ pub fn download_prebuilt(
     cache: &Cache,
     version: &str,
     install_permitted: bool,
-) -> Result<Status, failure::Error> {
+) -> Result<Status> {
     let url = match prebuilt_url(tool, version) {
         Ok(url) => url,
         Err(e) => bail!(
@@ -164,19 +160,14 @@ pub fn download_prebuilt(
 
 /// Returns the URL of a precompiled version of wasm-bindgen, if we have one
 /// available for our host platform.
-fn prebuilt_url(tool: &Tool, version: &str) -> Result<String, failure::Error> {
+fn prebuilt_url(tool: &Tool, version: &str) -> Result<String> {
     let os = Os::get()?;
     let arch = Arch::get()?;
     prebuilt_url_for(tool, version, &arch, &os)
 }
 
 /// Get the download URL for some tool at some version, architecture and operating system
-pub fn prebuilt_url_for(
-    tool: &Tool,
-    version: &str,
-    arch: &Arch,
-    os: &Os,
-) -> Result<String, failure::Error> {
+pub fn prebuilt_url_for(tool: &Tool, version: &str, arch: &Arch, os: &Os) -> Result<String> {
     let target = match (os, arch, tool) {
         (Os::Linux, Arch::X86_64, Tool::WasmOpt) => "x86_64-linux",
         (Os::Linux, Arch::X86_64, _) => "x86_64-unknown-linux-musl",
@@ -220,7 +211,7 @@ pub fn cargo_install(
     cache: &Cache,
     version: &str,
     install_permitted: bool,
-) -> Result<Status, failure::Error> {
+) -> Result<Status> {
     debug!(
         "Attempting to use a `cargo install`ed version of `{}={}`",
         tool, version,
@@ -275,7 +266,7 @@ pub fn cargo_install(
     // just want them in `$root/*` directly (which matches how the tarballs are
     // laid out, and where the rest of our code expects them to be). So we do a
     // little renaming here.
-    let binaries: Result<Vec<&str>, failure::Error> = match tool {
+    let binaries: Result<Vec<&str>> = match tool {
         Tool::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
         Tool::CargoGenerate => Ok(vec!["cargo-generate"]),
         Tool::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
@@ -287,8 +278,8 @@ pub fn cargo_install(
             .join(b)
             .with_extension(env::consts::EXE_EXTENSION);
         let to = tmp.join(from.file_name().unwrap());
-        fs::rename(&from, &to).with_context(|_| {
-            format!(
+        fs::rename(&from, &to).with_context(|| {
+            anyhow!(
                 "failed to move {} to {} for `cargo install`ed `{}`",
                 from.display(),
                 to.display(),

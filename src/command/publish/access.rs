@@ -1,4 +1,4 @@
-use failure::Error;
+use anyhow::{bail, Error, Result};
 use std::fmt;
 use std::str::FromStr;
 
@@ -14,7 +14,7 @@ pub enum Access {
 impl FromStr for Access {
     type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Error> {
+    fn from_str(s: &str) -> Result<Self> {
         match s {
       "public" => Ok(Access::Public),
       "restricted" => Ok(Access::Restricted),

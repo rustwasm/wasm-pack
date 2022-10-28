@@ -1,4 +1,4 @@
-extern crate failure;
+extern crate anyhow;
 extern crate wasm_pack;
 
 use std::fs;

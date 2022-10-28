@@ -35,10 +35,8 @@ fn downloading_prebuilt_wasm_bindgen_handles_http_errors() {
     assert!(result.is_err());
     let error = result.err().unwrap();
 
-    assert!(error.iter_chain().any(|e| e.to_string().contains("404")));
-    assert!(error
-        .iter_chain()
-        .any(|e| e.to_string().contains(bad_version)));
+    assert!(error.chain().any(|e| e.to_string().contains("404")));
+    assert!(error.chain().any(|e| e.to_string().contains(bad_version)));
 }
 
 #[test]

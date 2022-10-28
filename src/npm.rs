@@ -1,15 +1,15 @@
 //! Functionality related to publishing to npm.
 
+use anyhow::{bail, Context, Result};
 use child;
 use command::publish::access::Access;
-use failure::{self, ResultExt};
 use log::info;
 
 /// The default npm registry used when we aren't working with a custom registry.
 pub const DEFAULT_NPM_REGISTRY: &str = "https://registry.npmjs.org/";
 
 /// Run the `npm pack` command.
-pub fn npm_pack(path: &str) -> Result<(), failure::Error> {
+pub fn npm_pack(path: &str) -> Result<()> {
     let mut cmd = child::new_command("npm");
     cmd.current_dir(path).arg("pack");
     child::run(cmd, "npm pack").context("Packaging up your code failed")?;
@@ -17,11 +17,7 @@ pub fn npm_pack(path: &str) -> Result<(), failure::Error> {
 }
 
 /// Run the `npm publish` command.
-pub fn npm_publish(
-    path: &str,
-    access: Option<Access>,
-    tag: Option<String>,
-) -> Result<(), failure::Error> {
+pub fn npm_publish(path: &str, access: Option<Access>, tag: Option<String>) -> Result<()> {
     let mut cmd = child::new_command("npm");
     match access {
         Some(a) => cmd.current_dir(path).arg("publish").arg(&a.to_string()),
@@ -41,7 +37,7 @@ pub fn npm_login(
     scope: &Option<String>,
     always_auth: bool,
     auth_type: &Option<String>,
-) -> Result<(), failure::Error> {
+) -> Result<()> {
     let mut args = vec!["login".to_string(), format!("--registry={}", registry)];
 
     if let Some(scope) = scope {

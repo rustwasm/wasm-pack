@@ -2,14 +2,13 @@
 pub mod access;
 
 use self::access::Access;
+use anyhow::{anyhow, bail, Result};
 use command::build::{Build, BuildOptions, Target};
 use command::utils::{find_pkg_directory, get_crate_path};
 use dialoguer::{Confirmation, Input, Select};
-use failure::Error;
 use log::info;
 use npm;
 use std::path::PathBuf;
-use std::result;
 use std::str::FromStr;
 use PBAR;
 
@@ -20,7 +19,7 @@ pub fn publish(
     path: Option<PathBuf>,
     access: Option<Access>,
     tag: Option<String>,
-) -> result::Result<(), Error> {
+) -> Result<()> {
     let crate_path = get_crate_path(path)?;
 
     info!("Publishing the npm package...");
@@ -58,7 +57,7 @@ pub fn publish(
                     .and_then(|mut build| build.run())
                     .map(|()| crate_path.join(out_dir))
                     .map_err(|_| {
-                        format_err!(
+                        anyhow!(
                             "Unable to find the pkg directory at path '{:#?}',\
                              or in a child directory of '{:#?}'",
                             &crate_path,

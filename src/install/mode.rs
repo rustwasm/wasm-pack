@@ -1,3 +1,4 @@
+use anyhow::{bail, Error, Result};
 use std::str::FromStr;
 
 /// The `InstallMode` determines which mode of initialization we are running, and
@@ -20,8 +21,8 @@ impl Default for InstallMode {
 }
 
 impl FromStr for InstallMode {
-    type Err = failure::Error;
-    fn from_str(s: &str) -> Result<Self, failure::Error> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         match s {
             "no-install" => Ok(InstallMode::Noinstall),
             "normal" => Ok(InstallMode::Normal),

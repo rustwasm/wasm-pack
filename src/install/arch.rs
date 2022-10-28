@@ -1,3 +1,4 @@
+use anyhow::{bail, Result};
 use std::fmt;
 
 use crate::target;
@@ -15,7 +16,7 @@ pub enum Arch {
 
 impl Arch {
     /// Gets the current architecture
-    pub fn get() -> Result<Self, failure::Error> {
+    pub fn get() -> Result<Self> {
         if target::x86_64 {
             Ok(Arch::X86_64)
         } else if target::x86 {

@@ -1,3 +1,4 @@
+use anyhow::{bail, Result};
 use std::fmt;
 
 use crate::target;
@@ -15,7 +16,7 @@ pub enum Os {
 
 impl Os {
     /// Get the current operating system
-    pub fn get() -> Result<Self, failure::Error> {
+    pub fn get() -> Result<Self> {
         if target::LINUX {
             Ok(Os::Linux)
         } else if target::MACOS {

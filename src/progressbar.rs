@@ -1,5 +1,6 @@
 //! Fancy progress bar functionality.
 
+use anyhow::{bail, Error, Result};
 use console::style;
 use emoji;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
@@ -19,8 +20,8 @@ pub enum LogLevel {
 }
 
 impl std::str::FromStr for LogLevel {
-    type Err = failure::Error;
-    fn from_str(s: &str) -> Result<Self, failure::Error> {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
         match s {
             "error" => Ok(LogLevel::Error),
             "warn" => Ok(LogLevel::Warn),

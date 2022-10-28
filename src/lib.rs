@@ -2,15 +2,14 @@
 
 #![deny(missing_docs)]
 
+extern crate anyhow;
 extern crate cargo_metadata;
 extern crate console;
-extern crate strsim;
-#[macro_use]
-extern crate failure;
 extern crate glob;
 extern crate parking_lot;
 extern crate semver;
 extern crate serde;
+extern crate strsim;
 extern crate which;
 #[macro_use]
 extern crate serde_derive;

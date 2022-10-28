@@ -10,13 +10,13 @@ categories = ["wasm"]
 documentation = "https://rustwasm.github.io/wasm-pack/"
 
 [dependencies]
+anyhow = "1.0.66"
 atty = "0.2.11"
 cargo_metadata = "0.8.0"
 console = "0.6.1"
 dialoguer = "0.3.0"
 curl = "0.4.13"
 env_logger = { version = "0.5.13", default-features = false }
-failure = "0.1.2"
 human-panic = "1.0.1"
 glob = "0.2"
 log = "0.4.6"
@@ -32,8 +32,8 @@ strsim = "0.8.0"
 siphasher = "0.2.3"
 structopt = "0.3"
 toml = "0.4"
-which = "2.0.0"
-binary-install = "0.0.2"
+which = "4.3.0"
+binary-install = { git = "https://github.com/rustwasm/binary-install", rev = "6d60f6731c8294000ea8f3a0260659b025cf7f94" }
 walkdir = "2"
 chrono = "0.4.6"
 
