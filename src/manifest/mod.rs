@@ -424,7 +424,7 @@ impl CrateData {
             .iter()
             .position(|pkg| {
                 pkg.name == manifest.package.name
-                    && CrateData::is_same_path(&pkg.manifest_path, &manifest_path)
+                    && CrateData::is_same_path(pkg.manifest_path.as_std_path(), &manifest_path)
             })
             .ok_or_else(|| anyhow!("failed to find package in metadata"))?;
 

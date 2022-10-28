@@ -1,4 +1,5 @@
 use binary_install::Cache;
+use lazy_static::lazy_static;
 use std::env;
 use std::fs;
 use std::mem::ManuallyDrop;

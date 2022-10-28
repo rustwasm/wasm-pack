@@ -12,36 +12,36 @@ documentation = "https://rustwasm.github.io/wasm-pack/"
 [dependencies]
 anyhow = "1.0.66"
 atty = "0.2.11"
-cargo_metadata = "0.8.0"
+cargo_metadata = "0.15"
 console = "0.6.1"
-dialoguer = "0.3.0"
+dialoguer = "0.10"
 curl = "0.4.13"
-env_logger = { version = "0.5.13", default-features = false }
+env_logger = { version = "0.9", default-features = false }
 human-panic = "1.0.1"
-glob = "0.2"
+glob = "0.3"
 log = "0.4.6"
 openssl = { version = '0.10.11', optional = true }
-parking_lot = "0.6"
-reqwest = "0.9.14"
-semver = "0.9.0"
+parking_lot = "0.12"
+reqwest = { version = "0.11.12", features = ["blocking"] }
+semver = "1"
 serde = "1.0.74"
 serde_derive = "1.0.74"
-serde_ignored = "0.0.4"
+serde_ignored = "0.1"
 serde_json = "1.0.26"
-strsim = "0.8.0"
-siphasher = "0.2.3"
+strsim = "0.10"
+siphasher = "0.3"
 structopt = "0.3"
-toml = "0.4"
+toml = "0.5"
 which = "4.3.0"
 binary-install = { git = "https://github.com/rustwasm/binary-install", rev = "6d60f6731c8294000ea8f3a0260659b025cf7f94" }
 walkdir = "2"
 chrono = "0.4.6"
 
 [dev-dependencies]
-assert_cmd = "0.11"
+assert_cmd = "2"
 lazy_static = "1.1.0"
-predicates = "1.0.0"
-serial_test = "0.3"
+predicates = "2"
+serial_test = "0.9"
 tempfile = "3"
 
 [features]

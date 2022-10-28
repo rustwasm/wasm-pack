@@ -5,7 +5,7 @@ use self::access::Access;
 use anyhow::{anyhow, bail, Result};
 use command::build::{Build, BuildOptions, Target};
 use command::utils::{find_pkg_directory, get_crate_path};
-use dialoguer::{Confirmation, Input, Select};
+use dialoguer::{Confirm, Input, Select};
 use log::info;
 use npm;
 use std::path::PathBuf;
@@ -30,8 +30,8 @@ pub fn publish(
         None => {
             // while `wasm-pack publish`, if the pkg directory cannot be found,
             // then try to `wasm-pack build`
-            if Confirmation::new()
-                .with_text("Your package hasn't been built, build it?")
+            if Confirm::new()
+                .with_prompt("Your package hasn't been built, build it?")
                 .interact()?
             {
                 let out_dir = Input::new()
