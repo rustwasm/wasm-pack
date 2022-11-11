@@ -30,14 +30,17 @@ pub fn run(
     let wasm_opt_path = wasm_opt.binary(&Tool::WasmOpt.to_string())?;
     PBAR.info("Optimizing wasm binaries with `wasm-opt`...");
 
+    let mut input_paths = Vec::new();
     for file in out_dir.read_dir()? {
         let file = file?;
         let path = file.path();
         if path.extension().and_then(|s| s.to_str()) != Some("wasm") {
             continue;
         }
-
-        let tmp = path.with_extension("wasm-opt.wasm");
+        input_paths.push(path);
+    }
+    for path in input_paths {
+        let tmp = path.with_extension("wasm-opt");
         let mut cmd = Command::new(&wasm_opt_path);
         cmd.arg(&path).arg("-o").arg(&tmp).args(args);
         child::run(cmd, "wasm-opt")?;
