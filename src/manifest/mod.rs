@@ -633,6 +633,14 @@ impl CrateData {
             None
         };
 
+        if !disable_dts {
+            let file = format!("{}_bg.wasm.d.ts", name_prefix);
+            files.push(file.to_string());
+            Some(file)
+        } else {
+            None
+        };
+
         let keywords = if pkg.keywords.len() > 0 {
             Some(pkg.keywords.clone())
         } else {
