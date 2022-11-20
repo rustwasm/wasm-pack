@@ -177,6 +177,7 @@ pub fn prebuilt_url_for(tool: &Tool, version: &str, arch: &Arch, os: &Os) -> Res
         (Os::Linux, Arch::X86_64, _) => "x86_64-unknown-linux-musl",
         (Os::MacOS, Arch::X86_64, Tool::WasmOpt) => "x86_64-macos",
         (Os::MacOS, Arch::X86_64, _) => "x86_64-apple-darwin",
+        (Os::MacOS, Arch::AArch64, Tool::CargoGenerate) => "aarch64-apple-darwin",
         (Os::MacOS, Arch::AArch64, Tool::WasmOpt) => "arm64-macos",
         (Os::Windows, Arch::X86_64, Tool::WasmOpt) => "x86_64-windows",
         (Os::Windows, Arch::X86_64, _) => "x86_64-pc-windows-msvc",
@@ -193,8 +194,7 @@ pub fn prebuilt_url_for(tool: &Tool, version: &str, arch: &Arch, os: &Os) -> Res
         Tool::CargoGenerate => {
             Ok(format!(
                 "https://github.com/cargo-generate/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
-                // Krate::new(&Tool::CargoGenerate)?.max_version,
-                "0.5.1", // latest released binary [#907](https://github.com/rustwasm/wasm-pack/issues/907)
+                "0.17.3",
                 target
             ))
         },
