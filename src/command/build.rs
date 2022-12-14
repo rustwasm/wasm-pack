@@ -393,6 +393,7 @@ impl Build {
             self.disable_dts,
             self.target,
             self.profile,
+            &self.extra_options,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())

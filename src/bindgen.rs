@@ -19,6 +19,7 @@ pub fn wasm_bindgen_build(
     disable_dts: bool,
     target: Target,
     profile: BuildProfile,
+    extra_options: &Vec<String>,
 ) -> Result<(), failure::Error> {
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
@@ -26,9 +27,20 @@ pub fn wasm_bindgen_build(
     };
 
     let out_dir = out_dir.to_str().unwrap();
+    let has_target_dir_overwrite = extra_options.contains(&"--target-dir".to_string());
+    let target_directory = if has_target_dir_overwrite {
+        let i = extra_options
+            .binary_search(&"--target-dir".to_string())
+            .unwrap();
+        extra_options
+            .get(i + 1)
+            .map(Path::new)
+            .unwrap_or(data.target_directory())
+    } else {
+        data.target_directory()
+    };
 
-    let wasm_path = data
-        .target_directory()
+    let wasm_path = target_directory
         .join("wasm32-unknown-unknown")
         .join(release_or_debug)
         .join(data.crate_name())
