@@ -10,6 +10,7 @@ use install::{self, InstallMode, Tool};
 use lockfile::Lockfile;
 use log::info;
 use manifest;
+use std::env;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
@@ -337,10 +338,12 @@ impl Test {
     fn step_get_chromedriver(&mut self) -> Result<(), Error> {
         assert!(self.chrome && self.chromedriver.is_none());
 
-        self.chromedriver = Some(webdriver::get_or_install_chromedriver(
-            &self.cache,
-            self.mode,
-        )?);
+        self.chromedriver = Some(env::var("CHROMEDRIVER")
+            .map(|path_str| PathBuf::from(path_str))
+            .or_else(|_| webdriver::get_or_install_chromedriver(
+                    &self.cache,
+                    self.mode,
+            ))?);
         Ok(())
     }
 
@@ -362,10 +365,12 @@ impl Test {
     fn step_get_geckodriver(&mut self) -> Result<(), Error> {
         assert!(self.firefox && self.geckodriver.is_none());
 
-        self.geckodriver = Some(webdriver::get_or_install_geckodriver(
-            &self.cache,
-            self.mode,
-        )?);
+        self.geckodriver = Some(env::var("GECKODRIVER")
+            .map(|path_str| PathBuf::from(path_str))
+            .or_else(|_| webdriver::get_or_install_geckodriver(
+                    &self.cache,
+                    self.mode,
+            ))?);
         Ok(())
     }
 
@@ -387,7 +392,9 @@ impl Test {
     fn step_get_safaridriver(&mut self) -> Result<(), Error> {
         assert!(self.safari && self.safaridriver.is_none());
 
-        self.safaridriver = Some(webdriver::get_safaridriver()?);
+        self.safaridriver = Some(env::var("SAFARIDRIVER")
+            .map(|path_str| PathBuf::from(path_str))
+            .or_else(|_| webdriver::get_safaridriver())?);
         Ok(())
     }
 
