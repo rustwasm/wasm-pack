@@ -201,7 +201,7 @@ pub fn prebuilt_url_for(tool: &Tool, version: &str, arch: &Arch, os: &Os) -> Res
         Tool::WasmOpt => {
             Ok(format!(
         "https://github.com/WebAssembly/binaryen/releases/download/{vers}/binaryen-{vers}-{target}.tar.gz",
-        vers = "version_110",
+        vers = "version_111",
         target = target,
             ))
         }
