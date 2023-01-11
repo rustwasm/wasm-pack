@@ -737,7 +737,7 @@ impl CrateData {
             module: data.main,
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: false,
+            side_effects: true,
             keywords: data.keywords,
             dependencies,
         })
@@ -774,7 +774,7 @@ impl CrateData {
             module: data.main,
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: false,
+            side_effects: true,
             keywords: data.keywords,
             dependencies,
         })

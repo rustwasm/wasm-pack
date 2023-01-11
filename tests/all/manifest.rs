@@ -93,7 +93,7 @@ fn it_creates_a_package_json_default_path() {
     );
     assert_eq!(pkg.module, "js_hello_world.js");
     assert_eq!(pkg.types, "js_hello_world.d.ts");
-    assert_eq!(pkg.side_effects, false);
+    assert_eq!(pkg.side_effects, true);
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> = [
@@ -255,7 +255,7 @@ fn it_creates_a_package_json_with_correct_files_when_out_name_is_provided() {
     );
     assert_eq!(pkg.module, "index.js");
     assert_eq!(pkg.types, "index.d.ts");
-    assert_eq!(pkg.side_effects, false);
+    assert_eq!(pkg.side_effects, true);
 
     let actual_files: HashSet<String> = pkg.files.into_iter().collect();
     let expected_files: HashSet<String> =
