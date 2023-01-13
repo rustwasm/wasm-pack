@@ -79,6 +79,9 @@ pub struct TestOptions {
     /// Build with the release profile.
     pub release: bool,
 
+    // #[structopt(long = "profile")]
+    // /// Build with the custom user defined profile.
+    // pub profile: Option<String>,
     /// Path to the Rust crate, and extra options to pass to `cargo test`.
     ///
     /// If the path is not provided, this command searches up the path from the current dirctory
@@ -104,6 +107,7 @@ pub struct Test {
     safaridriver: Option<PathBuf>,
     headless: bool,
     release: bool,
+    // profile: Option<String>,
     test_runner_path: Option<PathBuf>,
     extra_options: Vec<String>,
 }

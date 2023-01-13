@@ -104,6 +104,12 @@ pub fn cargo_build_wasm(
             // Plain cargo builds use the dev cargo profile, which includes
             // debug info by default.
         }
+        BuildProfile::Profile(profile) => {
+            cmd.arg("--profile").arg(profile);
+        } // BuildProfile::Profile(_) => {
+          //     // An empty Profile string means we should use the default, which
+          //     // is release.
+          // }
     }
 
     cmd.arg("--target").arg("wasm32-unknown-unknown");
