@@ -122,8 +122,9 @@ checksum = "b645a089122eccb6111b4f81cbc1a49f5900ac4666bb93ac027feaecf15607bf"
 
 [[package]]
 name = "binary-install"
-version = "0.0.3-alpha.1"
-source = "git+https://github.com/rustwasm/binary-install?rev=6d60f6731c8294000ea8f3a0260659b025cf7f94#6d60f6731c8294000ea8f3a0260659b025cf7f94"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "803f66374c8ed72df7f69451751560fe4bd5681ec96e0e0a21457c30b46482c8"
 dependencies = [
  "anyhow",
  "curl",

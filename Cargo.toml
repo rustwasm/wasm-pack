@@ -33,7 +33,7 @@ siphasher = "0.3"
 structopt = "0.3"
 toml = "0.5"
 which = "4.3.0"
-binary-install = { git = "https://github.com/rustwasm/binary-install", rev = "6d60f6731c8294000ea8f3a0260659b025cf7f94" }
+binary-install = "0.1.0"
 walkdir = "2"
 chrono = "0.4.6"
 
