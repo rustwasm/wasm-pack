@@ -523,9 +523,7 @@ impl CrateData {
             BuildProfile::Dev => &self.manifest.package.metadata.wasm_pack.profile.dev,
             BuildProfile::Profiling => &self.manifest.package.metadata.wasm_pack.profile.profiling,
             BuildProfile::Release => &self.manifest.package.metadata.wasm_pack.profile.release,
-            BuildProfile::Profile(_) => {
-                &self.manifest.package.metadata.wasm_pack.profile.profile
-            }
+            BuildProfile::Profile(_) => &self.manifest.package.metadata.wasm_pack.profile.profile,
         }
     }
 
