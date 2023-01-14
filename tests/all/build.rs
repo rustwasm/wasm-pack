@@ -183,6 +183,56 @@ fn build_different_profiles() {
 }
 
 #[test]
+fn build_with_profile_flag() {
+    let fixture = utils::fixture::Fixture::new();
+    fixture
+        .readme()
+        .file(
+            "Cargo.toml",
+            r#"
+            [package]
+            authors = ["The wasm-pack developers"]
+            description = "so awesome rust+wasm package"
+            license = "WTFPL"
+            name = "somename"
+            repository = "https://github.com/rustwasm/wasm-pack.git"
+            version = "0.1.0"
+
+            [lib]
+            crate-type = ["cdylib"]
+
+            [dependencies]
+            wasm-bindgen = "0.2"
+
+            [profile.wasm-release]
+            inherits = "release"
+            opt-level = "z"
+            lto = "fat"
+            "#,
+        )
+        .file(
+            "src/lib.rs",
+            r#"
+            extern crate wasm_bindgen;
+            use wasm_bindgen::prelude::*;
+            #[wasm_bindgen]
+            pub fn method() -> i32 {
+                2
+            }
+            "#,
+        );
+
+    fixture.install_local_wasm_bindgen();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--profile")
+        .arg("wasm-release")
+        .assert()
+        .success();
+}
+
+#[test]
 fn build_with_and_without_wasm_bindgen_debug() {
     for debug in [true, false].iter().cloned() {
         let fixture = utils::fixture::Fixture::new();

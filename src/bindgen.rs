@@ -21,9 +21,10 @@ pub fn wasm_bindgen_build(
     profile: BuildProfile,
     extra_options: &Vec<String>,
 ) -> Result<(), failure::Error> {
-    let release_or_debug = match profile {
+    let release_or_debug_or_profile = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
         BuildProfile::Dev => "debug",
+        BuildProfile::Profile(ref profile) => profile,
     };
 
     let out_dir = out_dir.to_str().unwrap();
@@ -42,7 +43,7 @@ pub fn wasm_bindgen_build(
 
     let wasm_path = target_directory
         .join("wasm32-unknown-unknown")
-        .join(release_or_debug)
+        .join(release_or_debug_or_profile)
         .join(data.crate_name())
         .with_extension("wasm");
 
