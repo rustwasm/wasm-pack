@@ -4,10 +4,10 @@ mod chromedriver;
 mod geckodriver;
 mod safaridriver;
 
+use crate::PBAR;
 use anyhow::Result;
 use binary_install::Cache;
 use std::path::PathBuf;
-use PBAR;
 
 pub use self::{
     chromedriver::{get_or_install_chromedriver, install_chromedriver},

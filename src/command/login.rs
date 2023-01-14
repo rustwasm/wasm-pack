@@ -1,7 +1,7 @@
+use crate::npm;
+use crate::PBAR;
 use anyhow::Result;
 use log::info;
-use npm;
-use PBAR;
 
 pub fn login(
     registry: Option<String>,

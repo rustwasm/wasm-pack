@@ -5,6 +5,7 @@ version = "0.10.3"
 authors = ["Ashley Williams <ashley666ashley@gmail.com>", "Jesper Håkansson <jesper@jesperh.se>"]
 repository = "https://github.com/rustwasm/wasm-pack.git"
 license = "MIT OR Apache-2.0"
+edition = "2021"
 readme = "README.md"
 categories = ["wasm"]
 documentation = "https://rustwasm.github.io/wasm-pack/"

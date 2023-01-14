@@ -1,5 +1,5 @@
+use crate::utils::fixture;
 use binary_install::Cache;
-use utils::fixture;
 use wasm_pack::test::webdriver;
 
 #[test]

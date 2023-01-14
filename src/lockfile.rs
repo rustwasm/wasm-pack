@@ -5,9 +5,9 @@
 use std::fs;
 use std::path::PathBuf;
 
+use crate::manifest::CrateData;
 use anyhow::{anyhow, bail, Context, Result};
 use console::style;
-use manifest::CrateData;
 use toml;
 
 /// This struct represents the contents of `Cargo.lock`.

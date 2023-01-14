@@ -1,9 +1,9 @@
+use crate::command::utils::{find_pkg_directory, get_crate_path};
+use crate::npm;
+use crate::PBAR;
 use anyhow::{anyhow, Result};
-use command::utils::{find_pkg_directory, get_crate_path};
 use log::info;
-use npm;
 use std::path::PathBuf;
-use PBAR;
 
 /// Executes the 'npm pack' command on the 'pkg' directory
 /// which creates a tarball that can be published to the NPM registry

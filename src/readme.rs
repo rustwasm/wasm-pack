@@ -4,7 +4,7 @@ use anyhow::{Context, Result};
 use std::fs;
 use std::path::Path;
 
-use PBAR;
+use crate::PBAR;
 
 /// Copy the crate's README into the `pkg` directory.
 pub fn copy_from_crate(path: &Path, out_dir: &Path) -> Result<()> {

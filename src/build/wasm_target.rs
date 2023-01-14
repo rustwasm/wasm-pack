@@ -1,13 +1,13 @@
 //! Checking for the wasm32 target
 
+use crate::child;
+use crate::emoji;
+use crate::PBAR;
 use anyhow::{anyhow, bail, Context, Result};
-use child;
-use emoji;
 use log::info;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use PBAR;
 
 struct Wasm32Check {
     rustc_path: PathBuf,

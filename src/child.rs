@@ -3,8 +3,8 @@
 //! This module helps us ensure that all child processes that we spawn get
 //! properly logged and their output is logged as well.
 
+use crate::install::Tool;
 use anyhow::{bail, Result};
-use install::Tool;
 use log::info;
 use std::process::{Command, Stdio};
 

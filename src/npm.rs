@@ -1,8 +1,8 @@
 //! Functionality related to publishing to npm.
 
+use crate::child;
+use crate::command::publish::access::Access;
 use anyhow::{bail, Context, Result};
-use child;
-use command::publish::access::Access;
 use log::info;
 
 /// The default npm registry used when we aren't working with a custom registry.
