@@ -1,13 +1,13 @@
 //! Checking for the wasm32 target
 
-use child;
-use emoji;
-use failure::{Error, ResultExt};
+use crate::child;
+use crate::emoji;
+use crate::PBAR;
+use anyhow::{anyhow, bail, Context, Result};
 use log::info;
 use std::fmt;
 use std::path::{Path, PathBuf};
 use std::process::Command;
-use PBAR;
 
 struct Wasm32Check {
     rustc_path: PathBuf,
@@ -52,7 +52,7 @@ impl fmt::Display for Wasm32Check {
 
 /// Ensure that `rustup` has the `wasm32-unknown-unknown` target installed for
 /// current toolchain
-pub fn check_for_wasm32_target() -> Result<(), Error> {
+pub fn check_for_wasm32_target() -> Result<()> {
     let msg = format!("{}Checking for the Wasm target...", emoji::TARGET);
     PBAR.info(&msg);
 
@@ -65,7 +65,7 @@ pub fn check_for_wasm32_target() -> Result<(), Error> {
 }
 
 /// Get rustc's sysroot as a PathBuf
-fn get_rustc_sysroot() -> Result<PathBuf, Error> {
+fn get_rustc_sysroot() -> Result<PathBuf> {
     let command = Command::new("rustc")
         .args(&["--print", "sysroot"])
         .output()?;
@@ -73,7 +73,7 @@ fn get_rustc_sysroot() -> Result<PathBuf, Error> {
     if command.status.success() {
         Ok(String::from_utf8(command.stdout)?.trim().into())
     } else {
-        Err(format_err!(
+        Err(anyhow!(
             "Getting rustc's sysroot wasn't successful. Got {}",
             command.status
         ))
@@ -97,7 +97,7 @@ fn is_wasm32_target_in_sysroot(sysroot: &Path) -> bool {
     }
 }
 
-fn check_wasm32_target() -> Result<Wasm32Check, Error> {
+fn check_wasm32_target() -> Result<Wasm32Check> {
     let sysroot = get_rustc_sysroot()?;
     let rustc_path = which::which("rustc")?;
 
@@ -132,7 +132,7 @@ fn check_wasm32_target() -> Result<Wasm32Check, Error> {
 }
 
 /// Add wasm32-unknown-unknown using `rustup`.
-fn rustup_add_wasm_target() -> Result<(), Error> {
+fn rustup_add_wasm_target() -> Result<()> {
     let mut cmd = Command::new("rustup");
     cmd.arg("target").arg("add").arg("wasm32-unknown-unknown");
     child::run(cmd, "rustup").context("Adding the wasm32-unknown-unknown target with rustup")?;

@@ -1,11 +1,11 @@
 use super::{get_and_notify, Collector};
+use crate::install::InstallMode;
+use crate::stamps;
+use crate::target;
+use anyhow::{bail, Context, Result};
 use binary_install::Cache;
 use chrono::DateTime;
-use failure::{self, ResultExt};
-use install::InstallMode;
-use stamps;
 use std::path::PathBuf;
-use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://chromedriver.storage.googleapis.com/LATEST_RELEASE
@@ -16,10 +16,7 @@ const CHROMEDRIVER_VERSION_STAMP: &str = "chromedriver_version";
 
 /// Get the path to an existing `chromedriver`, or install it if no existing
 /// binary is found or if there is a new binary version.
-pub fn get_or_install_chromedriver(
-    cache: &Cache,
-    mode: InstallMode,
-) -> Result<PathBuf, failure::Error> {
+pub fn get_or_install_chromedriver(cache: &Cache, mode: InstallMode) -> Result<PathBuf> {
     if let Ok(path) = which::which("chromedriver") {
         return Ok(path);
     }
@@ -27,10 +24,7 @@ pub fn get_or_install_chromedriver(
 }
 
 /// Download and install a pre-built `chromedriver` binary.
-pub fn install_chromedriver(
-    cache: &Cache,
-    installation_allowed: bool,
-) -> Result<PathBuf, failure::Error> {
+pub fn install_chromedriver(cache: &Cache, installation_allowed: bool) -> Result<PathBuf> {
     let target = if target::LINUX && target::x86_64 {
         "linux64"
     } else if target::MACOS && target::x86_64 {
@@ -99,7 +93,7 @@ fn get_chromedriver_url(target: &str) -> String {
 
 // ------ `get_chromedriver_url` helpers ------
 
-fn save_chromedriver_version(version: String) -> Result<String, failure::Error> {
+fn save_chromedriver_version(version: String) -> Result<String> {
     stamps::save_stamp_value(CHROMEDRIVER_VERSION_STAMP, &version)?;
 
     let current_time = chrono::offset::Local::now().to_rfc3339();
@@ -122,7 +116,7 @@ fn should_load_chromedriver_version_from_stamp(json: &serde_json::Value) -> bool
     }
 }
 
-fn fetch_chromedriver_version() -> Result<String, failure::Error> {
+fn fetch_chromedriver_version() -> Result<String> {
     let mut handle = curl::easy::Easy2::new(Collector(Vec::new()));
     handle
         .url("https://chromedriver.storage.googleapis.com/LATEST_RELEASE")

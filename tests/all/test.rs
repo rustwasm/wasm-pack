@@ -1,7 +1,7 @@
+use crate::utils::fixture;
 use assert_cmd::prelude::*;
 use predicates::prelude::*;
 use std::env;
-use utils::fixture;
 
 #[test]
 fn it_can_run_node_tests() {
@@ -33,6 +33,7 @@ fn it_can_run_tests_with_different_wbg_test_and_wbg_versions() {
 #[cfg(any(
     all(target_os = "linux", target_arch = "x86_64"),
     all(target_os = "macos", target_arch = "x86_64"),
+    all(target_os = "macos", target_arch = "aarch64"),
     all(target_os = "windows", target_arch = "x86"),
     all(target_os = "windows", target_arch = "x86_64")
 ))]
@@ -44,6 +45,7 @@ fn it_can_run_browser_tests() {
         all(target_os = "linux", target_arch = "x86"),
         all(target_os = "linux", target_arch = "x86_64"),
         all(target_os = "macos", target_arch = "x86_64"),
+        all(target_os = "macos", target_arch = "aarch64"),
         all(target_os = "windows", target_arch = "x86"),
         all(target_os = "windows", target_arch = "x86_64")
     ));
@@ -104,6 +106,7 @@ fn it_can_run_failing_tests() {
     all(target_os = "linux", target_arch = "x86"),
     all(target_os = "linux", target_arch = "x86_64"),
     all(target_os = "macos", target_arch = "x86_64"),
+    all(target_os = "macos", target_arch = "aarch64"),
     all(target_os = "windows", target_arch = "x86"),
     all(target_os = "windows", target_arch = "x86_64")
 ))]

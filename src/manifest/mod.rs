@@ -6,6 +6,7 @@
     clippy::redundant_closure
 )]
 
+use anyhow::{anyhow, bail, Context, Result};
 mod npm;
 
 use std::path::Path;
@@ -14,12 +15,12 @@ use std::{collections::HashMap, fs};
 use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
 };
+use crate::command::build::{BuildProfile, Target};
+use crate::PBAR;
 use cargo_metadata::Metadata;
 use chrono::offset;
 use chrono::DateTime;
-use command::build::{BuildProfile, Target};
 use curl::easy;
-use failure::{Error, ResultExt};
 use serde::{self, Deserialize};
 use serde_json;
 use std::collections::BTreeSet;
@@ -27,7 +28,6 @@ use std::env;
 use std::io::Write;
 use strsim::levenshtein;
 use toml;
-use PBAR;
 
 const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
 const WASM_PACK_VERSION: Option<&'static str> = option_env!("CARGO_PKG_VERSION");
@@ -149,7 +149,7 @@ struct CrateInformation {
 
 impl Crate {
     /// Returns latest wasm-pack version
-    pub fn return_wasm_pack_latest_version() -> Result<Option<String>, failure::Error> {
+    pub fn return_wasm_pack_latest_version() -> Result<Option<String>> {
         let current_time = chrono::offset::Local::now();
         let old_metadata_file = Self::return_wasm_pack_file();
 
@@ -172,9 +172,7 @@ impl Crate {
         }
     }
 
-    fn return_api_call_result(
-        current_time: DateTime<offset::Local>,
-    ) -> Result<String, failure::Error> {
+    fn return_api_call_result(current_time: DateTime<offset::Local>) -> Result<String> {
         let version = Self::return_latest_wasm_pack_version();
 
         // We always override the stamp file with the current time because we don't
@@ -192,7 +190,7 @@ impl Crate {
     fn override_stamp_file(
         current_time: DateTime<offset::Local>,
         version: Option<&str>,
-    ) -> Result<(), failure::Error> {
+    ) -> Result<()> {
         let path = env::current_exe()?;
 
         let mut file = fs::OpenOptions::new()
@@ -224,7 +222,7 @@ impl Crate {
     }
 
     /// Returns wasm-pack latest version (if it's received) by executing check_wasm_pack_latest_version function.
-    fn return_latest_wasm_pack_version() -> Result<String, failure::Error> {
+    fn return_latest_wasm_pack_version() -> Result<String> {
         Self::check_wasm_pack_latest_version().map(|crt| crt.crt.max_version)
     }
 
@@ -239,7 +237,7 @@ impl Crate {
     }
 
     /// Call to the crates.io api and return the latest version of `wasm-pack`
-    fn check_wasm_pack_latest_version() -> Result<Crate, Error> {
+    fn check_wasm_pack_latest_version() -> Result<Crate> {
         let url = "https://crates.io/api/v1/crates/wasm-pack";
 
         let mut easy = easy::Easy2::new(Collector(Vec::new()));
@@ -403,7 +401,7 @@ pub struct ManifestAndUnsedKeys {
 impl CrateData {
     /// Reads all metadata for the crate whose manifest is inside the directory
     /// specified by `path`.
-    pub fn new(crate_path: &Path, out_name: Option<String>) -> Result<CrateData, Error> {
+    pub fn new(crate_path: &Path, out_name: Option<String>) -> Result<CrateData> {
         let manifest_path = crate_path.join("Cargo.toml");
         if !manifest_path.is_file() {
             bail!(
@@ -426,9 +424,9 @@ impl CrateData {
             .iter()
             .position(|pkg| {
                 pkg.name == manifest.package.name
-                    && CrateData::is_same_path(&pkg.manifest_path, &manifest_path)
+                    && CrateData::is_same_path(pkg.manifest_path.as_std_path(), &manifest_path)
             })
-            .ok_or_else(|| format_err!("failed to find package in metadata"))?;
+            .ok_or_else(|| anyhow!("failed to find package in metadata"))?;
 
         Ok(CrateData {
             data,
@@ -454,9 +452,9 @@ impl CrateData {
     /// # Errors
     /// Will return Err if the file (manifest_path) couldn't be read or
     /// if deserialize to `CargoManifest` fails.
-    pub fn parse_crate_data(manifest_path: &Path) -> Result<ManifestAndUnsedKeys, Error> {
+    pub fn parse_crate_data(manifest_path: &Path) -> Result<ManifestAndUnsedKeys> {
         let manifest = fs::read_to_string(&manifest_path)
-            .with_context(|_| format!("failed to read: {}", manifest_path.display()))?;
+            .with_context(|| anyhow!("failed to read: {}", manifest_path.display()))?;
         let manifest = &mut toml::Deserializer::new(&manifest);
 
         let mut unused_keys = BTreeSet::new();
@@ -472,7 +470,7 @@ impl CrateData {
                 unused_keys.insert(path_string);
             }
         })
-        .with_context(|_| format!("failed to parse manifest: {}", manifest_path.display()))?;
+        .with_context(|| anyhow!("failed to parse manifest: {}", manifest_path.display()))?;
 
         Ok(ManifestAndUnsedKeys {
             manifest,
@@ -501,12 +499,12 @@ impl CrateData {
     }
 
     /// Check that the crate the given path is properly configured.
-    pub fn check_crate_config(&self) -> Result<(), Error> {
+    pub fn check_crate_config(&self) -> Result<()> {
         self.check_crate_type()?;
         Ok(())
     }
 
-    fn check_crate_type(&self) -> Result<(), Error> {
+    fn check_crate_type(&self) -> Result<()> {
         let pkg = &self.data.packages[self.current_idx];
         let any_cdylib = pkg
             .targets
@@ -573,7 +571,7 @@ impl CrateData {
         scope: &Option<String>,
         disable_dts: bool,
         target: Target,
-    ) -> Result<(), Error> {
+    ) -> Result<()> {
         let pkg_file_path = out_dir.join("package.json");
         // Check if a `package.json` was already generated by wasm-bindgen, if so
         // we merge the NPM dependencies already specified in it.
@@ -597,7 +595,7 @@ impl CrateData {
         let npm_json = serde_json::to_string_pretty(&npm_data)?;
 
         fs::write(&pkg_file_path, npm_json)
-            .with_context(|_| format!("failed to write: {}", pkg_file_path.display()))?;
+            .with_context(|| anyhow!("failed to write: {}", pkg_file_path.display()))?;
         Ok(())
     }
 

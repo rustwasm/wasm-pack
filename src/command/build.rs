@@ -1,25 +1,25 @@
 //! Implementation of the `wasm-pack build` command.
 
+use crate::bindgen;
+use crate::build;
+use crate::cache;
+use crate::command::utils::{create_pkg_dir, get_crate_path};
+use crate::emoji;
+use crate::install::{self, InstallMode, Tool};
+use crate::license;
+use crate::lockfile::Lockfile;
+use crate::manifest;
+use crate::readme;
 use crate::wasm_opt;
+use crate::PBAR;
+use anyhow::{anyhow, bail, Error, Result};
 use binary_install::Cache;
-use bindgen;
-use build;
-use cache;
-use command::utils::{create_pkg_dir, get_crate_path};
-use emoji;
-use failure::Error;
-use install::{self, InstallMode, Tool};
-use license;
-use lockfile::Lockfile;
 use log::info;
-use manifest;
-use readme;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 use structopt::clap::AppSettings;
-use PBAR;
 
 /// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]
@@ -83,7 +83,7 @@ impl fmt::Display for Target {
 
 impl FromStr for Target {
     type Err = Error;
-    fn from_str(s: &str) -> Result<Self, Error> {
+    fn from_str(s: &str) -> Result<Self> {
         match s {
             "bundler" | "browser" => Ok(Target::Bundler),
             "web" => Ok(Target::Web),
@@ -197,11 +197,11 @@ impl Default for BuildOptions {
     }
 }
 
-type BuildStep = fn(&mut Build) -> Result<(), Error>;
+type BuildStep = fn(&mut Build) -> Result<()>;
 
 impl Build {
     /// Construct a build command from the given options.
-    pub fn try_from_opts(mut build_opts: BuildOptions) -> Result<Self, Error> {
+    pub fn try_from_opts(mut build_opts: BuildOptions) -> Result<Self> {
         if let Some(path) = &build_opts.path {
             if path.to_string_lossy().starts_with("--") {
                 let path = build_opts.path.take().unwrap();
@@ -248,7 +248,7 @@ impl Build {
     }
 
     /// Execute this `Build` command.
-    pub fn run(&mut self) -> Result<(), Error> {
+    pub fn run(&mut self) -> Result<()> {
         let process_steps = Build::get_process_steps(self.mode);
 
         let started = Instant::now();
@@ -309,7 +309,7 @@ impl Build {
         steps
     }
 
-    fn step_check_rustc_version(&mut self) -> Result<(), Error> {
+    fn step_check_rustc_version(&mut self) -> Result<()> {
         info!("Checking rustc version...");
         let version = build::check_rustc_version()?;
         let msg = format!("rustc version is {}.", version);
@@ -317,21 +317,21 @@ impl Build {
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self) -> Result<(), Error> {
+    fn step_check_crate_config(&mut self) -> Result<()> {
         info!("Checking crate configuration...");
         self.crate_data.check_crate_config()?;
         info!("Crate is correctly configured.");
         Ok(())
     }
 
-    fn step_check_for_wasm_target(&mut self) -> Result<(), Error> {
+    fn step_check_for_wasm_target(&mut self) -> Result<()> {
         info!("Checking for wasm-target...");
         build::wasm_target::check_for_wasm32_target()?;
         info!("Checking for wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_wasm(&mut self) -> Result<(), Error> {
+    fn step_build_wasm(&mut self) -> Result<()> {
         info!("Building wasm...");
         build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
 
@@ -346,14 +346,14 @@ impl Build {
         Ok(())
     }
 
-    fn step_create_dir(&mut self) -> Result<(), Error> {
+    fn step_create_dir(&mut self) -> Result<()> {
         info!("Creating a pkg directory...");
         create_pkg_dir(&self.out_dir)?;
         info!("Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }
 
-    fn step_create_json(&mut self) -> Result<(), Error> {
+    fn step_create_json(&mut self) -> Result<()> {
         self.crate_data.write_package_json(
             &self.out_dir,
             &self.scope,
@@ -367,21 +367,21 @@ impl Build {
         Ok(())
     }
 
-    fn step_copy_readme(&mut self) -> Result<(), Error> {
+    fn step_copy_readme(&mut self) -> Result<()> {
         info!("Copying readme from crate...");
         readme::copy_from_crate(&self.crate_path, &self.out_dir)?;
         info!("Copied readme from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_copy_license(&mut self) -> Result<(), failure::Error> {
+    fn step_copy_license(&mut self) -> Result<()> {
         info!("Copying license from crate...");
         license::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir)?;
         info!("Copied license from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self) -> Result<(), failure::Error> {
+    fn step_install_wasm_bindgen(&mut self) -> Result<()> {
         info!("Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
@@ -397,7 +397,7 @@ impl Build {
         Ok(())
     }
 
-    fn step_run_wasm_bindgen(&mut self) -> Result<(), Error> {
+    fn step_run_wasm_bindgen(&mut self) -> Result<()> {
         info!("Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_data,
@@ -415,7 +415,7 @@ impl Build {
         Ok(())
     }
 
-    fn step_run_wasm_opt(&mut self) -> Result<(), Error> {
+    fn step_run_wasm_opt(&mut self) -> Result<()> {
         let mut args = match self
             .crate_data
             .configured_profile(self.profile)
@@ -434,7 +434,7 @@ impl Build {
             &args,
             self.mode.install_permitted(),
         ).map_err(|e| {
-            format_err!(
+            anyhow!(
                 "{}\nTo disable `wasm-opt`, add `wasm-opt = false` to your package metadata in your `Cargo.toml`.", e
             )
         })
