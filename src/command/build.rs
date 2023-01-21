@@ -383,7 +383,7 @@ impl Build {
 
     fn step_copy_readme(&mut self) -> Result<()> {
         info!("Copying readme from crate...");
-        readme::copy_from_crate(&self.crate_path, &self.out_dir)?;
+        readme::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir)?;
         info!("Copied readme from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
