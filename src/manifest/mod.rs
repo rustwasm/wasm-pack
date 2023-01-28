@@ -50,12 +50,6 @@ pub struct CargoManifest {
 #[derive(Deserialize)]
 struct CargoPackage {
     name: String,
-    description: Option<String>,
-    license: Option<String>,
-    #[serde(rename = "license-file")]
-    license_file: Option<String>,
-    repository: Option<String>,
-    homepage: Option<String>,
 
     #[serde(default)]
     metadata: CargoMetadata,
@@ -522,9 +516,13 @@ impl CrateData {
         )
     }
 
+    fn pkg(&self) -> &cargo_metadata::Package {
+        &self.data.packages[self.current_idx]
+    }
+
     /// Get the crate name for the crate at the given path.
     pub fn crate_name(&self) -> String {
-        let pkg = &self.data.packages[self.current_idx];
+        let pkg = self.pkg();
         match pkg
             .targets
             .iter()
@@ -545,12 +543,15 @@ impl CrateData {
 
     /// Get the license for the crate at the given path.
     pub fn crate_license(&self) -> &Option<String> {
-        &self.manifest.package.license
+        &self.pkg().license
     }
 
     /// Get the license file path for the crate at the given path.
-    pub fn crate_license_file(&self) -> &Option<String> {
-        &self.manifest.package.license_file
+    pub fn crate_license_file(&self) -> Option<String> {
+        self.pkg()
+            .license_file
+            .clone()
+            .map(|license_file| license_file.into_string())
     }
 
     /// Returns the path to this project's target directory where artifacts are
@@ -654,14 +655,14 @@ impl CrateData {
             dts_file,
             files,
             main: js_file,
-            homepage: self.manifest.package.homepage.clone(),
+            homepage: self.pkg().homepage.clone(),
             keywords,
         }
     }
 
     fn license(&self) -> Option<String> {
-        self.manifest.package.license.clone().or_else(|| {
-            self.manifest.package.license_file.clone().map(|file| {
+        self.crate_license().clone().or_else(|| {
+            self.crate_license_file().clone().map(|file| {
                 // When license is written in file: https://docs.npmjs.com/files/package.json#license
                 format!("SEE LICENSE IN {}", file)
             })
@@ -683,18 +684,13 @@ impl CrateData {
         NpmPackage::CommonJSPackage(CommonJSPackage {
             name: data.name,
             collaborators: pkg.authors.clone(),
-            description: self.manifest.package.description.clone(),
+            description: self.pkg().description.clone(),
             version: pkg.version.to_string(),
             license: self.license(),
-            repository: self
-                .manifest
-                .package
-                .repository
-                .clone()
-                .map(|repo_url| Repository {
-                    ty: "git".to_string(),
-                    url: repo_url,
-                }),
+            repository: self.pkg().repository.clone().map(|repo_url| Repository {
+                ty: "git".to_string(),
+                url: repo_url,
+            }),
             files: data.files,
             main: data.main,
             homepage: data.homepage,
@@ -719,18 +715,13 @@ impl CrateData {
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: data.name,
             collaborators: pkg.authors.clone(),
-            description: self.manifest.package.description.clone(),
+            description: self.pkg().description.clone(),
             version: pkg.version.to_string(),
             license: self.license(),
-            repository: self
-                .manifest
-                .package
-                .repository
-                .clone()
-                .map(|repo_url| Repository {
-                    ty: "git".to_string(),
-                    url: repo_url,
-                }),
+            repository: self.pkg().repository.clone().map(|repo_url| Repository {
+                ty: "git".to_string(),
+                url: repo_url,
+            }),
             files: data.files,
             module: data.main,
             homepage: data.homepage,
@@ -756,18 +747,13 @@ impl CrateData {
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: data.name,
             collaborators: pkg.authors.clone(),
-            description: self.manifest.package.description.clone(),
+            description: self.pkg().description.clone(),
             version: pkg.version.to_string(),
             license: self.license(),
-            repository: self
-                .manifest
-                .package
-                .repository
-                .clone()
-                .map(|repo_url| Repository {
-                    ty: "git".to_string(),
-                    url: repo_url,
-                }),
+            repository: self.pkg().repository.clone().map(|repo_url| Repository {
+                ty: "git".to_string(),
+                url: repo_url,
+            }),
             files: data.files,
             module: data.main,
             homepage: data.homepage,
@@ -793,18 +779,13 @@ impl CrateData {
         NpmPackage::NoModulesPackage(NoModulesPackage {
             name: data.name,
             collaborators: pkg.authors.clone(),
-            description: self.manifest.package.description.clone(),
+            description: self.pkg().description.clone(),
             version: pkg.version.to_string(),
             license: self.license(),
-            repository: self
-                .manifest
-                .package
-                .repository
-                .clone()
-                .map(|repo_url| Repository {
-                    ty: "git".to_string(),
-                    url: repo_url,
-                }),
+            repository: self.pkg().repository.clone().map(|repo_url| Repository {
+                ty: "git".to_string(),
+                url: repo_url,
+            }),
             files: data.files,
             browser: data.main,
             homepage: data.homepage,
@@ -816,13 +797,13 @@ impl CrateData {
 
     fn check_optional_fields(&self) {
         let mut messages = vec![];
-        if self.manifest.package.description.is_none() {
+        if self.pkg().description.is_none() {
             messages.push("description");
         }
-        if self.manifest.package.repository.is_none() {
+        if self.pkg().repository.is_none() {
             messages.push("repository");
         }
-        if self.manifest.package.license.is_none() && self.manifest.package.license_file.is_none() {
+        if self.pkg().license.is_none() && self.pkg().license_file.is_none() {
             messages.push("license");
         }
 
