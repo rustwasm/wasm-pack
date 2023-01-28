@@ -122,7 +122,7 @@ wasm-pack build examples/js-hello-world --mode no-install
 
 | Option        | Description                                                                              |
 |---------------|------------------------------------------------------------------------------------------|
-| `no-install`  | `wasm-pack init` implicitly and create wasm binding  without installing `wasm-bindgen`.  |
+| `no-install`  | `wasm-pack build` implicitly and create wasm binding without installing `wasm-bindgen`.  |
 | `normal`      | do all the stuffs of `no-install` with installed `wasm-bindgen`.                         |
 
 ## Extra options
