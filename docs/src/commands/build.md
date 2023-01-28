@@ -1,6 +1,6 @@
 # wasm-pack build
 
-The `wasm-pack build` command creates the files neccessary for JavaScript
+The `wasm-pack build` command creates the files necessary for JavaScript
 interoperability and for publishing a package to npm. This involves compiling
 your code to wasm and generating a pkg folder. This pkg folder will contain the
 wasm binary, a JS wrapper file, your `README`, and a `package.json` file.
@@ -22,7 +22,7 @@ path is given, the `build` command will run in the current directory.
 
 ## Output Directory
 
-By default, `wasm-pack` will generate a directory for it's build output called `pkg`.
+By default, `wasm-pack` will generate a directory for its build output called `pkg`.
 If you'd like to customize this you can use the `--out-dir` flag.
 
 ```
@@ -99,7 +99,7 @@ wasm-pack build --target nodejs
 
 ## Scope
 
-The init command also accepts an optional `--scope` argument. This will scope
+The `build` command also accepts an optional `--scope` argument. This will scope
 your package name, which is useful if your package name might conflict with
 something in the public registry. For example:
 
