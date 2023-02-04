@@ -38,7 +38,7 @@ jobs:
       - uses: actions/setup-node@v2
 
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-dependencies
         with:
