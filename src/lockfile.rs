@@ -65,7 +65,7 @@ impl Lockfile {
     }
 }
 
-/// Given the path to the crate that we are buliding, return a `PathBuf`
+/// Given the path to the crate that we are building, return a `PathBuf`
 /// containing the location of the lock file, by finding the workspace root.
 fn get_lockfile_path(crate_data: &CrateData) -> Result<PathBuf> {
     // Check that a lock file can be found in the directory. Return an error

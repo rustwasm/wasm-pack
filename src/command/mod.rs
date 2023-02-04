@@ -31,7 +31,7 @@ pub enum Command {
     #[structopt(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish!
     Pack {
-        /// The path to the Rust crate. If not set, searches up the path from the current dirctory.
+        /// The path to the Rust crate. If not set, searches up the path from the current directory.
         #[structopt(parse(from_os_str))]
         path: Option<PathBuf>,
     },
@@ -69,7 +69,7 @@ pub enum Command {
         #[structopt(long = "tag")]
         tag: Option<String>,
 
-        /// The path to the Rust crate. If not set, searches up the path from the current dirctory.
+        /// The path to the Rust crate. If not set, searches up the path from the current directory.
         #[structopt(parse(from_os_str))]
         path: Option<PathBuf>,
     },
