@@ -1,20 +1,20 @@
 //! Implementation of the `wasm-pack test` command.
 
+use crate::build;
+use crate::cache;
+use crate::command::utils::get_crate_path;
+use crate::install::{self, InstallMode, Tool};
+use crate::lockfile::Lockfile;
+use crate::manifest;
+use crate::test::{self, webdriver};
+use anyhow::{bail, Result};
 use binary_install::Cache;
-use build;
-use cache;
-use command::utils::get_crate_path;
 use console::style;
-use failure::Error;
-use install::{self, InstallMode, Tool};
-use lockfile::Lockfile;
 use log::info;
-use manifest;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
 use structopt::clap::AppSettings;
-use test::{self, webdriver};
 
 #[derive(Debug, Default, StructOpt)]
 #[structopt(
@@ -108,11 +108,11 @@ pub struct Test {
     extra_options: Vec<String>,
 }
 
-type TestStep = fn(&mut Test) -> Result<(), Error>;
+type TestStep = fn(&mut Test) -> Result<()>;
 
 impl Test {
     /// Construct a test command from the given options.
-    pub fn try_from_opts(test_opts: TestOptions) -> Result<Self, Error> {
+    pub fn try_from_opts(test_opts: TestOptions) -> Result<Self> {
         let TestOptions {
             node,
             mode,
@@ -181,7 +181,7 @@ impl Test {
     }
 
     /// Execute this test command.
-    pub fn run(mut self) -> Result<(), Error> {
+    pub fn run(mut self) -> Result<()> {
         let process_steps = self.get_process_steps();
 
         let started = Instant::now();
@@ -249,21 +249,21 @@ impl Test {
         }
     }
 
-    fn step_check_rustc_version(&mut self) -> Result<(), Error> {
+    fn step_check_rustc_version(&mut self) -> Result<()> {
         info!("Checking rustc version...");
         let _ = build::check_rustc_version()?;
         info!("Rustc version is correct.");
         Ok(())
     }
 
-    fn step_check_for_wasm_target(&mut self) -> Result<(), Error> {
+    fn step_check_for_wasm_target(&mut self) -> Result<()> {
         info!("Adding wasm-target...");
         build::wasm_target::check_for_wasm32_target()?;
         info!("Adding wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_tests(&mut self) -> Result<(), Error> {
+    fn step_build_tests(&mut self) -> Result<()> {
         info!("Compiling tests to wasm...");
 
         // If the user has run `wasm-pack test -- --features "f1" -- test_name`, then we want to only pass through
@@ -280,7 +280,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self) -> Result<(), Error> {
+    fn step_install_wasm_bindgen(&mut self) -> Result<()> {
         info!("Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
@@ -315,7 +315,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_node(&mut self) -> Result<(), Error> {
+    fn step_test_node(&mut self) -> Result<()> {
         assert!(self.node);
         info!("Running tests in node...");
         test::cargo_test_wasm(
@@ -334,7 +334,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_chromedriver(&mut self) -> Result<(), Error> {
+    fn step_get_chromedriver(&mut self) -> Result<()> {
         assert!(self.chrome && self.chromedriver.is_none());
 
         self.chromedriver = Some(webdriver::get_or_install_chromedriver(
@@ -344,7 +344,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_chrome(&mut self) -> Result<(), Error> {
+    fn step_test_chrome(&mut self) -> Result<()> {
         let chromedriver = self.chromedriver.as_ref().unwrap().display().to_string();
         let chromedriver = chromedriver.as_str();
         info!(
@@ -359,7 +359,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_geckodriver(&mut self) -> Result<(), Error> {
+    fn step_get_geckodriver(&mut self) -> Result<()> {
         assert!(self.firefox && self.geckodriver.is_none());
 
         self.geckodriver = Some(webdriver::get_or_install_geckodriver(
@@ -369,7 +369,7 @@ impl Test {
         Ok(())
     }
 
-    fn step_test_firefox(&mut self) -> Result<(), Error> {
+    fn step_test_firefox(&mut self) -> Result<()> {
         let geckodriver = self.geckodriver.as_ref().unwrap().display().to_string();
         let geckodriver = geckodriver.as_str();
         info!(
@@ -384,14 +384,14 @@ impl Test {
         Ok(())
     }
 
-    fn step_get_safaridriver(&mut self) -> Result<(), Error> {
+    fn step_get_safaridriver(&mut self) -> Result<()> {
         assert!(self.safari && self.safaridriver.is_none());
 
         self.safaridriver = Some(webdriver::get_safaridriver()?);
         Ok(())
     }
 
-    fn step_test_safari(&mut self) -> Result<(), Error> {
+    fn step_test_safari(&mut self) -> Result<()> {
         let safaridriver = self.safaridriver.as_ref().unwrap().display().to_string();
         let safaridriver = safaridriver.as_str();
         info!(

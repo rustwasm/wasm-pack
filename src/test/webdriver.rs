@@ -4,10 +4,10 @@ mod chromedriver;
 mod geckodriver;
 mod safaridriver;
 
+use crate::PBAR;
+use anyhow::Result;
 use binary_install::Cache;
-use failure;
 use std::path::PathBuf;
-use PBAR;
 
 pub use self::{
     chromedriver::{get_or_install_chromedriver, install_chromedriver},
@@ -22,7 +22,7 @@ fn get_and_notify(
     installation_allowed: bool,
     name: &str,
     url: &str,
-) -> Result<Option<PathBuf>, failure::Error> {
+) -> Result<Option<PathBuf>> {
     if let Some(dl) = cache.download(false, name, &[name], url)? {
         return Ok(Some(dl.binary(name)?));
     }

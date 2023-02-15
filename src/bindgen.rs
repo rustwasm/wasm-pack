@@ -1,10 +1,10 @@
 //! Functionality related to running `wasm-bindgen`.
 
-use child;
-use command::build::{BuildProfile, Target};
-use failure::{self, ResultExt};
-use install::{self, Tool};
-use manifest::CrateData;
+use crate::child;
+use crate::command::build::{BuildProfile, Target};
+use crate::install::{self, Tool};
+use crate::manifest::CrateData;
+use anyhow::{bail, Context, Result};
 use semver;
 use std::path::Path;
 use std::process::Command;
@@ -17,18 +17,32 @@ pub fn wasm_bindgen_build(
     out_dir: &Path,
     out_name: &Option<String>,
     disable_dts: bool,
+    weak_refs: bool,
+    reference_types: bool,
     target: Target,
     profile: BuildProfile,
-) -> Result<(), failure::Error> {
+    extra_options: &Vec<String>,
+) -> Result<()> {
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
         BuildProfile::Dev => "debug",
     };
 
     let out_dir = out_dir.to_str().unwrap();
+    let has_target_dir_overwrite = extra_options.contains(&"--target-dir".to_string());
+    let target_directory = if has_target_dir_overwrite {
+        let i = extra_options
+            .binary_search(&"--target-dir".to_string())
+            .unwrap();
+        extra_options
+            .get(i + 1)
+            .map(Path::new)
+            .unwrap_or(data.target_directory())
+    } else {
+        data.target_directory()
+    };
 
-    let wasm_path = data
-        .target_directory()
+    let wasm_path = target_directory
         .join("wasm32-unknown-unknown")
         .join(release_or_debug)
         .join(data.crate_name())
@@ -47,6 +61,14 @@ pub fn wasm_bindgen_build(
         .arg("--out-dir")
         .arg(out_dir)
         .arg(dts_arg);
+
+    if weak_refs {
+        cmd.arg("--weak-refs");
+    }
+
+    if reference_types {
+        cmd.arg("--reference-types");
+    }
 
     let target_arg = build_target_arg(target, &bindgen_path)?;
     if supports_dash_dash_target(&bindgen_path)? {
@@ -75,7 +97,7 @@ pub fn wasm_bindgen_build(
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied for the web target
-fn supports_web_target(cli_path: &Path) -> Result<bool, failure::Error> {
+fn supports_web_target(cli_path: &Path) -> Result<bool> {
     let cli_version = semver::Version::parse(&install::get_cli_version(
         &install::Tool::WasmBindgen,
         cli_path,
@@ -85,7 +107,7 @@ fn supports_web_target(cli_path: &Path) -> Result<bool, failure::Error> {
 }
 
 /// Check if the `wasm-bindgen` dependency is locally satisfied for the --target flag
-fn supports_dash_dash_target(cli_path: &Path) -> Result<bool, failure::Error> {
+fn supports_dash_dash_target(cli_path: &Path) -> Result<bool> {
     let cli_version = semver::Version::parse(&install::get_cli_version(
         &install::Tool::WasmBindgen,
         cli_path,
@@ -94,7 +116,7 @@ fn supports_dash_dash_target(cli_path: &Path) -> Result<bool, failure::Error> {
     Ok(cli_version >= expected_version)
 }
 
-fn build_target_arg(target: Target, cli_path: &Path) -> Result<String, failure::Error> {
+fn build_target_arg(target: Target, cli_path: &Path) -> Result<String> {
     if !supports_dash_dash_target(cli_path)? {
         Ok(build_target_arg_legacy(target, cli_path)?)
     } else {
@@ -102,7 +124,7 @@ fn build_target_arg(target: Target, cli_path: &Path) -> Result<String, failure::
     }
 }
 
-fn build_target_arg_legacy(target: Target, cli_path: &Path) -> Result<String, failure::Error> {
+fn build_target_arg_legacy(target: Target, cli_path: &Path) -> Result<String> {
     log::info!("Your version of wasm-bindgen is out of date. You should consider updating your Cargo.toml to a version >= 0.2.40.");
     let target_arg = match target {
         Target::Nodejs => "--nodejs",

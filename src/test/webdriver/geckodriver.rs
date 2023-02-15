@@ -1,11 +1,11 @@
 use super::{get_and_notify, Collector};
+use crate::install::InstallMode;
+use crate::stamps;
+use crate::target;
+use anyhow::{anyhow, bail, Context, Result};
 use binary_install::Cache;
 use chrono::DateTime;
-use failure::{self, ResultExt};
-use install::InstallMode;
-use stamps;
 use std::path::PathBuf;
-use target;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://github.com/mozilla/geckodriver/releases/latest
@@ -17,10 +17,7 @@ const GECKODRIVER_VERSION_STAMP: &str = "geckodriver_version";
 
 /// Get the path to an existing `geckodriver`, or install it if no existing
 /// binary is found or if there is a new binary version.
-pub fn get_or_install_geckodriver(
-    cache: &Cache,
-    mode: InstallMode,
-) -> Result<PathBuf, failure::Error> {
+pub fn get_or_install_geckodriver(cache: &Cache, mode: InstallMode) -> Result<PathBuf> {
     // geckodriver Windows binaries >v0.24.0 have an additional
     // runtime dependency that we cannot be sure is present on the
     // user's machine
@@ -38,10 +35,7 @@ pub fn get_or_install_geckodriver(
 }
 
 /// Download and install a pre-built `geckodriver` binary.
-pub fn install_geckodriver(
-    cache: &Cache,
-    installation_allowed: bool,
-) -> Result<PathBuf, failure::Error> {
+pub fn install_geckodriver(cache: &Cache, installation_allowed: bool) -> Result<PathBuf> {
     let (target, ext) = if target::LINUX && target::x86 {
         ("linux32", "tar.gz")
     } else if target::LINUX && target::x86_64 {
@@ -124,7 +118,7 @@ fn get_geckodriver_url(target: &str, ext: &str) -> String {
 
 // ------ `get_geckodriver_url` helpers  ------
 
-fn save_geckodriver_version(version: String) -> Result<String, failure::Error> {
+fn save_geckodriver_version(version: String) -> Result<String> {
     stamps::save_stamp_value(GECKODRIVER_VERSION_STAMP, &version)?;
 
     let current_time = chrono::offset::Local::now().to_rfc3339();
@@ -147,7 +141,7 @@ fn should_load_geckodriver_version_from_stamp(json: &serde_json::Value) -> bool 
     }
 }
 
-fn fetch_latest_geckodriver_tag_json() -> Result<String, failure::Error> {
+fn fetch_latest_geckodriver_tag_json() -> Result<String> {
     let mut headers = curl::easy::List::new();
     headers
         .append("Accept: application/json")
@@ -176,14 +170,12 @@ fn fetch_latest_geckodriver_tag_json() -> Result<String, failure::Error> {
 }
 
 /// JSON example: `{"id":15227534,"tag_name":"v0.24.0","update_url":"/mozzila...`
-fn get_version_from_json(json: impl AsRef<str>) -> Result<String, failure::Error> {
+fn get_version_from_json(json: impl AsRef<str>) -> Result<String> {
     let json: serde_json::Value = serde_json::from_str(json.as_ref())
         .context("geckodriver's latest release data is not valid JSON")?;
     json.get("tag_name")
         .and_then(|tag_name| tag_name.as_str().map(ToOwned::to_owned))
-        .ok_or_else(|| {
-            failure::err_msg("cannot get `tag_name` from geckodriver's latest release data")
-        })
+        .ok_or_else(|| anyhow!("cannot get `tag_name` from geckodriver's latest release data"))
 }
 
 fn assemble_geckodriver_url(tag: &str, target: &str, ext: &str) -> String {

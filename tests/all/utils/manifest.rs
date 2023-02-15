@@ -2,7 +2,7 @@ use std::io::prelude::*;
 use std::path::Path;
 use std::{collections::HashMap, fs::File};
 
-use failure::Error;
+use anyhow::Result;
 use serde_json;
 
 #[derive(Deserialize)]
@@ -43,7 +43,7 @@ pub struct Repository {
     pub url: String,
 }
 
-pub fn read_package_json(path: &Path, out_dir: &Path) -> Result<NpmPackage, Error> {
+pub fn read_package_json(path: &Path, out_dir: &Path) -> Result<NpmPackage> {
     let manifest_path = path.join(out_dir).join("package.json");
     let mut pkg_file = File::open(manifest_path)?;
     let mut pkg_contents = String::new();
@@ -52,7 +52,7 @@ pub fn read_package_json(path: &Path, out_dir: &Path) -> Result<NpmPackage, Erro
     Ok(serde_json::from_str(&pkg_contents)?)
 }
 
-pub fn create_wbg_package_json(out_dir: &Path, contents: &str) -> Result<(), Error> {
+pub fn create_wbg_package_json(out_dir: &Path, contents: &str) -> Result<()> {
     let manifest_path = out_dir.join("package.json");
     Ok(std::fs::write(manifest_path, contents)?)
 }

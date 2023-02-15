@@ -17,10 +17,9 @@ use self::pack::pack;
 use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
 use crate::install::InstallMode;
-use failure::Error;
+use anyhow::Result;
 use log::info;
 use std::path::PathBuf;
-use std::result;
 
 /// The various kinds of commands that `wasm-pack` can execute.
 #[derive(Debug, StructOpt)]
@@ -113,7 +112,7 @@ pub enum Command {
 }
 
 /// Run a command with the given logger!
-pub fn run_wasm_pack(command: Command) -> result::Result<(), Error> {
+pub fn run_wasm_pack(command: Command) -> Result<()> {
     // Run the correct command based off input and store the result of it so that we can clear
     // the progress bar then return it
     match command {

@@ -44,7 +44,7 @@ name = "hello-wasm"
 version = "0.1.0"
 authors = ["Ashley Williams <ashley666ashley@gmail.com>"]
 description = "babby's first wasm package"
-license = "MIT/Apache-2.0"
+license = "MIT OR Apache-2.0"
 repository = "https://github.com/ashleygwilliams/hello-wasm"
 
 [lib]
