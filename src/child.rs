@@ -1,4 +1,4 @@
-//! Utilties for managing child processes.
+//! Utilities for managing child processes.
 //!
 //! This module helps us ensure that all child processes that we spawn get
 //! properly logged and their output is logged as well.

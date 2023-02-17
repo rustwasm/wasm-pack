@@ -81,7 +81,7 @@ pub struct TestOptions {
 
     /// Path to the Rust crate, and extra options to pass to `cargo test`.
     ///
-    /// If the path is not provided, this command searches up the path from the current dirctory
+    /// If the path is not provided, this command searches up the path from the current directory.
     ///
     /// This is a workaround to allow wasm pack to provide the same command line interface as `cargo`.
     /// See <https://github.com/rustwasm/wasm-pack/pull/851> for more information.
