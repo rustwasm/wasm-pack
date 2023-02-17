@@ -21,5 +21,5 @@ your package to the npm registry you'll need an npm account.
 You can find information about signing up for npm [here][npm-signup-info].
 
 [`npm link`]: https://docs.npmjs.com/cli/link
-[npm-install-info]: https://www.npmjs.com/get-npm
+[npm-install-info]: https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
 [npm-signup-info]: https://www.npmjs.com/signup
