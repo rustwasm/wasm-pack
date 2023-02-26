@@ -21,8 +21,8 @@ pub struct NpmPackage {
     pub browser: String,
     #[serde(default = "default_none")]
     pub types: String,
-    #[serde(default = "default_false", rename = "sideEffects")]
-    pub side_effects: bool,
+    #[serde(rename = "sideEffects")]
+    pub side_effects: Option<SideEffects>,
     pub homepage: Option<String>,
     pub keywords: Option<Vec<String>>,
     pub dependencies: Option<HashMap<String, String>>,
@@ -32,8 +32,11 @@ fn default_none() -> String {
     "".to_string()
 }
 
-fn default_false() -> bool {
-    false
+#[derive(Deserialize, PartialEq, Debug)]
+#[serde(untagged)]
+pub enum SideEffects {
+    Bool(bool),
+    StringVec(Vec<String>),
 }
 
 #[derive(Deserialize)]

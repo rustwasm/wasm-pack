@@ -4,7 +4,7 @@ mod nomodules;
 pub mod repository;
 
 pub use self::commonjs::CommonJSPackage;
-pub use self::esmodules::ESModulesPackage;
+pub use self::esmodules::{ESModulesPackage, SideEffects};
 pub use self::nomodules::NoModulesPackage;
 
 #[derive(Serialize)]

@@ -3,6 +3,13 @@ use std::collections::HashMap;
 use crate::manifest::npm::repository::Repository;
 
 #[derive(Serialize)]
+#[serde(untagged)]
+pub enum SideEffects {
+    Bool(bool),
+    StringVec(Vec<String>),
+}
+
+#[derive(Serialize)]
 pub struct ESModulesPackage {
     pub name: String,
     #[serde(skip_serializing_if = "Vec::is_empty")]
@@ -22,7 +29,7 @@ pub struct ESModulesPackage {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<String>,
     #[serde(rename = "sideEffects")]
-    pub side_effects: bool,
+    pub side_effects: SideEffects,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]

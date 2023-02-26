@@ -14,6 +14,7 @@ use std::{collections::HashMap, fs};
 
 use self::npm::{
     repository::Repository, CommonJSPackage, ESModulesPackage, NoModulesPackage, NpmPackage,
+    SideEffects,
 };
 use crate::command::build::{BuildProfile, Target};
 use crate::PBAR;
@@ -723,10 +724,10 @@ impl CrateData {
                 url: repo_url,
             }),
             files: data.files,
-            module: data.main,
+            module: data.main.clone(),
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: false,
+            side_effects: SideEffects::StringVec([data.main].to_vec()),
             keywords: data.keywords,
             dependencies,
         })
@@ -758,7 +759,7 @@ impl CrateData {
             module: data.main,
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: false,
+            side_effects: SideEffects::Bool(false),
             keywords: data.keywords,
             dependencies,
         })
