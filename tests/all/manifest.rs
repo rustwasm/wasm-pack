@@ -94,12 +94,10 @@ fn it_creates_a_package_json_default_path() {
     assert_eq!(pkg.module, "js_hello_world.js");
     assert_eq!(pkg.types, "js_hello_world.d.ts");
     let actual_side_effects: HashSet<String> = pkg.side_effects.into_iter().collect();
-    let expected_side_effects: HashSet<String> = [
-        "js_hello_world.js"
-    ]
-    .iter()
-    .map(|&s| String::from(s))
-    .collect();
+    let expected_side_effects: HashSet<String> = ["js_hello_world.js"]
+        .iter()
+        .map(|&s| String::from(s))
+        .collect();
 
     assert_eq!(actual_side_effects, expected_side_effects);
 
@@ -264,12 +262,8 @@ fn it_creates_a_package_json_with_correct_files_when_out_name_is_provided() {
     assert_eq!(pkg.module, "index.js");
     assert_eq!(pkg.types, "index.d.ts");
     let actual_side_effects: HashSet<String> = pkg.side_effects.into_iter().collect();
-    let expected_side_effects: HashSet<String> = [
-        "index.js"
-    ]
-    .iter()
-    .map(|&s| String::from(s))
-    .collect();
+    let expected_side_effects: HashSet<String> =
+        ["index.js"].iter().map(|&s| String::from(s)).collect();
 
     assert_eq!(actual_side_effects, expected_side_effects);
 
