@@ -79,15 +79,10 @@
   width: 20%;
 }
 
-.curl {
-  padding: 50px;
-}
+pre.primary {
+  margin: 0 auto 2.5rem auto;
+  width: fit-content;
 
-.curl p {
-  margin-top: 50px;
-}
-
-.curl code {
   padding: 20px;
   font-size: 2rem;
   background-color: #000;
