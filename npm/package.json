@@ -1,6 +1,6 @@
 {
   "name": "wasm-pack",
-  "version": "0.10.3",
+  "version": "0.11.0",
   "description": "📦✨ your favorite rust -> wasm workflow tool!",
   "main": "binary.js",
   "scripts": {
@@ -22,7 +22,7 @@
     "npm",
     "package"
   ],
-  "author": "Ashley Williams <ashley666ashley@gmail.com>",
+  "author": "Jesper Håkansson <jesper@jesperh.se>",
   "license": "MIT OR Apache-2.0",
   "bugs": {
     "url": "https://github.com/rustwasm/wasm-pack/issues"

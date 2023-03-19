@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://github.com/mozilla/geckodriver/releases/latest
-const DEFAULT_GECKODRIVER_VERSION: &str = "v0.31.0";
+const DEFAULT_GECKODRIVER_VERSION: &str = "v0.32.2";
 const DEFAULT_WINDOWS_GECKODRIVER_VERSION: &str = "v0.24.0";
 
 const GECKODRIVER_LAST_UPDATED_STAMP: &str = "geckodriver_last_updated";
