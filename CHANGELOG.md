@@ -2,6 +2,129 @@
 
 ## 🤍 Unreleased
 
+## 🌦️ 0.11.0
+
+- ### ✨ Features
+
+  - **Make Deno target available - [egfx-notifications], [issue/672], [issue/879], [pull/1117]**
+
+    [issue/672]: https://github.com/rustwasm/wasm-pack/issues/672
+    [issue/879]: https://github.com/rustwasm/wasm-pack/issues/879
+    [pull/1117]: https://github.com/rustwasm/wasm-pack/pull/1117
+    [egfx-notifications]: https://github.com/egfx-notifications
+
+  - **Add support for more platforms to installer script - [omninonsense], [issue/1064], [issue/952], [issue/1125], [pull/1122]**
+
+    This makes the installation script work on M1 macs, as well as inside docker (especially when combined with buildx) for aarch64/arm64 architectures.
+
+    [issue/1064]: https://github.com/rustwasm/wasm-pack/issues/1064
+    [issue/952]: https://github.com/rustwasm/wasm-pack/issues/952
+    [issue/1125]: https://github.com/rustwasm/wasm-pack/issues/1125
+    [pull/1122]: https://github.com/rustwasm/wasm-pack/pull/1122
+    [omninonsense]: https://github.com/omninonsense
+
+  - **Add Linux arm64 support - [nnelgxorz], [issue/1169], [pull/1170]**
+
+    [issue/1169]: https://github.com/rustwasm/wasm-pack/issues/1169
+    [pull/1170]: https://github.com/rustwasm/wasm-pack/pull/1170
+    [nnelgxorz]: https://github.com/nnelgxorz
+
+  - **Add support for workspace inheritance - [printfn], [issue/1180], [pull/1185]**
+
+    [issue/1180]: https://github.com/rustwasm/wasm-pack/issues/1180
+    [pull/1185]: https://github.com/rustwasm/wasm-pack/pull/1185
+
+- ### 🤕 Fixes
+
+  - **--target-dir as extra option is now considered as expected - [sassman], [issue/1076], [pull/1082]**
+
+    [issue/1076]: https://github.com/rustwasm/wasm-pack/issues/1076
+    [pull/1082]: https://github.com/rustwasm/wasm-pack/pull/1082
+    [sassman]: https://github.com/sassman
+
+  - **Pass through --weak-refs --reference-types flags to bindgen - [serprex], [issue/930], [pull/937]**
+
+    [issue/930]: https://github.com/rustwasm/wasm-pack/issues/930
+    [pull/937]: https://github.com/rustwasm/wasm-pack/pull/937
+    [serprex]: https://github.com/serprex
+
+  - **Fix binaryen URL and use updated binary-install to fix installation on macOS - [matheus23], [printfn], [pull/1188]**
+
+    Use the updated binary-install crate (rustwasm/binary-install#21), switches from failure to anyhow to match what binary-install uses, and fixes wasm-opt installation on macOS.
+
+    [pull/1188]: https://github.com/rustwasm/wasm-pack/pull/1188
+    [matheus23]: https://github.com/matheus23
+    [printfn]: https://github.com/printfn
+    [rustwasm/binary-install#21]: https://github.com/rustwasm/binary-install/pull/21
+
+  - **Mark snippets and the bundler target's main file as having side effects - [Liamolucko], [issue/972], [rustwasm/wasm-bindgen/3276], [pull/1224]**
+
+    [issue/972]: https://github.com/rustwasm/wasm-pack/issues/972
+    [rustwasm/wasm-bindgen/3276]: https://github.com/rustwasm/wasm-bindgen/issues/3276
+    [pull/1224]: https://github.com/rustwasm/wasm-pack/pull/1224
+    [Liamolucko]: https://github.com/Liamolucko
+
+- ### 📖 Documentation
+
+  - **Fix typos in non-rustup-setups.md - [dallasbrittany], [issue/1141], [pull/1142]**
+
+    [issue/1141]: https://github.com/rustwasm/wasm-pack/issues/1141
+    [pull/1142]: https://github.com/rustwasm/wasm-pack/issues/1141
+    [dallasbrittany]: https://github.com/dallasbrittany
+
+  - **Fix typos in considerations.md - [lhjt], [pull/1066]**
+
+    [pull/1066]: https://github.com/rustwasm/wasm-pack/pull/1066
+    [lhjt]: https://github.com/lhjt
+
+  - **Grammar and typo fixes - [helixbass], [pull/1143]**
+
+    [pull/1143]: https://github.com/rustwasm/wasm-pack/pull/1143
+    [helixbass]: https://github.com/helixbass
+
+  - **Replace two mentions of wasm-pack init with wasm-pack build in the docs - [mstange], [pull/1086]**
+
+    [pull/1086]: https://github.com/rustwasm/wasm-pack/pull/1086
+    [mstange]: https://github.com/mstange
+
+  - **Update npm installation link - [benediktwerner], [pull/1227]**
+
+    [pull/1227]: https://github.com/rustwasm/wasm-pack/pull/1227
+    [benediktwerner]: https://github.com/benediktwerner
+
+- ### 🛠️ Maintenance
+
+  - **Bump wasm-opt to version 108 - [MichaelMauderer], [issue/1135] [pull/1136]**
+
+    [pull/1136]: https://github.com/rustwasm/wasm-pack/pull/1136
+    [issue/1135]: https://github.com/rustwasm/wasm-pack/issues/1135
+    [MichaelMauderer]: https://github.com/MichaelMauderer
+
+  - **Update binary-install to v1.0.1 - [EverlastingBugstopper], [pull/1130]**
+
+    [pull/1130]: https://github.com/rustwasm/wasm-pack/pull/1130
+
+  - **Add back run.js to npm installer - [EverlastingBugstopper], [pull/1149]**
+
+    [pull/1149]: https://github.com/rustwasm/wasm-pack/pull/1149
+
+  - **Fix some typos in the codebase - [striezel], [pull/1220]**
+
+    [pull/1220]: https://github.com/rustwasm/wasm-pack/pull/1220
+    [striezel]: https://github.com/striezel
+
+  - **Update actions/checkout in GitHub Actions workflows to v3 - [striezel], [pull/1221]**
+
+    [pull/1221]: https://github.com/rustwasm/wasm-pack/pull/1221
+
+  - **Update actions/cache in GitHub Actions workflows to v3 - [striezel], [pull/1222]**
+
+    [pull/1222]: https://github.com/rustwasm/wasm-pack/pull/1222
+
+  - **Update JamesIves/github-pages-deploy-action in GHA workflow to v4.4.1 - [striezel], [pull/1223]**
+
+    [pull/1223]: https://github.com/rustwasm/wasm-pack/pull/1223
+
 ## 🌦️ 0.10.3
 
 - ### 🤕 Fixes
