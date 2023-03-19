@@ -42,7 +42,7 @@ jobs:
           ./build-installer
 
       - name: Deploy book
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
         if: ${{ github.ref == 'refs/heads/master' }}
         with:
           branch: gh-pages
