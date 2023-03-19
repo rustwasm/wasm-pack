@@ -723,10 +723,10 @@ impl CrateData {
                 url: repo_url,
             }),
             files: data.files,
-            module: data.main,
+            module: data.main.clone(),
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: false,
+            side_effects: vec![format!("./{}", data.main), "./snippets/*".to_owned()],
             keywords: data.keywords,
             dependencies,
         })
@@ -758,7 +758,7 @@ impl CrateData {
             module: data.main,
             homepage: data.homepage,
             types: data.dts_file,
-            side_effects: false,
+            side_effects: vec!["./snippets/*".to_owned()],
             keywords: data.keywords,
             dependencies,
         })
