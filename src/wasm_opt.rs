@@ -23,7 +23,7 @@ pub fn run(cache: &Cache, out_dir: &Path, args: &[String], install_permitted: bo
         }
     };
 
-    let wasm_opt_path = wasm_opt.binary("bin/wasm-opt")?;
+    let wasm_opt_path = wasm_opt.binary("wasm-opt")?;
     PBAR.info("Optimizing wasm binaries with `wasm-opt`...");
 
     for file in out_dir.read_dir()? {
