@@ -274,39 +274,43 @@ impl Build {
         Ok(())
     }
 
-    fn get_process_steps(mode: InstallMode) -> Vec<(&'static str, BuildStep)> {
+    fn get_process_steps(mode: InstallMode) -> impl Iterator<Item = (&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {
-                let mut steps: Vec<(&'static str, BuildStep)> = Vec::new();
-                    $(steps.push((stringify!($name), Build::$name));)*
-                        steps
-                    }
-                };
+                    let steps: &'static [(_, BuildStep)] = &[
+                        $((stringify!($name), Build::$name),)*
+                    ];
+                    steps
+                }
+            };
             ($($name:ident,)*) => (steps![$($name),*])
         }
-        let mut steps = Vec::new();
-        match &mode {
-            InstallMode::Force => {}
-            _ => {
-                steps.extend(steps![
-                    step_check_rustc_version,
-                    step_check_crate_config,
-                    step_check_for_wasm_target,
-                ]);
-            }
-        }
-        steps.extend(steps![
-            step_build_wasm,
-            step_create_dir,
-            step_copy_readme,
-            step_copy_license,
-            step_install_wasm_bindgen,
-            step_run_wasm_bindgen,
-            step_run_wasm_opt,
-            step_create_json,
-        ]);
-        steps
+        [
+            match &mode {
+                InstallMode::Force => &[],
+                _ => {
+                    steps![
+                        step_check_rustc_version,
+                        step_check_crate_config,
+                        step_check_for_wasm_target,
+                    ]
+                }
+            },
+            steps![
+                step_build_wasm,
+                step_create_dir,
+                step_copy_readme,
+                step_copy_license,
+                step_install_wasm_bindgen,
+                step_run_wasm_bindgen,
+                step_run_wasm_opt,
+                step_create_json,
+            ],
+        ]
+        .into_iter()
+        .flatten()
+        .copied()
     }
 
     fn step_check_rustc_version(&mut self) -> Result<()> {
