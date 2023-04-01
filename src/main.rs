@@ -32,7 +32,7 @@ fn background_check_for_updates() -> mpsc::Receiver<Result<WasmPackVersion>> {
         if let Ok(wasm_pack_version) = wasm_pack_version {
             if !wasm_pack_version.local.is_empty()
                 && !wasm_pack_version.latest.is_empty()
-                && wasm_pack_version.local != wasm_pack_version.latest
+                && wasm_pack_version.local.as_bytes() != wasm_pack_version.latest
             {
                 let _ = sender.send(Ok(wasm_pack_version));
             }
@@ -93,7 +93,7 @@ fn run() -> Result<()> {
         match wasm_pack_version {
             Ok(wasm_pack_version) =>
                 PBAR.warn(&format!("There's a newer version of wasm-pack available, the new version is: {}, you are using: {}. \
-                To update, navigate to: https://rustwasm.github.io/wasm-pack/installer/", wasm_pack_version.latest, wasm_pack_version.local)),
+                To update, navigate to: https://rustwasm.github.io/wasm-pack/installer/", String::from_utf8_lossy(&wasm_pack_version.latest), wasm_pack_version.local)),
             Err(err) => PBAR.warn(&format!("{}", err))
         }
     }

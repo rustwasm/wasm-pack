@@ -129,138 +129,132 @@ impl easy::Handler for Collector {
     }
 }
 
-/// Struct for storing information received from crates.io
-#[derive(Deserialize, Debug)]
-pub struct Crate {
-    #[serde(rename = "crate")]
-    crt: CrateInformation,
+/// Returns latest wasm-pack version
+pub fn return_wasm_pack_latest_version() -> Result<Option<Vec<u8>>> {
+    let current_time = chrono::offset::Local::now();
+    let old_metadata_file = return_wasm_pack_file();
+
+    match old_metadata_file {
+        Some(ref file_contents) => {
+            let last_updated = return_stamp_file_value(&file_contents, b"created")
+                .and_then(|t| DateTime::parse_from_str(&String::from_utf8_lossy(t), "%+").ok());
+
+            last_updated
+                .map(|last_updated| {
+                    if current_time.signed_duration_since(last_updated).num_hours() > 24 {
+                        return_api_call_result(current_time).map(Some)
+                    } else {
+                        Ok(return_stamp_file_value(&file_contents, b"version")
+                            .map(|f| f.to_owned()))
+                    }
+                })
+                .unwrap_or_else(|| Ok(None))
+        }
+        None => return_api_call_result(current_time).map(Some),
+    }
 }
 
-#[derive(Deserialize, Debug)]
-struct CrateInformation {
-    max_version: String,
+fn return_api_call_result(current_time: DateTime<offset::Local>) -> Result<Vec<u8>> {
+    let version = return_latest_wasm_pack_version();
+
+    // We always override the stamp file with the current time because we don't
+    // want to hit the API all the time if it fails. It should follow the same
+    // "policy" as the success. This means that the 24 hours rate limiting
+    // will be active regardless if the check succeeded or failed.
+    match version {
+        Ok(ref version) => override_stamp_file(current_time, Some(&version)).ok(),
+        Err(_) => override_stamp_file(current_time, None).ok(),
+    };
+
+    version
 }
 
-impl Crate {
-    /// Returns latest wasm-pack version
-    pub fn return_wasm_pack_latest_version() -> Result<Option<String>> {
-        let current_time = chrono::offset::Local::now();
-        let old_metadata_file = Self::return_wasm_pack_file();
+fn override_stamp_file(
+    current_time: DateTime<offset::Local>,
+    version: Option<&[u8]>,
+) -> Result<()> {
+    let path = env::current_exe()?;
 
-        match old_metadata_file {
-            Some(ref file_contents) => {
-                let last_updated = Self::return_stamp_file_value(&file_contents, "created")
-                    .and_then(|t| DateTime::parse_from_str(t.as_str(), "%+").ok());
+    let mut file = fs::OpenOptions::new()
+        .read(true)
+        .write(true)
+        .append(true)
+        .create(true)
+        .open(path.with_extension("stamp"))?;
 
-                last_updated
-                    .map(|last_updated| {
-                        if current_time.signed_duration_since(last_updated).num_hours() > 24 {
-                            Self::return_api_call_result(current_time).map(Some)
-                        } else {
-                            Ok(Self::return_stamp_file_value(&file_contents, "version"))
-                        }
-                    })
-                    .unwrap_or_else(|| Ok(None))
-            }
-            None => Self::return_api_call_result(current_time).map(Some),
+    file.set_len(0)?;
+
+    write!(file, "created {:?}", current_time)?;
+
+    if let Some(version) = version {
+        write!(file, "\nversion ")?;
+        file.write(version)?;
+    }
+
+    Ok(())
+}
+
+/// Return stamp file where metadata is stored.
+fn return_wasm_pack_file() -> Option<Vec<u8>> {
+    if let Ok(path) = env::current_exe() {
+        if let Ok(file) = fs::read(path.with_extension("stamp")) {
+            return Some(file);
         }
     }
+    None
+}
 
-    fn return_api_call_result(current_time: DateTime<offset::Local>) -> Result<String> {
-        let version = Self::return_latest_wasm_pack_version();
+/// Returns wasm-pack latest version (if it's received) by executing check_wasm_pack_latest_version function.
+fn return_latest_wasm_pack_version() -> Result<Vec<u8>> {
+    check_wasm_pack_latest_version()
+}
 
-        // We always override the stamp file with the current time because we don't
-        // want to hit the API all the time if it fails. It should follow the same
-        // "policy" as the success. This means that the 24 hours rate limiting
-        // will be active regardless if the check succeeded or failed.
-        match version {
-            Ok(ref version) => Self::override_stamp_file(current_time, Some(&version)).ok(),
-            Err(_) => Self::override_stamp_file(current_time, None).ok(),
-        };
+/// Read the stamp file and return value assigned to a certain key.
+fn return_stamp_file_value<'a>(file: &'a [u8], word: &[u8]) -> Option<&'a [u8]> {
+    file.split(|&byte| byte == b'\n')
+        .find_map(|line| line.strip_prefix(word))
+        .and_then(|l| l.get(1..))
+}
 
-        version
+/// Call to the crates.io api and return the latest version of `wasm-pack`
+fn check_wasm_pack_latest_version() -> Result<Vec<u8>> {
+    let url = "https://crates.io/api/v1/crates/wasm-pack";
+
+    let mut easy = easy::Easy2::new(Collector(Vec::with_capacity(32768)));
+
+    easy.useragent(&format!(
+        "wasm-pack/{} ({})",
+        WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),
+        WASM_PACK_REPO_URL
+    ))?;
+
+    easy.url(url)?;
+    easy.get(true)?;
+    easy.perform()?;
+
+    let status_code = easy.response_code()?;
+
+    if 200 <= status_code && status_code < 300 {
+        let contents = easy.get_ref();
+        let version_bytes = get_max_version(&contents.0)
+            .context("max_version field not found when checking for newer wasm-pack version")?;
+
+        Ok(version_bytes.to_owned())
+    } else {
+        bail!(
+            "Received a bad HTTP status code ({}) when checking for newer wasm-pack version at: {}",
+            status_code,
+            url
+        )
     }
+}
 
-    fn override_stamp_file(
-        current_time: DateTime<offset::Local>,
-        version: Option<&str>,
-    ) -> Result<()> {
-        let path = env::current_exe()?;
-
-        let mut file = fs::OpenOptions::new()
-            .read(true)
-            .write(true)
-            .append(true)
-            .create(true)
-            .open(path.with_extension("stamp"))?;
-
-        file.set_len(0)?;
-
-        write!(file, "created {:?}", current_time)?;
-
-        if let Some(version) = version {
-            write!(file, "\nversion {}", version)?;
-        }
-
-        Ok(())
-    }
-
-    /// Return stamp file where metadata is stored.
-    fn return_wasm_pack_file() -> Option<String> {
-        if let Ok(path) = env::current_exe() {
-            if let Ok(file) = fs::read_to_string(path.with_extension("stamp")) {
-                return Some(file);
-            }
-        }
-        None
-    }
-
-    /// Returns wasm-pack latest version (if it's received) by executing check_wasm_pack_latest_version function.
-    fn return_latest_wasm_pack_version() -> Result<String> {
-        Self::check_wasm_pack_latest_version().map(|crt| crt.crt.max_version)
-    }
-
-    /// Read the stamp file and return value assigned to a certain key.
-    fn return_stamp_file_value(file: &str, word: &str) -> Option<String> {
-        let created = file
-            .lines()
-            .find(|line| line.starts_with(word))
-            .and_then(|l| l.split_whitespace().nth(1));
-
-        created.map(|s| s.to_string())
-    }
-
-    /// Call to the crates.io api and return the latest version of `wasm-pack`
-    fn check_wasm_pack_latest_version() -> Result<Crate> {
-        let url = "https://crates.io/api/v1/crates/wasm-pack";
-
-        let mut easy = easy::Easy2::new(Collector(Vec::with_capacity(32768)));
-
-        easy.useragent(&format!(
-            "wasm-pack/{} ({})",
-            WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),
-            WASM_PACK_REPO_URL
-        ))?;
-
-        easy.url(url)?;
-        easy.get(true)?;
-        easy.perform()?;
-
-        let status_code = easy.response_code()?;
-
-        if 200 <= status_code && status_code < 300 {
-            let contents = easy.get_ref();
-            let result = String::from_utf8_lossy(&contents.0);
-
-            Ok(serde_json::from_str(result.into_owned().as_str())?)
-        } else {
-            bail!(
-                "Received a bad HTTP status code ({}) when checking for newer wasm-pack version at: {}",
-                status_code,
-                url
-            )
-        }
-    }
+/// Returns the `max_version` field of given JSON from crates.io API
+pub fn get_max_version(crate_info: &[u8]) -> Option<&[u8]> {
+    crate_info
+        .split(|&byte| byte == b',')
+        .find_map(|slice| slice.strip_prefix(b"\"max_version\":\""))
+        .and_then(|slice| slice.split(|&byte| byte == b'"').next())
 }
 
 #[derive(Clone, Deserialize)]

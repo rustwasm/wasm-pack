@@ -3,7 +3,7 @@
 use crate::child;
 use crate::command::build::BuildProfile;
 use crate::emoji;
-use crate::manifest::Crate;
+use crate::manifest;
 use crate::PBAR;
 use anyhow::{bail, Context, Result};
 use std::path::Path;
@@ -19,7 +19,7 @@ pub struct WasmPackVersion {
     pub local: &'static str,
     /// The latest version of wasm-pack that's released at
     /// crates.io.
-    pub latest: String,
+    pub latest: Vec<u8>,
 }
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
@@ -62,7 +62,7 @@ fn rustc_minor_version() -> Option<u32> {
 /// Checks and returns local and latest versions of wasm-pack
 pub fn check_wasm_pack_versions() -> Result<WasmPackVersion> {
     match wasm_pack_local_version() {
-        Some(local) => Ok(WasmPackVersion {local, latest: Crate::return_wasm_pack_latest_version()?.unwrap_or_else(|| "".to_string())}),
+        Some(local) => Ok(WasmPackVersion {local, latest: manifest::return_wasm_pack_latest_version()?.unwrap_or_else(|| Vec::new())}),
         None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")
     }
 }
