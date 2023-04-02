@@ -6,6 +6,7 @@ use crate::emoji;
 use crate::manifest;
 use crate::PBAR;
 use anyhow::{bail, Context, Result};
+use std::ffi::OsString;
 use std::path::Path;
 use std::process::Command;
 use std::str;
@@ -76,7 +77,7 @@ fn wasm_pack_local_version() -> Option<&'static str> {
 pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
-    extra_options: &[String],
+    extra_options: &[OsString],
 ) -> Result<()> {
     let msg = format!("{}Compiling to Wasm...", emoji::CYCLONE);
     PBAR.info(&msg);

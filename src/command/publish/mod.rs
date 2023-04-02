@@ -6,19 +6,19 @@ use crate::command::build::{Build, BuildOptions, Target};
 use crate::command::utils::{find_pkg_directory, get_crate_path};
 use crate::npm;
 use crate::PBAR;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, bail, Error, Result};
 use dialoguer::{Confirm, Input, Select};
 use log::info;
+use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
-use std::str::FromStr;
 
 /// Creates a tarball from a 'pkg' directory
 /// and publishes it to the NPM registry
 pub fn publish(
-    _target: &str,
+    _target: &OsStr,
     path: Option<PathBuf>,
     access: Option<Access>,
-    tag: Option<String>,
+    tag: Option<OsString>,
 ) -> Result<()> {
     let crate_path = get_crate_path(path)?;
 
@@ -39,14 +39,15 @@ pub fn publish(
                     .default(".".to_string())
                     .show_default(false)
                     .interact()?;
-                let out_dir = format!("{}/pkg", out_dir);
+                let out_dir = OsString::from(format!("{}/pkg", out_dir));
                 let target = Select::new()
                     .with_prompt("target[default: bundler]")
                     .items(&["bundler", "nodejs", "web", "no-modules"])
                     .default(0)
                     .interact()?
                     .to_string();
-                let target = Target::from_str(&target)?;
+                let target = Target::parse(OsStr::new(&target))
+                    .map_err(|err| Error::msg(err.to_string_lossy().into_owned()))?;
                 let build_opts = BuildOptions {
                     path: Some(crate_path.clone()),
                     target,

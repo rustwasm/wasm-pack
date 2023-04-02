@@ -71,7 +71,7 @@ pub struct TestOptions {
     /// UI or windows.
     pub headless: bool,
 
-    #[structopt(long = "mode", short = "m", default_value = "normal")]
+    #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = InstallMode::parse))]
     /// Sets steps to be run. [possible values: no-install, normal]
     pub mode: InstallMode,
 

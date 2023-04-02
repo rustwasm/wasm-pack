@@ -6,6 +6,7 @@ use crate::install::{self, Tool};
 use crate::manifest::CrateData;
 use anyhow::{bail, Context, Result};
 use semver;
+use std::ffi::{OsStr, OsString};
 use std::path::Path;
 use std::process::Command;
 
@@ -21,7 +22,7 @@ pub fn wasm_bindgen_build(
     reference_types: bool,
     target: Target,
     profile: BuildProfile,
-    extra_options: &Vec<String>,
+    extra_options: &Vec<OsString>,
 ) -> Result<()> {
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",
@@ -29,10 +30,10 @@ pub fn wasm_bindgen_build(
     };
 
     let out_dir = out_dir.to_str().unwrap();
-    let has_target_dir_overwrite = extra_options.contains(&"--target-dir".to_string());
+    let has_target_dir_overwrite = extra_options.iter().any(|i| i == "--target-dir");
     let target_directory = if has_target_dir_overwrite {
         let i = extra_options
-            .binary_search(&"--target-dir".to_string())
+            .binary_search_by(|i| i.as_os_str().cmp(OsStr::new("--target-dir")))
             .unwrap();
         extra_options
             .get(i + 1)

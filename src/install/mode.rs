@@ -1,5 +1,4 @@
-use anyhow::{bail, Error, Result};
-use std::str::FromStr;
+use std::ffi::{OsStr, OsString};
 
 /// The `InstallMode` determines which mode of initialization we are running, and
 /// what install steps we perform.
@@ -20,19 +19,22 @@ impl Default for InstallMode {
     }
 }
 
-impl FromStr for InstallMode {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        match s {
-            "no-install" => Ok(InstallMode::Noinstall),
-            "normal" => Ok(InstallMode::Normal),
-            "force" => Ok(InstallMode::Force),
-            _ => bail!("Unknown build mode: {}", s),
+impl InstallMode {
+    /// Converts from `OsStr`
+    pub fn parse(s: &OsStr) -> Result<Self, OsString> {
+        if s == "no-install" {
+            Ok(InstallMode::Noinstall)
+        } else if s == "normal" {
+            Ok(InstallMode::Normal)
+        } else if s == "force" {
+            Ok(InstallMode::Force)
+        } else {
+            let mut err = OsString::from("Unknown build mode: ");
+            err.push(s);
+            Err(err)
         }
     }
-}
 
-impl InstallMode {
     /// Determines if installation is permitted during a function call based on --mode flag
     pub fn install_permitted(self) -> bool {
         match self {

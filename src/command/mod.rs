@@ -19,6 +19,7 @@ use self::test::{Test, TestOptions};
 use crate::install::InstallMode;
 use anyhow::Result;
 use log::info;
+use std::ffi::OsString;
 use std::path::PathBuf;
 
 /// The various kinds of commands that `wasm-pack` can execute.
@@ -40,15 +41,17 @@ pub enum Command {
     /// 🐑 create a new project with a template
     Generate {
         /// The name of the project
-        name: String,
+        #[structopt(parse(from_os_str))]
+        name: OsString,
         /// The URL to the template
         #[structopt(
             long = "template",
             short = "temp",
-            default_value = "https://github.com/rustwasm/wasm-pack-template"
+            default_value = "https://github.com/rustwasm/wasm-pack-template",
+            parse(from_os_str)
         )]
-        template: String,
-        #[structopt(long = "mode", short = "m", default_value = "normal")]
+        template: OsString,
+        #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = InstallMode::parse))]
         /// Should we install or check the presence of binary tools. [possible values: no-install, normal, force]
         mode: InstallMode,
     },
@@ -56,9 +59,14 @@ pub enum Command {
     #[structopt(name = "publish")]
     /// 🎆  pack up your npm package and publish!
     Publish {
-        #[structopt(long = "target", short = "t", default_value = "bundler")]
+        #[structopt(
+            long = "target",
+            short = "t",
+            default_value = "bundler",
+            parse(from_os_str)
+        )]
         /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
-        target: String,
+        target: OsString,
 
         /// The access level for the package to be published
         #[structopt(long = "access", short = "a")]
@@ -67,7 +75,7 @@ pub enum Command {
         /// The distribution tag being used for publishing.
         /// See https://docs.npmjs.com/cli/dist-tag
         #[structopt(long = "tag")]
-        tag: Option<String>,
+        tag: Option<OsString>,
 
         /// The path to the Rust crate. If not set, searches up the path from the current directory.
         #[structopt(parse(from_os_str))]
@@ -83,13 +91,13 @@ pub enum Command {
         /// specified, this registry will only be used for packages with that
         /// scope. scope defaults to the scope of the project directory you're
         /// currently in, if any.
-        registry: Option<String>,
+        registry: Option<OsString>,
 
         #[structopt(long = "scope", short = "s")]
         /// Default: none.
         /// If specified, the user and login credentials given will be
         /// associated with the specified scope.
-        scope: Option<String>,
+        scope: Option<OsString>,
 
         #[structopt(long = "always-auth", short = "a")]
         /// If specified, save configuration indicating that all requests to the
@@ -103,7 +111,7 @@ pub enum Command {
         /// What authentication strategy to use with adduser/login. Some npm
         /// registries (for example, npmE) might support alternative auth
         /// strategies besides classic username/password entry in legacy npm.
-        auth_type: Option<String>,
+        auth_type: Option<OsString>,
     },
 
     #[structopt(name = "test")]
