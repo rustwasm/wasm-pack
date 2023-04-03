@@ -604,7 +604,8 @@ impl CrateData {
         let name_prefix = self.name_prefix();
         let wasm_file = format!("{}_bg.wasm", name_prefix);
         let js_file = format!("{}.js", name_prefix);
-        let mut files = vec![wasm_file];
+        let mut files = Vec::with_capacity(6);
+        files.push(wasm_file);
 
         files.push(js_file.clone());
         if add_js_bg_to_package_json {
@@ -639,9 +640,7 @@ impl CrateData {
                 .filter_map(|e| e.file_name().into_string().ok())
                 .filter(|f| f.starts_with("LICENSE"))
                 .filter(|f| f != "LICENSE");
-            for file_name in file_names {
-                files.push(file_name);
-            }
+            files.extend(file_names);
         }
 
         NpmData {
@@ -790,7 +789,7 @@ impl CrateData {
     }
 
     fn check_optional_fields(&self) {
-        let mut messages = vec![];
+        let mut messages = Vec::with_capacity(3);
         if self.pkg().description.is_none() {
             messages.push("description");
         }
