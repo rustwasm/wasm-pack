@@ -7,7 +7,7 @@
     "postinstall": "node ./install.js"
   },
   "bin": {
-    "wasm-pack": "node ./run.js"
+    "wasm-pack": "./run.js"
   },
   "repository": {
     "type": "git",
