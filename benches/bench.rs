@@ -1,4 +1,5 @@
 #[path = "../tests/all/utils/fixture.rs"]
+#[allow(unused)]
 mod fixture;
 
 use criterion::{criterion_group, criterion_main, Criterion};
