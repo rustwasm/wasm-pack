@@ -306,7 +306,9 @@ impl CargoWasmPackProfile {
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
             },
-            wasm_opt: Some(CargoWasmPackProfileWasmOpt::Enabled(true)),
+            wasm_opt: Some(CargoWasmPackProfileWasmOpt::ExplicitArgs(vec![
+                "--debuginfo".to_string(),
+            ])),
         }
     }
 
