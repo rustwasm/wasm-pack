@@ -23,7 +23,7 @@ pub fn run(cache: &Cache, out_dir: &Path, args: &[String], install_permitted: bo
         }
     };
 
-    let wasm_opt_path = wasm_opt.binary("bin/wasm-opt")?;
+    let wasm_opt_path = wasm_opt.path();
     PBAR.info("Optimizing wasm binaries with `wasm-opt`...");
 
     for file in out_dir.read_dir()? {
@@ -46,7 +46,9 @@ pub fn run(cache: &Cache, out_dir: &Path, args: &[String], install_permitted: bo
 /// Attempts to find `wasm-opt` in `PATH` locally, or failing that downloads a
 /// precompiled binary.
 ///
-/// Returns `Some` if a binary was found or it was successfully downloaded.
+/// Returns `Some(path)` if a binary was found or it was successfully
+/// downloaded, where `path` is the path to the binary itself.
+///
 /// Returns `None` if a binary wasn't found in `PATH` and this platform doesn't
 /// have precompiled binaries. Returns an error if we failed to download the
 /// binary.
@@ -54,17 +56,16 @@ pub fn find_wasm_opt(cache: &Cache, install_permitted: bool) -> Result<install::
     // First attempt to look up in PATH. If found assume it works.
     if let Ok(path) = which::which("wasm-opt") {
         PBAR.info(&format!("found wasm-opt at {:?}", path));
-
-        match path.as_path().parent() {
-            Some(path) => return Ok(install::Status::Found(Download::at(path))),
-            None => {}
-        }
+        return Ok(install::Status::Found(Download::at(&path)));
     }
 
-    Ok(install::download_prebuilt(
-        &install::Tool::WasmOpt,
-        cache,
-        "latest",
-        install_permitted,
-    )?)
+    let download_result =
+        install::download_prebuilt(&install::Tool::WasmOpt, cache, "latest", install_permitted)?;
+
+    Ok(match download_result {
+        install::Status::Found(download) => {
+            install::Status::Found(Download::at(&download.binary("bin/wasm-opt")?))
+        }
+        other => other,
+    })
 }
