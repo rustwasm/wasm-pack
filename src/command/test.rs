@@ -129,7 +129,7 @@ impl Test {
 
         let first_arg_is_path = path_and_extra_options
             .get(0)
-            .map(|first_arg| !first_arg.starts_with("-"))
+            .map(|first_arg| !first_arg.starts_with('-'))
             .unwrap_or(false);
 
         let (path, extra_options) = if first_arg_is_path {

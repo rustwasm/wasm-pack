@@ -47,7 +47,7 @@ pub fn npm_login(
     cmd.arg("login").arg(build_arg("--registry=", registry));
 
     if let Some(scope) = scope {
-        cmd.arg(build_arg("--scope=", &scope));
+        cmd.arg(build_arg("--scope=", scope));
     }
 
     if always_auth {
@@ -55,7 +55,7 @@ pub fn npm_login(
     }
 
     if let Some(auth_type) = auth_type {
-        cmd.arg(build_arg("--auth_type=", &auth_type));
+        cmd.arg(build_arg("--auth_type=", auth_type));
     }
 
     info!("Running {:?}", cmd);

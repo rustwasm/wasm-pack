@@ -188,7 +188,7 @@ fn override_stamp_file(
 
     if let Some(version) = version {
         write!(file, "\nversion ")?;
-        file.write(version)?;
+        file.write_all(version)?;
     }
 
     Ok(())
@@ -522,8 +522,8 @@ impl CrateData {
             .iter()
             .find(|t| t.kind.iter().any(|k| k == "cdylib"))
         {
-            Some(lib) => lib.name.replace("-", "_"),
-            None => pkg.name.replace("-", "_"),
+            Some(lib) => lib.name.replace('-', "_"),
+            None => pkg.name.replace('-', "_"),
         }
     }
 

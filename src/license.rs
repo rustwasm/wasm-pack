@@ -8,7 +8,7 @@ use crate::manifest::CrateData;
 use crate::PBAR;
 use glob::glob;
 
-fn glob_license_files<'a>(path: &'a Path) -> Result<impl Iterator<Item = Result<String>> + 'a> {
+fn glob_license_files(path: &Path) -> Result<impl Iterator<Item = Result<String>> + '_> {
     let joined_path = path.join("LICENSE*");
     let path_string = match joined_path.to_str() {
         Some(path_string) => path_string,
