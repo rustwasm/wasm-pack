@@ -5,7 +5,7 @@ use crate::command::build::BuildProfile;
 use crate::emoji;
 use crate::manifest;
 use crate::PBAR;
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use std::ffi::OsString;
 use std::path::Path;
 use std::process::Command;
@@ -25,39 +25,29 @@ pub struct WasmPackVersion {
 
 /// Ensure that `rustc` is present and that it is >= 1.30.0
 pub fn check_rustc_version() -> Result<String> {
-    let local_minor_version = rustc_minor_version();
-    match local_minor_version {
-        Some(mv) => {
-            if mv < 30 {
-                bail!(
-                    "Your version of Rust, '1.{}', is not supported. Please install Rust version 1.30.0 or higher.",
-                    mv.to_string()
-                )
-            } else {
-                Ok(mv.to_string())
-            }
-        }
-        None => bail!("We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher."),
-    }
+    try_check_rustc_version().unwrap_or_else(|| bail!("We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher."))
 }
 
 // from https://github.com/alexcrichton/proc-macro2/blob/79e40a113b51836f33214c6d00228934b41bd4ad/build.rs#L44-L61
-fn rustc_minor_version() -> Option<u32> {
-    macro_rules! otry {
-        ($e:expr) => {
-            match $e {
-                Some(e) => e,
-                None => return None,
-            }
-        };
-    }
-    let output = otry!(Command::new("rustc").arg("--version").output().ok());
-    let version = otry!(str::from_utf8(&output.stdout).ok());
-    let mut pieces = version.split('.');
-    if pieces.next() != Some("rustc 1") {
-        return None;
-    }
-    otry!(pieces.next()).parse().ok()
+fn try_check_rustc_version() -> Option<Result<String>> {
+    let output = Command::new("rustc").arg("--version").output().ok()?.stdout;
+    let minor = str::from_utf8(
+        output
+            .strip_prefix(b"rustc 1.")?
+            .split(|&b| b == b'.')
+            .next()?,
+    )
+    .ok()?;
+    let supported = match minor.len() {
+        2 => minor >= "30",
+        1 => false,
+        _ => true,
+    };
+    Some(if supported {
+        Ok(minor.to_owned())
+    } else {
+        Err(anyhow!("Your version of Rust, '1.{}', is not supported. Please install Rust version 1.30.0 or higher.", minor))
+    })
 }
 
 /// Checks and returns local and latest versions of wasm-pack
