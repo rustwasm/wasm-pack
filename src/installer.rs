@@ -23,8 +23,6 @@ use std::path::Path;
 use std::process;
 
 use anyhow::{anyhow, bail, Context, Result};
-use atty;
-use which;
 
 pub fn install() -> ! {
     if let Err(e) = do_install() {
@@ -73,7 +71,7 @@ fn do_install() -> Result<()> {
 
     // Our relatively simple install step!
     let me = env::current_exe()?;
-    fs::copy(&me, &destination)
+    fs::copy(me, &destination)
         .with_context(|| anyhow!("failed to copy executable to `{}`", destination.display()))?;
     println!(
         "info: successfully installed wasm-pack to `{}`",

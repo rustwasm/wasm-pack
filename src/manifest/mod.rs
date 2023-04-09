@@ -136,7 +136,7 @@ pub fn return_wasm_pack_latest_version() -> Result<Option<Vec<u8>>> {
 
     match old_metadata_file {
         Some(ref file_contents) => {
-            let last_updated = return_stamp_file_value(&file_contents, b"created")
+            let last_updated = return_stamp_file_value(file_contents, b"created")
                 .and_then(|t| DateTime::parse_from_str(&String::from_utf8_lossy(t), "%+").ok());
 
             last_updated
@@ -144,8 +144,10 @@ pub fn return_wasm_pack_latest_version() -> Result<Option<Vec<u8>>> {
                     if current_time.signed_duration_since(last_updated).num_hours() > 24 {
                         return_api_call_result(current_time).map(Some)
                     } else {
-                        Ok(return_stamp_file_value(&file_contents, b"version")
-                            .map(|f| f.to_owned()))
+                        Ok(
+                            return_stamp_file_value(file_contents, b"version")
+                                .map(|f| f.to_owned()),
+                        )
                     }
                 })
                 .unwrap_or_else(|| Ok(None))
@@ -162,7 +164,7 @@ fn return_api_call_result(current_time: DateTime<offset::Local>) -> Result<Vec<u
     // "policy" as the success. This means that the 24 hours rate limiting
     // will be active regardless if the check succeeded or failed.
     match version {
-        Ok(ref version) => override_stamp_file(current_time, Some(&version)).ok(),
+        Ok(ref version) => override_stamp_file(current_time, Some(version)).ok(),
         Err(_) => override_stamp_file(current_time, None).ok(),
     };
 
@@ -224,7 +226,7 @@ fn check_wasm_pack_latest_version() -> Result<Vec<u8>> {
 
     easy.useragent(&format!(
         "wasm-pack/{} ({})",
-        WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),
+        WASM_PACK_VERSION.unwrap_or("unknown"),
         WASM_PACK_REPO_URL
     ))?;
 
@@ -234,7 +236,7 @@ fn check_wasm_pack_latest_version() -> Result<Vec<u8>> {
 
     let status_code = easy.response_code()?;
 
-    if 200 <= status_code && status_code < 300 {
+    if (200..300).contains(&status_code) {
         let contents = easy.get_ref();
         let version_bytes = get_max_version(&contents.0)
             .context("max_version field not found when checking for newer wasm-pack version")?;
@@ -425,8 +427,8 @@ impl CrateData {
     }
 
     fn is_same_path(path1: &Path, path2: &Path) -> bool {
-        if let Ok(path1) = fs::canonicalize(&path1) {
-            if let Ok(path2) = fs::canonicalize(&path2) {
+        if let Ok(path1) = fs::canonicalize(path1) {
+            if let Ok(path2) = fs::canonicalize(path2) {
                 return path1 == path2;
             }
         }
@@ -441,7 +443,7 @@ impl CrateData {
     /// Will return Err if the file (manifest_path) couldn't be read or
     /// if deserialize to `CargoManifest` fails.
     pub fn parse_crate_data(manifest_path: &Path) -> Result<ManifestAndUnsedKeys> {
-        let manifest = fs::read_to_string(&manifest_path)
+        let manifest = fs::read_to_string(manifest_path)
             .with_context(|| anyhow!("failed to read: {}", manifest_path.display()))?;
         let manifest = &mut toml::Deserializer::new(&manifest);
 
@@ -627,7 +629,7 @@ impl CrateData {
             None
         };
 
-        let keywords = if pkg.keywords.len() > 0 {
+        let keywords = if !pkg.keywords.is_empty() {
             Some(pkg.keywords.clone())
         } else {
             None
@@ -655,7 +657,7 @@ impl CrateData {
 
     fn license(&self) -> Option<String> {
         self.crate_license().clone().or_else(|| {
-            self.crate_license_file().clone().map(|file| {
+            self.crate_license_file().map(|file| {
                 // When license is written in file: https://docs.npmjs.com/files/package.json#license
                 format!("SEE LICENSE IN {}", file)
             })
@@ -674,7 +676,7 @@ impl CrateData {
 
         self.check_optional_fields();
 
-        NpmPackage::CommonJSPackage(CommonJSPackage {
+        NpmPackage::CommonJS(CommonJSPackage {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.pkg().description.clone(),
@@ -705,7 +707,7 @@ impl CrateData {
 
         self.check_optional_fields();
 
-        NpmPackage::ESModulesPackage(ESModulesPackage {
+        NpmPackage::ESModules(ESModulesPackage {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.pkg().description.clone(),
@@ -737,7 +739,7 @@ impl CrateData {
 
         self.check_optional_fields();
 
-        NpmPackage::ESModulesPackage(ESModulesPackage {
+        NpmPackage::ESModules(ESModulesPackage {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.pkg().description.clone(),
@@ -769,7 +771,7 @@ impl CrateData {
 
         self.check_optional_fields();
 
-        NpmPackage::NoModulesPackage(NoModulesPackage {
+        NpmPackage::NoModules(NoModulesPackage {
             name: data.name,
             collaborators: pkg.authors.clone(),
             description: self.pkg().description.clone(),

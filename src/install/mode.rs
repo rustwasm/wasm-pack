@@ -2,21 +2,16 @@ use std::ffi::{OsStr, OsString};
 
 /// The `InstallMode` determines which mode of initialization we are running, and
 /// what install steps we perform.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum InstallMode {
     /// Perform all the install steps.
+    #[default]
     Normal,
     /// Don't install tools like `wasm-bindgen`, just use the global
     /// environment's existing versions to do builds.
     Noinstall,
     /// Skip the rustc version check
     Force,
-}
-
-impl Default for InstallMode {
-    fn default() -> InstallMode {
-        InstallMode::Normal
-    }
 }
 
 impl InstallMode {

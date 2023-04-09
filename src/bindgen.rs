@@ -22,7 +22,7 @@ pub fn wasm_bindgen_build(
     reference_types: bool,
     target: Target,
     profile: BuildProfile,
-    extra_options: &Vec<OsString>,
+    extra_options: &[OsString],
 ) -> Result<()> {
     let release_or_debug = match profile {
         BuildProfile::Release | BuildProfile::Profiling => "release",

@@ -67,7 +67,7 @@ pub fn check_for_wasm32_target() -> Result<()> {
 /// Get rustc's sysroot as a PathBuf
 fn get_rustc_sysroot() -> Result<PathBuf> {
     let command = Command::new("rustc")
-        .args(&["--print", "sysroot"])
+        .args(["--print", "sysroot"])
         .output()?;
 
     if command.status.success() {

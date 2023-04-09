@@ -42,10 +42,11 @@ pub struct Build {
 
 /// What sort of output we're going to be generating and flags we're invoking
 /// `wasm-bindgen` with.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Copy, Debug, Default)]
 pub enum Target {
     /// Default output mode or `--target bundler`, indicates output will be
     /// used with a bundle in a later step.
+    #[default]
     Bundler,
     /// Correspond to `--target web` where the output is natively usable as an
     /// ES module in a browser and the wasm is manually instantiated.
@@ -60,12 +61,6 @@ pub enum Target {
     /// Correspond to `--target deno` where the output is natively usable as
     /// a Deno module loaded with `import`.
     Deno,
-}
-
-impl Default for Target {
-    fn default() -> Target {
-        Target::Bundler
-    }
 }
 
 impl fmt::Display for Target {

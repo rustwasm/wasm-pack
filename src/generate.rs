@@ -12,10 +12,10 @@ use std::process::Command;
 pub fn generate(template: &OsStr, name: &OsStr, install_status: &install::Status) -> Result<()> {
     let bin_path = install::get_tool_path(install_status, Tool::CargoGenerate)?
         .binary(&Tool::CargoGenerate.to_string())?;
-    let mut cmd = Command::new(&bin_path);
+    let mut cmd = Command::new(bin_path);
     cmd.arg("generate");
-    cmd.arg("--git").arg(&template);
-    cmd.arg("--name").arg(&name);
+    cmd.arg("--git").arg(template);
+    cmd.arg("--name").arg(name);
 
     println!(
         "{} Generating a new rustwasm project with name '{}'...",

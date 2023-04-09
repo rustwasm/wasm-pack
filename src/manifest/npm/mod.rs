@@ -10,7 +10,7 @@ pub use self::nomodules::NoModulesPackage;
 #[derive(Serialize)]
 #[serde(untagged)]
 pub enum NpmPackage {
-    CommonJSPackage(CommonJSPackage),
-    ESModulesPackage(ESModulesPackage),
-    NoModulesPackage(NoModulesPackage),
+    CommonJS(CommonJSPackage),
+    ESModules(ESModulesPackage),
+    NoModules(NoModulesPackage),
 }
