@@ -10,13 +10,19 @@ pub enum Tool {
     WasmOpt,
 }
 
-impl fmt::Display for Tool {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
+impl Tool {
+    /// Returns the binary's name
+    pub fn name(&self) -> &'static str {
+        match self {
             Tool::CargoGenerate => "cargo-generate",
             Tool::WasmBindgen => "wasm-bindgen",
             Tool::WasmOpt => "wasm-opt",
-        };
-        write!(f, "{}", s)
+        }
+    }
+}
+
+impl fmt::Display for Tool {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name())
     }
 }
