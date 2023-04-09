@@ -24,6 +24,7 @@ use std::process;
 
 use anyhow::{anyhow, bail, Context, Result};
 
+#[cold]
 pub fn install() -> ! {
     if let Err(e) = do_install() {
         eprintln!("{}", e);

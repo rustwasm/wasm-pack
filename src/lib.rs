@@ -117,7 +117,7 @@ fn run(cmd_args: impl Iterator<Item = std::ffi::OsString>) -> Result<()> {
     let wasm_pack_version = background_check_for_updates();
 
     // Deprecate `init`
-    if let Some("init") = env::args().nth(1).as_deref() {
+    if Some(std::ffi::OsStr::new("init")) == env::args_os().nth(1).as_deref() {
         println!("wasm-pack init is deprecated, consider using wasm-pack build");
     }
 
@@ -165,7 +165,7 @@ fn setup_panic_hooks() {
 
     let default_hook = panic::take_hook();
 
-    if env::var("RUST_BACKTRACE").is_err() {
+    if env::var_os("RUST_BACKTRACE").is_none() {
         panic::set_hook(Box::new(move |info: &panic::PanicInfo| {
             // First call the default hook that prints to standard error.
             default_hook(info);
