@@ -2,20 +2,19 @@
 #[allow(unused)]
 mod fixture;
 
-use std::process::Stdio;
+use std::ffi::OsString;
 
 fn run_wasm_pack() {
     let fixture = fixture::dual_license();
-    assert!(fixture
-        .wasm_pack()
-        .arg("build")
-        .arg("--mode")
-        .arg("no-install")
-        .stdout(Stdio::null())
-        .stderr(Stdio::null())
-        .status()
-        .unwrap()
-        .success())
+    std::env::set_current_dir(&fixture.path).unwrap();
+    std::env::set_var("WASM_PACK_CACHE", fixture.cache_dir());
+    for _ in 0..8 {
+        wasm_pack::main(
+            ["wasm-pack", "build", "--mode", "force"]
+                .into_iter()
+                .map(|i| OsString::from(i)),
+        );
+    }
 }
 
 fn parse_crates_io() {
