@@ -290,11 +290,7 @@ impl Build {
             match &mode {
                 InstallMode::Force => &[],
                 _ => {
-                    steps![
-                        step_check_rustc_version,
-                        step_check_crate_config,
-                        step_check_for_wasm_target,
-                    ]
+                    steps![step_check_installation,]
                 }
             },
             steps![
@@ -313,7 +309,20 @@ impl Build {
         .copied()
     }
 
-    fn step_check_rustc_version(&mut self) -> Result<()> {
+    fn step_check_installation(&mut self) -> Result<()> {
+        std::thread::scope(|s| {
+            for handle in [
+                s.spawn(|| self.step_check_rustc_version()),
+                s.spawn(|| self.step_check_crate_config()),
+                s.spawn(|| self.step_check_for_wasm_target()),
+            ] {
+                handle.join().unwrap()?;
+            }
+            Ok(())
+        })
+    }
+
+    fn step_check_rustc_version(&self) -> Result<()> {
         info!("Checking rustc version...");
         let version = build::check_rustc_version()?;
         let msg = format!("rustc version is {}.", version);
@@ -321,14 +330,14 @@ impl Build {
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self) -> Result<()> {
+    fn step_check_crate_config(&self) -> Result<()> {
         info!("Checking crate configuration...");
         self.crate_data.check_crate_config()?;
         info!("Crate is correctly configured.");
         Ok(())
     }
 
-    fn step_check_for_wasm_target(&mut self) -> Result<()> {
+    fn step_check_for_wasm_target(&self) -> Result<()> {
         info!("Checking for wasm-target...");
         build::wasm_target::check_for_wasm32_target()?;
         info!("Checking for wasm-target was successful.");
