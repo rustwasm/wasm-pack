@@ -5,6 +5,7 @@ use crate::install;
 use crate::PBAR;
 use anyhow::Result;
 use binary_install::{Cache, Download};
+use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Command;
 
@@ -35,7 +36,11 @@ pub fn run(cache: &Cache, out_dir: &Path, args: &[String], install_permitted: bo
 
         let tmp = path.with_extension("wasm-opt.wasm");
         let mut cmd = Command::new(&wasm_opt_path);
-        cmd.arg(&path).arg("-o").arg(&tmp).args(args);
+        cmd.args(
+            std::iter::empty::<&OsStr>()
+                .chain([path.as_os_str(), "-o".as_ref(), tmp.as_os_str()])
+                .chain(args.iter().map(|s| s.as_ref())),
+        );
         child::run(cmd, "wasm-opt")?;
         std::fs::rename(&tmp, &path)?;
     }

@@ -11,25 +11,31 @@ pub enum Access {
     Restricted,
 }
 
+impl Access {
+    /// Returns the mode's name
+    pub fn name(&self) -> &'static str {
+        match self {
+            Access::Public => "--access=public",
+            Access::Restricted => "--access=restricted",
+        }
+    }
+}
+
 impl FromStr for Access {
     type Err = Error;
 
     fn from_str(s: &str) -> Result<Self> {
         match s {
-      "public" => Ok(Access::Public),
-      "restricted" => Ok(Access::Restricted),
-      "private" => Ok(Access::Restricted),
-      _ => bail!("{} is not a supported access level. See https://docs.npmjs.com/cli/access for more information on npm package access levels.", s),
+            "public" => Ok(Access::Public),
+            "restricted" => Ok(Access::Restricted),
+            "private" => Ok(Access::Restricted),
+            _ => bail!("{} is not a supported access level. See https://docs.npmjs.com/cli/access for more information on npm package access levels.", s),
     }
     }
 }
 
 impl fmt::Display for Access {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let printable = match *self {
-            Access::Public => "--access=public",
-            Access::Restricted => "--access=restricted",
-        };
-        write!(f, "{}", printable)
+        write!(f, "{}", self.name())
     }
 }

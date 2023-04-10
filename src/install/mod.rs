@@ -10,6 +10,7 @@ use binary_install::{Cache, Download};
 use log::debug;
 use log::{info, warn};
 use std::env;
+use std::ffi::OsStr;
 use std::fs;
 use std::path::Path;
 use std::process::Command;
@@ -253,15 +254,22 @@ pub fn cargo_install(
     };
     let mut cmd = Command::new("cargo");
 
-    cmd.arg("install")
-        .arg("--force")
-        .arg(crate_name)
-        .arg("--root")
-        .arg(&tmp);
-
-    if version != "latest" {
-        cmd.arg("--version").arg(version);
-    }
+    cmd.args(
+        std::iter::empty::<&OsStr>()
+            .chain([
+                "install".as_ref(),
+                "--force".as_ref(),
+                crate_name.as_ref(),
+                "--root".as_ref(),
+                tmp.as_ref(),
+            ])
+            .chain(
+                (version != "latest")
+                    .then_some(["--version".as_ref(), version.as_ref()])
+                    .into_iter()
+                    .flatten(),
+            ),
+    );
 
     let context = format!("Installing {} with cargo", tool);
     child::run(cmd, "cargo install").context(context)?;
