@@ -1,5 +1,4 @@
 use anyhow::{bail, Result};
-use std::fmt;
 
 use crate::target;
 
@@ -27,15 +26,13 @@ impl Arch {
             bail!("Unrecognized target!")
         }
     }
-}
 
-impl fmt::Display for Arch {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        let s = match self {
+    /// Returns the architecture's name
+    pub fn name(&self) -> &'static str {
+        match self {
             Arch::X86_64 => "x86-64",
             Arch::X86 => "x86",
             Arch::AArch64 => "aarch64",
-        };
-        write!(f, "{}", s)
+        }
     }
 }

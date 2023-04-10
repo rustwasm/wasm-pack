@@ -118,17 +118,17 @@ fn supports_dash_dash_target(cli_path: &Path) -> Result<bool> {
     Ok(cli_version >= expected_version)
 }
 
-fn build_target_arg(target: Target, cli_path: &Path) -> Result<String> {
+fn build_target_arg(target: Target, cli_path: &Path) -> Result<&'static str> {
     if !supports_dash_dash_target(cli_path)? {
         Ok(build_target_arg_legacy(target, cli_path)?)
     } else {
-        Ok(target.to_string())
+        Ok(target.name())
     }
 }
 
-fn build_target_arg_legacy(target: Target, cli_path: &Path) -> Result<String> {
+fn build_target_arg_legacy(target: Target, cli_path: &Path) -> Result<&'static str> {
     log::info!("Your version of wasm-bindgen is out of date. You should consider updating your Cargo.toml to a version >= 0.2.40.");
-    let target_arg = match target {
+    Ok(match target {
         Target::Nodejs => "--nodejs",
         Target::NoModules => "--no-modules",
         Target::Web => {
@@ -140,6 +140,5 @@ fn build_target_arg_legacy(target: Target, cli_path: &Path) -> Result<String> {
         }
         Target::Bundler => "--browser",
         Target::Deno => "--deno",
-    };
-    Ok(target_arg.to_string())
+    })
 }

@@ -91,8 +91,8 @@ fn all_latest_tool_download_urls_valid() {
                         errors.push(format!(
                             "Can't download URL {} for {} on {}: {}",
                             url,
-                            arch,
-                            os,
+                            arch.name(),
+                            os.name(),
                             res.status()
                         ));
                     }

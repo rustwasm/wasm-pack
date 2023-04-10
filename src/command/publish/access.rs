@@ -1,6 +1,5 @@
-use anyhow::{bail, Error, Result};
-use std::fmt;
-use std::str::FromStr;
+use anyhow::Result;
+use std::ffi::{OsStr, OsString};
 
 /// Represents access level for the to-be publish package. Passed to `wasm-pack publish` as a flag, e.g. `--access=public`.
 #[derive(Debug)]
@@ -21,21 +20,20 @@ impl Access {
     }
 }
 
-impl FromStr for Access {
-    type Err = Error;
+impl TryFrom<&OsStr> for Access {
+    type Error = OsString;
 
-    fn from_str(s: &str) -> Result<Self> {
-        match s {
-            "public" => Ok(Access::Public),
-            "restricted" => Ok(Access::Restricted),
-            "private" => Ok(Access::Restricted),
-            _ => bail!("{} is not a supported access level. See https://docs.npmjs.com/cli/access for more information on npm package access levels.", s),
-    }
-    }
-}
-
-impl fmt::Display for Access {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.name())
+    fn try_from(s: &OsStr) -> Result<Self, OsString> {
+        if s == "public" {
+            Ok(Access::Public)
+        } else if s == "restricted" {
+            Ok(Access::Restricted)
+        } else if s == "private" {
+            Ok(Access::Restricted)
+        } else {
+            let mut err = OsString::from(s);
+            err.push(" is not a supported access level. See https://docs.npmjs.com/cli/access for more information on npm package access levels.");
+            Err(err)
+        }
     }
 }

@@ -19,7 +19,7 @@ use self::test::{Test, TestOptions};
 use crate::install::InstallMode;
 use anyhow::Result;
 use log::info;
-use std::ffi::OsString;
+use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
 /// The various kinds of commands that `wasm-pack` can execute.
@@ -51,7 +51,7 @@ pub enum Command {
             parse(from_os_str)
         )]
         template: OsString,
-        #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = InstallMode::parse))]
+        #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = TryFrom::<&OsStr>::try_from))]
         /// Should we install or check the presence of binary tools. [possible values: no-install, normal, force]
         mode: InstallMode,
     },
@@ -69,7 +69,7 @@ pub enum Command {
         target: OsString,
 
         /// The access level for the package to be published
-        #[structopt(long = "access", short = "a")]
+        #[structopt(long = "access", short = "a", parse(try_from_os_str = TryFrom::<&OsStr>::try_from))]
         access: Option<Access>,
 
         /// The distribution tag being used for publishing.

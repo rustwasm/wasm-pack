@@ -40,9 +40,9 @@ pub enum Status {
 pub fn get_tool_path(status: &Status, tool: Tool) -> Result<&Download> {
     match status {
         Status::Found(download) => Ok(download),
-        Status::CannotInstall => bail!("Not able to find or install a local {}.", tool),
+        Status::CannotInstall => bail!("Not able to find or install a local {}.", tool.name()),
         install::Status::PlatformNotSupported => {
-            bail!("{} does not currently support your platform.", tool)
+            bail!("{} does not currently support your platform.", tool.name())
         }
     }
 }
@@ -65,7 +65,7 @@ pub fn download_prebuilt_or_cargo_install(
     // This situation can arise if the tool is already installed via
     // `cargo install`, for example.
     if let Ok(path) = which(tool.name()) {
-        debug!("found global {} binary at: {}", tool, path.display());
+        debug!("found global {} binary at: {}", tool.name(), path.display());
         if check_version(&tool, &path, version)? {
             let download = Download::at(path.parent().unwrap());
             return Ok(Status::Found(download));
@@ -81,7 +81,8 @@ pub fn download_prebuilt_or_cargo_install(
         Err(e) => {
             warn!(
                 "could not download pre-built `{}`: {}. Falling back to `cargo install`.",
-                tool, e
+                tool.name(),
+                e
             );
         }
     }
@@ -101,7 +102,9 @@ pub fn check_version(tool: &Tool, path: &Path, expected_version: &str) -> Result
     let v = get_cli_version(tool, path)?;
     info!(
         "Checking installed `{}` version == expected version: {} == {}",
-        tool, v, &expected_version
+        tool.name(),
+        v,
+        &expected_version
     );
     Ok(v == expected_version)
 }
@@ -129,7 +132,7 @@ pub fn download_prebuilt(
         Ok(url) => url,
         Err(e) => bail!(
             "no prebuilt {} binaries are available for this platform: {}",
-            tool,
+            tool.name(),
             e,
         ),
     };
@@ -219,15 +222,16 @@ pub fn cargo_install(
 ) -> Result<Status> {
     debug!(
         "Attempting to use a `cargo install`ed version of `{}={}`",
-        tool, version,
+        tool.name(),
+        version,
     );
 
-    let dirname = format!("{}-cargo-install-{}", tool, version);
+    let dirname = format!("{}-cargo-install-{}", tool.name(), version);
     let destination = cache.join(dirname.as_ref());
     if destination.exists() {
         debug!(
             "`cargo install`ed `{}={}` already exists at {}",
-            tool,
+            tool.name(),
             version,
             destination.display()
         );
@@ -243,9 +247,16 @@ pub fn cargo_install(
     // and ensure we don't accidentally use stale files in the future
     let tmp = cache.join(format!(".{}", dirname).as_ref());
     drop(fs::remove_dir_all(&tmp));
-    debug!("cargo installing {} to tempdir: {}", tool, tmp.display(),);
+    debug!(
+        "cargo installing {} to tempdir: {}",
+        tool.name(),
+        tmp.display(),
+    );
 
-    let context = format!("failed to create temp dir for `cargo install {}`", tool);
+    let context = format!(
+        "failed to create temp dir for `cargo install {}`",
+        tool.name()
+    );
     fs::create_dir_all(&tmp).context(context)?;
 
     let crate_name = match tool {
@@ -271,7 +282,7 @@ pub fn cargo_install(
             ),
     );
 
-    let context = format!("Installing {} with cargo", tool);
+    let context = format!("Installing {} with cargo", tool.name());
     child::run(cmd, "cargo install").context(context)?;
 
     // `cargo install` will put the installed binaries in `$root/bin/*`, but we

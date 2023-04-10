@@ -49,6 +49,7 @@ use crate::progressbar::{LogLevel, ProgressOutput};
 use crate::{build::WasmPackVersion, command::run_wasm_pack};
 use anyhow::Result;
 use std::env;
+use std::ffi::OsStr;
 use std::panic;
 use std::sync::mpsc;
 use std::thread;
@@ -72,7 +73,7 @@ pub struct Cli {
     /// No output printed to stdout
     pub quiet: bool,
 
-    #[structopt(long = "log-level", default_value = "info")]
+    #[structopt(long = "log-level", default_value = "info", parse(try_from_os_str = TryFrom::<&OsStr>::try_from))]
     /// The maximum level of messages that should be logged by wasm-pack. [possible values: info, warn, error]
     pub log_level: LogLevel,
 }

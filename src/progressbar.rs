@@ -1,8 +1,9 @@
 //! Fancy progress bar functionality.
 
 use crate::emoji;
-use anyhow::{bail, Error, Result};
+use anyhow::Result;
 use console::style;
+use std::ffi::{OsStr, OsString};
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 
 #[repr(u8)]
@@ -19,14 +20,20 @@ pub enum LogLevel {
     Info,
 }
 
-impl std::str::FromStr for LogLevel {
-    type Err = Error;
-    fn from_str(s: &str) -> Result<Self> {
-        match s {
-            "error" => Ok(LogLevel::Error),
-            "warn" => Ok(LogLevel::Warn),
-            "info" => Ok(LogLevel::Info),
-            _ => bail!("Unknown log-level: {}", s),
+impl TryFrom<&OsStr> for LogLevel {
+    type Error = OsString;
+
+    fn try_from(s: &OsStr) -> Result<Self, <Self as TryFrom<&OsStr>>::Error> {
+        if s == "error" {
+            Ok(LogLevel::Error)
+        } else if s == "warn" {
+            Ok(LogLevel::Warn)
+        } else if s == "info" {
+            Ok(LogLevel::Info)
+        } else {
+            let mut err = OsString::from("Unknown log-level: ");
+            err.push(s);
+            Err(err)
         }
     }
 }

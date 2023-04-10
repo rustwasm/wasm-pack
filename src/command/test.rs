@@ -11,6 +11,7 @@ use anyhow::{bail, Result};
 use binary_install::Cache;
 use console::style;
 use log::info;
+use std::ffi::OsStr;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
@@ -71,7 +72,7 @@ pub struct TestOptions {
     /// UI or windows.
     pub headless: bool,
 
-    #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = InstallMode::parse))]
+    #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = TryFrom::<&OsStr>::try_from))]
     /// Sets steps to be run. [possible values: no-install, normal]
     pub mode: InstallMode,
 

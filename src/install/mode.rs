@@ -14,9 +14,10 @@ pub enum InstallMode {
     Force,
 }
 
-impl InstallMode {
-    /// Converts from `OsStr`
-    pub fn parse(s: &OsStr) -> Result<Self, OsString> {
+impl TryFrom<&OsStr> for InstallMode {
+    type Error = OsString;
+
+    fn try_from(s: &OsStr) -> Result<Self, OsString> {
         if s == "no-install" {
             Ok(InstallMode::Noinstall)
         } else if s == "normal" {
@@ -29,7 +30,9 @@ impl InstallMode {
             Err(err)
         }
     }
+}
 
+impl InstallMode {
     /// Determines if installation is permitted during a function call based on --mode flag
     pub fn install_permitted(self) -> bool {
         match self {
