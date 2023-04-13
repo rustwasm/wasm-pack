@@ -194,7 +194,7 @@ pub fn prebuilt_url_for(tool: &Tool, version: &str, arch: &Arch, os: &Os) -> Res
         Tool::CargoGenerate => {
             Ok(format!(
                 "https://github.com/cargo-generate/cargo-generate/releases/download/v{0}/cargo-generate-v{0}-{1}.tar.gz",
-                "0.17.3",
+                "0.18.2",
                 target
             ))
         },
