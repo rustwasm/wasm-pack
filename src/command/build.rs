@@ -333,7 +333,7 @@ impl Build {
 
     fn step_build_wasm(&mut self) -> Result<()> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
+        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options, self.target.to_string().as_str())?;
 
         info!(
             "wasm built at {:#?}.",
