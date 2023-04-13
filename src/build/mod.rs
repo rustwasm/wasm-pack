@@ -83,13 +83,16 @@ pub fn cargo_build_wasm(
     PBAR.info(&msg);
 
     let mut cmd = Command::new("cargo");
-    cmd.env("RUSTFLAGS", format!("--cfg=wasmpack_target=\"{}\"", curr_target));
+    cmd.env(
+        "RUSTFLAGS",
+        format!("--cfg=wasmpack_target=\"{}\"", curr_target),
+    );
     cmd.current_dir(path).arg("build").arg("--lib");
 
     if PBAR.quiet() {
         cmd.arg("--quiet");
     }
-    
+
     match profile {
         BuildProfile::Profiling => {
             // Once there are DWARF debug info consumers, force enable debug
