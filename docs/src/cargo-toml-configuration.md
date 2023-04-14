@@ -27,6 +27,8 @@ debug-js-glue = true
 demangle-name-section = true
 # Should we emit the DWARF debug info custom sections?
 dwarf-debug-info = false
+# Should we omit the default import path?
+omit-default-module-path = false
 
 [package.metadata.wasm-pack.profile.profiling]
 wasm-opt = ['-O']
@@ -35,6 +37,7 @@ wasm-opt = ['-O']
 debug-js-glue = false
 demangle-name-section = true
 dwarf-debug-info = false
+omit-default-module-path = false
 
 # `wasm-opt` is on by default in for the release profile, but it can be
 # disabled by setting it to `false`
@@ -45,4 +48,5 @@ wasm-opt = false
 debug-js-glue = false
 demangle-name-section = true
 dwarf-debug-info = false
+omit-default-module-path = false
 ```

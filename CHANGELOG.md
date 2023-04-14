@@ -1031,6 +1031,8 @@
     demangle-name-section = true
     # Should we emit the DWARF debug info custom sections?
     dwarf-debug-info = false
+    # Should we omit the default import path?
+    omit-default-module-path = false
     ```
 
     As always- there are defaults for you to use, but if you love to configure (or have a project that requires it),

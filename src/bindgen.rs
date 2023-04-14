@@ -91,6 +91,9 @@ pub fn wasm_bindgen_build(
     if profile.wasm_bindgen_dwarf_debug_info() {
         cmd.arg("--keep-debug");
     }
+    if profile.wasm_bindgen_omit_default_module_path() {
+        cmd.arg("--omit-default-module-path");
+    }
 
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())
