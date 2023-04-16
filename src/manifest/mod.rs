@@ -26,7 +26,6 @@ use serde_json;
 use std::collections::BTreeSet;
 use std::env;
 use std::io::Write;
-use strsim::levenshtein;
 use toml;
 
 const WASM_PACK_METADATA_KEY: &str = "package.metadata.wasm-pack";
@@ -45,6 +44,9 @@ pub struct CrateData {
 #[derive(Deserialize)]
 pub struct CargoManifest {
     package: CargoPackage,
+    #[allow(dead_code)]
+    #[serde(flatten)]
+    unused_keys: UnusedKeys,
 }
 
 #[derive(Deserialize)]
@@ -53,12 +55,61 @@ struct CargoPackage {
 
     #[serde(default)]
     metadata: CargoMetadata,
+    #[allow(dead_code)]
+    #[serde(flatten)]
+    unused_keys: UnusedKeys,
 }
 
 #[derive(Default, Deserialize)]
 struct CargoMetadata {
     #[serde(default, rename = "wasm-pack")]
     wasm_pack: CargoWasmPack,
+    /// Keys that are similar to "wasm-pack"
+    #[serde(flatten, deserialize_with = "deserialize_typos")]
+    typos: BTreeSet<String>,
+}
+
+fn deserialize_typos<'de, D: serde::Deserializer<'de>>(
+    deserializer: D,
+) -> Result<BTreeSet<String>, D::Error> {
+    struct Visitor;
+
+    impl<'de> serde::de::Visitor<'de> for Visitor {
+        type Value = BTreeSet<String>;
+
+        fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+            formatter.write_str("struct")
+        }
+
+        fn visit_map<A>(self, mut map: A) -> Result<Self::Value, A::Error>
+        where
+            A: serde::de::MapAccess<'de>,
+        {
+            let mut result = BTreeSet::new();
+            while let Some(key) = map.next_key::<&str>()? {
+                if typo([key, "wasm-pack"]) {
+                    result.insert(key.to_owned());
+                }
+            }
+            Ok(result)
+        }
+    }
+
+    deserializer.deserialize_map(Visitor)
+}
+
+/// Like `IgnoredAny`, but doesn't trigger the callback given to `serde_ignored::deserialize` because it doesn't call `Deserializer::deserialize_ignored_any`.
+struct UnusedKeys;
+
+impl<'de> Deserialize<'de> for UnusedKeys {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        deserializer
+            .deserialize_map(serde::de::IgnoredAny)
+            .map(|_| UnusedKeys)
+    }
 }
 
 #[derive(Default, Deserialize)]
@@ -448,19 +499,15 @@ impl CrateData {
         let manifest = &mut toml::Deserializer::new(&manifest);
 
         let mut unused_keys = BTreeSet::new();
-        let levenshtein_threshold = 1;
 
-        let manifest: CargoManifest = serde_ignored::deserialize(manifest, |path| {
+        let mut manifest: CargoManifest = serde_ignored::deserialize(manifest, |path| {
             let path_string = path.to_string();
-
-            if path_string.starts_with("package.metadata")
-                && (path_string.contains("wasm-pack")
-                    || levenshtein(WASM_PACK_METADATA_KEY, &path_string) <= levenshtein_threshold)
-            {
-                unused_keys.insert(path_string);
-            }
+            debug_assert!(path_string.starts_with(WASM_PACK_METADATA_KEY));
+            unused_keys.insert(path_string);
         })
         .with_context(|| anyhow!("failed to parse manifest: {}", manifest_path.display()))?;
+
+        unused_keys.append(&mut manifest.package.metadata.typos);
 
         Ok(ManifestAndUnsedKeys {
             manifest,
@@ -809,4 +856,38 @@ impl CrateData {
             _ => ()
         };
     }
+}
+
+/// Returns `true` if the levenshtein distance between both strings is 1
+fn typo(strs: [&str; 2]) -> bool {
+    let [iter0, iter1] = strs.map(|s| s.chars());
+    let [len0, len1] = strs.map(|s| s.chars().count());
+    let (different_len, mut long, mut short) = if len0 == len1 {
+        (false, iter0, iter1)
+    } else if len0 == len1 + 1 {
+        (true, iter0, iter1)
+    } else if len1 == len0 + 1 {
+        (true, iter1, iter0)
+    } else {
+        return false;
+    };
+    while let (Some(a), b) = (long.next(), short.next()) {
+        if Some(a) != b {
+            if different_len {
+                let _ = long.next();
+            }
+            // If remaining characters don't match, then distance is more than 1
+            return long.eq(short);
+        }
+    }
+    // Distance is 0
+    false
+}
+
+#[test]
+fn test_typo() {
+    for s in [".ab", "a.b", "ab.", "a", "b", ".b", "a."] {
+        assert!(typo(["ab", dbg!(s)]));
+    }
+    assert!(!typo(["ab", "ab"]))
 }

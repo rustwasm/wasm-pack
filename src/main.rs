@@ -6,7 +6,7 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 
 fn main() {
     #[cfg(feature = "perf")]
-    let _profiler = dhat::Profiler::new_heap();
+    let _profiler = dhat::Profiler::builder().trim_backtraces(None).build();
 
     wasm_pack::main(std::env::args_os())
 }
