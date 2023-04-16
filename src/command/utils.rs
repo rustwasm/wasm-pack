@@ -2,6 +2,7 @@
 #![allow(clippy::redundant_closure)]
 
 use anyhow::Result;
+use std::borrow::Cow;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -45,14 +46,14 @@ pub fn create_pkg_dir(out_dir: &Path) -> Result<()> {
 
 /// Locates the pkg directory from a specific path
 /// Returns None if unable to find the 'pkg' directory
-pub fn find_pkg_directory(path: &Path) -> Option<PathBuf> {
+pub fn find_pkg_directory(path: &Path) -> Option<Cow<'_, Path>> {
     if is_pkg_directory(path) {
-        return Some(path.to_owned());
+        return Some(Cow::Borrowed(path));
     }
 
     WalkDir::new(path)
         .into_iter()
-        .filter_map(|x| x.ok().map(|e| e.into_path()))
+        .filter_map(|x| x.ok().map(|e| Cow::Owned(e.into_path())))
         .find(|x| is_pkg_directory(x))
 }
 
