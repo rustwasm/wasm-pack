@@ -85,7 +85,7 @@ check out our [contribution policy].
 
 This project is part of the [rustwasm Working Group].
 
-This project was started by [ashleygwilliams] and is co-maintained by [ashleygwilliams], [drager] and the Rust Wasm Working Group Core Team.
+This project was started by [ashleygwilliams] and is maintained by [drager] and the Rust Wasm Working Group Core Team.
 
 [ashleygwilliams]: https://github.com/ashleygwilliams
 [drager]: https://github.com/drager
