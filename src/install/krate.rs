@@ -23,8 +23,7 @@ impl Krate {
             .header(USER_AGENT, "wasm-pack")
             .send()?;
 
-        let text = res.text()?;
-        let kr: KrateResponse = serde_json::from_str(&text)?;
+        let kr: KrateResponse = serde_json::from_str(&res.text()?)?;
         Ok(kr.krate)
     }
 }
