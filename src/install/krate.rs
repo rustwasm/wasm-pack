@@ -1,5 +1,6 @@
 use crate::install::Tool;
 use anyhow::Result;
+use reqwest::header::USER_AGENT;
 use serde::Deserialize;
 
 #[derive(Debug, Deserialize)]
@@ -17,9 +18,13 @@ impl Krate {
     pub fn new(name: &Tool) -> Result<Krate> {
         let krate_address = format!("https://crates.io/api/v1/crates/{}", name);
         let client = reqwest::blocking::Client::new();
-        let res = client.get(&krate_address).send()?;
+        let res = client
+            .get(&krate_address)
+            .header(USER_AGENT, "wasm-pack")
+            .send()?;
 
-        let kr: KrateResponse = serde_json::from_str(&res.text()?)?;
+        let text = res.text()?;
+        let kr: KrateResponse = serde_json::from_str(&text)?;
         Ok(kr.krate)
     }
 }
