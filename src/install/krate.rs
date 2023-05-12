@@ -2,6 +2,7 @@ use crate::install::Tool;
 use anyhow::Result;
 use reqwest::header::USER_AGENT;
 use serde::Deserialize;
+const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
 #[derive(Debug, Deserialize)]
 pub struct Krate {
@@ -20,7 +21,10 @@ impl Krate {
         let client = reqwest::blocking::Client::new();
         let res = client
             .get(&krate_address)
-            .header(USER_AGENT, "wasm-pack")
+            .header(
+                USER_AGENT,
+                format!("wasm-pack/{}", VERSION.unwrap_or("unknown")),
+            )
             .send()?;
 
         let kr: KrateResponse = serde_json::from_str(&res.text()?)?;
