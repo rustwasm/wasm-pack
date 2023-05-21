@@ -32,20 +32,11 @@ pub fn npm_publish(path: &str, access: Option<Access>, tag: Option<String>) -> R
 }
 
 /// Run the `npm login` command.
-pub fn npm_login(
-    registry: &str,
-    scope: &Option<String>,
-    always_auth: bool,
-    auth_type: &Option<String>,
-) -> Result<()> {
+pub fn npm_login(registry: &str, scope: &Option<String>, auth_type: &Option<String>) -> Result<()> {
     let mut args = vec!["login".to_string(), format!("--registry={}", registry)];
 
     if let Some(scope) = scope {
         args.push(format!("--scope={}", scope));
-    }
-
-    if always_auth {
-        args.push("--always_auth".to_string());
     }
 
     if let Some(auth_type) = auth_type {

@@ -91,12 +91,6 @@ pub enum Command {
         /// associated with the specified scope.
         scope: Option<String>,
 
-        #[structopt(long = "always-auth", short = "a")]
-        /// If specified, save configuration indicating that all requests to the
-        /// given registry should include authorization information. Useful for
-        /// private registries. Can be used with --registry and / or --scope
-        always_auth: bool,
-
         #[structopt(long = "auth-type", short = "t")]
         /// Default: 'legacy'.
         /// Type: 'legacy', 'sso', 'saml', 'oauth'.
@@ -148,15 +142,14 @@ pub fn run_wasm_pack(command: Command) -> Result<()> {
         Command::Login {
             registry,
             scope,
-            always_auth,
             auth_type,
         } => {
             info!("Running login command...");
             info!(
-                "Registry: {:?}, Scope: {:?}, Always Auth: {}, Auth Type: {:?}",
-                &registry, &scope, &always_auth, &auth_type
+                "Registry: {:?}, Scope: {:?}, Auth Type: {:?}",
+                &registry, &scope, &auth_type
             );
-            login(registry, &scope, always_auth, &auth_type)
+            login(registry, &scope, &auth_type)
         }
         Command::Test(test_opts) => {
             info!("Running test command...");
