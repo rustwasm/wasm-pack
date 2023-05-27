@@ -12,8 +12,8 @@ pub fn login(
 
     info!("Logging in to npm...");
     info!(
-        "Scope: {:?} Registry: {}, Always Auth: {}, Auth Type: {:?}.",
-        &scope, &registry, always_auth, &auth_type
+        "Scope: {:?} Registry: {}, Auth Type: {:?}.",
+        &scope, &registry, &auth_type
     );
     info!("npm info located in the npm debug log");
     npm::npm_login(&registry, &scope, &auth_type)?;
