@@ -38,6 +38,20 @@ fn it_should_not_make_a_pkg_json_if_passed_no_pack() {
 }
 
 #[test]
+fn it_should_build_js_hello_world_example_with_custom_target_dir() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--target-dir")
+        .arg("target2")
+        .arg("--all-features")
+        .arg("--offline")
+        .assert()
+        .success();
+}
+
+#[test]
 fn it_should_build_crates_in_a_workspace() {
     let fixture = utils::fixture::Fixture::new();
     fixture
