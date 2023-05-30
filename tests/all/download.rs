@@ -84,10 +84,10 @@ fn all_latest_tool_download_urls_valid() {
                 // For all valid tool, arch & os combinations,
                 // error out when any of them is a 404 or similar
                 if let Ok(url) = install::prebuilt_url_for(&tool, "0.2.82", &arch, &os) {
-                    let client = reqwest::blocking::Client::new();
                     // Use HTTP HEAD instead of GET to avoid fetching lots of stuff
-                    let res = client.head(&url).send().unwrap();
-                    if res.status().is_client_error() {
+                    let res = ureq::head(&url).call().unwrap();
+                    let status = res.status();
+                    if 500 > status && status >= 400 {
                         errors.push(format!(
                             "Can't download URL {} for {} on {}: {}",
                             url,

@@ -1,4 +1,4 @@
-use super::{get_and_notify, Collector};
+use super::get_and_notify;
 use crate::install::InstallMode;
 use crate::stamps;
 use crate::target;
@@ -77,11 +77,8 @@ pub fn install_geckodriver(cache: &Cache, installation_allowed: bool) -> Result<
 /// - it should be relatively safe because each `geckodriver` supports many `Firefox` versions:
 /// https://firefox-source-docs.mozilla.org/testing/geckodriver/Support.html#supported-platforms
 fn get_geckodriver_url(target: &str, ext: &str) -> String {
-    let fetch_and_save_version = || {
-        fetch_latest_geckodriver_tag_json()
-            .and_then(get_version_from_json)
-            .and_then(save_geckodriver_version)
-    };
+    let fetch_and_save_version =
+        || fetch_latest_geckodriver_tag_json().and_then(save_geckodriver_version);
 
     let geckodriver_version = if target::WINDOWS {
         log::info!(
@@ -142,37 +139,18 @@ fn should_load_geckodriver_version_from_stamp(json: &serde_json::Value) -> bool 
 }
 
 fn fetch_latest_geckodriver_tag_json() -> Result<String> {
-    let mut headers = curl::easy::List::new();
-    headers
-        .append("Accept: application/json")
-        .context("cannot fetch geckodriver's latest release data - appending header failed")?;
+    let content: serde_json::Value =
+        ureq::get("https://github.com/mozilla/geckodriver/releases/latest")
+            .set("Accept", "application/json")
+            .call()
+            .context("fetching of geckodriver's latest release data failed")?
+            .into_json()?;
 
-    let mut handle = curl::easy::Easy2::new(Collector(Vec::new()));
-    handle
-        .url("https://github.com/mozilla/geckodriver/releases/latest")
-        .context("URL to fetch geckodriver's latest release data is invalid")?;
-    handle
-        .http_headers(headers)
-        .context("cannot fetch geckodriver's latest release data - setting headers failed")?;
-    // We will be redirected from the `latest` placeholder to the specific tag name.
-    handle
-        .follow_location(true)
-        .context("cannot fetch geckodriver's latest release data - enabling redirects failed")?;
-    handle
-        .perform()
-        .context("fetching of geckodriver's latest release data failed")?;
-
-    let content = handle.get_mut().take_content();
-    let version = String::from_utf8(content)
-        .context("geckodriver's latest release data is not valid UTF-8")?;
-
-    Ok(version)
+    get_version_from_json(content)
 }
 
 /// JSON example: `{"id":15227534,"tag_name":"v0.24.0","update_url":"/mozzila...`
-fn get_version_from_json(json: impl AsRef<str>) -> Result<String> {
-    let json: serde_json::Value = serde_json::from_str(json.as_ref())
-        .context("geckodriver's latest release data is not valid JSON")?;
+fn get_version_from_json(json: serde_json::Value) -> Result<String> {
     json.get("tag_name")
         .and_then(|tag_name| tag_name.as_str().map(ToOwned::to_owned))
         .ok_or_else(|| anyhow!("cannot get `tag_name` from geckodriver's latest release data"))

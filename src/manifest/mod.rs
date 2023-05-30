@@ -20,7 +20,6 @@ use crate::PBAR;
 use cargo_metadata::Metadata;
 use chrono::offset;
 use chrono::DateTime;
-use curl::easy;
 use serde::{self, Deserialize};
 use serde_json;
 use std::collections::BTreeSet;
@@ -118,15 +117,6 @@ struct CargoWasmPackProfileWasmBindgen {
 
     #[serde(default, rename = "dwarf-debug-info")]
     dwarf_debug_info: Option<bool>,
-}
-
-struct Collector(Vec<u8>);
-
-impl easy::Handler for Collector {
-    fn write(&mut self, data: &[u8]) -> Result<usize, easy::WriteError> {
-        self.0.extend_from_slice(data);
-        Ok(data.len())
-    }
 }
 
 /// Struct for storing information received from crates.io
@@ -233,26 +223,24 @@ impl Crate {
     /// Call to the crates.io api and return the latest version of `wasm-pack`
     fn check_wasm_pack_latest_version() -> Result<Crate> {
         let url = "https://crates.io/api/v1/crates/wasm-pack";
+        let agent = ureq::builder()
+            .user_agent(&format!(
+                "wasm-pack/{} ({})",
+                WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),
+                WASM_PACK_REPO_URL
+            ))
+            .build();
+        let resp = agent
+            .get(url)
+            .call()
+            .context("failed to get wasm-pack version")?;
 
-        let mut easy = easy::Easy2::new(Collector(Vec::new()));
-
-        easy.useragent(&format!(
-            "wasm-pack/{} ({})",
-            WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),
-            WASM_PACK_REPO_URL
-        ))?;
-
-        easy.url(url)?;
-        easy.get(true)?;
-        easy.perform()?;
-
-        let status_code = easy.response_code()?;
+        let status_code = resp.status();
 
         if 200 <= status_code && status_code < 300 {
-            let contents = easy.get_ref();
-            let result = String::from_utf8_lossy(&contents.0);
+            let json = resp.into_json()?;
 
-            Ok(serde_json::from_str(result.into_owned().as_str())?)
+            Ok(json)
         } else {
             bail!(
                 "Received a bad HTTP status code ({}) when checking for newer wasm-pack version at: {}",

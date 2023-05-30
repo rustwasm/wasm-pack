@@ -52,7 +52,7 @@ jobs:
           key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('Cargo.lock') }}
 
       - name: Run Tests
-        run: cargo test --features "strict" --all --locked
+        run: cargo test --all --locked
         env:
           RUST_BACKTRACE: 1
 
