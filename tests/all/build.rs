@@ -22,6 +22,22 @@ fn it_should_build_js_hello_world_example() {
 }
 
 #[test]
+fn it_should_not_make_a_pkg_json_if_passed_no_pack() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--no-pack")
+        .assert()
+        .success();
+
+    let pkg_path = fixture.path.join("pkg");
+    assert_eq!(pkg_path.join("package.json").exists(), false);
+    assert_eq!(pkg_path.join("README.md").exists(), false);
+    assert_eq!(pkg_path.join("licence").exists(), false);
+}
+
+#[test]
 fn it_should_build_crates_in_a_workspace() {
     let fixture = utils::fixture::Fixture::new();
     fixture
