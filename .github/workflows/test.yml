@@ -30,11 +30,10 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: nanasess/setup-chromedriver@master
-      - uses: actions-rs/toolchain@v1
+      - uses: dtolnay/rust-toolchain@master
         with:
           toolchain: ${{ matrix.rust }}
-          override: true
-          target: wasm32-unknown-unknown
+          targets: wasm32-unknown-unknown
       - uses: actions/setup-node@v2
 
       - name: Cache dependencies
