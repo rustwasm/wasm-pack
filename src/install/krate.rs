@@ -1,6 +1,5 @@
 use crate::install::Tool;
 use anyhow::Result;
-use reqwest::header::USER_AGENT;
 use serde::Deserialize;
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
@@ -18,16 +17,14 @@ pub struct KrateResponse {
 impl Krate {
     pub fn new(name: &Tool) -> Result<Krate> {
         let krate_address = format!("https://crates.io/api/v1/crates/{}", name);
-        let client = reqwest::blocking::Client::new();
-        let res = client
-            .get(&krate_address)
-            .header(
-                USER_AGENT,
-                format!("wasm-pack/{}", VERSION.unwrap_or("unknown")),
+        let res = ureq::get(&krate_address)
+            .set(
+                "user-agent",
+                &format!("wasm-pack/{}", VERSION.unwrap_or("unknown")),
             )
-            .send()?;
+            .call()?;
 
-        let kr: KrateResponse = serde_json::from_str(&res.text()?)?;
+        let kr: KrateResponse = res.into_json()?;
         Ok(kr.krate)
     }
 }

@@ -1,4 +1,4 @@
-use super::{get_and_notify, Collector};
+use super::get_and_notify;
 use crate::install::InstallMode;
 use crate::stamps;
 use crate::target;
@@ -117,17 +117,12 @@ fn should_load_chromedriver_version_from_stamp(json: &serde_json::Value) -> bool
 }
 
 fn fetch_chromedriver_version() -> Result<String> {
-    let mut handle = curl::easy::Easy2::new(Collector(Vec::new()));
-    handle
-        .url("https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
-        .context("URL to fetch chromedriver's LATEST_RELEASE is invalid")?;
-    handle
-        .perform()
-        .context("fetching of chromedriver's LATEST_RELEASE failed")?;
+    let version = ureq::get("https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
+        .call()
+        .context("fetching of chromedriver's LATEST_RELEASE failed")?
+        .into_string()
+        .context("converting chromedriver version response to string failed")?;
 
-    let content = handle.get_mut().take_content();
-    let version =
-        String::from_utf8(content).context("chromedriver's LATEST_RELEASE is not valid UTF-8")?;
     Ok(version)
 }
 
