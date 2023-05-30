@@ -437,7 +437,7 @@ impl CrateData {
     pub fn parse_crate_data(manifest_path: &Path) -> Result<ManifestAndUnsedKeys> {
         let manifest = fs::read_to_string(&manifest_path)
             .with_context(|| anyhow!("failed to read: {}", manifest_path.display()))?;
-        let manifest = &mut toml::Deserializer::new(&manifest);
+        let manifest = toml::Deserializer::new(&manifest);
 
         let mut unused_keys = BTreeSet::new();
         let levenshtein_threshold = 1;
