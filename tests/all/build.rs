@@ -31,8 +31,10 @@ fn it_should_not_make_a_pkg_json_if_passed_no_pack() {
         .assert()
         .success();
 
-    let pkg_json_path = fixture.path.join("pkg").join("package.json");
-    assert_eq!(pkg_json_path.exists(), false);
+    let pkg_path = fixture.path.join("pkg");
+    assert_eq!(pkg_path.join("package.json").exists(), false);
+    assert_eq!(pkg_path.join("README.md").exists(), false);
+    assert_eq!(pkg_path.join("licence").exists(), false);
 }
 
 #[test]
