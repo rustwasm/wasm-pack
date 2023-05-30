@@ -30,7 +30,7 @@ serde_ignored = "0.1.7"
 serde_json = "1.0.91"
 siphasher = "0.3.10"
 strsim = "0.10.0"
-structopt = "0.3.26"
+clap = { version = "4.2.5", features = ["derive"] }
 toml = "0.5.11"
 ureq = { version = "2.6.2", features = ["json"] }
 walkdir = "2.3.2"

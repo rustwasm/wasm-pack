@@ -19,7 +19,7 @@ use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
-use structopt::clap::AppSettings;
+use clap::{Args};
 
 /// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]
@@ -109,74 +109,67 @@ pub enum BuildProfile {
 }
 
 /// Everything required to configure and run the `wasm-pack build` command.
-#[derive(Debug, StructOpt)]
-#[structopt(
-    // Allows unknown `--option`s to be parsed as positional arguments, so we can forward it to `cargo`.
-    setting = AppSettings::AllowLeadingHyphen,
-
-    // Allows `--` to be parsed as an argument, so we can forward it to `cargo`.
-    setting = AppSettings::TrailingVarArg,
-)]
+#[derive(Debug, Args)]
+#[command(allow_hyphen_values = true, trailing_var_arg = true)]
 pub struct BuildOptions {
     /// The path to the Rust crate. If not set, searches up the path from the current directory.
-    #[structopt(parse(from_os_str))]
+    #[clap()]
     pub path: Option<PathBuf>,
 
     /// The npm scope to use in package.json, if any.
-    #[structopt(long = "scope", short = "s")]
+    #[clap(long = "scope", short = 's')]
     pub scope: Option<String>,
 
-    #[structopt(long = "mode", short = "m", default_value = "normal")]
+    #[clap(long = "mode", short = 'm', default_value = "normal")]
     /// Sets steps to be run. [possible values: no-install, normal, force]
     pub mode: InstallMode,
 
-    #[structopt(long = "no-typescript")]
+    #[clap(long = "no-typescript")]
     /// By default a *.d.ts file is generated for the generated JS file, but
     /// this flag will disable generating this TypeScript file.
     pub disable_dts: bool,
 
-    #[structopt(long = "weak-refs")]
+    #[clap(long = "weak-refs")]
     /// Enable usage of the JS weak references proposal.
     pub weak_refs: bool,
 
-    #[structopt(long = "reference-types")]
+    #[clap(long = "reference-types")]
     /// Enable usage of WebAssembly reference types.
     pub reference_types: bool,
 
-    #[structopt(long = "target", short = "t", default_value = "bundler")]
+    #[clap(long = "target", short = 't', default_value = "bundler")]
     /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
 
-    #[structopt(long = "debug")]
+    #[clap(long = "debug")]
     /// Deprecated. Renamed to `--dev`.
     pub debug: bool,
 
-    #[structopt(long = "dev")]
+    #[clap(long = "dev")]
     /// Create a development build. Enable debug info, and disable
     /// optimizations.
     pub dev: bool,
 
-    #[structopt(long = "release")]
+    #[clap(long = "release")]
     /// Create a release build. Enable optimizations and disable debug info.
     pub release: bool,
 
-    #[structopt(long = "profiling")]
+    #[clap(long = "profiling")]
     /// Create a profiling build. Enable optimizations and debug info.
     pub profiling: bool,
 
-    #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
+    #[clap(long = "out-dir", short = 'd', default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
 
-    #[structopt(long = "out-name")]
+    #[clap(long = "out-name")]
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
-    #[structopt(long = "no-pack", alias = "no-package")]
+    #[clap(long = "no-pack", alias = "no-package")]
     /// Option to not generate a package.json
     pub no_pack: bool,
 
-    #[structopt(allow_hyphen_values = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
 }
@@ -225,7 +218,7 @@ impl Build {
             (false, false, false) | (false, true, false) => BuildProfile::Release,
             (true, false, false) => BuildProfile::Dev,
             (false, false, true) => BuildProfile::Profiling,
-            // Unfortunately, `structopt` doesn't expose clap's `conflicts_with`
+            // Unfortunately, `clap` doesn't expose clap's `conflicts_with`
             // functionality yet, so we have to implement it ourselves.
             _ => bail!("Can only supply one of the --dev, --release, or --profiling flags"),
         };
