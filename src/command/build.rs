@@ -172,7 +172,7 @@ pub struct BuildOptions {
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
-    #[structopt(long = "no-pack")]
+    #[structopt(long = "no-pack", alias = "no-package")]
     /// Option to not generate a package.json
     pub no_pack: bool,
 
