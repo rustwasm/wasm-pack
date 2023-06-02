@@ -46,7 +46,7 @@ pub fn publish(
                     .default(0)
                     .interact()?
                     .to_string();
-                let target = Target::try_from(OsStr::new(&target))
+                let target = Target::parse(OsStr::new(&target))
                     .map_err(|err| Error::msg(err.to_string_lossy().into_owned()))?;
                 let build_opts = BuildOptions {
                     path: Some(crate_path.clone()),

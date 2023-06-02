@@ -56,7 +56,7 @@ pub fn run_capture_stdout(mut command: Command, command_name: &Tool) -> Result<S
     } else {
         bail!(
             "failed to execute `{}`: exited with {}\n  full command: {:?}",
-            command_name.name(),
+            command_name,
             output.status,
             command,
         )

@@ -1,4 +1,5 @@
 use anyhow::{bail, Result};
+use std::fmt;
 
 use crate::target;
 
@@ -26,13 +27,15 @@ impl Os {
             bail!("Unrecognized target!")
         }
     }
+}
 
-    /// Returns the OS name
-    pub fn name(&self) -> &'static str {
-        match self {
+impl fmt::Display for Os {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match self {
             Os::Linux => "linux",
             Os::MacOS => "macOS",
             Os::Windows => "windows",
-        }
+        };
+        write!(f, "{}", s)
     }
 }

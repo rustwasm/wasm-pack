@@ -1,3 +1,5 @@
+use std::fmt;
+
 /// Represents the set of CLI tools wasm-pack uses
 pub enum Tool {
     /// cargo-generate CLI tool
@@ -16,5 +18,11 @@ impl Tool {
             Tool::WasmBindgen => "wasm-bindgen",
             Tool::WasmOpt => "wasm-opt",
         }
+    }
+}
+
+impl fmt::Display for Tool {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.name())
     }
 }

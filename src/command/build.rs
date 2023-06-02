@@ -16,6 +16,7 @@ use anyhow::{anyhow, bail, Result};
 use binary_install::Cache;
 use log::info;
 use std::ffi::{OsStr, OsString};
+use std::fmt;
 use std::path::PathBuf;
 use std::time::Instant;
 use structopt::clap::AppSettings;
@@ -62,23 +63,22 @@ pub enum Target {
     Deno,
 }
 
-impl Target {
-    /// Returns the target's name
-    pub fn name(&self) -> &'static str {
-        match self {
+impl fmt::Display for Target {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let s = match self {
             Target::Bundler => "bundler",
             Target::Web => "web",
             Target::Nodejs => "nodejs",
             Target::NoModules => "no-modules",
             Target::Deno => "deno",
-        }
+        };
+        write!(f, "{}", s)
     }
 }
 
-impl TryFrom<&OsStr> for Target {
-    type Error = OsString;
-
-    fn try_from(s: &OsStr) -> Result<Self, Self::Error> {
+impl Target {
+    /// Converts from `OsStr`
+    pub fn parse(s: &OsStr) -> Result<Self, OsString> {
         if s == "bundler" || s == "browser" {
             Ok(Target::Bundler)
         } else if s == "web" {
@@ -127,7 +127,7 @@ pub struct BuildOptions {
     #[structopt(long = "scope", short = "s")]
     pub scope: Option<String>,
 
-    #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = TryFrom::<&OsStr>::try_from))]
+    #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = InstallMode::parse))]
     /// Sets steps to be run. [possible values: no-install, normal, force]
     pub mode: InstallMode,
 
@@ -144,7 +144,7 @@ pub struct BuildOptions {
     /// Enable usage of WebAssembly reference types.
     pub reference_types: bool,
 
-    #[structopt(long = "target", short = "t", default_value = "bundler", parse(try_from_os_str = TryFrom::<&OsStr>::try_from))]
+    #[structopt(long = "target", short = "t", default_value = "bundler", parse(try_from_os_str = Target::parse))]
     /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
 
