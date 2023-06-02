@@ -42,10 +42,11 @@ pub fn wasm_bindgen_build(
         data.target_directory()
     };
 
-    let mut wasm_path = target_directory.join("wasm32-unknown-unknown");
-    wasm_path.push(release_or_debug);
-    wasm_path.push(data.crate_name());
-    wasm_path.set_extension("wasm");
+    let wasm_path = target_directory
+        .join("wasm32-unknown-unknown")
+        .join(release_or_debug)
+        .join(data.crate_name())
+        .with_extension("wasm");
 
     let dts_arg = if disable_dts {
         "--no-typescript"

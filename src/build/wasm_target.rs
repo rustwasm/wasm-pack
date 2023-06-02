@@ -84,16 +84,15 @@ fn get_rustc_sysroot() -> Result<PathBuf> {
 fn is_wasm32_target_in_sysroot(sysroot: &Path) -> bool {
     let wasm32_target = "wasm32-unknown-unknown";
 
-    let mut path = sysroot.join("lib/rustlib");
+    let rustlib_path = sysroot.join("lib/rustlib");
 
-    info!("Looking for {} in {:?}", wasm32_target, path);
-    path.push(wasm32_target);
+    info!("Looking for {} in {:?}", wasm32_target, rustlib_path);
 
-    if path.exists() {
-        info!("Found {} in {:?}", wasm32_target, path.parent());
+    if rustlib_path.join(wasm32_target).exists() {
+        info!("Found {} in {:?}", wasm32_target, rustlib_path);
         true
     } else {
-        info!("Failed to find {} in {:?}", wasm32_target, path.parent());
+        info!("Failed to find {} in {:?}", wasm32_target, rustlib_path);
         false
     }
 }
@@ -106,13 +105,14 @@ fn check_wasm32_target() -> Result<Option<Wasm32Check>> {
         Ok(None)
     // If it doesn't exist, then we need to check if we're using rustup.
     } else {
+        let rustc_path = which::which("rustc")?;
         // If sysroot contains "rustup", then we can assume we're using rustup
         // and use rustup to add the wasm32-unknown-unknown target.
         if sysroot.to_string_lossy().contains("rustup") {
             rustup_add_wasm_target().map(|()| None)
         } else {
             Ok(Some(Wasm32Check {
-                rustc_path: which::which("rustc")?,
+                rustc_path,
                 sysroot,
                 found: false,
                 is_rustup: false,

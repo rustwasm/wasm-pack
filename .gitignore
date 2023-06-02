@@ -5,4 +5,4 @@ tests/bin
 /build-installer
 docs/book
 docs/installer
-dhat-*.json
+dhat-heap.json
