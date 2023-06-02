@@ -194,17 +194,17 @@ impl Test {
         Ok(())
     }
 
-    fn get_process_steps(&self) -> impl Iterator<Item = (&'static str, TestStep)> {
-        let identity = |i| i;
+    fn get_process_steps(&self) -> Vec<(&'static str, TestStep)> {
         macro_rules! steps {
             ($($name:ident $(if $e:expr)* ),+) => {
                 {
-                    vec![$({
-                        let step: TestStep = Test::$name;
-                        Some((stringify!($name), step))$(.filter(|_| $e))*
-                    },)*]
-                    .into_iter()
-                    .filter_map(identity)
+                    let mut steps: Vec<(&'static str, TestStep)> = Vec::new();
+                    $(
+                        $(if $e)* {
+                            steps.push((stringify!($name), Test::$name));
+                        }
+                    )*
+                    steps
                 }
             };
             ($($name:ident $(if $e:expr)* ,)*) => (steps![$($name $(if $e)* ),*])

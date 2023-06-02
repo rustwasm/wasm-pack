@@ -270,9 +270,9 @@ pub fn cargo_install(
     // just want them in `$root/*` directly (which matches how the tarballs are
     // laid out, and where the rest of our code expects them to be). So we do a
     // little renaming here.
-    let binaries: Result<&[&str]> = match tool {
-        Tool::WasmBindgen => Ok(&["wasm-bindgen", "wasm-bindgen-test-runner"]),
-        Tool::CargoGenerate => Ok(&["cargo-generate"]),
+    let binaries: Result<Vec<&str>> = match tool {
+        Tool::WasmBindgen => Ok(vec!["wasm-bindgen", "wasm-bindgen-test-runner"]),
+        Tool::CargoGenerate => Ok(vec!["cargo-generate"]),
         Tool::WasmOpt => bail!("Cannot install wasm-opt with cargo."),
     };
 
