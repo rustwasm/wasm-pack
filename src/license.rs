@@ -1,31 +1,23 @@
 //! Copy `LICENSE` file(s) for the packaged wasm.
 
-use anyhow::{anyhow, Context, Result};
-use std::ffi::OsString;
+use anyhow::{anyhow, Result};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 use crate::manifest::CrateData;
 use crate::PBAR;
 use glob::glob;
 
 fn glob_license_files(path: &Path) -> Result<impl Iterator<Item = Result<String>> + '_> {
-    let mut path_buf = {
-        let mut os_string = OsString::with_capacity(path.as_os_str().len() + 9);
-        os_string.push(path);
-        PathBuf::from(os_string)
+    let joined_path = path.join("LICENSE*");
+    let path_string = match joined_path.to_str() {
+        Some(path_string) => path_string,
+        None => {
+            return Err(anyhow!("Could not convert joined license path to String"));
+        }
     };
-    // Add trailing slash
-    path_buf.push("");
-    // Convert to String without validating the bytes in "LICENSE*"
-    let mut path_string = path_buf
-        .into_os_string()
-        .into_string()
-        .ok()
-        .context("Could not convert joined license path to String")?;
-    path_string.push_str("LICENSE*");
 
-    Ok(glob(&path_string)?.map(|entry| match entry {
+    Ok(glob(path_string)?.map(|entry| match entry {
         Ok(globed_path) => {
             let file_name = match globed_path.file_name() {
                 Some(file_name) => file_name,

@@ -29,6 +29,7 @@ pub fn wasm_bindgen_build(
         BuildProfile::Dev => "debug",
     };
 
+    let out_dir = out_dir.to_str().unwrap();
     let has_target_dir_overwrite = extra_options.iter().any(|i| i == "--target-dir");
     let target_directory = if has_target_dir_overwrite {
         let i = extra_options
