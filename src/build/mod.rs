@@ -6,7 +6,6 @@ use crate::emoji;
 use crate::manifest;
 use crate::PBAR;
 use anyhow::{anyhow, bail, Context, Result};
-use std::ffi::OsStr;
 use std::ffi::OsString;
 use std::path::Path;
 use std::process::Command;
@@ -74,29 +73,32 @@ pub fn cargo_build_wasm(
     PBAR.info(&msg);
 
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(path).args(
-        std::iter::empty::<&OsStr>()
-            .chain(["build".as_ref(), "--lib".as_ref()])
-            .chain(PBAR.quiet().then_some("--quiet".as_ref()))
-            .chain(match profile {
-                BuildProfile::Profiling => {
-                    // Once there are DWARF debug info consumers, force enable debug
-                    // info, because builds that use the release cargo profile disables
-                    // debug info.
-                    //
-                    // cmd.env("RUSTFLAGS", "-g");
-                    Some("--release".as_ref())
-                }
-                BuildProfile::Release => Some("--release".as_ref()),
-                BuildProfile::Dev => {
-                    // Plain cargo builds use the dev cargo profile, which includes
-                    // debug info by default.
-                    None
-                }
-            })
-            .chain(["--target".as_ref(), "wasm32-unknown-unknown".as_ref()])
-            .chain(extra_options.iter().map(|s| s.as_ref())),
-    );
+    cmd.current_dir(path).arg("build").arg("--lib");
+
+    if PBAR.quiet() {
+        cmd.arg("--quiet");
+    }
+
+    match profile {
+        BuildProfile::Profiling => {
+            // Once there are DWARF debug info consumers, force enable debug
+            // info, because builds that use the release cargo profile disables
+            // debug info.
+            //
+            // cmd.env("RUSTFLAGS", "-g");
+            cmd.arg("--release");
+        }
+        BuildProfile::Release => {
+            cmd.arg("--release");
+        }
+        BuildProfile::Dev => {
+            // Plain cargo builds use the dev cargo profile, which includes
+            // debug info by default.
+        }
+    }
+
+    cmd.arg("--target").arg("wasm32-unknown-unknown");
+    cmd.args(extra_options);
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }
@@ -117,14 +119,19 @@ pub fn cargo_build_wasm(
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]) -> Result<()> {
     let mut cmd = Command::new("cargo");
 
-    cmd.current_dir(path).args(
-        std::iter::empty::<&OsStr>()
-            .chain(["build".as_ref(), "--tests".as_ref()])
-            .chain(PBAR.quiet().then_some("--quiet".as_ref()))
-            .chain((!debug).then_some("--release".as_ref()))
-            .chain(["--target".as_ref(), "wasm32-unknown-unknown".as_ref()])
-            .chain(extra_options.iter().map(|s| s.as_ref())),
-    );
+    cmd.current_dir(path).arg("build").arg("--tests");
+
+    if PBAR.quiet() {
+        cmd.arg("--quiet");
+    }
+
+    if !debug {
+        cmd.arg("--release");
+    }
+
+    cmd.arg("--target").arg("wasm32-unknown-unknown");
+
+    cmd.args(extra_options);
 
     child::run(cmd, "cargo build").context("Compilation of your program failed")?;
     Ok(())

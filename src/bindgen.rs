@@ -55,44 +55,41 @@ pub fn wasm_bindgen_build(
     let bindgen_path = install::get_tool_path(install_status, Tool::WasmBindgen)?
         .binary(Tool::WasmBindgen.name())?;
 
-    let target_arg = build_target_arg(target, &bindgen_path)?;
-    //let out_name_args = out_name.map(|value| [OsStr::new("--out-name"), value.as_ref()]).into_iter().flatten();
-    let profile = data.configured_profile(profile);
-
     let mut cmd = Command::new(&bindgen_path);
-    cmd.args(
-        std::iter::empty::<&OsStr>()
-            .chain([
-                wasm_path.as_os_str(),
-                "--out-dir".as_ref(),
-                out_dir.as_os_str(),
-                dts_arg.as_ref(),
-            ])
-            .chain(weak_refs.then_some("--weak-refs".as_ref()))
-            .chain(reference_types.then_some("--reference-types".as_ref()))
-            .chain(supports_dash_dash_target(&bindgen_path)?.then_some("--target".as_ref()))
-            .chain([target_arg.as_ref()])
-            .chain(
-                out_name
-                    .as_ref()
-                    .map(|value| ["--out-name".as_ref(), value.as_ref()])
-                    .into_iter()
-                    .flatten(),
-            )
-            .chain(
-                profile
-                    .wasm_bindgen_debug_js_glue()
-                    .then_some("--debug".as_ref()),
-            )
-            .chain(
-                (!profile.wasm_bindgen_demangle_name_section()).then_some("--no-demangle".as_ref()),
-            )
-            .chain(
-                profile
-                    .wasm_bindgen_dwarf_debug_info()
-                    .then_some("--keep-debug".as_ref()),
-            ),
-    );
+    cmd.arg(&wasm_path)
+        .arg("--out-dir")
+        .arg(out_dir)
+        .arg(dts_arg);
+
+    if weak_refs {
+        cmd.arg("--weak-refs");
+    }
+
+    if reference_types {
+        cmd.arg("--reference-types");
+    }
+
+    let target_arg = build_target_arg(target, &bindgen_path)?;
+    if supports_dash_dash_target(&bindgen_path)? {
+        cmd.arg("--target").arg(target_arg);
+    } else {
+        cmd.arg(target_arg);
+    }
+
+    if let Some(value) = out_name {
+        cmd.arg("--out-name").arg(value);
+    }
+
+    let profile = data.configured_profile(profile);
+    if profile.wasm_bindgen_debug_js_glue() {
+        cmd.arg("--debug");
+    }
+    if !profile.wasm_bindgen_demangle_name_section() {
+        cmd.arg("--no-demangle");
+    }
+    if profile.wasm_bindgen_dwarf_debug_info() {
+        cmd.arg("--keep-debug");
+    }
 
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())

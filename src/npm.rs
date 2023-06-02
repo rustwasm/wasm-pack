@@ -21,18 +21,13 @@ pub fn npm_pack(path: &str) -> Result<()> {
 /// Run the `npm publish` command.
 pub fn npm_publish(path: &str, access: Option<Access>, tag: Option<OsString>) -> Result<()> {
     let mut cmd = child::new_command("npm");
-    cmd.current_dir(path);
-    cmd.args(
-        std::iter::empty::<&OsStr>()
-            .chain(["publish".as_ref()])
-            .chain(access.map(|a| a.name().as_ref()))
-            .chain(
-                tag.as_ref()
-                    .map(|t| ["--tag".as_ref(), t.as_os_str()])
-                    .into_iter()
-                    .flatten(),
-            ),
-    );
+    match access {
+        Some(a) => cmd.current_dir(path).arg("publish").arg(&a.to_string()),
+        None => cmd.current_dir(path).arg("publish"),
+    };
+    if let Some(tag) = tag {
+        cmd.arg("--tag").arg(tag);
+    };
 
     child::run(cmd, "npm publish").context("Publishing to npm failed")?;
     Ok(())
@@ -48,26 +43,20 @@ pub fn npm_login(
     // Interactively ask user for npm login info.
     //  (child::run does not support interactive input)
     let mut cmd = child::new_command("npm");
-    cmd.args(
-        std::iter::empty::<&OsStr>()
-            .chain([
-                "login".as_ref(),
-                build_arg("--registry=", registry).as_os_str(),
-            ])
-            .chain(
-                scope
-                    .as_deref()
-                    .map(|scope| build_arg("--scope=", scope))
-                    .as_deref(),
-            )
-            .chain(always_auth.then_some("--always-auth".as_ref()))
-            .chain(
-                auth_type
-                    .as_deref()
-                    .map(|auth_type| build_arg("--auth_type", auth_type))
-                    .as_deref(),
-            ),
-    );
+
+    cmd.arg("login").arg(build_arg("--registry=", registry));
+
+    if let Some(scope) = scope {
+        cmd.arg(build_arg("--scope=", scope));
+    }
+
+    if always_auth {
+        cmd.arg("--always_auth");
+    }
+
+    if let Some(auth_type) = auth_type {
+        cmd.arg(build_arg("--auth_type=", auth_type));
+    }
 
     info!("Running {:?}", cmd);
     if cmd.status()?.success() {

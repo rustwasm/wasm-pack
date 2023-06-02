@@ -25,14 +25,19 @@ where
     let mut cmd = Command::new("cargo");
 
     cmd.envs(envs);
-    cmd.current_dir(path).args(
-        std::iter::empty::<&OsStr>()
-            .chain(["test".as_ref()])
-            .chain(PBAR.quiet().then_some("--quiet".as_ref()))
-            .chain(release.then_some("--release".as_ref()))
-            .chain(["--target".as_ref(), "wasm32-unknown-unknown".as_ref()])
-            .chain(extra_options.iter().map(|s| s.as_ref())),
-    );
+    cmd.current_dir(path).arg("test");
+
+    if PBAR.quiet() {
+        cmd.arg("--quiet");
+    }
+
+    if release {
+        cmd.arg("--release");
+    }
+
+    cmd.arg("--target").arg("wasm32-unknown-unknown");
+
+    cmd.args(extra_options);
 
     child::run(cmd, "cargo test").context("Running Wasm tests with wasm-bindgen-test failed")?;
 
