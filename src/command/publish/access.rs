@@ -26,7 +26,9 @@ impl TryFrom<&OsStr> for Access {
     fn try_from(s: &OsStr) -> Result<Self, OsString> {
         if s == "public" {
             Ok(Access::Public)
-        } else if s == "restricted" || s == "private" {
+        } else if s == "restricted" {
+            Ok(Access::Restricted)
+        } else if s == "private" {
             Ok(Access::Restricted)
         } else {
             let mut err = OsString::from(s);
