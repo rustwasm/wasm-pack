@@ -29,7 +29,7 @@ pub fn run(cache: &Cache, out_dir: &Path, args: &[String], install_permitted: bo
     for file in out_dir.read_dir()? {
         let file = file?;
         let path = file.path();
-        if path.extension().filter(|&ext| ext == "wasm").is_none() {
+        if path.extension().and_then(|s| s.to_str()) != Some("wasm") {
             continue;
         }
 

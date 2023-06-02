@@ -58,8 +58,8 @@ pub fn check_for_wasm32_target() -> Result<()> {
 
     // Check if wasm32 target is present, otherwise bail.
     match check_wasm32_target() {
-        Ok(None) => Ok(()),
-        Ok(Some(wasm32_check)) => bail!("{}", wasm32_check),
+        Ok(ref wasm32_check) if wasm32_check.found => Ok(()),
+        Ok(wasm32_check) => bail!("{}", wasm32_check),
         Err(err) => Err(err),
     }
 }
@@ -97,26 +97,36 @@ fn is_wasm32_target_in_sysroot(sysroot: &Path) -> bool {
     }
 }
 
-fn check_wasm32_target() -> Result<Option<Wasm32Check>> {
+fn check_wasm32_target() -> Result<Wasm32Check> {
     let sysroot = get_rustc_sysroot()?;
+    let rustc_path = which::which("rustc")?;
 
     // If wasm32-unknown-unknown already exists we're ok.
     if is_wasm32_target_in_sysroot(&sysroot) {
-        Ok(None)
+        Ok(Wasm32Check {
+            rustc_path,
+            sysroot,
+            found: true,
+            is_rustup: false,
+        })
     // If it doesn't exist, then we need to check if we're using rustup.
     } else {
-        let rustc_path = which::which("rustc")?;
         // If sysroot contains "rustup", then we can assume we're using rustup
         // and use rustup to add the wasm32-unknown-unknown target.
         if sysroot.to_string_lossy().contains("rustup") {
-            rustup_add_wasm_target().map(|()| None)
+            rustup_add_wasm_target().map(|()| Wasm32Check {
+                rustc_path,
+                sysroot,
+                found: true,
+                is_rustup: true,
+            })
         } else {
-            Ok(Some(Wasm32Check {
+            Ok(Wasm32Check {
                 rustc_path,
                 sysroot,
                 found: false,
                 is_rustup: false,
-            }))
+            })
         }
     }
 }
