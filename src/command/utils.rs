@@ -73,16 +73,11 @@ pub fn elapsed(duration: Duration) -> String {
 
 /// Runs a funcion and reports duration if `perf` feature is enabled
 pub fn run_step<T, U>((name, mut f): (&'static str, impl FnMut(T) -> U), arg: T) -> U {
+    let start = std::time::Instant::now();
+    let result = f(arg);
     #[cfg(feature = "perf")]
-    {
-        let start = std::time::Instant::now();
-        let result = f(arg);
-        println!("{}: {} s", name, start.elapsed().as_secs_f64());
-        result
-    }
+    println!("{}: {} s", name, start.elapsed().as_secs_f64());
     #[cfg(not(feature = "perf"))]
-    {
-        let _ = name;
-        f(arg)
-    }
+    let _ = name;
+    result
 }
