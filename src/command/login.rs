@@ -25,6 +25,6 @@ pub fn login(
     npm::npm_login(&registry, &scope, always_auth, &auth_type)?;
     info!("Logged you in!");
 
-    PBAR.info("👋  logged you in!");
+    PBAR.info(&"👋  logged you in!".to_string());
     Ok(())
 }
