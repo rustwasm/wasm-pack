@@ -9,7 +9,6 @@ use crate::PBAR;
 use anyhow::{anyhow, bail, Error, Result};
 use dialoguer::{Confirm, Input, Select};
 use log::info;
-use std::borrow::Cow;
 use std::ffi::{OsStr, OsString};
 use std::path::PathBuf;
 
@@ -57,7 +56,7 @@ pub fn publish(
                 };
                 Build::try_from_opts(build_opts)
                     .and_then(|mut build| build.run())
-                    .map(|()| Cow::Owned(crate_path.join(out_dir)))
+                    .map(|()| crate_path.join(out_dir))
                     .map_err(|_| {
                         anyhow!(
                             "Unable to find the pkg directory at path '{:#?}',\
