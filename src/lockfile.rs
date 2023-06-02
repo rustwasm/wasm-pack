@@ -13,6 +13,7 @@ use toml;
 /// This struct represents the contents of `Cargo.lock`.
 #[derive(Clone, Debug, Deserialize)]
 pub struct Lockfile {
+    #[serde(deserialize_with = "deserialize_package_list")]
     package: Vec<Package>,
 }
 
@@ -21,6 +22,37 @@ pub struct Lockfile {
 struct Package {
     name: String,
     version: String,
+}
+
+/// Deserializer that only includes packages with a name starting with "wasm-bindgen"
+fn deserialize_package_list<'de, D>(deserializer: D) -> std::result::Result<Vec<Package>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    deserializer.deserialize_seq(PackagesVisitor)
+}
+
+struct PackagesVisitor;
+
+impl<'de> serde::de::Visitor<'de> for PackagesVisitor {
+    type Value = Vec<Package>;
+
+    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
+        formatter.write_str("a sequence")
+    }
+
+    fn visit_seq<A>(self, mut seq: A) -> std::result::Result<Self::Value, A::Error>
+    where
+        A: serde::de::SeqAccess<'de>,
+    {
+        let mut result = Vec::new();
+        while let Some(package) = seq.next_element::<Package>()? {
+            if package.name.starts_with("wasm-bindgen") {
+                result.push(package);
+            }
+        }
+        Ok(result)
+    }
 }
 
 impl Lockfile {
