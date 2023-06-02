@@ -234,7 +234,7 @@ impl Crate {
     fn check_wasm_pack_latest_version() -> Result<Crate> {
         let url = "https://crates.io/api/v1/crates/wasm-pack";
 
-        let mut easy = easy::Easy2::new(Collector(Vec::with_capacity(32768)));
+        let mut easy = easy::Easy2::new(Collector(Vec::new()));
 
         easy.useragent(&format!(
             "wasm-pack/{} ({})",
