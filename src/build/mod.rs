@@ -16,7 +16,7 @@ pub mod wasm_target;
 /// wasm-pack version with the latest on crates.io.
 pub struct WasmPackVersion {
     /// The currently installed wasm-pack version.
-    pub local: &'static str,
+    pub local: String,
     /// The latest version of wasm-pack that's released at
     /// crates.io.
     pub latest: String,
@@ -67,9 +67,9 @@ pub fn check_wasm_pack_versions() -> Result<WasmPackVersion> {
     }
 }
 
-fn wasm_pack_local_version() -> Option<&'static str> {
+fn wasm_pack_local_version() -> Option<String> {
     let output = env!("CARGO_PKG_VERSION");
-    Some(output)
+    Some(output.to_string())
 }
 
 /// Run `cargo build` targetting `wasm32-unknown-unknown`.
