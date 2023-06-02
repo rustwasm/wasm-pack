@@ -60,5 +60,10 @@ pub fn find_wasm_opt(cache: &Cache, install_permitted: bool) -> Result<install::
         }
     }
 
-    install::download_prebuilt(&install::Tool::WasmOpt, cache, "latest", install_permitted)
+    install::download_prebuilt(
+        &install::Tool::WasmOpt,
+        cache,
+        "latest",
+        install_permitted,
+    )
 }
