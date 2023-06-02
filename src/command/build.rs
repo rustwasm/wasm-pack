@@ -12,12 +12,12 @@ use crate::manifest;
 use crate::readme;
 use crate::wasm_opt;
 use crate::PBAR;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{anyhow, bail, Error, Result};
 use binary_install::Cache;
 use log::info;
-use std::ffi::{OsStr, OsString};
 use std::fmt;
 use std::path::PathBuf;
+use std::str::FromStr;
 use std::time::Instant;
 use structopt::clap::AppSettings;
 
@@ -37,7 +37,7 @@ pub struct Build {
     pub out_name: Option<String>,
     pub bindgen: Option<install::Status>,
     pub cache: Cache,
-    pub extra_options: Vec<OsString>,
+    pub extra_options: Vec<String>,
 }
 
 /// What sort of output we're going to be generating and flags we're invoking
@@ -81,23 +81,16 @@ impl fmt::Display for Target {
     }
 }
 
-impl Target {
-    /// Converts from `OsStr`
-    pub fn parse(s: &OsStr) -> Result<Self, OsString> {
-        if s == "bundler" || s == "browser" {
-            Ok(Target::Bundler)
-        } else if s == "web" {
-            Ok(Target::Web)
-        } else if s == "nodejs" {
-            Ok(Target::Nodejs)
-        } else if s == "no-modules" {
-            Ok(Target::NoModules)
-        } else if s == "deno" {
-            Ok(Target::Deno)
-        } else {
-            let mut err = OsString::from("Unknown target: ");
-            err.push(s);
-            Err(err)
+impl FromStr for Target {
+    type Err = Error;
+    fn from_str(s: &str) -> Result<Self> {
+        match s {
+            "bundler" | "browser" => Ok(Target::Bundler),
+            "web" => Ok(Target::Web),
+            "nodejs" => Ok(Target::Nodejs),
+            "no-modules" => Ok(Target::NoModules),
+            "deno" => Ok(Target::Deno),
+            _ => bail!("Unknown target: {}", s),
         }
     }
 }
@@ -132,7 +125,7 @@ pub struct BuildOptions {
     #[structopt(long = "scope", short = "s")]
     pub scope: Option<String>,
 
-    #[structopt(long = "mode", short = "m", default_value = "normal", parse(try_from_os_str = InstallMode::parse))]
+    #[structopt(long = "mode", short = "m", default_value = "normal")]
     /// Sets steps to be run. [possible values: no-install, normal, force]
     pub mode: InstallMode,
 
@@ -149,7 +142,7 @@ pub struct BuildOptions {
     /// Enable usage of WebAssembly reference types.
     pub reference_types: bool,
 
-    #[structopt(long = "target", short = "t", default_value = "bundler", parse(try_from_os_str = Target::parse))]
+    #[structopt(long = "target", short = "t", default_value = "bundler")]
     /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
 
@@ -172,15 +165,15 @@ pub struct BuildOptions {
 
     #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
-    pub out_dir: OsString,
+    pub out_dir: String,
 
     #[structopt(long = "out-name")]
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
-    #[structopt(allow_hyphen_values = true, parse(from_os_str))]
+    #[structopt(allow_hyphen_values = true)]
     /// List of extra options to pass to `cargo build`
-    pub extra_options: Vec<OsString>,
+    pub extra_options: Vec<String>,
 }
 
 impl Default for BuildOptions {
@@ -197,7 +190,7 @@ impl Default for BuildOptions {
             dev: false,
             release: false,
             profiling: false,
-            out_dir: OsString::new(),
+            out_dir: String::new(),
             out_name: None,
             extra_options: Vec::new(),
         }
@@ -212,7 +205,9 @@ impl Build {
         if let Some(path) = &build_opts.path {
             if path.to_string_lossy().starts_with("--") {
                 let path = build_opts.path.take().unwrap();
-                build_opts.extra_options.insert(0, path.into());
+                build_opts
+                    .extra_options
+                    .insert(0, path.to_string_lossy().into_owned());
             }
         }
         let crate_path = get_crate_path(build_opts.path)?;

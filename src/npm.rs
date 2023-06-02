@@ -1,7 +1,5 @@
 //! Functionality related to publishing to npm.
 
-use std::ffi::{OsStr, OsString};
-
 use crate::child;
 use crate::command::publish::access::Access;
 use anyhow::{bail, Context, Result};
@@ -19,7 +17,7 @@ pub fn npm_pack(path: &str) -> Result<()> {
 }
 
 /// Run the `npm publish` command.
-pub fn npm_publish(path: &str, access: Option<Access>, tag: Option<OsString>) -> Result<()> {
+pub fn npm_publish(path: &str, access: Option<Access>, tag: Option<String>) -> Result<()> {
     let mut cmd = child::new_command("npm");
     match access {
         Some(a) => cmd.current_dir(path).arg("publish").arg(&a.to_string()),
@@ -35,39 +33,34 @@ pub fn npm_publish(path: &str, access: Option<Access>, tag: Option<OsString>) ->
 
 /// Run the `npm login` command.
 pub fn npm_login(
-    registry: &OsStr,
-    scope: &Option<OsString>,
+    registry: &str,
+    scope: &Option<String>,
     always_auth: bool,
-    auth_type: &Option<OsString>,
+    auth_type: &Option<String>,
 ) -> Result<()> {
-    // Interactively ask user for npm login info.
-    //  (child::run does not support interactive input)
-    let mut cmd = child::new_command("npm");
-
-    cmd.arg("login").arg(build_arg("--registry=", registry));
+    let mut args = vec!["login".to_string(), format!("--registry={}", registry)];
 
     if let Some(scope) = scope {
-        cmd.arg(build_arg("--scope=", &scope));
+        args.push(format!("--scope={}", scope));
     }
 
     if always_auth {
-        cmd.arg("--always_auth");
+        args.push("--always_auth".to_string());
     }
 
     if let Some(auth_type) = auth_type {
-        cmd.arg(build_arg("--auth_type=", &auth_type));
+        args.push(format!("--auth_type={}", auth_type));
     }
+
+    // Interactively ask user for npm login info.
+    //  (child::run does not support interactive input)
+    let mut cmd = child::new_command("npm");
+    cmd.args(args);
 
     info!("Running {:?}", cmd);
     if cmd.status()?.success() {
         Ok(())
     } else {
-        bail!("Login to registry {} failed", registry.to_string_lossy())
+        bail!("Login to registry {} failed", registry)
     }
-}
-
-fn build_arg(prefix: &'static str, value: &OsStr) -> OsString {
-    let mut s = OsString::from(prefix);
-    s.push(value);
-    s
 }
