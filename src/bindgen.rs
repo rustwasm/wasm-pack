@@ -53,7 +53,7 @@ pub fn wasm_bindgen_build(
         "--typescript"
     };
     let bindgen_path = install::get_tool_path(install_status, Tool::WasmBindgen)?
-        .binary(Tool::WasmBindgen.name())?;
+        .binary(&Tool::WasmBindgen.to_string())?;
 
     let mut cmd = Command::new(&bindgen_path);
     cmd.arg(&wasm_path)

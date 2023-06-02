@@ -11,7 +11,7 @@ use std::process::Command;
 /// project from a template
 pub fn generate(template: &OsStr, name: &OsStr, install_status: &install::Status) -> Result<()> {
     let bin_path = install::get_tool_path(install_status, Tool::CargoGenerate)?
-        .binary(Tool::CargoGenerate.name())?;
+        .binary(&Tool::CargoGenerate.to_string())?;
     let mut cmd = Command::new(bin_path);
     cmd.arg("generate");
     cmd.arg("--git").arg(template);

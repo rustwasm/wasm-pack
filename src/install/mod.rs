@@ -63,7 +63,7 @@ pub fn download_prebuilt_or_cargo_install(
     //
     // This situation can arise if the tool is already installed via
     // `cargo install`, for example.
-    if let Ok(path) = which(tool.name()) {
+    if let Ok(path) = which(tool.to_string()) {
         debug!("found global {} binary at: {}", tool, path.display());
         if check_version(&tool, &path, version)? {
             let download = Download::at(path.parent().unwrap());
@@ -71,7 +71,7 @@ pub fn download_prebuilt_or_cargo_install(
         }
     }
 
-    let msg = format!("{}Installing {}...", emoji::DOWN_ARROW, tool.name());
+    let msg = format!("{}Installing {}...", emoji::DOWN_ARROW, tool);
     PBAR.info(&msg);
 
     let dl = download_prebuilt(&tool, cache, version, install_permitted);
@@ -248,8 +248,8 @@ pub fn cargo_install(
     fs::create_dir_all(&tmp).context(context)?;
 
     let crate_name = match tool {
-        Tool::WasmBindgen => "wasm-bindgen-cli",
-        _ => tool.name(),
+        Tool::WasmBindgen => "wasm-bindgen-cli".to_string(),
+        _ => tool.to_string(),
     };
     let mut cmd = Command::new("cargo");
 
