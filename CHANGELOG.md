@@ -2,6 +2,28 @@
 
 ## 🤍 Unreleased
 
+## 🌦️ 0.11.1
+
+- ### 🤕 Fixes
+
+  - **Fix discovery of locally installed `wasm-opt` - [Liamolucko], [issue/1247], [pull/1257]**
+
+    [issue/1247]: https://github.com/rustwasm/wasm-pack/issues/1247
+    [pull/1257]: https://github.com/rustwasm/wasm-pack/pull/1257
+    [Liamolucko]: https://github.com/Liamolucko
+
+  - **Fix wasm-pack bin script entry - [ahippler], [issue/1248], [pull/1250]**
+
+    [issue/1248]: https://github.com/rustwasm/wasm-pack/issues/1248
+    [pull/1250]: https://github.com/rustwasm/wasm-pack/pull/1250
+    [ahippler]: https://github.com/ahippler
+
+- ### 🛠️ Maintenance
+
+  - **bump openssl from 0.10.46 to 0.10.48 - [pull/1254]**
+
+    [pull/1254]: https://github.com/rustwasm/wasm-pack/pull/1254
+
 ## 🌦️ 0.11.0
 
 - ### ✨ Features
