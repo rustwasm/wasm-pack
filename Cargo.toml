@@ -10,10 +10,6 @@ readme = "README.md"
 categories = ["wasm"]
 documentation = "https://rustwasm.github.io/wasm-pack/"
 
-[[bench]]
-name = "bench"
-harness = false
-
 [dependencies]
 anyhow = "1.0.68"
 atty = "0.2.14"
@@ -44,7 +40,6 @@ which = "4.4.0"
 
 [dev-dependencies]
 assert_cmd = "2.0.8"
-criterion = "0.4.0"
 lazy_static = "1.4.0"
 predicates = "2.1.5"
 serial_test = "1.0.0"
