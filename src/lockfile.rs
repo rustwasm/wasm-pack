@@ -13,55 +13,14 @@ use toml;
 /// This struct represents the contents of `Cargo.lock`.
 #[derive(Clone, Debug, Deserialize)]
 pub struct Lockfile {
-    package: Packages,
-}
-
-#[derive(Clone, Debug, Default)]
-struct Packages {
-    wasm_bindgen_version: Option<String>,
-    wasm_bindgen_test_version: Option<String>,
+    package: Vec<Package>,
 }
 
 /// This struct represents a single package entry in `Cargo.lock`
 #[derive(Clone, Debug, Deserialize)]
-struct Package<'a> {
-    name: &'a str,
-    version: &'a str,
-}
-
-impl<'de> serde::Deserialize<'de> for Packages {
-    fn deserialize<D>(deserializer: D) -> std::result::Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        deserializer.deserialize_seq(PackagesVisitor)
-    }
-}
-
-struct PackagesVisitor;
-
-impl<'de> serde::de::Visitor<'de> for PackagesVisitor {
-    type Value = Packages;
-
-    fn expecting(&self, formatter: &mut std::fmt::Formatter) -> std::fmt::Result {
-        formatter.write_str("a sequence")
-    }
-
-    fn visit_seq<A>(self, mut seq: A) -> std::result::Result<Self::Value, A::Error>
-    where
-        A: serde::de::SeqAccess<'de>,
-    {
-        let mut result = Packages::default();
-        while let Some(package) = seq.next_element::<Package>()? {
-            let field = match package.name {
-                "wasm-bindgen" => &mut result.wasm_bindgen_version,
-                "wasm-bindgen-test" => &mut result.wasm_bindgen_test_version,
-                _ => continue,
-            };
-            *field = Some(package.version.to_owned());
-        }
-        Ok(result)
-    }
+struct Package {
+    name: String,
+    version: String,
 }
 
 impl Lockfile {
@@ -77,7 +36,7 @@ impl Lockfile {
 
     /// Get the version of `wasm-bindgen` dependency used in the `Cargo.lock`.
     pub fn wasm_bindgen_version(&self) -> Option<&str> {
-        self.package.wasm_bindgen_version.as_deref()
+        self.get_package_version("wasm-bindgen")
     }
 
     /// Like `wasm_bindgen_version`, except it returns an error instead of
@@ -95,7 +54,14 @@ impl Lockfile {
 
     /// Get the version of `wasm-bindgen` dependency used in the `Cargo.lock`.
     pub fn wasm_bindgen_test_version(&self) -> Option<&str> {
-        self.package.wasm_bindgen_test_version.as_deref()
+        self.get_package_version("wasm-bindgen-test")
+    }
+
+    fn get_package_version(&self, package: &str) -> Option<&str> {
+        self.package
+            .iter()
+            .find(|p| p.name == package)
+            .map(|p| &p.version[..])
     }
 }
 
