@@ -38,7 +38,7 @@ fn find_manifest_from_cwd() -> Result<PathBuf> {
 /// Construct our `pkg` directory in the crate.
 pub fn create_pkg_dir(out_dir: &Path) -> Result<()> {
     let _ = fs::remove_file(out_dir.join("package.json")); // Clean up package.json from previous runs
-    fs::create_dir_all(out_dir)?;
+    fs::create_dir_all(&out_dir)?;
     fs::write(out_dir.join(".gitignore"), "*")?;
     Ok(())
 }
@@ -53,7 +53,7 @@ pub fn find_pkg_directory(path: &Path) -> Option<PathBuf> {
     WalkDir::new(path)
         .into_iter()
         .filter_map(|x| x.ok().map(|e| e.into_path()))
-        .find(|x| is_pkg_directory(x))
+        .find(|x| is_pkg_directory(&x))
 }
 
 fn is_pkg_directory(path: &Path) -> bool {

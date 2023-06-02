@@ -55,15 +55,16 @@ pub fn find_wasm_opt(cache: &Cache, install_permitted: bool) -> Result<install::
     if let Ok(path) = which::which("wasm-opt") {
         PBAR.info(&format!("found wasm-opt at {:?}", path));
 
-        if let Some(path) = path.as_path().parent() {
-            return Ok(install::Status::Found(Download::at(path)));
+        match path.as_path().parent() {
+            Some(path) => return Ok(install::Status::Found(Download::at(path))),
+            None => {}
         }
     }
 
-    install::download_prebuilt(
+    Ok(install::download_prebuilt(
         &install::Tool::WasmOpt,
         cache,
         "latest",
         install_permitted,
-    )
+    )?)
 }

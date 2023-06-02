@@ -53,7 +53,7 @@ fn try_check_rustc_version() -> Option<Result<String>> {
 /// Checks and returns local and latest versions of wasm-pack
 pub fn check_wasm_pack_versions() -> Result<WasmPackVersion> {
     match wasm_pack_local_version() {
-        Some(local) => Ok(WasmPackVersion {local, latest: manifest::return_wasm_pack_latest_version()?.unwrap_or(vec![])}),
+        Some(local) => Ok(WasmPackVersion {local, latest: manifest::return_wasm_pack_latest_version()?.unwrap_or_else(|| Vec::new())}),
         None => bail!("We can't figure out what your wasm-pack version is, make sure the installation path is correct.")
     }
 }

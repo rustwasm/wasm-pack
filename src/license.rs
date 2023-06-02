@@ -49,7 +49,7 @@ pub fn copy_from_crate(crate_data: &CrateData, path: &Path, out_dir: &Path) -> R
     );
 
     assert!(
-        fs::metadata(out_dir).ok().map_or(false, |m| m.is_dir()),
+        fs::metadata(&out_dir).ok().map_or(false, |m| m.is_dir()),
         "crate's pkg directory should exist"
     );
 
@@ -79,7 +79,7 @@ pub fn copy_from_crate(crate_data: &CrateData, path: &Path, out_dir: &Path) -> R
         (None, Some(license_file)) => {
             let crate_license_path = path.join(&license_file);
             let new_license_path = out_dir.join(&license_file);
-            if fs::copy(crate_license_path, new_license_path).is_err() {
+            if fs::copy(&crate_license_path, &new_license_path).is_err() {
                 PBAR.info("origin crate has no LICENSE");
             }
         }

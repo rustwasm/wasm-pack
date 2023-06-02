@@ -302,7 +302,7 @@ impl Test {
         let status = install::download_prebuilt_or_cargo_install(
             Tool::WasmBindgen,
             &self.cache,
-            bindgen_version,
+            &bindgen_version,
             self.mode.install_permitted(),
         )?;
 

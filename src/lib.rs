@@ -117,7 +117,7 @@ fn run(cmd_args: impl Iterator<Item = std::ffi::OsString>) -> Result<()> {
     let wasm_pack_version = background_check_for_updates();
 
     // Deprecate `init`
-    if let Some("init") = env::args().nth(1).as_deref() {
+    if let Some("init") = env::args().nth(1).as_ref().map(|arg| arg.as_str()) {
         println!("wasm-pack init is deprecated, consider using wasm-pack build");
     }
 
@@ -159,13 +159,13 @@ fn setup_panic_hooks() {
     let meta = human_panic::Metadata {
         version: env!("CARGO_PKG_VERSION").into(),
         name: env!("CARGO_PKG_NAME").into(),
-        authors: env!("CARGO_PKG_AUTHORS").replace(':', ", ").into(),
+        authors: env!("CARGO_PKG_AUTHORS").replace(":", ", ").into(),
         homepage: env!("CARGO_PKG_HOMEPAGE").into(),
     };
 
     let default_hook = panic::take_hook();
 
-    if env::var("RUST_BACKTRACE").is_err() {
+    if let Err(_) = env::var("RUST_BACKTRACE") {
         panic::set_hook(Box::new(move |info: &panic::PanicInfo| {
             // First call the default hook that prints to standard error.
             default_hook(info);
