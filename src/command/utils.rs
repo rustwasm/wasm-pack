@@ -70,14 +70,3 @@ pub fn elapsed(duration: Duration) -> String {
         format!("{}.{:02}s", secs, duration.subsec_nanos() / 10_000_000)
     }
 }
-
-/// Runs a funcion and reports duration if `perf` feature is enabled
-pub fn run_step<T, U>((name, mut f): (&'static str, impl FnMut(T) -> U), arg: T) -> U {
-    let start = std::time::Instant::now();
-    let result = f(arg);
-    #[cfg(feature = "perf")]
-    println!("{}: {} s", name, start.elapsed().as_secs_f64());
-    #[cfg(not(feature = "perf"))]
-    let _ = name;
-    result
-}

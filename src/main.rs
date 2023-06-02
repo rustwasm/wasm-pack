@@ -23,10 +23,6 @@ use wasm_pack::{
 
 mod installer;
 
-#[cfg(feature = "perf")]
-#[global_allocator]
-static ALLOC: dhat::Alloc = dhat::Alloc;
-
 fn background_check_for_updates() -> mpsc::Receiver<Result<WasmPackVersion>> {
     let (sender, receiver) = mpsc::channel();
 
@@ -49,9 +45,6 @@ fn background_check_for_updates() -> mpsc::Receiver<Result<WasmPackVersion>> {
 }
 
 fn main() {
-    #[cfg(feature = "perf")]
-    let _profiler = dhat::Profiler::new_heap();
-
     env_logger::init();
 
     setup_panic_hooks();

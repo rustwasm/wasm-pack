@@ -22,7 +22,6 @@ cargo_metadata = "0.15.2"
 chrono = "0.4.23"
 console = "0.15.5"
 curl = "0.4.44"
-dhat = { version = "0.3.2", optional = true }
 dialoguer = "0.10.3"
 env_logger = { version = "0.10.0", default-features = false }
 glob = "0.3.1"
@@ -54,7 +53,6 @@ tempfile = "3.3.0"
 [features]
 # OpenSSL is vendored by default, can use system OpenSSL through feature flag.
 default = ['openssl/vendored']
-perf = ["dep:dhat"]
 
 # Treat compiler warnings as a build error.
 # This only runs in CI by default

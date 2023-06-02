@@ -258,8 +258,8 @@ impl Build {
 
         let started = Instant::now();
 
-        for process_step in process_steps {
-            super::utils::run_step(process_step, self)?;
+        for (_, process_step) in process_steps {
+            process_step(self)?;
         }
 
         let duration = crate::command::utils::elapsed(started.elapsed());

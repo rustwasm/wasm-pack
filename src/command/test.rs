@@ -185,8 +185,8 @@ impl Test {
         let process_steps = self.get_process_steps();
 
         let started = Instant::now();
-        for process_step in process_steps {
-            super::utils::run_step(process_step, &mut self)?;
+        for (_, process_step) in process_steps {
+            process_step(&mut self)?;
         }
         let duration = crate::command::utils::elapsed(started.elapsed());
         info!("Done in {}.", &duration);
