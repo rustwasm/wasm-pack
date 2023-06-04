@@ -5,7 +5,7 @@ use std::path::Path;
 
 #[test]
 fn build_in_non_crate_directory_doesnt_panic() {
-    let fixture = utils::fixture::not_a_crate();
+    let fixture = utils::fixture::not_a_crate().build();
     fixture
         .wasm_pack()
         .arg("build")
@@ -17,13 +17,13 @@ fn build_in_non_crate_directory_doesnt_panic() {
 
 #[test]
 fn it_should_build_js_hello_world_example() {
-    let fixture = utils::fixture::js_hello_world();
+    let fixture = utils::fixture::js_hello_world().build();
     fixture.wasm_pack().arg("build").assert().success();
 }
 
 #[test]
 fn it_should_not_make_a_pkg_json_if_passed_no_pack() {
-    let fixture = utils::fixture::js_hello_world();
+    let fixture = utils::fixture::js_hello_world().build();
     fixture
         .wasm_pack()
         .arg("build")
@@ -39,8 +39,7 @@ fn it_should_not_make_a_pkg_json_if_passed_no_pack() {
 
 #[test]
 fn it_should_build_crates_in_a_workspace() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .file(
             "Cargo.toml",
             r#"
@@ -76,7 +75,8 @@ fn it_should_build_crates_in_a_workspace() {
                 pub fn hello() -> u32 { 42 }
             "#,
         )
-        .install_local_wasm_bindgen();
+        .build();
+    fixture.install_local_wasm_bindgen();
     fixture
         .wasm_pack()
         .current_dir(&fixture.path.join("blah"))
@@ -87,8 +87,7 @@ fn it_should_build_crates_in_a_workspace() {
 
 #[test]
 fn renamed_crate_name_works() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -116,14 +115,14 @@ fn renamed_crate_name_works() {
                 pub fn one() -> u32 { 1 }
             "#,
         )
-        .install_local_wasm_bindgen();
+        .build();
+    fixture.install_local_wasm_bindgen();
     fixture.wasm_pack().arg("build").assert().success();
 }
 
 #[test]
 fn dash_dash_web_target_has_error_on_old_bindgen() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -151,7 +150,8 @@ fn dash_dash_web_target_has_error_on_old_bindgen() {
                 pub fn one() -> u32 { 1 }
             "#,
         )
-        .install_local_wasm_bindgen();
+        .build();
+    fixture.install_local_wasm_bindgen();
     let cmd = fixture
         .wasm_pack()
         .arg("build")
@@ -170,7 +170,7 @@ fn dash_dash_web_target_has_error_on_old_bindgen() {
 
 #[test]
 fn it_should_build_nested_project_with_transitive_dependencies() {
-    let fixture = utils::fixture::transitive_dependencies();
+    let fixture = utils::fixture::transitive_dependencies().build();
     fixture.install_local_wasm_bindgen();
     fixture
         .wasm_pack()
@@ -182,7 +182,7 @@ fn it_should_build_nested_project_with_transitive_dependencies() {
 
 #[test]
 fn build_different_profiles() {
-    let fixture = utils::fixture::js_hello_world();
+    let fixture = utils::fixture::js_hello_world().build();
     fixture.install_local_wasm_bindgen();
 
     for profile in ["--dev", "--debug", "--profiling", "--release"]
@@ -201,8 +201,7 @@ fn build_different_profiles() {
 #[test]
 fn build_with_and_without_wasm_bindgen_debug() {
     for debug in [true, false].iter().cloned() {
-        let fixture = utils::fixture::Fixture::new();
-        fixture
+        let fixture = utils::fixture::FixtureBuilder::new()
             .readme()
             .file(
                 "Cargo.toml",
@@ -251,7 +250,8 @@ fn build_with_and_without_wasm_bindgen_debug() {
                 }
                 "#,
             )
-            .install_local_wasm_bindgen();
+            .build();
+        fixture.install_local_wasm_bindgen();
 
         fixture
             .wasm_pack()
@@ -275,7 +275,7 @@ fn build_with_and_without_wasm_bindgen_debug() {
 
 #[test]
 fn build_with_arbitrary_cargo_options() {
-    let fixture = utils::fixture::js_hello_world();
+    let fixture = utils::fixture::js_hello_world().build();
     fixture.install_local_wasm_bindgen();
     fixture
         .wasm_pack()
@@ -287,7 +287,7 @@ fn build_with_arbitrary_cargo_options() {
 
 #[test]
 fn build_no_install() {
-    let fixture = utils::fixture::js_hello_world();
+    let fixture = utils::fixture::js_hello_world().build();
     fixture.install_local_wasm_bindgen();
     fixture
         .wasm_pack()
@@ -300,7 +300,7 @@ fn build_no_install() {
 
 #[test]
 fn build_force() {
-    let fixture = utils::fixture::js_hello_world();
+    let fixture = utils::fixture::js_hello_world().build();
     fixture.install_local_wasm_bindgen();
     fixture
         .wasm_pack()
@@ -313,7 +313,7 @@ fn build_force() {
 
 #[test]
 fn build_from_new() {
-    let fixture = utils::fixture::not_a_crate();
+    let fixture = utils::fixture::not_a_crate().build();
     let name = "generated-project";
     fixture.wasm_pack().arg("new").arg(name).assert().success();
     let project_location = fixture.path.join(&name);
@@ -327,8 +327,7 @@ fn build_from_new() {
 
 #[test]
 fn build_crates_with_same_names() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "somename1/Cargo.toml",
@@ -382,7 +381,8 @@ fn build_crates_with_same_names() {
                 0
             }
             "#,
-        );
+        )
+        .build();
     fixture.install_local_wasm_bindgen();
     fixture
         .wasm_pack()

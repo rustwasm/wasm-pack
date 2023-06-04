@@ -4,7 +4,7 @@ use wasm_pack::manifest::CrateData;
 
 #[test]
 fn it_gets_wasm_bindgen_version() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path, None).unwrap();
     let lock = Lockfile::new(&data).unwrap();
@@ -13,7 +13,7 @@ fn it_gets_wasm_bindgen_version() {
 
 #[test]
 fn it_gets_wasm_bindgen_test_version() {
-    let fixture = fixture::wbg_test_node();
+    let fixture = fixture::wbg_test_node().build();
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path, None).unwrap();
     let lock = Lockfile::new(&data).unwrap();
@@ -22,8 +22,7 @@ fn it_gets_wasm_bindgen_test_version() {
 
 #[test]
 fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
-    let fixture = fixture::Fixture::new();
-    fixture
+    let fixture = fixture::FixtureBuilder::new()
         .file(
             "Cargo.toml",
             r#"
@@ -58,7 +57,8 @@ fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
                 #[wasm_bindgen]
                 pub fn hello() -> u32 { 42 }
             "#,
-        );
+        )
+        .build();
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path.join("blah"), None).unwrap();
     let lock = Lockfile::new(&data).unwrap();
@@ -67,8 +67,7 @@ fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
 
 #[test]
 fn it_gets_wasm_bindgen_version_from_dependencies() {
-    let fixture = fixture::Fixture::new();
-    fixture
+    let fixture = fixture::FixtureBuilder::new()
         .file(
             "Cargo.toml",
             r#"
@@ -126,7 +125,8 @@ fn it_gets_wasm_bindgen_version_from_dependencies() {
                 extern crate child;
                 pub use child::*;
             "#,
-        );
+        )
+        .build();
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path.join("parent"), None).unwrap();
     let lock = Lockfile::new(&data).unwrap();

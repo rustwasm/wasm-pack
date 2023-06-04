@@ -17,7 +17,7 @@ fn it_gets_the_crate_name_default_path() {
 
 #[test]
 fn it_gets_the_crate_name_provided_path() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     assert_eq!(crate_data.crate_name(), "js_hello_world");
 }
@@ -40,7 +40,7 @@ fn it_gets_the_name_prefix_passed_from_cli() {
 
 #[test]
 fn it_checks_has_cdylib_default_path() {
-    let fixture = fixture::no_cdylib();
+    let fixture = fixture::no_cdylib().build();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
@@ -49,7 +49,7 @@ fn it_checks_has_cdylib_default_path() {
 
 #[test]
 fn it_checks_has_cdylib_provided_path() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
@@ -58,14 +58,14 @@ fn it_checks_has_cdylib_provided_path() {
 
 #[test]
 fn it_checks_has_cdylib_wrong_crate_type() {
-    let fixture = fixture::bad_cargo_toml();
+    let fixture = fixture::bad_cargo_toml().build();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     assert!(crate_data.check_crate_config().is_err());
 }
 
 #[test]
 fn it_recognizes_a_map_during_depcheck() {
-    let fixture = fixture::serde_feature();
+    let fixture = fixture::serde_feature().build();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
@@ -74,7 +74,7 @@ fn it_recognizes_a_map_during_depcheck() {
 
 #[test]
 fn it_creates_a_package_json_default_path() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -113,7 +113,7 @@ fn it_creates_a_package_json_default_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -142,7 +142,7 @@ fn it_creates_a_package_json_provided_path() {
 
 #[test]
 fn it_creates_a_package_json_provided_path_with_scope() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -171,7 +171,7 @@ fn it_creates_a_package_json_provided_path_with_scope() {
 
 #[test]
 fn it_creates_a_pkg_json_with_correct_files_on_node() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -205,7 +205,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_node() {
 
 #[test]
 fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -239,7 +239,7 @@ fn it_creates_a_pkg_json_with_correct_files_on_nomodules() {
 
 #[test]
 fn it_creates_a_package_json_with_correct_files_when_out_name_is_provided() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, Some("index".to_owned())).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -271,7 +271,7 @@ fn it_creates_a_package_json_with_correct_files_when_out_name_is_provided() {
 
 #[test]
 fn it_creates_a_pkg_json_in_out_dir() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("./custom/out");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -286,7 +286,7 @@ fn it_creates_a_pkg_json_in_out_dir() {
 
 #[test]
 fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -319,7 +319,7 @@ fn it_creates_a_package_json_with_correct_keys_when_types_are_skipped() {
 
 #[test]
 fn it_creates_a_package_json_with_npm_dependencies_provided_by_wasm_bindgen() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     wasm_pack::command::utils::create_pkg_dir(&out_dir).unwrap();
@@ -367,7 +367,7 @@ fn it_creates_a_package_json_with_npm_dependencies_provided_by_wasm_bindgen() {
 
 #[test]
 fn it_errors_when_wasm_bindgen_is_not_declared() {
-    let fixture = fixture::bad_cargo_toml();
+    let fixture = fixture::bad_cargo_toml().build();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
     assert!(crate_data.check_crate_config().is_err());
 }
@@ -375,10 +375,11 @@ fn it_errors_when_wasm_bindgen_is_not_declared() {
 #[test]
 fn it_sets_homepage_field_if_available_in_cargo_toml() {
     // When 'homepage' is available
-    let fixture = utils::fixture::Fixture::new();
-    fixture.hello_world_src_lib().file(
-        "Cargo.toml",
-        r#"
+    let fixture = utils::fixture::FixtureBuilder::new()
+        .hello_world_src_lib()
+        .file(
+            "Cargo.toml",
+            r#"
             [package]
             authors = ["The wasm-pack developers"]
             description = "so awesome rust+wasm package"
@@ -397,7 +398,8 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
             [dev-dependencies]
             wasm-bindgen-test = "=0.2"
         "#,
-    );
+        )
+        .build();
 
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
@@ -414,7 +416,7 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
     );
 
     // When 'homepage' is unavailable
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
 
@@ -430,10 +432,11 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
 #[test]
 fn it_sets_keywords_field_if_available_in_cargo_toml() {
     // When 'homepage' is available
-    let fixture = utils::fixture::Fixture::new();
-    fixture.hello_world_src_lib().file(
-        "Cargo.toml",
-        r#"
+    let fixture = utils::fixture::FixtureBuilder::new()
+        .hello_world_src_lib()
+        .file(
+            "Cargo.toml",
+            r#"
             [package]
             authors = ["The wasm-pack developers"]
             description = "so awesome rust+wasm package"
@@ -452,7 +455,8 @@ fn it_sets_keywords_field_if_available_in_cargo_toml() {
             [dev-dependencies]
             wasm-bindgen-test = "=0.2"
         "#,
-    );
+        )
+        .build();
 
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
@@ -471,7 +475,7 @@ fn it_sets_keywords_field_if_available_in_cargo_toml() {
     );
 
     // When 'keywords' is unavailable
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     let out_dir = fixture.path.join("pkg");
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
 
@@ -486,7 +490,7 @@ fn it_sets_keywords_field_if_available_in_cargo_toml() {
 
 #[test]
 fn it_does_not_error_when_wasm_bindgen_is_declared() {
-    let fixture = fixture::js_hello_world();
+    let fixture = fixture::js_hello_world().build();
     // Ensure that there is a `Cargo.lock`.
     fixture.cargo_check();
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
@@ -495,10 +499,12 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
 
 #[test]
 fn configure_wasm_bindgen_debug_incorrectly_is_error() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture.readme().hello_world_src_lib().file(
-        "Cargo.toml",
-        r#"
+    let fixture = utils::fixture::FixtureBuilder::new()
+        .readme()
+        .hello_world_src_lib()
+        .file(
+            "Cargo.toml",
+            r#"
             [package]
             authors = ["The wasm-pack developers"]
             description = "so awesome rust+wasm package"
@@ -516,7 +522,8 @@ fn configure_wasm_bindgen_debug_incorrectly_is_error() {
             [package.metadata.wasm-pack.profile.dev.wasm-bindgen]
             debug-js-glue = "not a boolean"
             "#,
-    );
+        )
+        .build();
     fixture
         .wasm_pack()
         .arg("build")
@@ -530,8 +537,7 @@ fn configure_wasm_bindgen_debug_incorrectly_is_error() {
 
 #[test]
 fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -556,7 +562,8 @@ fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
             "#,
         )
         .hello_world_src_lib()
-        .install_local_wasm_bindgen();
+        .build();
+    fixture.install_local_wasm_bindgen();
     fixture
         .wasm_pack()
         .arg("build")
@@ -571,7 +578,7 @@ fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
 
 #[test]
 fn it_lists_license_files_in_files_field_of_package_json() {
-    let fixture = fixture::dual_license();
+    let fixture = fixture::dual_license().build();
     let out_dir = fixture.path.join("pkg");
 
     let crate_data = manifest::CrateData::new(&fixture.path, None).unwrap();
@@ -601,7 +608,7 @@ fn it_lists_license_files_in_files_field_of_package_json() {
 
 #[test]
 fn it_recurses_up_the_path_to_find_cargo_toml() {
-    let fixture = utils::fixture::Fixture::new();
+    let fixture = utils::fixture::FixtureBuilder::new();
     fixture.hello_world_src_lib().file(
         "Cargo.toml",
         r#"
@@ -623,7 +630,7 @@ fn it_recurses_up_the_path_to_find_cargo_toml() {
 
 #[test]
 fn it_doesnt_recurse_up_the_path_to_find_cargo_toml_when_default() {
-    let fixture = utils::fixture::Fixture::new();
+    let fixture = utils::fixture::FixtureBuilder::new();
     fixture.hello_world_src_lib().file(
         "Cargo.toml",
         r#"

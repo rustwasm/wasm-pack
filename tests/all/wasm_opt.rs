@@ -4,8 +4,11 @@ use predicates::prelude::*;
 
 #[test]
 fn off_in_dev() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture.readme().cargo_toml("foo").file("src/lib.rs", "");
+    let fixture = utils::fixture::FixtureBuilder::new()
+        .readme()
+        .cargo_toml("foo")
+        .file("src/lib.rs", "")
+        .build();
     fixture.install_local_wasm_bindgen();
     fixture.install_wasm_opt();
 
@@ -20,8 +23,11 @@ fn off_in_dev() {
 
 #[test]
 fn on_in_release() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture.readme().cargo_toml("foo").file("src/lib.rs", "");
+    let fixture = utils::fixture::FixtureBuilder::new()
+        .readme()
+        .cargo_toml("foo")
+        .file("src/lib.rs", "")
+        .build();
     fixture.install_local_wasm_bindgen();
     fixture.install_wasm_opt();
 
@@ -35,8 +41,7 @@ fn on_in_release() {
 
 #[test]
 fn disable_in_release() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -59,7 +64,8 @@ fn disable_in_release() {
                 wasm-opt = false
             "#,
         )
-        .file("src/lib.rs", "");
+        .file("src/lib.rs", "")
+        .build();
     fixture.install_local_wasm_bindgen();
     fixture.install_wasm_opt();
 
@@ -73,8 +79,7 @@ fn disable_in_release() {
 
 #[test]
 fn enable_in_dev() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -97,7 +102,8 @@ fn enable_in_dev() {
                 wasm-opt = true
             "#,
         )
-        .file("src/lib.rs", "");
+        .file("src/lib.rs", "")
+        .build();
     fixture.install_local_wasm_bindgen();
     fixture.install_wasm_opt();
 
@@ -114,8 +120,7 @@ fn enable_in_dev() {
 
 #[test]
 fn custom_args() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -138,7 +143,8 @@ fn custom_args() {
                 wasm-opt = ['--not-accepted-argument']
             "#,
         )
-        .file("src/lib.rs", "");
+        .file("src/lib.rs", "")
+        .build();
     fixture.install_local_wasm_bindgen();
     fixture.install_wasm_opt();
 
@@ -152,8 +158,7 @@ fn custom_args() {
 
 #[test]
 fn misconfigured() {
-    let fixture = utils::fixture::Fixture::new();
-    fixture
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -176,7 +181,8 @@ fn misconfigured() {
                 wasm-opt = 32
             "#,
         )
-        .file("src/lib.rs", "");
+        .file("src/lib.rs", "")
+        .build();
     fixture.install_local_wasm_bindgen();
     fixture.install_wasm_opt();
 

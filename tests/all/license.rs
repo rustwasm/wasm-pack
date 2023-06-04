@@ -9,7 +9,7 @@ use wasm_pack::manifest::CrateData;
 
 #[test]
 fn it_copies_a_license_default_path() {
-    let fixture = fixture::single_license();
+    let fixture = fixture::single_license().build();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
     let crate_data = CrateData::new(&fixture.path, None);
@@ -34,7 +34,7 @@ fn it_copies_a_license_default_path() {
 
 #[test]
 fn it_copies_a_license_provided_path() {
-    let fixture = fixture::single_license();
+    let fixture = fixture::single_license().build();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
     let crate_data = CrateData::new(&fixture.path, None);
@@ -57,7 +57,7 @@ fn it_copies_a_license_provided_path() {
 
 #[test]
 fn it_copies_all_licenses_default_path() {
-    let fixture = fixture::dual_license();
+    let fixture = fixture::dual_license().build();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
     let crate_data = CrateData::new(&fixture.path, None);
@@ -92,7 +92,7 @@ fn it_copies_all_licenses_default_path() {
 
 #[test]
 fn it_copies_all_licenses_provided_path() {
-    let fixture = fixture::dual_license();
+    let fixture = fixture::dual_license().build();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
     let crate_data = CrateData::new(&fixture.path, None);
@@ -128,7 +128,7 @@ fn it_copies_all_licenses_provided_path() {
 #[test]
 fn it_copies_a_non_standard_license_provided_path() {
     let license_file = "NON-STANDARD-LICENSE";
-    let fixture = fixture::non_standard_license(license_file);
+    let fixture = fixture::non_standard_license(license_file).build();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
     let crate_data = CrateData::new(&fixture.path, None);

@@ -28,9 +28,10 @@ fn matches_cargo() -> impl Predicate<str> + PredicateReflection {
 
 #[test]
 fn quiet() {
-    utils::fixture::Fixture::new()
+    utils::fixture::FixtureBuilder::new()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
+        .build()
         .wasm_pack()
         .arg("--quiet")
         .arg("build")
@@ -42,9 +43,10 @@ fn quiet() {
 
 #[test]
 fn log_level_info() {
-    utils::fixture::Fixture::new()
+    utils::fixture::FixtureBuilder::new()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
+        .build()
         .wasm_pack()
         .arg("--log-level")
         .arg("info")
@@ -57,9 +59,10 @@ fn log_level_info() {
 
 #[test]
 fn log_level_warn() {
-    utils::fixture::Fixture::new()
+    utils::fixture::FixtureBuilder::new()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
+        .build()
         .wasm_pack()
         .arg("--log-level")
         .arg("warn")
@@ -76,9 +79,10 @@ fn log_level_warn() {
 
 #[test]
 fn log_level_error() {
-    utils::fixture::Fixture::new()
+    utils::fixture::FixtureBuilder::new()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
+        .build()
         .wasm_pack()
         .arg("--log-level")
         .arg("error")
