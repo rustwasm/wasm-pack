@@ -10,6 +10,8 @@ use anyhow::{anyhow, bail, Context, Result};
 use console::style;
 use toml;
 
+const PACKAGE_NAMES: &[&str] = &["wasm-bindgen", "wasm-bindgen-test"];
+
 /// This struct represents the contents of `Cargo.lock`.
 #[derive(Clone, Debug, Deserialize)]
 pub struct Lockfile {
@@ -47,7 +49,7 @@ impl<'de> serde::de::Visitor<'de> for PackagesVisitor {
     {
         let mut result = Vec::new();
         while let Some(package) = seq.next_element::<Package>()? {
-            if package.name.starts_with("wasm-bindgen") {
+            if PACKAGE_NAMES.contains(&package.name.as_str()) {
                 result.push(package);
             }
         }
@@ -90,6 +92,7 @@ impl Lockfile {
     }
 
     fn get_package_version(&self, package: &str) -> Option<&str> {
+        debug_assert!(PACKAGE_NAMES.contains(&package));
         self.package
             .iter()
             .find(|p| p.name == package)
