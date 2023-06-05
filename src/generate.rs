@@ -12,9 +12,7 @@ pub fn generate(template: &str, name: &str, install_status: &install::Status) ->
     let bin_path = install::get_tool_path(install_status, Tool::CargoGenerate)?
         .binary(&Tool::CargoGenerate.to_string())?;
     let mut cmd = Command::new(&bin_path);
-    cmd.arg("generate");
-    cmd.arg("--git").arg(&template);
-    cmd.arg("--name").arg(&name);
+    cmd.args(["generate", "--git", template, "--name", name].as_slice());
 
     println!(
         "{} Generating a new rustwasm project with name '{}'...",

@@ -82,32 +82,33 @@ pub fn cargo_build_wasm(
     PBAR.info(&msg);
 
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(path).arg("build").arg("--lib");
+    cmd.current_dir(path);
 
-    if PBAR.quiet() {
-        cmd.arg("--quiet");
-    }
+    let [a1, a2, a3, a4] = ["build", "--lib", "--target", "wasm32-unknown-unknown"];
+    let quiet_arg = PBAR.quiet().then_some("--quiet");
+    let release_arg = match profile {
+        // Once there are DWARF debug info consumers, force enable debug
+        // info, because builds that use the release cargo profile disables
+        // debug info.
+        //
+        // cmd.env("RUSTFLAGS", "-g");
+        BuildProfile::Profiling => Some("--release"),
 
-    match profile {
-        BuildProfile::Profiling => {
-            // Once there are DWARF debug info consumers, force enable debug
-            // info, because builds that use the release cargo profile disables
-            // debug info.
-            //
-            // cmd.env("RUSTFLAGS", "-g");
-            cmd.arg("--release");
-        }
-        BuildProfile::Release => {
-            cmd.arg("--release");
-        }
-        BuildProfile::Dev => {
-            // Plain cargo builds use the dev cargo profile, which includes
-            // debug info by default.
-        }
-    }
+        BuildProfile::Release => Some("--release"),
 
-    cmd.arg("--target").arg("wasm32-unknown-unknown");
-    cmd.args(extra_options);
+        // Plain cargo builds use the dev cargo profile, which includes
+        // debug info by default.
+        BuildProfile::Dev => None,
+    };
+
+    let options = extra_options.iter().map(|s|s.as_str());
+
+    match (quiet_arg, release_arg) {
+        (None, None) => cmd.args([a1, a2, a3, a4].iter().copied().chain(options)),
+        (Some(a5), None) | (None, Some(a5)) => cmd.args([a1, a2, a3, a4, a5].iter().copied().chain(options)),
+        (Some(a5), Some(a6)) => cmd.args([a1, a2, a3, a4, a5, a6].iter().copied().chain(options)),
+    };
+
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }
