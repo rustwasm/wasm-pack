@@ -253,14 +253,11 @@ pub fn cargo_install(
     };
     let mut cmd = Command::new("cargo");
 
-    cmd.arg("install")
-        .arg("--force")
-        .arg(crate_name)
-        .arg("--root")
-        .arg(&tmp);
+    cmd.args(["install", "--force", &crate_name, "--root"]);
+    cmd.arg(&tmp);
 
     if version != "latest" {
-        cmd.arg("--version").arg(version);
+        cmd.args(["--version", version]);
     }
 
     let context = format!("Installing {} with cargo", tool);

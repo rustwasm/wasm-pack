@@ -82,7 +82,8 @@ pub fn cargo_build_wasm(
     PBAR.info(&msg);
 
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(path).arg("build").arg("--lib");
+    cmd.current_dir(path)
+        .args(["build", "--lib", "--target", "wasm32-unknown-unknown"]);
 
     if PBAR.quiet() {
         cmd.arg("--quiet");
@@ -106,7 +107,6 @@ pub fn cargo_build_wasm(
         }
     }
 
-    cmd.arg("--target").arg("wasm32-unknown-unknown");
     cmd.args(extra_options);
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
@@ -128,7 +128,8 @@ pub fn cargo_build_wasm(
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]) -> Result<()> {
     let mut cmd = Command::new("cargo");
 
-    cmd.current_dir(path).arg("build").arg("--tests");
+    cmd.current_dir(path)
+        .args(["build", "--tests", "--target", "wasm32-unknown-unknown"]);
 
     if PBAR.quiet() {
         cmd.arg("--quiet");
@@ -137,8 +138,6 @@ pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]
     if !debug {
         cmd.arg("--release");
     }
-
-    cmd.arg("--target").arg("wasm32-unknown-unknown");
 
     cmd.args(extra_options);
 

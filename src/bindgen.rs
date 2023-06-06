@@ -57,10 +57,7 @@ pub fn wasm_bindgen_build(
         .binary(&Tool::WasmBindgen.to_string())?;
 
     let mut cmd = Command::new(&bindgen_path);
-    cmd.arg(&wasm_path)
-        .arg("--out-dir")
-        .arg(out_dir)
-        .arg(dts_arg);
+    cmd.arg(&wasm_path).args(["--out-dir", out_dir, dts_arg]);
 
     if weak_refs {
         cmd.arg("--weak-refs");
@@ -72,13 +69,13 @@ pub fn wasm_bindgen_build(
 
     let target_arg = build_target_arg(target, &bindgen_path)?;
     if supports_dash_dash_target(&bindgen_path)? {
-        cmd.arg("--target").arg(target_arg);
+        cmd.args(["--target", &target_arg]);
     } else {
         cmd.arg(target_arg);
     }
 
     if let Some(value) = out_name {
-        cmd.arg("--out-name").arg(value);
+        cmd.args(["--out-name", &value]);
     }
 
     let profile = data.configured_profile(profile);

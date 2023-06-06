@@ -25,7 +25,8 @@ where
     let mut cmd = Command::new("cargo");
 
     cmd.envs(envs);
-    cmd.current_dir(path).arg("test");
+    cmd.current_dir(path)
+        .args(["test", "--target", "wasm32-unknown-unknown"]);
 
     if PBAR.quiet() {
         cmd.arg("--quiet");
@@ -34,8 +35,6 @@ where
     if release {
         cmd.arg("--release");
     }
-
-    cmd.arg("--target").arg("wasm32-unknown-unknown");
 
     cmd.args(extra_options);
 

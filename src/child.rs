@@ -17,7 +17,7 @@ pub fn new_command(program: &str) -> Command {
 
     if cfg!(windows) {
         let mut cmd = Command::new("cmd");
-        cmd.arg("/c").arg(program);
+        cmd.args(["/c", program]);
         cmd
     } else {
         Command::new(program)
