@@ -1,5 +1,5 @@
 use crate::utils::fixture;
-use wasm_pack::lockfile::Lockfile;
+use wasm_pack::lockfile;
 use wasm_pack::manifest::CrateData;
 
 #[test]
@@ -7,8 +7,8 @@ fn it_gets_wasm_bindgen_version() {
     let fixture = fixture::js_hello_world().build();
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path, None).unwrap();
-    let lock = Lockfile::new(&data).unwrap();
-    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.74"),);
+    let [package] = lockfile::Package::get(&data, ["wasm-bindgen"]).unwrap();
+    assert_eq!(package.version(), Some("0.2.74"),);
 }
 
 #[test]
@@ -16,8 +16,8 @@ fn it_gets_wasm_bindgen_test_version() {
     let fixture = fixture::wbg_test_node().build();
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path, None).unwrap();
-    let lock = Lockfile::new(&data).unwrap();
-    assert_eq!(lock.wasm_bindgen_test_version(), Some("0.3.24"),);
+    let [package] = lockfile::Package::get(&data, ["wasm-bindgen-test"]).unwrap();
+    assert_eq!(package.version(), Some("0.3.24"),);
 }
 
 #[test]
@@ -61,8 +61,8 @@ fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
         .build();
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path.join("blah"), None).unwrap();
-    let lock = Lockfile::new(&data).unwrap();
-    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.74"),);
+    let [package] = lockfile::Package::get(&data, ["wasm-bindgen"]).unwrap();
+    assert_eq!(package.version(), Some("0.2.74"),);
 }
 
 #[test]
@@ -129,6 +129,6 @@ fn it_gets_wasm_bindgen_version_from_dependencies() {
         .build();
     fixture.cargo_check();
     let data = CrateData::new(&fixture.path.join("parent"), None).unwrap();
-    let lock = Lockfile::new(&data).unwrap();
-    assert_eq!(lock.wasm_bindgen_version(), Some("0.2.74"),);
+    let [package] = lockfile::Package::get(&data, ["wasm-bindgen"]).unwrap();
+    assert_eq!(package.version(), Some("0.2.74"),);
 }

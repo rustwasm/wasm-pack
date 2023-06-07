@@ -4,12 +4,11 @@ use crate::build;
 use crate::cache;
 use crate::command::utils::get_crate_path;
 use crate::install::{self, InstallMode, Tool};
-use crate::lockfile::Lockfile;
+use crate::lockfile;
 use crate::manifest;
 use crate::test::{self, webdriver};
 use anyhow::{bail, Result};
 use binary_install::Cache;
-use console::style;
 use log::info;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -282,22 +281,16 @@ impl Test {
 
     fn step_install_wasm_bindgen(&mut self) -> Result<()> {
         info!("Identifying wasm-bindgen dependency...");
-        let lockfile = Lockfile::new(&self.crate_data)?;
-        let bindgen_version = lockfile.require_wasm_bindgen()?;
+        let [bindgen, bindgen_test] =
+            lockfile::Package::get(&self.crate_data, ["wasm-bindgen", "wasm-bindgen-test"])?;
+        let bindgen_version = bindgen.require_version_or_suggest("dependencies", "0.2")?;
 
         // Unlike `wasm-bindgen` and `wasm-bindgen-cli`, `wasm-bindgen-test`
         // will work with any semver compatible `wasm-bindgen-cli`, so just make
         // sure that it is depended upon, so we can run tests on
         // `wasm32-unkown-unknown`. Don't enforce that it is the same version as
         // `wasm-bindgen`.
-        if lockfile.wasm_bindgen_test_version().is_none() {
-            bail!(
-                "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
-                 [dev-dependencies]\n\
-                 wasm-bindgen-test = \"0.2\"",
-                style("wasm-bindgen-test").bold().dim(),
-            )
-        }
+        bindgen_test.require_version_or_suggest("dev-dependencies", "0.2")?;
 
         let status = install::download_prebuilt_or_cargo_install(
             Tool::WasmBindgen,
