@@ -50,7 +50,7 @@ static ALLOC: dhat::Alloc = dhat::Alloc;
 
 fn main() {
     #[cfg(feature = "dhat-heap")]
-    let _profiler = dhat::Profiler::new_heap();
+    let _profiler = dhat::Profiler::builder().trim_backtraces(None).build();
 
     env_logger::init();
 
