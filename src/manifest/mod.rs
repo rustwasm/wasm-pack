@@ -9,7 +9,7 @@
 use anyhow::{anyhow, bail, Context, Result};
 mod npm;
 
-use std::path::Path;
+use std::path::{Path, PathBuf};
 use std::{collections::HashMap, fs};
 
 use self::npm::{
@@ -17,7 +17,6 @@ use self::npm::{
 };
 use crate::command::build::{BuildProfile, Target};
 use crate::PBAR;
-use cargo_metadata::Metadata;
 use chrono::offset;
 use chrono::DateTime;
 use serde::{self, Deserialize};
@@ -34,8 +33,9 @@ const WASM_PACK_REPO_URL: &str = "https://github.com/rustwasm/wasm-pack";
 
 /// Store for metadata learned about a crate
 pub struct CrateData {
-    data: Metadata,
-    current_idx: usize,
+    package: cargo_metadata::Package,
+    target_directory: PathBuf,
+    workspace_root: PathBuf,
     manifest: CargoManifest,
     out_name: Option<String>,
 }
@@ -395,25 +395,27 @@ impl CrateData {
 
         let data = cargo_metadata::MetadataCommand::new()
             .manifest_path(&manifest_path)
+            .no_deps()
             .exec()?;
 
         let manifest_and_keys = CrateData::parse_crate_data(&manifest_path)?;
         CrateData::warn_for_unused_keys(&manifest_and_keys);
 
         let manifest = manifest_and_keys.manifest;
-        let current_idx = data
+        let package = data
             .packages
-            .iter()
-            .position(|pkg| {
+            .into_iter()
+            .find(|pkg| {
                 pkg.name == manifest.package.name
                     && CrateData::is_same_path(pkg.manifest_path.as_std_path(), &manifest_path)
             })
             .ok_or_else(|| anyhow!("failed to find package in metadata"))?;
 
         Ok(CrateData {
-            data,
+            package,
+            workspace_root: data.workspace_root.into(),
+            target_directory: data.target_directory.into(),
             manifest,
-            current_idx,
             out_name,
         })
     }
@@ -487,7 +489,7 @@ impl CrateData {
     }
 
     fn check_crate_type(&self) -> Result<()> {
-        let pkg = &self.data.packages[self.current_idx];
+        let pkg = &self.package;
         let any_cdylib = pkg
             .targets
             .iter()
@@ -505,7 +507,7 @@ impl CrateData {
     }
 
     fn pkg(&self) -> &cargo_metadata::Package {
-        &self.data.packages[self.current_idx]
+        &self.package
     }
 
     /// Get the crate name for the crate at the given path.
@@ -545,12 +547,12 @@ impl CrateData {
     /// Returns the path to this project's target directory where artifacts are
     /// located after a cargo build.
     pub fn target_directory(&self) -> &Path {
-        Path::new(&self.data.target_directory)
+        Path::new(&self.target_directory)
     }
 
     /// Returns the path to this project's root cargo workspace directory
     pub fn workspace_root(&self) -> &Path {
-        Path::new(&self.data.workspace_root)
+        Path::new(&self.workspace_root)
     }
 
     /// Generate a package.json file inside in `./pkg`.
@@ -606,7 +608,7 @@ impl CrateData {
             files.push(js_bg_file);
         }
 
-        let pkg = &self.data.packages[self.current_idx];
+        let pkg = &self.package;
         let npm_name = match scope {
             Some(s) => format!("@{}/{}", s, pkg.name),
             None => pkg.name.clone(),
@@ -665,7 +667,7 @@ impl CrateData {
         out_dir: &Path,
     ) -> NpmPackage {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
-        let pkg = &self.data.packages[self.current_idx];
+        let pkg = &self.package;
 
         self.check_optional_fields();
 
@@ -696,7 +698,7 @@ impl CrateData {
         out_dir: &Path,
     ) -> NpmPackage {
         let data = self.npm_data(scope, true, disable_dts, out_dir);
-        let pkg = &self.data.packages[self.current_idx];
+        let pkg = &self.package;
 
         self.check_optional_fields();
 
@@ -728,7 +730,7 @@ impl CrateData {
         out_dir: &Path,
     ) -> NpmPackage {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
-        let pkg = &self.data.packages[self.current_idx];
+        let pkg = &self.package;
 
         self.check_optional_fields();
 
@@ -760,7 +762,7 @@ impl CrateData {
         out_dir: &Path,
     ) -> NpmPackage {
         let data = self.npm_data(scope, false, disable_dts, out_dir);
-        let pkg = &self.data.packages[self.current_idx];
+        let pkg = &self.package;
 
         self.check_optional_fields();
 
