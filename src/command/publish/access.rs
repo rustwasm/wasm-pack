@@ -3,7 +3,7 @@ use std::fmt;
 use std::str::FromStr;
 
 /// Represents access level for the to-be publish package. Passed to `wasm-pack publish` as a flag, e.g. `--access=public`.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Access {
     /// Access is granted to all. All unscoped packages *must* be public.
     Public,

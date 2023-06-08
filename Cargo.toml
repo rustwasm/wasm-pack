@@ -16,6 +16,7 @@ atty = "0.2.14"
 binary-install = "0.1.0"
 cargo_metadata = "0.15.2"
 chrono = "0.4.23"
+clap = { version = "4.3.2", features = ["derive"] }
 console = "0.15.5"
 dhat = { version = "0.3.2", optional = true }
 dialoguer = "0.10.3"
@@ -31,7 +32,6 @@ serde_ignored = "0.1.7"
 serde_json = "1.0.91"
 siphasher = "0.3.10"
 strsim = "0.10.0"
-structopt = "0.3.26"
 toml = "0.5.11"
 ureq = { version = "2.6.2", features = ["json"] }
 walkdir = "2.3.2"
