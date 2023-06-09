@@ -20,11 +20,11 @@ pub fn npm_pack(path: &str) -> Result<()> {
 pub fn npm_publish(path: &str, access: Option<Access>, tag: Option<String>) -> Result<()> {
     let mut cmd = child::new_command("npm");
     match access {
-        Some(a) => cmd.current_dir(path).args(["publish", &a.to_string()]),
+        Some(a) => cmd.current_dir(path).arg("publish").arg(&a.to_string()),
         None => cmd.current_dir(path).arg("publish"),
     };
     if let Some(tag) = tag {
-        cmd.args(["--tag", &tag]);
+        cmd.arg("--tag").arg(tag);
     };
 
     child::run(cmd, "npm publish").context("Publishing to npm failed")?;

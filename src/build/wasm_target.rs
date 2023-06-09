@@ -126,7 +126,7 @@ fn check_wasm32_target() -> Result<()> {
 /// Add wasm32-unknown-unknown using `rustup`.
 fn rustup_add_wasm_target() -> Result<()> {
     let mut cmd = Command::new("rustup");
-    cmd.args(["target", "add", "wasm32-unknown-unknown"]);
+    cmd.arg("target").arg("add").arg("wasm32-unknown-unknown");
     child::run(cmd, "rustup").context("Adding the wasm32-unknown-unknown target with rustup")?;
 
     Ok(())
