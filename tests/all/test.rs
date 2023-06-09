@@ -163,7 +163,7 @@ fn the_headless_flag_requires_a_browser() {
 
 #[test]
 fn complains_about_missing_wasm_bindgen_test_dependency() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -205,7 +205,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
 
 #[test]
 fn renamed_crate_name_works() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -249,7 +249,7 @@ fn renamed_crate_name_works() {
 
 #[test]
 fn cdylib_not_required() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -297,7 +297,7 @@ fn cdylib_not_required() {
 
 #[test]
 fn test_output_is_printed_once_in_both_stdout_and_failures() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new()
         .readme()
         .cargo_toml("test-output-printed-once")
         .hello_world_src_lib()
@@ -343,7 +343,7 @@ fn test_output_is_printed_once_in_both_stdout_and_failures() {
 
 #[test]
 fn extra_options_is_passed_to_cargo_when_building_tests() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new()
         .readme()
         .file(
             "Cargo.toml",

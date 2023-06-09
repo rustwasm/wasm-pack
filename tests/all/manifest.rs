@@ -375,7 +375,7 @@ fn it_errors_when_wasm_bindgen_is_not_declared() {
 #[test]
 fn it_sets_homepage_field_if_available_in_cargo_toml() {
     // When 'homepage' is available
-    let fixture = utils::fixture::FixtureBuilder::new()
+    let fixture = utils::fixture::Fixture::new()
         .hello_world_src_lib()
         .file(
             "Cargo.toml",
@@ -432,7 +432,7 @@ fn it_sets_homepage_field_if_available_in_cargo_toml() {
 #[test]
 fn it_sets_keywords_field_if_available_in_cargo_toml() {
     // When 'homepage' is available
-    let fixture = utils::fixture::FixtureBuilder::new()
+    let fixture = utils::fixture::Fixture::new()
         .hello_world_src_lib()
         .file(
             "Cargo.toml",
@@ -499,7 +499,7 @@ fn it_does_not_error_when_wasm_bindgen_is_declared() {
 
 #[test]
 fn configure_wasm_bindgen_debug_incorrectly_is_error() {
-    let fixture = utils::fixture::FixtureBuilder::new()
+    let fixture = utils::fixture::Fixture::new()
         .readme()
         .hello_world_src_lib()
         .file(
@@ -537,7 +537,7 @@ fn configure_wasm_bindgen_debug_incorrectly_is_error() {
 
 #[test]
 fn parse_crate_data_returns_unused_keys_in_cargo_toml() {
-    let fixture = utils::fixture::FixtureBuilder::new()
+    let fixture = utils::fixture::Fixture::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -608,7 +608,7 @@ fn it_lists_license_files_in_files_field_of_package_json() {
 
 #[test]
 fn it_recurses_up_the_path_to_find_cargo_toml() {
-    let fixture = utils::fixture::FixtureBuilder::new();
+    let fixture = utils::fixture::Fixture::new();
     fixture.hello_world_src_lib().file(
         "Cargo.toml",
         r#"
@@ -630,7 +630,7 @@ fn it_recurses_up_the_path_to_find_cargo_toml() {
 
 #[test]
 fn it_doesnt_recurse_up_the_path_to_find_cargo_toml_when_default() {
-    let fixture = utils::fixture::FixtureBuilder::new();
+    let fixture = utils::fixture::Fixture::new();
     fixture.hello_world_src_lib().file(
         "Cargo.toml",
         r#"

@@ -28,7 +28,7 @@ fn matches_cargo() -> impl Predicate<str> + PredicateReflection {
 
 #[test]
 fn quiet() {
-    utils::fixture::FixtureBuilder::new()
+    utils::fixture::Fixture::new()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
         .build()
@@ -43,7 +43,7 @@ fn quiet() {
 
 #[test]
 fn log_level_info() {
-    utils::fixture::FixtureBuilder::new()
+    utils::fixture::Fixture::new()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
         .build()
@@ -59,7 +59,7 @@ fn log_level_info() {
 
 #[test]
 fn log_level_warn() {
-    utils::fixture::FixtureBuilder::new()
+    utils::fixture::Fixture::new()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
         .build()
@@ -79,7 +79,7 @@ fn log_level_warn() {
 
 #[test]
 fn log_level_error() {
-    utils::fixture::FixtureBuilder::new()
+    utils::fixture::Fixture::new()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
         .build()
