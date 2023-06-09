@@ -384,6 +384,10 @@ impl Fixture {
         let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
         cmd.current_dir(&self.path);
         cmd.env("WASM_PACK_CACHE", self.cache_dir());
+
+        // Some of the tests assume that Cargo's output does not contain colors.
+        cmd.env_remove("CARGO_TERM_COLOR");
+
         cmd
     }
 
