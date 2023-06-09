@@ -19,7 +19,7 @@ use crate::command::build::{BuildProfile, Target};
 use crate::PBAR;
 use chrono::offset;
 use chrono::DateTime;
-use serde::{self, Deserialize};
+use serde::{self, de::IgnoredAny, Deserialize};
 use serde_json;
 use std::collections::BTreeSet;
 use std::env;
@@ -44,6 +44,9 @@ pub struct CrateData {
 #[derive(Deserialize)]
 pub struct CargoManifest {
     package: CargoPackage,
+
+    #[serde(flatten, deserialize_with = "deserialize_unchecked_keys")]
+    _unchecked_keys: IgnoredAny,
 }
 
 #[derive(Deserialize)]
@@ -52,6 +55,18 @@ struct CargoPackage {
 
     #[serde(default)]
     metadata: CargoMetadata,
+
+    #[serde(flatten, deserialize_with = "deserialize_unchecked_keys")]
+    _unchecked_keys: IgnoredAny,
+}
+
+/// This doesn't trigger the callback given to `serde_ignored::deserialize`
+/// because it doesn't call `Deserializer::deserialize_ignored_any`.
+fn deserialize_unchecked_keys<'de, D>(deserializer: D) -> Result<IgnoredAny, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    deserializer.deserialize_map(IgnoredAny)
 }
 
 #[derive(Default, Deserialize)]
@@ -447,9 +462,11 @@ impl CrateData {
         let manifest: CargoManifest = serde_ignored::deserialize(manifest, |path| {
             let path_string = path.to_string();
 
-            if path_string.starts_with("package.metadata")
-                && (path_string.contains("wasm-pack")
-                    || levenshtein(WASM_PACK_METADATA_KEY, &path_string) <= levenshtein_threshold)
+            // Check that deserialize_unchecked_keys works correctly
+            debug_assert!(path_string.starts_with("package.metadata"));
+
+            if path_string.contains("wasm-pack")
+                || levenshtein(WASM_PACK_METADATA_KEY, &path_string) <= levenshtein_threshold
             {
                 unused_keys.insert(path_string);
             }
