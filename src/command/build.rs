@@ -315,10 +315,10 @@ impl Build {
     }
 
     fn step_run_checks(&mut self) -> Result<()> {
+        self.step_check_crate_config()?;
         std::thread::scope(|s| {
             for handle in [
                 s.spawn(|| self.step_check_rustc_version()),
-                s.spawn(|| self.step_check_crate_config()),
                 s.spawn(|| self.step_check_for_wasm_target()),
             ] {
                 handle.join().unwrap()?;
