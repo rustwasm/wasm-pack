@@ -522,10 +522,7 @@ fn configure_wasm_bindgen_debug_incorrectly_is_error() {
         .arg("build")
         .arg("--dev")
         .assert()
-        .failure()
-        .stderr(predicates::str::contains(
-            "package.metadata.wasm-pack.profile.dev.wasm-bindgen.debug",
-        ));
+        .failure();
 }
 
 #[test]

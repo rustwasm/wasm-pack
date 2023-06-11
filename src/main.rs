@@ -5,7 +5,7 @@ extern crate atty;
 extern crate env_logger;
 extern crate human_panic;
 extern crate log;
-extern crate structopt;
+extern crate clap;
 extern crate wasm_pack;
 extern crate which;
 
@@ -14,7 +14,7 @@ use std::env;
 use std::panic;
 use std::sync::mpsc;
 use std::thread;
-use structopt::StructOpt;
+use clap::Parser;
 use wasm_pack::{
     build::{self, WasmPackVersion},
     command::run_wasm_pack,
@@ -79,7 +79,7 @@ fn run() -> Result<()> {
         }
     }
 
-    let args = Cli::from_args();
+    let args = Cli::parse();
 
     PBAR.set_log_level(args.log_level);
 

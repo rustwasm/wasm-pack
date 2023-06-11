@@ -15,8 +15,6 @@ extern crate which;
 extern crate serde_derive;
 extern crate serde_ignored;
 extern crate serde_json;
-#[macro_use]
-extern crate structopt;
 extern crate binary_install;
 extern crate chrono;
 extern crate dialoguer;
@@ -43,27 +41,29 @@ pub mod target;
 pub mod test;
 pub mod wasm_opt;
 
+use clap::Parser;
+use clap::builder::ArgAction;
 use crate::progressbar::{LogLevel, ProgressOutput};
 
 /// The global progress bar and user-facing message output.
 pub static PBAR: ProgressOutput = ProgressOutput::new();
 
 /// 📦 ✨  pack and publish your wasm!
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Parser)]
 pub struct Cli {
     /// The subcommand to run.
-    #[structopt(subcommand)] // Note that we mark a field as a subcommand
+    #[clap(subcommand)] // Note that we mark a field as a subcommand
     pub cmd: command::Command,
 
     /// Log verbosity is based off the number of v used
-    #[structopt(long = "verbose", short = "v", parse(from_occurrences))]
+    #[clap(long = "verbose", short = 'v', action = ArgAction::Count)]
     pub verbosity: u8,
 
-    #[structopt(long = "quiet", short = "q")]
+    #[clap(long = "quiet", short = 'q')]
     /// No output printed to stdout
     pub quiet: bool,
 
-    #[structopt(long = "log-level", default_value = "info")]
+    #[clap(long = "log-level", default_value = "info")]
     /// The maximum level of messages that should be logged by wasm-pack. [possible values: info, warn, error]
     pub log_level: LogLevel,
 }
