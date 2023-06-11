@@ -14,12 +14,12 @@ use crate::wasm_opt;
 use crate::PBAR;
 use anyhow::{anyhow, bail, Error, Result};
 use binary_install::Cache;
+use clap::Args;
 use log::info;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
-use clap::{Args};
 
 /// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]

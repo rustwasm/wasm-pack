@@ -9,13 +9,13 @@ use crate::manifest;
 use crate::test::{self, webdriver};
 use anyhow::{bail, Result};
 use binary_install::Cache;
+use clap::builder::ValueParser;
+use clap::Args;
 use console::style;
 use log::info;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
-use clap::Args;
-use clap::builder::ValueParser;
 
 #[derive(Debug, Default, Args)]
 #[command(allow_hyphen_values = true, trailing_var_arg = true)]
