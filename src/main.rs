@@ -2,19 +2,19 @@
 
 extern crate anyhow;
 extern crate atty;
+extern crate clap;
 extern crate env_logger;
 extern crate human_panic;
 extern crate log;
-extern crate clap;
 extern crate wasm_pack;
 extern crate which;
 
 use anyhow::Result;
+use clap::Parser;
 use std::env;
 use std::panic;
 use std::sync::mpsc;
 use std::thread;
-use clap::Parser;
 use wasm_pack::{
     build::{self, WasmPackVersion},
     command::run_wasm_pack,

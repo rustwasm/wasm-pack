@@ -14,12 +14,12 @@ use crate::wasm_opt;
 use crate::PBAR;
 use anyhow::{anyhow, bail, Error, Result};
 use binary_install::Cache;
+use clap::Args;
 use log::info;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
-use clap::{Args};
 
 /// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]
@@ -376,7 +376,7 @@ impl Build {
 
     fn step_copy_readme(&mut self) -> Result<()> {
         info!("Copying readme from crate...");
-        readme::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir)?;
+        readme::copy_from_crate(&self.crate_path, &self.out_dir)?;
         info!("Copied readme from crate to {:#?}.", &self.out_dir);
         Ok(())
     }

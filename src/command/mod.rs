@@ -18,10 +18,10 @@ use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
 use crate::install::InstallMode;
 use anyhow::Result;
+use clap::builder::ValueParser;
+use clap::Subcommand;
 use log::info;
 use std::path::PathBuf;
-use clap::Subcommand;
-use clap::builder::ValueParser;
 /// The various kinds of commands that `wasm-pack` can execute.
 #[derive(Debug, Subcommand)]
 pub enum Command {

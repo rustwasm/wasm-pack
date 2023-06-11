@@ -13,12 +13,12 @@ extern crate strsim;
 extern crate which;
 #[macro_use]
 extern crate serde_derive;
-extern crate serde_ignored;
-extern crate serde_json;
 extern crate binary_install;
 extern crate chrono;
 extern crate dialoguer;
 extern crate log;
+extern crate serde_ignored;
+extern crate serde_json;
 extern crate toml;
 extern crate walkdir;
 
@@ -41,9 +41,9 @@ pub mod target;
 pub mod test;
 pub mod wasm_opt;
 
-use clap::Parser;
-use clap::builder::ArgAction;
 use crate::progressbar::{LogLevel, ProgressOutput};
+use clap::builder::ArgAction;
+use clap::Parser;
 
 /// The global progress bar and user-facing message output.
 pub static PBAR: ProgressOutput = ProgressOutput::new();
