@@ -19,6 +19,7 @@ use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
+use structopt::clap::AppSettings;
 
 /// Everything required to configure and run the `wasm-pack build` command.
 #[allow(missing_docs)]
@@ -108,70 +109,74 @@ pub enum BuildProfile {
 }
 
 /// Everything required to configure and run the `wasm-pack build` command.
-#[derive(Debug, Parser)]
-#[command(
+#[derive(Debug, StructOpt)]
+#[structopt(
     // Allows unknown `--option`s to be parsed as positional arguments, so we can forward it to `cargo`.
-    allow_hyphen_values = true,
+    setting = AppSettings::AllowLeadingHyphen,
+
+    // Allows `--` to be parsed as an argument, so we can forward it to `cargo`.
+    setting = AppSettings::TrailingVarArg,
 )]
 pub struct BuildOptions {
     /// The path to the Rust crate. If not set, searches up the path from the current directory.
+    #[structopt(parse(from_os_str))]
     pub path: Option<PathBuf>,
 
     /// The npm scope to use in package.json, if any.
-    #[arg(long = "scope", short = 's')]
+    #[structopt(long = "scope", short = "s")]
     pub scope: Option<String>,
 
-    #[arg(long = "mode", short = 'm', default_value = "normal")]
+    #[structopt(long = "mode", short = "m", default_value = "normal")]
     /// Sets steps to be run. [possible values: no-install, normal, force]
     pub mode: InstallMode,
 
-    #[arg(long = "no-typescript")]
+    #[structopt(long = "no-typescript")]
     /// By default a *.d.ts file is generated for the generated JS file, but
     /// this flag will disable generating this TypeScript file.
     pub disable_dts: bool,
 
-    #[arg(long = "weak-refs")]
+    #[structopt(long = "weak-refs")]
     /// Enable usage of the JS weak references proposal.
     pub weak_refs: bool,
 
-    #[arg(long = "reference-types")]
+    #[structopt(long = "reference-types")]
     /// Enable usage of WebAssembly reference types.
     pub reference_types: bool,
 
-    #[arg(long = "target", short = 't', default_value = "bundler")]
+    #[structopt(long = "target", short = "t", default_value = "bundler")]
     /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
     pub target: Target,
 
-    #[arg(long = "debug")]
+    #[structopt(long = "debug")]
     /// Deprecated. Renamed to `--dev`.
     pub debug: bool,
 
-    #[arg(long = "dev")]
+    #[structopt(long = "dev")]
     /// Create a development build. Enable debug info, and disable
     /// optimizations.
     pub dev: bool,
 
-    #[arg(long = "release")]
+    #[structopt(long = "release")]
     /// Create a release build. Enable optimizations and disable debug info.
     pub release: bool,
 
-    #[arg(long = "profiling")]
+    #[structopt(long = "profiling")]
     /// Create a profiling build. Enable optimizations and debug info.
     pub profiling: bool,
 
-    #[arg(long = "out-dir", short = 'd', default_value = "pkg")]
+    #[structopt(long = "out-dir", short = "d", default_value = "pkg")]
     /// Sets the output directory with a relative path.
     pub out_dir: String,
 
-    #[arg(long = "out-name")]
+    #[structopt(long = "out-name")]
     /// Sets the output file names. Defaults to package name.
     pub out_name: Option<String>,
 
-    #[arg(long = "no-pack", alias = "no-package")]
+    #[structopt(long = "no-pack", alias = "no-package")]
     /// Option to not generate a package.json
     pub no_pack: bool,
 
-    #[structopt(allow_hyphen_values = true, trailing_var_arg = true)]
+    #[structopt(allow_hyphen_values = true)]
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
 }
