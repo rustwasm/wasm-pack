@@ -29,17 +29,14 @@ pub fn wasm_bindgen_build(
     };
 
     let out_dir = out_dir.to_str().unwrap();
-    let has_target_dir_overwrite = extra_options.contains(&"--target-dir".to_string());
-    let target_directory = if has_target_dir_overwrite {
-        let i = extra_options
-            .binary_search(&"--target-dir".to_string())
-            .unwrap();
-        extra_options
-            .get(i + 1)
+
+    let target_directory = {
+        let mut has_target_dir_iter = extra_options.iter();
+        has_target_dir_iter
+            .find(|&it| it == "--target-dir")
+            .and_then(|_| has_target_dir_iter.next())
             .map(Path::new)
             .unwrap_or(data.target_directory())
-    } else {
-        data.target_directory()
     };
 
     let wasm_path = target_directory
@@ -90,6 +87,9 @@ pub fn wasm_bindgen_build(
     }
     if profile.wasm_bindgen_dwarf_debug_info() {
         cmd.arg("--keep-debug");
+    }
+    if profile.wasm_bindgen_omit_default_module_path() {
+        cmd.arg("--omit-default-module-path");
     }
 
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;

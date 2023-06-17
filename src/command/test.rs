@@ -9,72 +9,68 @@ use crate::manifest;
 use crate::test::{self, webdriver};
 use anyhow::{bail, Result};
 use binary_install::Cache;
+use clap::builder::ValueParser;
+use clap::Args;
+use console::style;
 use log::info;
 use std::path::PathBuf;
 use std::str::FromStr;
 use std::time::Instant;
-use structopt::clap::AppSettings;
 
-#[derive(Debug, Default, StructOpt)]
-#[structopt(
-    // Allows unknown `--option`s to be parsed as positional arguments, so we can forward it to `cargo`.
-    setting = AppSettings::AllowLeadingHyphen,
-
-    // Allows `--` to be parsed as an argument, so we can forward it to `cargo`.
-    setting = AppSettings::TrailingVarArg,
-)]
+#[derive(Debug, Default, Args)]
+#[command(allow_hyphen_values = true, trailing_var_arg = true)]
 /// Everything required to configure the `wasm-pack test` command.
 pub struct TestOptions {
-    #[structopt(long = "node")]
+    #[clap(long = "node")]
     /// Run the tests in Node.js.
     pub node: bool,
 
-    #[structopt(long = "firefox")]
+    #[clap(long = "firefox")]
     /// Run the tests in Firefox. This machine must have a Firefox installation.
     /// If the `geckodriver` WebDriver client is not on the `$PATH`, and not
     /// specified with `--geckodriver`, then `wasm-pack` will download a local
     /// copy.
     pub firefox: bool,
 
-    #[structopt(long = "geckodriver", parse(from_os_str))]
+    #[clap(long = "geckodriver", value_parser = ValueParser::os_string())]
     /// The path to the `geckodriver` WebDriver client for testing in
     /// Firefox. Implies `--firefox`.
     pub geckodriver: Option<PathBuf>,
 
-    #[structopt(long = "chrome")]
+    #[clap(long = "chrome")]
     /// Run the tests in Chrome. This machine must have a Chrome installation.
     /// If the `chromedriver` WebDriver client is not on the `$PATH`, and not
     /// specified with `--chromedriver`, then `wasm-pack` will download a local
     /// copy.
     pub chrome: bool,
 
-    #[structopt(long = "chromedriver", parse(from_os_str))]
+    #[clap(long = "chromedriver", value_parser = ValueParser::os_string())]
     /// The path to the `chromedriver` WebDriver client for testing in
     /// Chrome. Implies `--chrome`.
     pub chromedriver: Option<PathBuf>,
 
-    #[structopt(long = "safari")]
+    #[clap(long = "safari")]
     /// Run the tests in Safari. This machine must have a Safari installation,
     /// and the `safaridriver` WebDriver client must either be on the `$PATH` or
     /// specified explicitly with the `--safaridriver` flag. `wasm-pack` cannot
     /// download the `safaridriver` WebDriver client for you.
     pub safari: bool,
 
-    #[structopt(long = "safaridriver", parse(from_os_str))]
+    #[clap(long = "safaridriver", value_parser = ValueParser::os_string())]
     /// The path to the `safaridriver` WebDriver client for testing in
     /// Safari. Implies `--safari`.
     pub safaridriver: Option<PathBuf>,
 
-    #[structopt(long = "headless")]
+    #[clap(long = "headless")]
     /// When running browser tests, run the browser in headless mode without any
     /// UI or windows.
     pub headless: bool,
 
-    #[structopt(long = "mode", short = "m", default_value = "normal")]
+    #[clap(long = "mode", short = 'm', default_value = "normal")]
     /// Sets steps to be run. [possible values: no-install, normal]
     pub mode: InstallMode,
 
-    #[structopt(long = "release", short = "r")]
+    #[clap(long = "release", short = 'r')]
     /// Build with the release profile.
     pub release: bool,
 
@@ -84,7 +80,6 @@ pub struct TestOptions {
     ///
     /// This is a workaround to allow wasm pack to provide the same command line interface as `cargo`.
     /// See <https://github.com/rustwasm/wasm-pack/pull/851> for more information.
-    #[structopt(allow_hyphen_values = true)]
     pub path_and_extra_options: Vec<String>,
 }
 

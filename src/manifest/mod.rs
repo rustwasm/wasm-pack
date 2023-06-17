@@ -132,6 +132,9 @@ struct CargoWasmPackProfileWasmBindgen {
 
     #[serde(default, rename = "dwarf-debug-info")]
     dwarf_debug_info: Option<bool>,
+
+    #[serde(default, rename = "omit-default-module-path")]
+    omit_default_module_path: Option<bool>,
 }
 
 /// Struct for storing information received from crates.io
@@ -286,6 +289,7 @@ impl CargoWasmPackProfile {
                 debug_js_glue: Some(true),
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
+                omit_default_module_path: Some(false),
             },
             wasm_opt: None,
         }
@@ -297,6 +301,7 @@ impl CargoWasmPackProfile {
                 debug_js_glue: Some(false),
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
+                omit_default_module_path: Some(false),
             },
             wasm_opt: Some(CargoWasmPackProfileWasmOpt::Enabled(true)),
         }
@@ -308,6 +313,7 @@ impl CargoWasmPackProfile {
                 debug_js_glue: Some(false),
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
+                omit_default_module_path: Some(false),
             },
             wasm_opt: Some(CargoWasmPackProfileWasmOpt::Enabled(true)),
         }
@@ -349,6 +355,7 @@ impl CargoWasmPackProfile {
         d!(wasm_bindgen.debug_js_glue);
         d!(wasm_bindgen.demangle_name_section);
         d!(wasm_bindgen.dwarf_debug_info);
+        d!(wasm_bindgen.omit_default_module_path);
 
         if self.wasm_opt.is_none() {
             self.wasm_opt = defaults.wasm_opt.clone();
@@ -368,6 +375,11 @@ impl CargoWasmPackProfile {
     /// Get this profile's configured `[wasm-bindgen.dwarf-debug-info]` value.
     pub fn wasm_bindgen_dwarf_debug_info(&self) -> bool {
         self.wasm_bindgen.dwarf_debug_info.unwrap()
+    }
+
+    /// Get this profile's configured `[wasm-bindgen.omit-default-module-path]` value.
+    pub fn wasm_bindgen_omit_default_module_path(&self) -> bool {
+        self.wasm_bindgen.omit_default_module_path.unwrap()
     }
 
     /// Get this profile's configured arguments for `wasm-opt`, if enabled.
@@ -454,7 +466,7 @@ impl CrateData {
     pub fn parse_crate_data(manifest_path: &Path) -> Result<ManifestAndUnsedKeys> {
         let manifest = fs::read_to_string(&manifest_path)
             .with_context(|| anyhow!("failed to read: {}", manifest_path.display()))?;
-        let manifest = &mut toml::Deserializer::new(&manifest);
+        let manifest = toml::Deserializer::new(&manifest);
 
         let mut unused_keys = BTreeSet::new();
         let levenshtein_threshold = 1;
@@ -546,14 +558,6 @@ impl CrateData {
             Some(value) => value.clone(),
             None => self.crate_name(),
         }
-    }
-
-    /// Gets the optional path to the readme, or None if disabled.
-    pub fn crate_readme(&self) -> Option<String> {
-        self.pkg()
-            .readme
-            .clone()
-            .map(|readme_file| readme_file.into_string())
     }
 
     /// Get the license for the crate at the given path.

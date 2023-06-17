@@ -18,66 +18,66 @@ use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
 use crate::install::InstallMode;
 use anyhow::Result;
+use clap::builder::ValueParser;
+use clap::Subcommand;
 use log::info;
 use std::path::PathBuf;
-
 /// The various kinds of commands that `wasm-pack` can execute.
-#[derive(Debug, StructOpt)]
+#[derive(Debug, Subcommand)]
 pub enum Command {
     /// 🏗️  build your npm package!
-    #[structopt(name = "build", alias = "init")]
+    #[clap(name = "build", alias = "init")]
     Build(BuildOptions),
 
-    #[structopt(name = "pack")]
+    #[clap(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish!
     Pack {
         /// The path to the Rust crate. If not set, searches up the path from the current directory.
-        #[structopt(parse(from_os_str))]
+        #[clap(value_parser = ValueParser::os_string())]
         path: Option<PathBuf>,
     },
 
-    #[structopt(name = "new")]
+    #[clap(name = "new")]
     /// 🐑 create a new project with a template
     Generate {
         /// The name of the project
         name: String,
         /// The URL to the template
-        #[structopt(
+        #[clap(
             long = "template",
-            short = "temp",
             default_value = "https://github.com/rustwasm/wasm-pack-template"
         )]
         template: String,
-        #[structopt(long = "mode", short = "m", default_value = "normal")]
+        #[clap(long = "mode", short = 'm', default_value = "normal")]
         /// Should we install or check the presence of binary tools. [possible values: no-install, normal, force]
         mode: InstallMode,
     },
 
-    #[structopt(name = "publish")]
+    #[clap(name = "publish")]
     /// 🎆  pack up your npm package and publish!
     Publish {
-        #[structopt(long = "target", short = "t", default_value = "bundler")]
+        #[clap(long = "target", short = 't', default_value = "bundler")]
         /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
         target: String,
 
         /// The access level for the package to be published
-        #[structopt(long = "access", short = "a")]
+        #[clap(long = "access", short = 'a')]
         access: Option<Access>,
 
         /// The distribution tag being used for publishing.
         /// See https://docs.npmjs.com/cli/dist-tag
-        #[structopt(long = "tag")]
+        #[clap(long = "tag")]
         tag: Option<String>,
 
         /// The path to the Rust crate. If not set, searches up the path from the current directory.
-        #[structopt(parse(from_os_str))]
+        #[clap(value_parser = ValueParser::os_string())]
         path: Option<PathBuf>,
     },
 
-    #[structopt(name = "login", alias = "adduser", alias = "add-user")]
+    #[clap(name = "login", alias = "adduser", alias = "add-user")]
     /// 👤  Add an npm registry user account! (aliases: adduser, add-user)
     Login {
-        #[structopt(long = "registry", short = "r")]
+        #[clap(long = "registry", short = 'r')]
         /// Default: 'https://registry.npmjs.org/'.
         /// The base URL of the npm package registry. If scope is also
         /// specified, this registry will only be used for packages with that
@@ -85,13 +85,13 @@ pub enum Command {
         /// currently in, if any.
         registry: Option<String>,
 
-        #[structopt(long = "scope", short = "s")]
+        #[clap(long = "scope", short = 's')]
         /// Default: none.
         /// If specified, the user and login credentials given will be
         /// associated with the specified scope.
         scope: Option<String>,
 
-        #[structopt(long = "auth-type", short = "t")]
+        #[clap(long = "auth-type", short = 't')]
         /// Default: 'legacy'.
         /// Type: 'legacy', 'sso', 'saml', 'oauth'.
         /// What authentication strategy to use with adduser/login. Some npm
@@ -100,7 +100,7 @@ pub enum Command {
         auth_type: Option<String>,
     },
 
-    #[structopt(name = "test")]
+    #[clap(name = "test")]
     /// 👩‍🔬  test your wasm!
     Test(TestOptions),
 }

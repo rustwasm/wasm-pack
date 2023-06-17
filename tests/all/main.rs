@@ -8,7 +8,7 @@ extern crate binary_install;
 extern crate serde_json;
 #[macro_use]
 extern crate serial_test;
-extern crate structopt;
+extern crate clap;
 extern crate tempfile;
 extern crate wasm_pack;
 
