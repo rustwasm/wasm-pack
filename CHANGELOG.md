@@ -2,6 +2,120 @@
 
 ## 🤍 Unreleased
 
+## ☀️ 0.12.0
+
+- ### ✨ Features
+
+  - **Add --no-pack flag to build command - [hamza1311], [ashleygwilliams], [issue/691], [issue/811], [pull/695], [pull/1291]**
+
+    When calling wasm-pack build a user can optionally pass --no-pack and wasm-pack will build your wasm, generate js, and not build a package.json.
+
+    [issue/691]: https://github.com/rustwasm/wasm-pack/issues/691
+    [issue/811]: https://github.com/rustwasm/wasm-pack/issues/811
+    [pull/695]: https://github.com/rustwasm/wasm-pack/pull/695
+    [pull/1291]: https://github.com/rustwasm/wasm-pack/pull/1291
+    [ashleygwilliams]: https://github.com/ashleygwilliams
+
+  - **Add wasmbindgen option: omit_default_module_path - [matthiasgeihs], [pull/1272]**
+
+    Adds an option to call wasm-bindgen with --omit_default_module_path.
+
+    [pull/1272]: https://github.com/rustwasm/wasm-pack/pull/1272
+    [matthiasgeihs]: https://github.com/matthiasgeihs
+
+- ### 🤕 Fixes
+
+  - **Add HTTP header USER-AGENT - [LeviticusNelson], [issue/1266], [pull/1285]**
+
+    We encountered some issues when we didn't send an User-Agent. This is now fixed.
+
+    [issue/1266]: https://github.com/rustwasm/wasm-pack/issues/1266
+    [pull/1285]: https://github.com/rustwasm/wasm-pack/pull/1285
+    [LeviticusNelson]: https://github.com/LeviticusNelson
+
+  - **Replace curl with ureq - [hamza1311], [issue/650], [issue/823], [issue/997], [issue/1079], [issue/1203], [issue/1234], [issue/1281], [pull/1290]**
+
+    The HTTP client is now pure Rust. Removes the dependency of openssl which have caused a lot of issues for people using wasm-pack on various distributions.
+
+    [issue/650]: https://github.com/rustwasm/wasm-pack/issues/650
+    [issue/823]: https://github.com/rustwasm/wasm-pack/issues/823
+    [issue/997]: https://github.com/rustwasm/wasm-pack/issues/997
+    [issue/1079]: https://github.com/rustwasm/wasm-pack/issues/1079
+    [issue/1203]: https://github.com/rustwasm/wasm-pack/issues/1203
+    [issue/1234]: https://github.com/rustwasm/wasm-pack/issues/1234
+    [issue/1281]: https://github.com/rustwasm/wasm-pack/issues/1281
+    [pull/1290]: https://github.com/rustwasm/wasm-pack/pull/1290
+    [hamza1311]: https://github.com/hamza1311
+
+  - **Update binary-install to 0.2.0. binary-install replaced curl with ureq - [drager]**
+
+    See [PR](https://github.com/rustwasm/binary-install/pull/24) in binary-install repo for more information.
+
+    [drager]: https://github.com/drager
+
+  - **Remove --always-auth from npm login - [EstebanBorai], [pull/1288]**
+
+    npm login doesn't support --always-auth anymore, instead it is under the adduser subcommand.
+
+    [pull/1288]: https://github.com/rustwasm/wasm-pack/pull/1288
+    [EstebanBorai]: https://github.com/EstebanBorai
+
+  - **Turn off cargo colors during log level test - [dtolnay], [pull/1294]**
+
+    [pull/1294]: https://github.com/rustwasm/wasm-pack/pull/1294
+    [dtolnay]: https://github.com/dtolnay
+
+  - **Fix getting the target-dir in wasm_bindgen_build - [tomasol], [issue/1278], [pull/1279]**
+
+    Fixes a wasm-pack panic if --target-dir was supplied (and arguments are not sorted).
+
+    [issue/1278]: https://github.com/rustwasm/wasm-pack/issues/1278
+    [pull/1279]: https://github.com/rustwasm/wasm-pack/pull/1279
+    [tomasol]: https://github.com/tomasol
+
+  - **Respect package.readme in Cargo.toml - [heaths], [issue/1215], [pull/1298], [pull/1216]**
+
+    wasm-pack now respects specifying readme=false:
+
+    ```toml
+    [package]
+    readme = false
+    ```
+
+    [issue/1215]: https://github.com/rustwasm/wasm-pack/issues/1215
+    [pull/1298]: https://github.com/rustwasm/wasm-pack/pull/1298
+    [pull/1216]: https://github.com/rustwasm/wasm-pack/pull/1216
+    [heaths]: https://github.com/heaths
+
+- ### 📖 Documentation
+
+  - **Don't hide install options behind link - [oyamauchi], [issue/355], [pull/1242]**
+
+    [issue/355]: https://github.com/rustwasm/wasm-pack/issues/355
+    [pull/1242]: https://github.com/rustwasm/wasm-pack/issues/1242
+    [oyamauchi]: https://github.com/oyamauchi
+
+- ### 🛠️ Maintenance
+
+  - **Bump cargo-generate version to 0.18.2 - [sassman], [issue/1245] [pull/1269]**
+
+    [issue/1245]: https://github.com/rustwasm/wasm-pack/issues/1245
+    [pull/1269]: https://github.com/rustwasm/wasm-pack/pull/1269
+    [sassman]: https://github.com/sassman
+
+  - **Replace unmaintained actions-rs/toolchain action in CI workflows - [striezel], [pull/1246]**
+
+    Now we are using https://github.com/dtolnay/rust-toolchain instead.
+
+    [pull/1246]: https://github.com/rustwasm/wasm-pack/pull/1246
+    [striezel]: https://github.com/striezel
+
+  - **Update several dependencies - [hamza1311], [pull/1292]**
+
+    Updated clap, toml, predicates and serial_test to their latest versions.
+
+    [pull/1292]: https://github.com/rustwasm/wasm-pack/pull/1292
+
 ## 🌦️ 0.11.1
 
 - ### 🤕 Fixes
