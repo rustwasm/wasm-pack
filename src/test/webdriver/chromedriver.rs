@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 // Keep it up to date with each `wasm-pack` release.
 // https://chromedriver.storage.googleapis.com/LATEST_RELEASE
-const DEFAULT_CHROMEDRIVER_VERSION: &str = "113.0.5672.63";
+const DEFAULT_CHROMEDRIVER_VERSION: &str = "114.0.5735.90";
 
 const CHROMEDRIVER_LAST_UPDATED_STAMP: &str = "chromedriver_last_updated";
 const CHROMEDRIVER_VERSION_STAMP: &str = "chromedriver_version";
