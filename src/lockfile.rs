@@ -2,8 +2,9 @@
 
 #![allow(clippy::new_ret_no_self)]
 
+use std::borrow::Cow;
+use std::fs;
 use std::path::PathBuf;
-use std::{borrow::Cow, fs};
 
 use crate::manifest::CrateData;
 use anyhow::{anyhow, bail, Context, Result};
