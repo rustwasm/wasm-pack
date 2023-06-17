@@ -5,7 +5,7 @@ use std::env;
 
 #[test]
 fn it_can_run_node_tests() {
-    let fixture = fixture::wbg_test_node().build();
+    let fixture = fixture::wbg_test_node();
     fixture.install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
@@ -18,7 +18,7 @@ fn it_can_run_node_tests() {
 
 #[test]
 fn it_can_run_tests_with_different_wbg_test_and_wbg_versions() {
-    let fixture = fixture::wbg_test_diff_versions().build();
+    let fixture = fixture::wbg_test_diff_versions();
     fixture.install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
@@ -38,7 +38,7 @@ fn it_can_run_tests_with_different_wbg_test_and_wbg_versions() {
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn it_can_run_browser_tests() {
-    let fixture = fixture::wbg_test_browser().build();
+    let fixture = fixture::wbg_test_browser();
     fixture.install_local_wasm_bindgen();
 
     let firefox = cfg!(any(
@@ -87,7 +87,7 @@ fn it_can_run_browser_tests() {
 
 #[test]
 fn it_can_run_failing_tests() {
-    let fixture = fixture::wbg_test_fail().build();
+    let fixture = fixture::wbg_test_fail();
     fixture.install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
@@ -111,7 +111,7 @@ fn it_can_run_failing_tests() {
     all(target_os = "windows", target_arch = "x86_64")
 ))]
 fn it_can_find_a_webdriver_on_path() {
-    let fixture = fixture::wbg_test_browser().build();
+    let fixture = fixture::wbg_test_browser();
     let local_geckodriver = fixture.install_local_geckodriver();
     let local_wasm_bindgen = fixture.install_local_wasm_bindgen();
 
@@ -135,7 +135,7 @@ fn it_can_find_a_webdriver_on_path() {
 
 #[test]
 fn it_requires_node_or_a_browser() {
-    let fixture = fixture::wbg_test_node().build();
+    let fixture = fixture::wbg_test_node();
     fixture.install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
@@ -148,7 +148,7 @@ fn it_requires_node_or_a_browser() {
 
 #[test]
 fn the_headless_flag_requires_a_browser() {
-    let fixture = fixture::wbg_test_node().build();
+    let fixture = fixture::wbg_test_node();
     fixture.install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
@@ -163,7 +163,8 @@ fn the_headless_flag_requires_a_browser() {
 
 #[test]
 fn complains_about_missing_wasm_bindgen_test_dependency() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new();
+    fixture
         .readme()
         .file(
             "Cargo.toml",
@@ -187,8 +188,7 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
             "#,
         )
         .hello_world_src_lib()
-        .build();
-    fixture.install_local_wasm_bindgen();
+        .install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
         .wasm_pack()
@@ -205,7 +205,8 @@ fn complains_about_missing_wasm_bindgen_test_dependency() {
 
 #[test]
 fn renamed_crate_name_works() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new();
+    fixture
         .readme()
         .file(
             "Cargo.toml",
@@ -236,8 +237,7 @@ fn renamed_crate_name_works() {
                 pub fn one() -> u32 { 1 }
             "#,
         )
-        .build();
-    fixture.install_local_wasm_bindgen();
+        .install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
         .wasm_pack()
@@ -249,7 +249,8 @@ fn renamed_crate_name_works() {
 
 #[test]
 fn cdylib_not_required() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new();
+    fixture
         .readme()
         .file(
             "Cargo.toml",
@@ -284,8 +285,7 @@ fn cdylib_not_required() {
                 }
             "#,
         )
-        .build();
-    fixture.install_local_wasm_bindgen();
+        .install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
         .wasm_pack()
@@ -297,7 +297,8 @@ fn cdylib_not_required() {
 
 #[test]
 fn test_output_is_printed_once_in_both_stdout_and_failures() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new();
+    fixture
         .readme()
         .cargo_toml("test-output-printed-once")
         .hello_world_src_lib()
@@ -322,8 +323,7 @@ fn test_output_is_printed_once_in_both_stdout_and_failures() {
                 }
             "#,
         )
-        .build();
-    fixture.install_local_wasm_bindgen();
+        .install_local_wasm_bindgen();
     let _lock = fixture.lock();
 
     // there will be only one log in stdout, and only one log in failures
@@ -343,7 +343,8 @@ fn test_output_is_printed_once_in_both_stdout_and_failures() {
 
 #[test]
 fn extra_options_is_passed_to_cargo_when_building_tests() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new();
+    fixture
         .readme()
         .file(
             "Cargo.toml",
@@ -388,8 +389,8 @@ fn extra_options_is_passed_to_cargo_when_building_tests() {
                     panic!("This should be filtered from test execution.");
                 }
             "#,
-        ).build();
-    fixture.install_local_wasm_bindgen();
+        )
+        .install_local_wasm_bindgen();
     let _lock = fixture.lock();
     fixture
         .wasm_pack()

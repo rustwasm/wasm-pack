@@ -11,7 +11,7 @@ use wasm_pack::readme;
 
 #[test]
 fn it_copies_a_readme_default_path() {
-    let fixture = fixture::js_hello_world().build();
+    let fixture = fixture::js_hello_world();
     let out_dir = fixture.path.join("pkg");
     fs::create_dir(&out_dir).expect("should create pkg directory OK");
     let crate_data = CrateData::new(&fixture.path, None).unwrap();
@@ -36,7 +36,8 @@ fn it_copies_a_readme_default_path() {
 
 #[test]
 fn it_copies_a_readme_provided_path() {
-    let fixture = fixture::FixtureBuilder::new()
+    let fixture = fixture::Fixture::new();
+    fixture
         .hello_world_src_lib()
         .file(
             "Cargo.toml",
@@ -71,8 +72,7 @@ fn it_copies_a_readme_provided_path() {
             # Fixture!
             > an example rust -> wasm project
         "#,
-        )
-        .build();
+        );
 
     let crate_docs_dir = fixture.path.join("docs");
     let out_dir = fixture.path.join("pkg");
@@ -97,7 +97,7 @@ fn it_copies_a_readme_provided_path() {
 
 #[test]
 fn it_ignores_a_disabled_readme() {
-    fixture::FixtureBuilder::new()
+    fixture::Fixture::new()
         .hello_world_src_lib()
         .file(
             "Cargo.toml",
@@ -126,7 +126,6 @@ fn it_ignores_a_disabled_readme() {
         "#,
         )
         .license()
-        .build()
         .wasm_pack()
         .arg("build")
         .assert()
