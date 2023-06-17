@@ -541,6 +541,14 @@ impl CrateData {
         }
     }
 
+    /// Gets the optional path to the readme, or None if disabled.
+    pub fn crate_readme(&self) -> Option<String> {
+        self.pkg()
+            .readme
+            .clone()
+            .map(|readme_file| readme_file.into_string())
+    }
+
     /// Get the license for the crate at the given path.
     pub fn crate_license(&self) -> &Option<String> {
         &self.pkg().license

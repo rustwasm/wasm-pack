@@ -15,13 +15,6 @@ fn matches_info() -> impl Predicate<str> + PredicateReflection {
         .and(contains(format!("[INFO]: {} Your wasm pkg is ready to publish at ", emoji::PACKAGE)))
 }
 
-fn matches_warn() -> impl Predicate<str> + PredicateReflection {
-    contains(format!(
-        "[WARN]: {} origin crate has no README",
-        emoji::WARN
-    ))
-}
-
 fn matches_cargo() -> impl Predicate<str> + PredicateReflection {
     contains("Finished release [optimized] target(s) in ")
 }
@@ -52,7 +45,7 @@ fn log_level_info() {
         .assert()
         .success()
         .stdout("")
-        .stderr(matches_cargo().and(matches_warn()).and(matches_info()));
+        .stderr(matches_cargo().and(matches_info()));
 }
 
 #[test]
@@ -67,11 +60,7 @@ fn log_level_warn() {
         .assert()
         .success()
         .stdout("")
-        .stderr(
-            matches_cargo()
-                .and(matches_warn())
-                .and(matches_info().not()),
-        );
+        .stderr(matches_cargo().and(matches_info().not()));
 }
 
 #[test]
@@ -86,9 +75,5 @@ fn log_level_error() {
         .assert()
         .success()
         .stdout("")
-        .stderr(
-            matches_cargo()
-                .and(matches_warn().not())
-                .and(matches_info().not()),
-        );
+        .stderr(matches_cargo().and(matches_info().not()));
 }
