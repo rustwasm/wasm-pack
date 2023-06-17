@@ -4,7 +4,7 @@ use predicates::prelude::*;
 
 #[test]
 fn off_in_dev() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .cargo_toml("foo")
         .file("src/lib.rs", "")
@@ -23,7 +23,7 @@ fn off_in_dev() {
 
 #[test]
 fn on_in_release() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .cargo_toml("foo")
         .file("src/lib.rs", "")
@@ -41,7 +41,7 @@ fn on_in_release() {
 
 #[test]
 fn disable_in_release() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -79,7 +79,7 @@ fn disable_in_release() {
 
 #[test]
 fn enable_in_dev() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -120,7 +120,7 @@ fn enable_in_dev() {
 
 #[test]
 fn custom_args() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -158,7 +158,7 @@ fn custom_args() {
 
 #[test]
 fn misconfigured() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",

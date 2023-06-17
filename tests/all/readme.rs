@@ -36,7 +36,7 @@ fn it_copies_a_readme_default_path() {
 
 #[test]
 fn it_copies_a_readme_provided_path() {
-    let fixture = fixture::Fixture::new()
+    let fixture = fixture::FixtureBuilder::new()
         .hello_world_src_lib()
         .file(
             "Cargo.toml",
@@ -97,7 +97,7 @@ fn it_copies_a_readme_provided_path() {
 
 #[test]
 fn it_ignores_a_disabled_readme() {
-    fixture::Fixture::new()
+    fixture::FixtureBuilder::new()
         .hello_world_src_lib()
         .file(
             "Cargo.toml",

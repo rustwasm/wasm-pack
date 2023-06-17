@@ -29,6 +29,31 @@ pub struct FixtureBuilder {
 }
 
 impl FixtureBuilder {
+    /// Create a new test fixture in a temporary directory.
+    pub fn new() -> FixtureBuilder {
+        // Make sure that all fixtures end up sharing a target dir, and we don't
+        // recompile wasm-bindgen and friends many times over.
+        static SET_TARGET_DIR: Once = Once::new();
+        let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
+        SET_TARGET_DIR.call_once(|| {
+            env::set_var("CARGO_TARGET_DIR", &target_dir);
+        });
+
+        let root = target_dir.join("t");
+        fs::create_dir_all(&root).unwrap();
+        let dir = TempDir::new_in(&root).unwrap();
+        let path = dir.path().join("wasm-pack");
+        eprintln!("Created fixture at {}", path.display());
+        let fixture = Fixture {
+            dir: ManuallyDrop::new(dir),
+            path,
+        };
+        FixtureBuilder {
+            fixture,
+            pending_writes: Arc::new(AtomicI8::new(0)),
+        }
+    }
+
     /// Create a file within this fixture.
     ///
     /// `path` should be a relative path to the file (relative within this
@@ -219,31 +244,6 @@ impl FixtureBuilder {
 }
 
 impl Fixture {
-    /// Create a new test fixture in a temporary directory.
-    pub fn new() -> FixtureBuilder {
-        // Make sure that all fixtures end up sharing a target dir, and we don't
-        // recompile wasm-bindgen and friends many times over.
-        static SET_TARGET_DIR: Once = Once::new();
-        let target_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("target");
-        SET_TARGET_DIR.call_once(|| {
-            env::set_var("CARGO_TARGET_DIR", &target_dir);
-        });
-
-        let root = target_dir.join("t");
-        fs::create_dir_all(&root).unwrap();
-        let dir = TempDir::new_in(&root).unwrap();
-        let path = dir.path().join("wasm-pack");
-        eprintln!("Created fixture at {}", path.display());
-        let fixture = Fixture {
-            dir: ManuallyDrop::new(dir),
-            path,
-        };
-        FixtureBuilder {
-            fixture,
-            pending_writes: Arc::new(AtomicI8::new(0)),
-        }
-    }
-
     /// Install a local wasm-bindgen for this fixture.
     ///
     /// Takes care not to re-install for every fixture, but only the one time
@@ -409,7 +409,7 @@ impl Drop for Fixture {
 }
 
 pub fn bad_cargo_toml() -> FixtureBuilder {
-    Fixture::new().readme().hello_world_src_lib().file(
+    FixtureBuilder::new().readme().hello_world_src_lib().file(
         "Cargo.toml",
         r#"
             [package]
@@ -427,14 +427,14 @@ pub fn bad_cargo_toml() -> FixtureBuilder {
 }
 
 pub fn js_hello_world() -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         .readme()
         .cargo_toml("js-hello-world")
         .hello_world_src_lib()
 }
 
 pub fn no_cdylib() -> FixtureBuilder {
-    Fixture::new().readme().hello_world_src_lib().file(
+    FixtureBuilder::new().readme().hello_world_src_lib().file(
         "Cargo.toml",
         r#"
             [package]
@@ -458,11 +458,11 @@ pub fn no_cdylib() -> FixtureBuilder {
 }
 
 pub fn not_a_crate() -> FixtureBuilder {
-    Fixture::new().file("README.md", "This is not a Rust crate!")
+    FixtureBuilder::new().file("README.md", "This is not a Rust crate!")
 }
 
 pub fn serde_feature() -> FixtureBuilder {
-    Fixture::new().readme().hello_world_src_lib().file(
+    FixtureBuilder::new().readme().hello_world_src_lib().file(
         "Cargo.toml",
         r#"
             [package]
@@ -481,7 +481,7 @@ pub fn serde_feature() -> FixtureBuilder {
 }
 
 pub fn wbg_test_diff_versions() -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -531,7 +531,7 @@ pub fn wbg_test_diff_versions() -> FixtureBuilder {
 }
 
 pub fn wbg_test_browser() -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         .readme()
         .cargo_toml("wbg-test-browser")
         .hello_world_src_lib()
@@ -552,7 +552,7 @@ pub fn wbg_test_browser() -> FixtureBuilder {
 }
 
 pub fn wbg_test_fail() -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         .readme()
         .cargo_toml("wbg-test-fail")
         .hello_world_src_lib()
@@ -571,7 +571,7 @@ pub fn wbg_test_fail() -> FixtureBuilder {
 }
 
 pub fn wbg_test_node() -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         .readme()
         .cargo_toml("wbg-test-node")
         .hello_world_src_lib()
@@ -590,7 +590,7 @@ pub fn wbg_test_node() -> FixtureBuilder {
 }
 
 pub fn transitive_dependencies() -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         // main
         .file(PathBuf::from("main/README"), "# Main Fixture\n")
         .file(
@@ -733,7 +733,7 @@ pub fn transitive_dependencies() -> FixtureBuilder {
 }
 
 pub fn single_license() -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         .readme()
         .cargo_toml("single_license")
         .license()
@@ -741,7 +741,7 @@ pub fn single_license() -> FixtureBuilder {
 }
 
 pub fn dual_license() -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         .readme()
         .cargo_toml("dual_license")
         .wtfpl_license()
@@ -750,7 +750,7 @@ pub fn dual_license() -> FixtureBuilder {
 }
 
 pub fn non_standard_license(license_file: &str) -> FixtureBuilder {
-    Fixture::new()
+    FixtureBuilder::new()
         .readme()
         .cargo_toml_with_license_file("dual_license", license_file)
         .file(license_file, "license file for test")

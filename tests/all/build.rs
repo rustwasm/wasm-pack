@@ -39,7 +39,7 @@ fn it_should_not_make_a_pkg_json_if_passed_no_pack() {
 
 #[test]
 fn it_should_build_crates_in_a_workspace() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .file(
             "Cargo.toml",
             r#"
@@ -87,7 +87,7 @@ fn it_should_build_crates_in_a_workspace() {
 
 #[test]
 fn renamed_crate_name_works() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -122,7 +122,7 @@ fn renamed_crate_name_works() {
 
 #[test]
 fn dash_dash_web_target_has_error_on_old_bindgen() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "Cargo.toml",
@@ -201,7 +201,7 @@ fn build_different_profiles() {
 #[test]
 fn build_with_and_without_wasm_bindgen_debug() {
     for debug in [true, false].iter().cloned() {
-        let fixture = utils::fixture::Fixture::new()
+        let fixture = utils::fixture::FixtureBuilder::new()
             .readme()
             .file(
                 "Cargo.toml",
@@ -327,7 +327,7 @@ fn build_from_new() {
 
 #[test]
 fn build_crates_with_same_names() {
-    let fixture = utils::fixture::Fixture::new()
+    let fixture = utils::fixture::FixtureBuilder::new()
         .readme()
         .file(
             "somename1/Cargo.toml",

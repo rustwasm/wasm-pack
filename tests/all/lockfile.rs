@@ -22,7 +22,7 @@ fn it_gets_wasm_bindgen_test_version() {
 
 #[test]
 fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
-    let fixture = fixture::Fixture::new()
+    let fixture = fixture::FixtureBuilder::new()
         .file(
             "Cargo.toml",
             r#"
@@ -67,7 +67,7 @@ fn it_gets_wasm_bindgen_version_in_crate_inside_workspace() {
 
 #[test]
 fn it_gets_wasm_bindgen_version_from_dependencies() {
-    let fixture = fixture::Fixture::new()
+    let fixture = fixture::FixtureBuilder::new()
         .file(
             "Cargo.toml",
             r#"
