@@ -57,10 +57,7 @@ pub fn check_for_wasm32_target() -> Result<()> {
     PBAR.info(&msg);
 
     // Check if wasm32 target is present, otherwise bail.
-    match check_wasm32_target() {
-        Ok(()) => Ok(()),
-        Err(err) => Err(err),
-    }
+    check_wasm32_target()
 }
 
 /// Get rustc's sysroot as a PathBuf

@@ -296,7 +296,7 @@ impl Build {
         match &mode {
             InstallMode::Force => {}
             _ => {
-                steps.extend(steps![step_run_checks,]);
+                steps.extend(steps![step_check_rustc, step_check_crate_config,]);
             }
         }
 
@@ -319,8 +319,7 @@ impl Build {
         steps
     }
 
-    fn step_run_checks(&mut self) -> Result<()> {
-        self.step_check_crate_config()?;
+    fn step_check_rustc(&mut self) -> Result<()> {
         std::thread::scope(|s| {
             for handle in [
                 s.spawn(|| self.step_check_rustc_version()),
@@ -340,7 +339,7 @@ impl Build {
         Ok(())
     }
 
-    fn step_check_crate_config(&self) -> Result<()> {
+    fn step_check_crate_config(&mut self) -> Result<()> {
         info!("Checking crate configuration...");
         self.crate_data.check_crate_config()?;
         info!("Crate is correctly configured.");
