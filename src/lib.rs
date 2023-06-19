@@ -50,6 +50,7 @@ pub static PBAR: ProgressOutput = ProgressOutput::new();
 
 /// 📦 ✨  pack and publish your wasm!
 #[derive(Debug, Parser)]
+#[command(version)]
 pub struct Cli {
     /// The subcommand to run.
     #[clap(subcommand)] // Note that we mark a field as a subcommand
