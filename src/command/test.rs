@@ -9,7 +9,6 @@ use crate::manifest;
 use crate::test::{self, webdriver};
 use anyhow::{bail, Result};
 use binary_install::Cache;
-use clap::builder::ValueParser;
 use clap::Args;
 use console::style;
 use log::info;
@@ -32,7 +31,7 @@ pub struct TestOptions {
     /// copy.
     pub firefox: bool,
 
-    #[clap(long = "geckodriver", value_parser = ValueParser::os_string())]
+    #[clap(long = "geckodriver")]
     /// The path to the `geckodriver` WebDriver client for testing in
     /// Firefox. Implies `--firefox`.
     pub geckodriver: Option<PathBuf>,
@@ -44,7 +43,7 @@ pub struct TestOptions {
     /// copy.
     pub chrome: bool,
 
-    #[clap(long = "chromedriver", value_parser = ValueParser::os_string())]
+    #[clap(long = "chromedriver")]
     /// The path to the `chromedriver` WebDriver client for testing in
     /// Chrome. Implies `--chrome`.
     pub chromedriver: Option<PathBuf>,
@@ -56,7 +55,7 @@ pub struct TestOptions {
     /// download the `safaridriver` WebDriver client for you.
     pub safari: bool,
 
-    #[clap(long = "safaridriver", value_parser = ValueParser::os_string())]
+    #[clap(long = "safaridriver")]
     /// The path to the `safaridriver` WebDriver client for testing in
     /// Safari. Implies `--safari`.
     pub safaridriver: Option<PathBuf>,

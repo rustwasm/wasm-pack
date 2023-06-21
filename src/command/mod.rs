@@ -18,7 +18,6 @@ use self::publish::{access::Access, publish};
 use self::test::{Test, TestOptions};
 use crate::install::InstallMode;
 use anyhow::Result;
-use clap::builder::ValueParser;
 use clap::Subcommand;
 use log::info;
 use std::path::PathBuf;
@@ -33,7 +32,7 @@ pub enum Command {
     /// 🍱  create a tar of your npm package but don't publish!
     Pack {
         /// The path to the Rust crate. If not set, searches up the path from the current directory.
-        #[clap(value_parser = ValueParser::os_string())]
+        #[clap()]
         path: Option<PathBuf>,
     },
 
@@ -70,7 +69,7 @@ pub enum Command {
         tag: Option<String>,
 
         /// The path to the Rust crate. If not set, searches up the path from the current directory.
-        #[clap(value_parser = ValueParser::os_string())]
+        #[clap()]
         path: Option<PathBuf>,
     },
 
