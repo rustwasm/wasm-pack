@@ -2,6 +2,28 @@
 
 ## 🤍 Unreleased
 
+## ☀️ 0.12.1
+
+- ### 🤕 Fixes
+
+  - **Restore --version command - [lynn], [issue/1301], [pull/1305]**
+
+    The --version command got lost in space in v0.12.0. It's now brought back!
+
+    [issue/1301]: https://github.com/rustwasm/wasm-pack/issues/1301
+    [pull/1305]: https://github.com/rustwasm/wasm-pack/pull/1305
+    [lynn]: https://github.com/lynn
+
+  - **Fix value parser for Option<PathBuf> - [Myriad-Dreamin], [issue/1304], [pull/1307]**
+
+    A value parser for OsString cannot parse a command line argument for Option<PathBuf>,
+    which let it failed to specify paths for pack, publish and test commands, this faulty behavior
+    was introduced in v0.12.0.
+
+    [issue/1304]: https://github.com/rustwasm/wasm-pack/issues/1304
+    [pull/1307]: https://github.com/rustwasm/wasm-pack/pull/1307
+    [Myriad-Dreamin]: https://github.com/Myriad-Dreamin
+
 ## ☀️ 0.12.0
 
 - ### ✨ Features
