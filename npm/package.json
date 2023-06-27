@@ -1,6 +1,6 @@
 {
   "name": "wasm-pack",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "description": "📦✨ your favorite rust -> wasm workflow tool!",
   "main": "binary.js",
   "scripts": {
