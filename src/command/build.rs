@@ -7,7 +7,7 @@ use crate::command::utils::{create_pkg_dir, get_crate_path};
 use crate::emoji;
 use crate::install::{self, InstallMode, Tool};
 use crate::license;
-use crate::lockfile::Lockfile;
+use crate::lockfile;
 use crate::manifest;
 use crate::readme;
 use crate::wasm_opt;
@@ -289,11 +289,7 @@ impl Build {
         match &mode {
             InstallMode::Force => {}
             _ => {
-                steps.extend(steps![
-                    step_check_rustc_version,
-                    step_check_crate_config,
-                    step_check_for_wasm_target,
-                ]);
+                steps.extend(steps![step_check_rustc, step_check_crate_config,]);
             }
         }
 
@@ -316,7 +312,19 @@ impl Build {
         steps
     }
 
-    fn step_check_rustc_version(&mut self) -> Result<()> {
+    fn step_check_rustc(&mut self) -> Result<()> {
+        std::thread::scope(|s| {
+            for handle in [
+                s.spawn(|| self.step_check_rustc_version()),
+                s.spawn(|| self.step_check_for_wasm_target()),
+            ] {
+                handle.join().unwrap()?;
+            }
+            Ok(())
+        })
+    }
+
+    fn step_check_rustc_version(&self) -> Result<()> {
         info!("Checking rustc version...");
         let version = build::check_rustc_version()?;
         let msg = format!("rustc version is {}.", version);
@@ -331,7 +339,7 @@ impl Build {
         Ok(())
     }
 
-    fn step_check_for_wasm_target(&mut self) -> Result<()> {
+    fn step_check_for_wasm_target(&self) -> Result<()> {
         info!("Checking for wasm-target...");
         build::wasm_target::check_for_wasm32_target()?;
         info!("Checking for wasm-target was successful.");
@@ -390,8 +398,8 @@ impl Build {
 
     fn step_install_wasm_bindgen(&mut self) -> Result<()> {
         info!("Identifying wasm-bindgen dependency...");
-        let lockfile = Lockfile::new(&self.crate_data)?;
-        let bindgen_version = lockfile.require_wasm_bindgen()?;
+        let [package] = lockfile::Package::get(&self.crate_data, ["wasm-bindgen"])?;
+        let bindgen_version = package.require_version_or_suggest("dependencies", "0.2")?;
         info!("Installing wasm-bindgen-cli...");
         let bindgen = install::download_prebuilt_or_cargo_install(
             Tool::WasmBindgen,
