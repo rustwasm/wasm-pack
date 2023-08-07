@@ -42,7 +42,7 @@ main() {
 
     which rustup > /dev/null 2>&1
     need_ok "failed to find Rust installation, is rustup installed?"
-    local _rustup=`which rustup`
+    local _rustup=$(which rustup)
     local _tardir="wasm-pack-$VERSION-${_arch}"
     local _url="$UPDATE_ROOT/${_tardir}.tar.gz"
     local _dir="$(mktemp -d 2>/dev/null || ensure mktemp -d -t wasm-pack)"
@@ -98,7 +98,7 @@ get_architecture() {
     set -u
 
 
-    if [ "$_ostype" = Darwin -a "$_cputype" = i386 ]; then
+    if [ "$_ostype" = Darwin ] && [ "$_cputype" = i386 ]; then
         # Darwin `uname -s` lies
         if sysctl hw.optional.x86_64 | grep -q ': 1'; then
             local _cputype=x86_64
@@ -136,7 +136,7 @@ get_architecture() {
     esac
 
     # See https://github.com/rustwasm/wasm-pack/pull/1088
-    if [ "$_cputype" == "aarch64" ] && [ "$_ostype" == "apple-darwin" ]; then
+    if [ "$_cputype" = "aarch64" ] && [ "$_ostype" = "apple-darwin" ]; then
         _cputype="x86_64"
     fi
 
