@@ -29,7 +29,9 @@ pub fn install_chromedriver(cache: &Cache, installation_allowed: bool) -> Result
     let target = if target::LINUX && target::x86_64 {
         "linux64"
     } else if target::MACOS && target::x86_64 {
-        "mac64"
+        "mac-x64"
+    } else if target::MACOS && target::aarch64 {
+        "mac-arm64"
     } else if target::WINDOWS {
         "win32"
     } else {
