@@ -106,6 +106,8 @@ pub fn cargo_build_wasm(
         }
     }
 
+    add_crate_type(&mut cmd, extra_options);
+
     cmd.arg("--target").arg("wasm32-unknown-unknown");
     cmd.args(extra_options);
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
@@ -140,8 +142,46 @@ pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]
 
     cmd.arg("--target").arg("wasm32-unknown-unknown");
 
+    add_crate_type(&mut cmd, extra_options);
+
     cmd.args(extra_options);
 
     child::run(cmd, "cargo build").context("Compilation of your program failed")?;
     Ok(())
+}
+
+/// Adds --crate-type option to cargo build command, allowing users to build without specifying cdylib
+/// in Cargo.toml
+fn add_crate_type(cmd: &mut Command, extra_options: &[String]) {
+    // Avoid setting crate type flag twice if provided in extra options
+    if extra_options.iter().any(|opt| opt.contains("--crate-type")) {
+        return;
+    }
+
+    cmd.arg("--crate-type cdylib");
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn adds_crate_type_flag_if_not_in_extra_opts() {
+        let mut cmd = Command::new("cargo");
+        let extra_options = vec![String::from("--crate-type dylib")];
+
+        add_crate_type(&mut cmd, &extra_options);
+
+        assert!(!cmd.get_args().any(|arg| arg.to_str().unwrap() == "--crate-type cdylib"));
+    }
+
+    #[test]
+    fn does_not_add_crate_type_flag_if_in_extra_opts() {
+        let mut cmd = Command::new("cargo");
+        let extra_options = vec![];
+
+        add_crate_type(&mut cmd, &extra_options);
+
+        assert!(cmd.get_args().any(|arg| arg.to_str().unwrap() == "--crate-type cdylib"));
+    }
 }
