@@ -172,7 +172,9 @@ mod tests {
 
         add_crate_type(&mut cmd, &extra_options);
 
-        assert!(!cmd.get_args().any(|arg| arg.to_str().unwrap() == "--crate-type"));
+        assert!(!cmd
+            .get_args()
+            .any(|arg| arg.to_str().unwrap() == "--crate-type"));
         assert!(!cmd.get_args().any(|arg| arg.to_str().unwrap() == "cdylib"));
     }
 
@@ -183,7 +185,9 @@ mod tests {
 
         add_crate_type(&mut cmd, &extra_options);
 
-        assert!(cmd.get_args().any(|arg| arg.to_str().unwrap() == "--crate-type"));
+        assert!(cmd
+            .get_args()
+            .any(|arg| arg.to_str().unwrap() == "--crate-type"));
         assert!(cmd.get_args().any(|arg| arg.to_str().unwrap() == "cdylib"));
     }
 }
