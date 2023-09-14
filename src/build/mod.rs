@@ -116,7 +116,7 @@ pub fn cargo_build_wasm(
     Ok(())
 }
 
-/// Runs `cargo rustc --tests` targeting `wasm32-unknown-unknown`.
+/// Runs `cargo build --tests` targeting `wasm32-unknown-unknown`.
 ///
 /// This generates the `Cargo.lock` file that we use in order to know which version of
 /// wasm-bindgen-cli to use when running tests.
@@ -132,7 +132,7 @@ pub fn cargo_build_wasm(
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]) -> Result<()> {
     let mut cmd = Command::new("cargo");
 
-    cmd.current_dir(path).arg("rustc").arg("--tests");
+    cmd.current_dir(path).arg("build").arg("--tests");
 
     if PBAR.quiet() {
         cmd.arg("--quiet");
@@ -143,8 +143,6 @@ pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]
     }
 
     cmd.arg("--target").arg("wasm32-unknown-unknown");
-
-    // add_crate_type(&mut cmd, extra_options);
 
     cmd.args(extra_options);
 
