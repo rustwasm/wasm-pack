@@ -72,7 +72,7 @@ fn wasm_pack_local_version() -> Option<String> {
     Some(output.to_string())
 }
 
-/// Run `cargo build` targetting `wasm32-unknown-unknown`.
+/// Run `cargo rustc` targetting `wasm32-unknown-unknown`.
 pub fn cargo_build_wasm(
     path: &Path,
     profile: BuildProfile,
@@ -82,7 +82,8 @@ pub fn cargo_build_wasm(
     PBAR.info(&msg);
 
     let mut cmd = Command::new("cargo");
-    cmd.current_dir(path).arg("build").arg("--lib");
+    // Use rustc to allow crate-type flag to be added
+    cmd.current_dir(path).arg("rustc").arg("--lib");
 
     if PBAR.quiet() {
         cmd.arg("--quiet");
@@ -101,7 +102,7 @@ pub fn cargo_build_wasm(
             cmd.arg("--release");
         }
         BuildProfile::Dev => {
-            // Plain cargo builds use the dev cargo profile, which includes
+            // cargo rustc, like cargo build, uses the dev cargo profile which includes
             // debug info by default.
         }
     }
@@ -110,17 +111,18 @@ pub fn cargo_build_wasm(
 
     cmd.arg("--target").arg("wasm32-unknown-unknown");
     cmd.args(extra_options);
-    child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
+    dbg!(&cmd);
+    child::run(cmd, "cargo rustc").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }
 
-/// Runs `cargo build --tests` targeting `wasm32-unknown-unknown`.
+/// Runs `cargo rustc --tests` targeting `wasm32-unknown-unknown`.
 ///
 /// This generates the `Cargo.lock` file that we use in order to know which version of
 /// wasm-bindgen-cli to use when running tests.
 ///
 /// Note that the command to build tests and the command to run tests must use the same parameters, i.e. features to be
-/// disabled / enabled must be consistent for both `cargo build` and `cargo test`.
+/// disabled / enabled must be consistent for both `cargo rustc` and `cargo test`.
 ///
 /// # Parameters
 ///
@@ -130,7 +132,7 @@ pub fn cargo_build_wasm(
 pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]) -> Result<()> {
     let mut cmd = Command::new("cargo");
 
-    cmd.current_dir(path).arg("build").arg("--tests");
+    cmd.current_dir(path).arg("rustc").arg("--tests");
 
     if PBAR.quiet() {
         cmd.arg("--quiet");
@@ -142,15 +144,15 @@ pub fn cargo_build_wasm_tests(path: &Path, debug: bool, extra_options: &[String]
 
     cmd.arg("--target").arg("wasm32-unknown-unknown");
 
-    add_crate_type(&mut cmd, extra_options);
+    // add_crate_type(&mut cmd, extra_options);
 
     cmd.args(extra_options);
 
-    child::run(cmd, "cargo build").context("Compilation of your program failed")?;
+    child::run(cmd, "cargo rustc").context("Compilation of your program failed")?;
     Ok(())
 }
 
-/// Adds --crate-type option to cargo build command, allowing users to build without specifying cdylib
+/// Adds --crate-type option to cargo rustc command, allowing users to build without specifying cdylib
 /// in Cargo.toml
 fn add_crate_type(cmd: &mut Command, extra_options: &[String]) {
     // Avoid setting crate type flag twice if provided in extra options
@@ -158,7 +160,7 @@ fn add_crate_type(cmd: &mut Command, extra_options: &[String]) {
         return;
     }
 
-    cmd.arg("--crate-type cdylib");
+    cmd.arg("--crate-type").arg("cdylib");
 }
 
 #[cfg(test)]
@@ -172,7 +174,8 @@ mod tests {
 
         add_crate_type(&mut cmd, &extra_options);
 
-        assert!(!cmd.get_args().any(|arg| arg.to_str().unwrap() == "--crate-type cdylib"));
+        assert!(!cmd.get_args().any(|arg| arg.to_str().unwrap() == "--crate-type"));
+        assert!(!cmd.get_args().any(|arg| arg.to_str().unwrap() == "cdylib"));
     }
 
     #[test]
@@ -182,6 +185,7 @@ mod tests {
 
         add_crate_type(&mut cmd, &extra_options);
 
-        assert!(cmd.get_args().any(|arg| arg.to_str().unwrap() == "--crate-type cdylib"));
+        assert!(cmd.get_args().any(|arg| arg.to_str().unwrap() == "--crate-type"));
+        assert!(cmd.get_args().any(|arg| arg.to_str().unwrap() == "cdylib"));
     }
 }
