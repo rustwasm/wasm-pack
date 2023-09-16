@@ -7,8 +7,10 @@ use crate::install;
 use crate::PBAR;
 use anyhow::{anyhow, bail, Context, Result};
 use binary_install::{Cache, Download};
+use lazy_static::lazy_static;
 use log::debug;
 use log::{info, warn};
+use regex::Regex;
 use std::env;
 use std::fs;
 use std::path::Path;
@@ -110,11 +112,22 @@ pub fn get_cli_version(tool: &Tool, path: &Path) -> Result<String> {
     let mut cmd = Command::new(path);
     cmd.arg("--version");
     let stdout = child::run_capture_stdout(cmd, tool)?;
-    let version = stdout.trim().split_whitespace().last();
-    match version {
+
+    match extract_version(&stdout) {
         Some(v) => Ok(v.to_string()),
         None => bail!("Something went wrong! We couldn't determine your version of the wasm-bindgen CLI. We were supposed to set that up for you, so it's likely not your fault! You should file an issue: https://github.com/rustwasm/wasm-pack/issues/new?template=bug_report.md.")
     }
+}
+
+/// Extract the version number from the version string printed by a binary.
+pub fn extract_version(raw: &str) -> Option<&str> {
+    lazy_static! {
+        static ref VERSION_EXTRACTOR: Regex = Regex::new(r"(^|\s)(\d+(\.\d+)*)($|\s)").unwrap();
+    }
+    VERSION_EXTRACTOR
+        .captures(raw)
+        .and_then(|captures| captures.get(2))
+        .map(|m| m.as_str())
 }
 
 /// Downloads a precompiled copy of the tool, if available.
