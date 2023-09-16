@@ -99,7 +99,7 @@ pub fn check_version(tool: &Tool, path: &Path, expected_version: &str) -> Result
 
     let v = get_cli_version(tool, path)?;
     info!(
-        "Checking installed `{}` version == expected version: {} == {}",
+        r#"Checking installed `{}` version == expected version: "{}" == "{}""#,
         tool, v, &expected_version
     );
     Ok(v == expected_version)
@@ -110,7 +110,7 @@ pub fn get_cli_version(tool: &Tool, path: &Path) -> Result<String> {
     let mut cmd = Command::new(path);
     cmd.arg("--version");
     let stdout = child::run_capture_stdout(cmd, tool)?;
-    let version = stdout.trim().split_whitespace().nth(1);
+    let version = stdout.trim().split_whitespace().last();
     match version {
         Some(v) => Ok(v.to_string()),
         None => bail!("Something went wrong! We couldn't determine your version of the wasm-bindgen CLI. We were supposed to set that up for you, so it's likely not your fault! You should file an issue: https://github.com/rustwasm/wasm-pack/issues/new?template=bug_report.md.")
