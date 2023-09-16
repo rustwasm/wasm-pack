@@ -10,6 +10,7 @@ fn can_extract_cli_version() {
         ("cargo-generate 0.18", Some("0.18")), // missing patch version
         ("cargo generate 0.18.4", Some("0.18.4")), // space-separated subcommand
         ("wasm-bindgen 0.2.87 (deadbeef)", Some("0.2.87")), // with commit hash
+        ("69.420", Some("69.420")),      // raw version
         ("wasm-opt version", None),      // version missing
     ];
 
