@@ -4,9 +4,10 @@ use crate::child;
 use crate::emoji;
 use crate::PBAR;
 use anyhow::{anyhow, bail, Context, Result};
+use log::error;
 use log::info;
 use std::fmt;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::Command;
 
 struct Wasm32Check {
@@ -80,20 +81,50 @@ fn get_rustc_sysroot() -> Result<PathBuf> {
     }
 }
 
-/// Checks if the wasm32-unknown-unknown is present in rustc's sysroot.
-fn is_wasm32_target_in_sysroot(sysroot: &Path) -> bool {
-    let wasm32_target = "wasm32-unknown-unknown";
+/// Get wasm32-unknown-unknown target libdir
+fn get_rustc_wasm32_unknown_unknown_target_libdir() -> Result<PathBuf> {
+    let command = Command::new("rustc")
+        .args(&[
+            "--target",
+            "wasm32-unknown-unknown",
+            "--print",
+            "target-libdir",
+        ])
+        .output()?;
 
-    let rustlib_path = sysroot.join("lib/rustlib");
-
-    info!("Looking for {} in {:?}", wasm32_target, rustlib_path);
-
-    if rustlib_path.join(wasm32_target).exists() {
-        info!("Found {} in {:?}", wasm32_target, rustlib_path);
-        true
+    if command.status.success() {
+        Ok(String::from_utf8(command.stdout)?.trim().into())
     } else {
-        info!("Failed to find {} in {:?}", wasm32_target, rustlib_path);
-        false
+        Err(anyhow!(
+            "Getting rustc's wasm32-unknown-unknown target wasn't successful. Got {}",
+            command.status
+        ))
+    }
+}
+
+fn does_wasm32_target_libdir_exist() -> bool {
+    let result = get_rustc_wasm32_unknown_unknown_target_libdir();
+
+    match result {
+        Ok(wasm32_target_libdir_path) => {
+            if wasm32_target_libdir_path.exists() {
+                info!(
+                    "Found wasm32-unknown-unknown in {:?}",
+                    wasm32_target_libdir_path
+                );
+                true
+            } else {
+                info!(
+                    "Failed to find wasm32-unknown-unknown in {:?}",
+                    wasm32_target_libdir_path
+                );
+                false
+            }
+        }
+        Err(_) => {
+            error!("Some error in getting the target libdir!");
+            false
+        }
     }
 }
 
@@ -101,8 +132,7 @@ fn check_wasm32_target() -> Result<Wasm32Check> {
     let sysroot = get_rustc_sysroot()?;
     let rustc_path = which::which("rustc")?;
 
-    // If wasm32-unknown-unknown already exists we're ok.
-    if is_wasm32_target_in_sysroot(&sysroot) {
+    if does_wasm32_target_libdir_exist() {
         Ok(Wasm32Check {
             rustc_path,
             sysroot,
