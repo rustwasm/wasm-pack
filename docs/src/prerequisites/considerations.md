@@ -14,7 +14,7 @@ ReqwestError(reqwest::Error { kind: Builder, source: "JsValue(ReferenceError: Re
 ReferenceError: Response is not defined
 ```
 
-## Workarround
+## Workaround
 Import or declare fetch and objects: Headers, Request, Response
 
 ```ts

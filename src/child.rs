@@ -1,10 +1,10 @@
-//! Utilties for managing child processes.
+//! Utilities for managing child processes.
 //!
 //! This module helps us ensure that all child processes that we spawn get
 //! properly logged and their output is logged as well.
 
-use failure::Error;
-use install::Tool;
+use crate::install::Tool;
+use anyhow::{bail, Result};
 use log::info;
 use std::process::{Command, Stdio};
 
@@ -25,7 +25,7 @@ pub fn new_command(program: &str) -> Command {
 }
 
 /// Run the given command and return on success.
-pub fn run(mut command: Command, command_name: &str) -> Result<(), Error> {
+pub fn run(mut command: Command, command_name: &str) -> Result<()> {
     info!("Running {:?}", command);
 
     let status = command.status()?;
@@ -43,7 +43,7 @@ pub fn run(mut command: Command, command_name: &str) -> Result<(), Error> {
 }
 
 /// Run the given command and return its stdout.
-pub fn run_capture_stdout(mut command: Command, command_name: &Tool) -> Result<String, Error> {
+pub fn run_capture_stdout(mut command: Command, command_name: &Tool) -> Result<String> {
     info!("Running {:?}", command);
 
     let output = command

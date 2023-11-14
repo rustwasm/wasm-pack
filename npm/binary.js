@@ -13,7 +13,10 @@ const getPlatform = () => {
   if (type === "Linux" && arch === "x64") {
     return "x86_64-unknown-linux-musl";
   }
-  if (type === "Darwin" && arch === "x64") {
+  if (type === "Linux" && arch === "arm64") {
+    return "aarch64-unknown-linux-musl";
+  }
+  if (type === "Darwin" && (arch === "x64" || arch === "arm64")) {
     return "x86_64-apple-darwin";
   }
 
@@ -29,23 +32,17 @@ const getBinary = () => {
   return new Binary(platform === windows ? "wasm-pack.exe" : "wasm-pack", url);
 };
 
-const run = () => {
-  const binary = getBinary();
-  binary.run();
-};
-
 const install = () => {
   const binary = getBinary();
   binary.install();
 };
 
-const uninstall = () => {
+const run = () => {
   const binary = getBinary();
-  binary.uninstall();
-};
+  binary.run();
+}
 
 module.exports = {
   install,
   run,
-  uninstall,
 };

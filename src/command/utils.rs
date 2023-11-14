@@ -1,7 +1,7 @@
 //! Utility functions for commands.
 #![allow(clippy::redundant_closure)]
 
-use failure;
+use anyhow::Result;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
@@ -9,7 +9,7 @@ use walkdir::WalkDir;
 
 /// If an explicit path is given, then use it, otherwise assume the current
 /// directory is the crate path.
-pub fn get_crate_path(path: Option<PathBuf>) -> Result<PathBuf, failure::Error> {
+pub fn get_crate_path(path: Option<PathBuf>) -> Result<PathBuf> {
     match path {
         Some(p) => Ok(p),
         None => find_manifest_from_cwd(),
@@ -19,7 +19,7 @@ pub fn get_crate_path(path: Option<PathBuf>) -> Result<PathBuf, failure::Error> 
 /// Search up the path for the manifest file from the current working directory
 /// If we don't find the manifest file then return back the current working directory
 /// to provide the appropriate error
-fn find_manifest_from_cwd() -> Result<PathBuf, failure::Error> {
+fn find_manifest_from_cwd() -> Result<PathBuf> {
     let mut parent_path = std::env::current_dir()?;
     let mut manifest_path = parent_path.join("Cargo.toml");
     loop {
@@ -36,8 +36,8 @@ fn find_manifest_from_cwd() -> Result<PathBuf, failure::Error> {
 }
 
 /// Construct our `pkg` directory in the crate.
-pub fn create_pkg_dir(out_dir: &Path) -> Result<(), failure::Error> {
-    let _ = fs::remove_dir_all(&out_dir); // Clean up any existing directory and ignore errors
+pub fn create_pkg_dir(out_dir: &Path) -> Result<()> {
+    let _ = fs::remove_file(out_dir.join("package.json")); // Clean up package.json from previous runs
     fs::create_dir_all(&out_dir)?;
     fs::write(out_dir.join(".gitignore"), "*")?;
     Ok(())

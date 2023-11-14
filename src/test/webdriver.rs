@@ -4,10 +4,10 @@ mod chromedriver;
 mod geckodriver;
 mod safaridriver;
 
+use crate::PBAR;
+use anyhow::Result;
 use binary_install::Cache;
-use failure;
 use std::path::PathBuf;
-use PBAR;
 
 pub use self::{
     chromedriver::{get_or_install_chromedriver, install_chromedriver},
@@ -22,7 +22,7 @@ fn get_and_notify(
     installation_allowed: bool,
     name: &str,
     url: &str,
-) -> Result<Option<PathBuf>, failure::Error> {
+) -> Result<Option<PathBuf>> {
     if let Some(dl) = cache.download(false, name, &[name], url)? {
         return Ok(Some(dl.binary(name)?));
     }
@@ -32,20 +32,5 @@ fn get_and_notify(
     match cache.download(installation_allowed, name, &[name], url)? {
         Some(dl) => Ok(Some(dl.binary(name)?)),
         None => Ok(None),
-    }
-}
-
-struct Collector(Vec<u8>);
-
-impl Collector {
-    pub fn take_content(&mut self) -> Vec<u8> {
-        std::mem::take(&mut self.0)
-    }
-}
-
-impl curl::easy::Handler for Collector {
-    fn write(&mut self, data: &[u8]) -> Result<usize, curl::easy::WriteError> {
-        self.0.extend_from_slice(data);
-        Ok(data.len())
     }
 }

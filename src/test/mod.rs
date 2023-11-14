@@ -2,9 +2,9 @@
 
 pub mod webdriver;
 
+use crate::child;
 use crate::PBAR;
-use child;
-use failure::{self, ResultExt};
+use anyhow::{Context, Result};
 use std::ffi::OsStr;
 use std::path::Path;
 use std::process::Command;
@@ -16,7 +16,7 @@ pub fn cargo_test_wasm<I, K, V>(
     release: bool,
     envs: I,
     extra_options: &[String],
-) -> Result<(), failure::Error>
+) -> Result<()>
 where
     I: IntoIterator<Item = (K, V)>,
     K: AsRef<OsStr>,

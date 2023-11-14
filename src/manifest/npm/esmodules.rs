@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use manifest::npm::repository::Repository;
+use crate::manifest::npm::repository::Repository;
 
 #[derive(Serialize)]
 pub struct ESModulesPackage {
@@ -24,7 +24,7 @@ pub struct ESModulesPackage {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub types: Option<String>,
     #[serde(rename = "sideEffects")]
-    pub side_effects: bool,
+    pub side_effects: Vec<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub keywords: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]

@@ -1,4 +1,4 @@
-use utils::fixture;
+use crate::utils::fixture;
 use wasm_pack::lockfile::Lockfile;
 use wasm_pack::manifest::CrateData;
 

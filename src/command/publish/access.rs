@@ -1,9 +1,9 @@
-use failure::Error;
+use anyhow::{bail, Error, Result};
 use std::fmt;
 use std::str::FromStr;
 
 /// Represents access level for the to-be publish package. Passed to `wasm-pack publish` as a flag, e.g. `--access=public`.
-#[derive(Debug)]
+#[derive(Clone, Debug)]
 pub enum Access {
     /// Access is granted to all. All unscoped packages *must* be public.
     Public,
@@ -14,7 +14,7 @@ pub enum Access {
 impl FromStr for Access {
     type Err = Error;
 
-    fn from_str(s: &str) -> Result<Self, Error> {
+    fn from_str(s: &str) -> Result<Self> {
         match s {
       "public" => Ok(Access::Public),
       "restricted" => Ok(Access::Restricted),

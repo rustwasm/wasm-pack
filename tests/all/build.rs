@@ -1,7 +1,7 @@
+use crate::utils;
 use assert_cmd::prelude::*;
 use std::fs;
 use std::path::Path;
-use utils;
 
 #[test]
 fn build_in_non_crate_directory_doesnt_panic() {
@@ -19,6 +19,36 @@ fn build_in_non_crate_directory_doesnt_panic() {
 fn it_should_build_js_hello_world_example() {
     let fixture = utils::fixture::js_hello_world();
     fixture.wasm_pack().arg("build").assert().success();
+}
+
+#[test]
+fn it_should_not_make_a_pkg_json_if_passed_no_pack() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--no-pack")
+        .assert()
+        .success();
+
+    let pkg_path = fixture.path.join("pkg");
+    assert_eq!(pkg_path.join("package.json").exists(), false);
+    assert_eq!(pkg_path.join("README.md").exists(), false);
+    assert_eq!(pkg_path.join("licence").exists(), false);
+}
+
+#[test]
+fn it_should_build_js_hello_world_example_with_custom_target_dir() {
+    let fixture = utils::fixture::js_hello_world();
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--target-dir")
+        .arg("target2")
+        .arg("--all-features")
+        .arg("--offline")
+        .assert()
+        .success();
 }
 
 #[test]

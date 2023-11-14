@@ -1,4 +1,4 @@
-var platforms = ["default", "unknown", "win64", "unix"];
+var platforms = ["unknown", "win64", "unix"];
 var platform_override = null;
 
 function detect_platform() {
@@ -59,23 +59,10 @@ function adjust_for_platform() {
     platforms.forEach(function (platform_elem) {
         var platform_div = document.getElementById("platform-instructions-" + platform_elem);
         platform_div.style.display = "none";
-        if (platform == platform_elem ||
-            (platform == 'unknown' && platform_elem == 'default')) {
+        if (platform === platform_elem) {
             platform_div.style.display = "block";
         }
     });
-}
-
-function go_to_default_platform() {
-    platform_override = 0;
-    adjust_for_platform();
-}
-
-function set_up_default_platform_buttons() {
-    var defaults_buttons = document.getElementsByClassName('default-platform-button');
-    for (var i = 0; i < defaults_buttons.length; i++) {
-        defaults_buttons[i].onclick = go_to_default_platform;
-    }
 }
 
 function fill_in_bug_report_values() {
@@ -87,6 +74,5 @@ function fill_in_bug_report_values() {
 
 (function () {
     adjust_for_platform();
-    set_up_default_platform_buttons();
     fill_in_bug_report_values();
 }());

@@ -5,10 +5,6 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/skeleton/2.0.4/skeleton.min.css" rel="stylesheet">
   <link rel="stylesheet" href="../public/custom.css"/>
   <style>
-    .instructions {
-      padding: 100px;
-      border: 1px solid #eee;
-    }
     .winlink {
       display: block;
     }
@@ -29,7 +25,7 @@
           <a href="/wasm-pack">
             <img src="../public/img/rustwasm.png">
           </a>
-        </a>
+        </li>
         <li class="navbar-item">
           <a href="https://github.com/rustwasm/wasm-pack/issues/new/choose">File an Issue</a>
         </li>
@@ -47,37 +43,33 @@
     <h1>Install <code>wasm-pack</code></h1>
     <div class="container">
       <div id="platform-instructions-unix" style="display: none;">
-        <div class="curl">
-          <code>curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh</code>
-          <p>
-            You appear to be running a *nix system (Unix, Linux, MacOS). If not,
-            <a class="default-platform-button" href="#">display all supported installers</a>.
-          </p>
-        </div>
+        <p>
+          You appear to be running a *nix system (Unix, Linux, MacOS).
+          Install by running:
+        </p>
+        <pre class="primary">curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh</pre>
+        <p>
+          If you're not on *nix, or you don't like installing from <b>curl</b>,
+          follow the alternate instructions below.
+        </p>
       </div>
 
-      <div id="platform-instructions-win64" class="instructions" style="display: none;">
+      <div id="platform-instructions-win64" style="display: none;">
         <p>
-          You appear to be running Windows 64-bit, download and run
-          <a class='winlink' href="https://github.com/rustwasm/wasm-pack/releases/download/$VERSION/wasm-pack-init.exe">wasm-pack-init.exe</a>
+          You appear to be running Windows 64-bit. Download and run
+          <a class="winlink" href="https://github.com/rustwasm/wasm-pack/releases/download/$VERSION/wasm-pack-init.exe">wasm-pack-init.exe</a>
           then follow the onscreen instructions.
         </p>
         <hr/>
         <p>
-          If you're a Windows Subsystem for Linux user run the following in your
+          If you're a Windows Subsystem for Linux user, run the following in your
           terminal, then follow the onscreen instructions to install wasm-pack.
         </p>
-        <code>curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh</code>
-        <hr/>
-        <p>
-          You appear to be running Windows 64-bit. If not,
-          <a class="default-platform-button" href="#">
-            display all supported installers
-          </a>.
-        </p>
+        <pre class="primary">curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh</pre>
+        <p>If you're not on Windows 64-bit, follow the alternate instructions below.</p>
       </div>
 
-      <div id="platform-instructions-unknown" class="instructions" style="display: none;">
+      <div id="platform-instructions-unknown" style="display: none;">
         <p>I don't recognize your platform.</p>
         <p>
           We would appreciate it if you
@@ -92,43 +84,17 @@
         </div>
       </div>
 
-      <div id="platform-instructions-default" class="instructions">
-        <div>
-          <p>
-            To install wasm-pack, if you are running a *nix system (Unix, Linux, MacOS),<br/>
-            run the following in your terminal, then follow the onscreen
-            instructions.
-          </p>
-          <code>curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh</code>
-        </div>
-        <hr/>
-        <div>
-          <p>
-            If you are running Windows 64-bit,<br/>download and run
-            <a class='winlink' href="https://github.com/rustwasm/wasm-pack/releases/download/$VERSION/wasm-pack-init.exe">wasm-pack-init.exe</a>
-            then follow the onscreen instructions.
-          </p>
-        </div>
-        <hr/>
-        <div>
-          <p>
-            For all other platforms, run the following in your terminal:
-          </p>
-          <code>cargo install wasm-pack</code>
-        </div>
-        <hr/>
-        <div>
-          <p>
-          Install using <b>npm</b> or <b>yarn</b>:
-          </p>
-          <code>
-            npm install -g wasm-pack
-          </code>
-          or
-          <code>
-            yarn global add wasm-pack
-          </code>
-        </div>
+      <hr />
+
+      <div id="generic-instructions">
+        <p>
+          To install from source on any platform:
+        </p>
+        <p><code>cargo install wasm-pack</code></p>
+        <p>
+          On supported platforms, you can also use <b>npm</b> or <b>yarn</b> to download a precompiled binary:
+        </p>
+        <p><code>npm install -g wasm-pack</code> or <code>yarn global add wasm-pack</code></p>
       </div>
     </div>
   </section>

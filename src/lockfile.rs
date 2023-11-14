@@ -5,9 +5,9 @@
 use std::fs;
 use std::path::PathBuf;
 
+use crate::manifest::CrateData;
+use anyhow::{anyhow, bail, Context, Result};
 use console::style;
-use failure::{Error, ResultExt};
-use manifest::CrateData;
 use toml;
 
 /// This struct represents the contents of `Cargo.lock`.
@@ -25,12 +25,12 @@ struct Package {
 
 impl Lockfile {
     /// Read the `Cargo.lock` file for the crate at the given path.
-    pub fn new(crate_data: &CrateData) -> Result<Lockfile, Error> {
+    pub fn new(crate_data: &CrateData) -> Result<Lockfile> {
         let lock_path = get_lockfile_path(crate_data)?;
         let lockfile = fs::read_to_string(&lock_path)
-            .with_context(|_| format!("failed to read: {}", lock_path.display()))?;
+            .with_context(|| anyhow!("failed to read: {}", lock_path.display()))?;
         let lockfile = toml::from_str(&lockfile)
-            .with_context(|_| format!("failed to parse: {}", lock_path.display()))?;
+            .with_context(|| anyhow!("failed to parse: {}", lock_path.display()))?;
         Ok(lockfile)
     }
 
@@ -41,9 +41,9 @@ impl Lockfile {
 
     /// Like `wasm_bindgen_version`, except it returns an error instead of
     /// `None`.
-    pub fn require_wasm_bindgen(&self) -> Result<&str, Error> {
+    pub fn require_wasm_bindgen(&self) -> Result<&str> {
         self.wasm_bindgen_version().ok_or_else(|| {
-            format_err!(
+            anyhow!(
                 "Ensure that you have \"{}\" as a dependency in your Cargo.toml file:\n\
                  [dependencies]\n\
                  wasm-bindgen = \"0.2\"",
@@ -65,9 +65,9 @@ impl Lockfile {
     }
 }
 
-/// Given the path to the crate that we are buliding, return a `PathBuf`
+/// Given the path to the crate that we are building, return a `PathBuf`
 /// containing the location of the lock file, by finding the workspace root.
-fn get_lockfile_path(crate_data: &CrateData) -> Result<PathBuf, Error> {
+fn get_lockfile_path(crate_data: &CrateData) -> Result<PathBuf> {
     // Check that a lock file can be found in the directory. Return an error
     // if it cannot, otherwise return the path buffer.
     let lockfile_path = crate_data.workspace_root().join("Cargo.lock");

@@ -9,14 +9,13 @@ jobs:
     name: Build and deploy book
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions-rs/toolchain@v1
+      - uses: actions/checkout@v3
+      - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: stable
-          override: true
 
       - name: Cache dependencies
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         env:
           cache-name: cache-mdbook
         with:
@@ -31,7 +30,7 @@ jobs:
       - name: Install mdbook
         run: |
           (test -x $HOME/.cargo/bin/cargo-install-update || cargo install cargo-update)
-          (test -x $HOME/.cargo/bin/mdbook || cargo install --vers "^0.3" mdbook)
+          (test -x $HOME/.cargo/bin/mdbook || cargo install --vers "^0.4" mdbook)
           cargo install-update -a
 
       - name: Build book
@@ -42,7 +41,7 @@ jobs:
           ./build-installer
 
       - name: Deploy book
-        uses: JamesIves/github-pages-deploy-action@4.1.4
+        uses: JamesIves/github-pages-deploy-action@v4.4.1
         if: ${{ github.ref == 'refs/heads/master' }}
         with:
           branch: gh-pages

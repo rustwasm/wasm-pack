@@ -1,33 +1,23 @@
 //! Support for downloading and executing `wasm-opt`
 
 use crate::child;
-use crate::install::{self, Tool};
+use crate::install;
 use crate::PBAR;
-use binary_install::{Cache, Download};
+use anyhow::Result;
+use binary_install::Cache;
 use std::path::Path;
+use std::path::PathBuf;
 use std::process::Command;
 
 /// Execute `wasm-opt` over wasm binaries found in `out_dir`, downloading if
 /// necessary into `cache`. Passes `args` to each invocation of `wasm-opt`.
-pub fn run(
-    cache: &Cache,
-    out_dir: &Path,
-    args: &[String],
-    install_permitted: bool,
-) -> Result<(), failure::Error> {
-    let wasm_opt = match find_wasm_opt(cache, install_permitted)? {
-        install::Status::Found(path) => path,
-        install::Status::CannotInstall => {
-            PBAR.info("Skipping wasm-opt as no downloading was requested");
-            return Ok(());
-        }
-        install::Status::PlatformNotSupported => {
-            PBAR.info("Skipping wasm-opt because it is not supported on this platform");
-            return Ok(());
-        }
+pub fn run(cache: &Cache, out_dir: &Path, args: &[String], install_permitted: bool) -> Result<()> {
+    let wasm_opt_path = match find_wasm_opt(cache, install_permitted)? {
+        Some(path) => path,
+        // `find_wasm_opt` will have already logged a message about this, so we don't need to here.
+        None => return Ok(()),
     };
 
-    let wasm_opt_path = wasm_opt.binary(&Tool::WasmOpt.to_string())?;
     PBAR.info("Optimizing wasm binaries with `wasm-opt`...");
 
     for file in out_dir.read_dir()? {
@@ -54,25 +44,22 @@ pub fn run(
 /// Returns `None` if a binary wasn't found in `PATH` and this platform doesn't
 /// have precompiled binaries. Returns an error if we failed to download the
 /// binary.
-pub fn find_wasm_opt(
-    cache: &Cache,
-    install_permitted: bool,
-) -> Result<install::Status, failure::Error> {
+pub fn find_wasm_opt(cache: &Cache, install_permitted: bool) -> Result<Option<PathBuf>> {
     // First attempt to look up in PATH. If found assume it works.
     if let Ok(path) = which::which("wasm-opt") {
         PBAR.info(&format!("found wasm-opt at {:?}", path));
-
-        match path.as_path().parent() {
-            Some(path) => return Ok(install::Status::Found(Download::at(path))),
-            None => {}
-        }
+        return Ok(Some(path));
     }
 
-    let version = "version_78";
-    Ok(install::download_prebuilt(
-        &install::Tool::WasmOpt,
-        cache,
-        version,
-        install_permitted,
-    )?)
+    match install::download_prebuilt(&install::Tool::WasmOpt, cache, "latest", install_permitted)? {
+        install::Status::Found(download) => Ok(Some(download.binary("bin/wasm-opt")?)),
+        install::Status::CannotInstall => {
+            PBAR.info("Skipping wasm-opt as no downloading was requested");
+            Ok(None)
+        }
+        install::Status::PlatformNotSupported => {
+            PBAR.info("Skipping wasm-opt because it is not supported on this platform");
+            Ok(None)
+        }
+    }
 }

@@ -1,20 +1,20 @@
 #![allow(clippy::redundant_closure, clippy::redundant_pattern_matching)]
 
+extern crate anyhow;
 extern crate atty;
+extern crate clap;
 extern crate env_logger;
-#[macro_use]
-extern crate failure;
 extern crate human_panic;
 extern crate log;
-extern crate structopt;
 extern crate wasm_pack;
 extern crate which;
 
+use anyhow::Result;
+use clap::Parser;
 use std::env;
 use std::panic;
 use std::sync::mpsc;
 use std::thread;
-use structopt::StructOpt;
 use wasm_pack::{
     build::{self, WasmPackVersion},
     command::run_wasm_pack,
@@ -23,7 +23,7 @@ use wasm_pack::{
 
 mod installer;
 
-fn background_check_for_updates() -> mpsc::Receiver<Result<WasmPackVersion, failure::Error>> {
+fn background_check_for_updates() -> mpsc::Receiver<Result<WasmPackVersion>> {
     let (sender, receiver) = mpsc::channel();
 
     let _detached_thread = thread::spawn(move || {
@@ -51,14 +51,14 @@ fn main() {
 
     if let Err(e) = run() {
         eprintln!("Error: {}", e);
-        for cause in e.iter_causes() {
+        for cause in e.chain() {
             eprintln!("Caused by: {}", cause);
         }
         ::std::process::exit(1);
     }
 }
 
-fn run() -> Result<(), failure::Error> {
+fn run() -> Result<()> {
     let wasm_pack_version = background_check_for_updates();
 
     // Deprecate `init`
@@ -79,7 +79,7 @@ fn run() -> Result<(), failure::Error> {
         }
     }
 
-    let args = Cli::from_args();
+    let args = Cli::parse();
 
     PBAR.set_log_level(args.log_level);
 

@@ -1,4 +1,5 @@
 use binary_install::Cache;
+use lazy_static::lazy_static;
 use std::env;
 use std::fs;
 use std::mem::ManuallyDrop;
@@ -321,7 +322,9 @@ impl Fixture {
     }
 
     pub fn cache(&self) -> Cache {
-        Cache::at(&self.cache_dir())
+        let cache_dir = self.cache_dir();
+        fs::create_dir_all(&cache_dir).unwrap();
+        Cache::at(&cache_dir)
     }
 
     /// The `step_install_wasm_bindgen` and `step_run_wasm_bindgen` steps only
@@ -348,6 +351,10 @@ impl Fixture {
         let mut cmd = Command::cargo_bin(env!("CARGO_PKG_NAME")).unwrap();
         cmd.current_dir(&self.path);
         cmd.env("WASM_PACK_CACHE", self.cache_dir());
+
+        // Some of the tests assume that Cargo's output does not contain colors.
+        cmd.env_remove("CARGO_TERM_COLOR");
+
         cmd
     }
 

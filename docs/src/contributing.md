@@ -12,14 +12,14 @@ You'll also want to check out the contributing [guidelines].
 
 ## 🏃‍♀️ Up and Running
 
-1. fork and clone this repository
+1. fork and clone the `rustwasm/wasm-pack` repository
 2. install [node/npm]
 2. `cd wasm-pack`
 3. `cargo run`. To test command line arguments you can run `cargo run -- <args>`.
 
 ## Documentation
 
-Documentation lives in the `/docs` directory. Each command has it's own page.
+Documentation lives in the `/docs` directory. Each command has its own page.
 Additionally there are extra pages explaining the prerequisites, setup, and how to
 contribute (which you are reading now!).
 
@@ -28,7 +28,7 @@ contribute (which you are reading now!).
 Tests live in the `/tests` directory. To run the tests you can run:
 
 ```
-cargo  test
+cargo test
 ```
 
 You can also manually test the CLI tool by running:
