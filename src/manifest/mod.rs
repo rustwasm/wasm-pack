@@ -722,6 +722,7 @@ impl CrateData {
 
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: data.name,
+            ty: "module".into(),
             collaborators: pkg.authors.clone(),
             description: self.pkg().description.clone(),
             version: pkg.version.to_string(),
@@ -731,7 +732,7 @@ impl CrateData {
                 url: repo_url,
             }),
             files: data.files,
-            module: data.main.clone(),
+            main: data.main.clone(),
             homepage: data.homepage,
             types: data.dts_file,
             side_effects: vec![format!("./{}", data.main), "./snippets/*".to_owned()],
@@ -754,6 +755,7 @@ impl CrateData {
 
         NpmPackage::ESModulesPackage(ESModulesPackage {
             name: data.name,
+            ty: "module".into(),
             collaborators: pkg.authors.clone(),
             description: self.pkg().description.clone(),
             version: pkg.version.to_string(),
@@ -763,7 +765,7 @@ impl CrateData {
                 url: repo_url,
             }),
             files: data.files,
-            module: data.main,
+            main: data.main,
             homepage: data.homepage,
             types: data.dts_file,
             side_effects: vec!["./snippets/*".to_owned()],

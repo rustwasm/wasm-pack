@@ -8,6 +8,8 @@ use serde_json;
 #[derive(Deserialize)]
 pub struct NpmPackage {
     pub name: String,
+    #[serde(default = "default_none", rename = "type")]
+    pub ty: String,
     pub description: String,
     pub version: String,
     pub license: String,
