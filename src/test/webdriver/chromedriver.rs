@@ -5,6 +5,7 @@ use crate::target;
 use anyhow::{bail, Context, Result};
 use binary_install::Cache;
 use chrono::DateTime;
+use std::collections::HashMap;
 use std::path::PathBuf;
 
 // Keep it up to date with each `wasm-pack` release.
@@ -28,7 +29,9 @@ pub fn install_chromedriver(cache: &Cache, installation_allowed: bool) -> Result
     let target = if target::LINUX && target::x86_64 {
         "linux64"
     } else if target::MACOS && target::x86_64 {
-        "mac64"
+        "mac-x64"
+    } else if target::MACOS && target::aarch64 {
+        "mac-arm64"
     } else if target::WINDOWS {
         "win32"
     } else {
@@ -116,19 +119,44 @@ fn should_load_chromedriver_version_from_stamp(json: &serde_json::Value) -> bool
     }
 }
 
+/// Channel information from the chromedriver version endpoint.
+#[derive(Deserialize)]
+struct ChannelInfo {
+    version: String,
+}
+
+/// The response from the chromedriver version endpoint.
+#[derive(Deserialize)]
+struct GoodLatestVersions {
+    channels: HashMap<String, ChannelInfo>,
+}
+
+/// Retrieve the latest version of chromedriver from the json endpoints.
+/// See: <https://github.com/GoogleChromeLabs/chrome-for-testing#json-api-endpoints>
 fn fetch_chromedriver_version() -> Result<String> {
-    let version = ureq::get("https://chromedriver.storage.googleapis.com/LATEST_RELEASE")
-        .call()
-        .context("fetching of chromedriver's LATEST_RELEASE failed")?
-        .into_string()
-        .context("converting chromedriver version response to string failed")?;
+    let info: GoodLatestVersions = ureq::get(
+        "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json",
+    )
+    .call()
+    .context("fetching of chromedriver's LATEST_RELEASE failed")?
+    .into_json()
+    .context("converting chromedriver version response to GoodLatestVersions failed")?;
+
+    let version = info
+        .channels
+        .get("Stable")
+        .ok_or_else(|| anyhow::anyhow!("no Stable channel found in chromedriver version response"))?
+        .version
+        .clone();
+
+    println!("chromedriver version: {}", version);
 
     Ok(version)
 }
 
 fn assemble_chromedriver_url(chromedriver_version: &str, target: &str) -> String {
     format!(
-        "https://chromedriver.storage.googleapis.com/{version}/chromedriver_{target}.zip",
+        "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{version}/{target}/chromedriver-{target}.zip",
         version = chromedriver_version,
         target = target,
     )
