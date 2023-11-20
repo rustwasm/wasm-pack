@@ -1,4 +1,23 @@
-use wasm_pack::install::{self, Arch, Os, Tool};
+use wasm_pack::install::{self, extract_version, Arch, Os, Tool};
+
+#[test]
+fn can_extract_cli_version() {
+    let tests = [
+        ("cargo-generate 0.18.4", Some("0.18.4")),
+        ("wasm-bindgen 0.2.87", Some("0.2.87")),
+        ("wasm-opt version 116", Some("116")),
+        ("cargo-generate 1", Some("1")), // missing minor & patch version
+        ("cargo-generate 0.18", Some("0.18")), // missing patch version
+        ("cargo generate 0.18.4", Some("0.18.4")), // space-separated subcommand
+        ("wasm-bindgen 0.2.87 (deadbeef)", Some("0.2.87")), // with commit hash
+        ("69.420", Some("69.420")),      // raw version
+        ("wasm-opt version", None),      // version missing
+    ];
+
+    for (i, o) in tests {
+        assert_eq!(extract_version(i), o);
+    }
+}
 
 #[test]
 #[cfg(any(

@@ -2,7 +2,10 @@
 name = "wasm-pack"
 description = "📦✨ your favorite rust -> wasm workflow tool!"
 version = "0.12.1"
-authors = ["Ashley Williams <ashley666ashley@gmail.com>", "Jesper Håkansson <jesper@jesperh.se>"]
+authors = [
+    "Ashley Williams <ashley666ashley@gmail.com>",
+    "Jesper Håkansson <jesper@jesperh.se>",
+]
 repository = "https://github.com/rustwasm/wasm-pack.git"
 license = "MIT OR Apache-2.0"
 edition = "2021"
@@ -16,13 +19,16 @@ atty = "0.2.14"
 binary-install = "0.2.0"
 cargo_metadata = "0.15.2"
 chrono = "0.4.23"
+clap = { version = "4.2.5", features = ["derive"] }
 console = "0.15.5"
 dialoguer = "0.10.3"
 env_logger = { version = "0.10.0", default-features = false }
 glob = "0.3.1"
 human-panic = "1.0.3"
+lazy_static = "1.4.0"
 log = "0.4.17"
 parking_lot = "0.12.1"
+regex = "1.9.5"
 semver = "1.0.16"
 serde = "1.0.152"
 serde_derive = "1.0.152"
@@ -30,7 +36,6 @@ serde_ignored = "0.1.7"
 serde_json = "1.0.91"
 siphasher = "0.3.10"
 strsim = "0.10.0"
-clap = { version = "4.2.5", features = ["derive"] }
 toml = "0.7.3"
 ureq = { version = "2.6.2", features = ["json"] }
 walkdir = "2.3.2"
@@ -42,4 +47,3 @@ lazy_static = "1.4.0"
 predicates = "3.0.3"
 serial_test = "2.0.0"
 tempfile = "3.3.0"
-

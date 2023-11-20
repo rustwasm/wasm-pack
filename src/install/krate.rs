@@ -1,5 +1,6 @@
 use crate::install::Tool;
 use anyhow::Result;
+use log::debug;
 use serde::Deserialize;
 const VERSION: Option<&str> = option_env!("CARGO_PKG_VERSION");
 
@@ -25,6 +26,10 @@ impl Krate {
             .call()?;
 
         let kr: KrateResponse = res.into_json()?;
+        debug!(
+            "Latest `{name}` version on crates.io is {}",
+            kr.krate.max_version
+        );
         Ok(kr.krate)
     }
 }
