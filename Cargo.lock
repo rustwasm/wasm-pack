@@ -167,14 +167,14 @@ checksum = "8c3c1a368f70d6cf7302d78f8f7093da241fb8e8807c05cc9e51a125895a6d5b"
 
 [[package]]
 name = "binary-install"
-version = "0.2.0"
+version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "93bff426ff93f3610dd2b946f3eb8cb2d1285ca8682834d43be531a3f93db2ff"
+checksum = "14b70334640bc6d31ddbfa1c2d4687c8e593e0486bd343c9595fe090272c9c1f"
 dependencies = [
  "anyhow",
  "dirs-next",
  "flate2",
- "fs2",
+ "fs4",
  "hex",
  "is_executable",
  "siphasher",
@@ -590,13 +590,13 @@ dependencies = [
 ]
 
 [[package]]
-name = "fs2"
-version = "0.4.3"
+name = "fs4"
+version = "0.6.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9564fc758e15025b46aa6643b1b77d047d1a56a1aea6e01002ac0c7026876213"
+checksum = "2eeb4ed9e12f43b7fa0baae3f9cdda28352770132ef2e09a23760c29cae8bd47"
 dependencies = [
- "libc",
- "winapi",
+ "rustix",
+ "windows-sys 0.48.0",
 ]
 
 [[package]]
