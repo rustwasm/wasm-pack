@@ -138,7 +138,7 @@ pub struct BuildOptions {
     pub reference_types: bool,
 
     #[clap(long = "target", short = 't', default_value = "bundler")]
-    /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules]
+    /// Sets the target environment. [possible values: bundler, nodejs, web, no-modules, deno]
     pub target: Target,
 
     #[clap(long = "debug")]
