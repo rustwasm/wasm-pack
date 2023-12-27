@@ -7,7 +7,8 @@ const getPlatform = () => {
   const type = os.type();
   const arch = os.arch();
 
-  if (type === "Windows_NT" && arch === "x64") {
+  // https://github.com/nodejs/node/blob/c3664227a83cf009e9a2e1ddeadbd09c14ae466f/deps/uv/src/win/util.c#L1566-L1573
+  if ((type === "Windows_NT" || type.startsWith("MINGW32_NT-")) && arch === "x64") {
     return windows;
   }
   if (type === "Linux" && arch === "x64") {
