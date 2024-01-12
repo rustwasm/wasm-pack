@@ -73,6 +73,18 @@ pub struct TestOptions {
     /// Build with the release profile.
     pub release: bool,
 
+    #[clap(long = "coverage")]
+    /// Experimental flag for generating coverage data.
+    pub coverage: bool,
+
+    #[clap(long = "profraw-out")]
+    /// File to print to the profraw data of this run to. Requires --coverage
+    pub profraw_out: Option<PathBuf>,
+
+    #[clap(long = "profraw-prefix")]
+    /// Prefix to profraw files. This is helpful if you are running with tests with --all
+    pub profraw_prefix: Option<String>,
+
     /// Path to the Rust crate, and extra options to pass to `cargo test`.
     ///
     /// If the path is not provided, this command searches up the path from the current directory.
@@ -97,6 +109,9 @@ pub struct Test {
     safaridriver: Option<PathBuf>,
     headless: bool,
     release: bool,
+    coverage: bool,
+    profraw_out: Option<PathBuf>,
+    profraw_prefix: Option<String>,
     test_runner_path: Option<PathBuf>,
     extra_options: Vec<String>,
 }
@@ -117,6 +132,9 @@ impl Test {
             geckodriver,
             safari,
             safaridriver,
+            coverage,
+            profraw_out,
+            profraw_prefix,
             mut path_and_extra_options,
         } = test_opts;
 
@@ -149,6 +167,10 @@ impl Test {
             )
         }
 
+        if profraw_out.is_some() && !coverage {
+            eprintln!("[WARN] profraw-out ignored due to missing --coverage flag!")
+        }
+
         Ok(Test {
             cache: cache::get_wasm_pack_cache()?,
             crate_path,
@@ -163,6 +185,9 @@ impl Test {
             safaridriver,
             headless,
             release,
+            coverage,
+            profraw_out,
+            profraw_prefix,
             test_runner_path: None,
             extra_options,
         })
@@ -311,18 +336,26 @@ impl Test {
     fn step_test_node(&mut self) -> Result<()> {
         assert!(self.node);
         info!("Running tests in node...");
-        test::cargo_test_wasm(
-            &self.crate_path,
-            self.release,
-            vec![
-                (
-                    "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER",
-                    &**self.test_runner_path.as_ref().unwrap(),
-                ),
-                ("WASM_BINDGEN_TEST_ONLY_NODE", "1".as_ref()),
-            ],
-            &self.extra_options,
-        )?;
+        let mut envs = vec![
+            (
+                "CARGO_TARGET_WASM32_UNKNOWN_UNKNOWN_RUNNER",
+                self.test_runner_path.as_ref().unwrap().to_str().unwrap(),
+            ),
+            ("WASM_BINDGEN_TEST_ONLY_NODE", "1".as_ref()),
+        ];
+        if self.coverage {
+            envs.push(("WASM_BINDGEN_UNSTABLE_TEST_COVERAGE", "1".as_ref()))
+        }
+        if let Some(profraw_out) = &self.profraw_out {
+            envs.push((
+                "WASM_BINDGEN_UNSTABLE_TEST_PROFRAW_OUT",
+                profraw_out.to_str().unwrap(),
+            ))
+        }
+        if let Some(profraw_prefix) = &self.profraw_prefix {
+            envs.push(("WASM_BINDGEN_UNSTABLE_TEST_PROFRAW_PREFIX", profraw_prefix))
+        }
+        test::cargo_test_wasm(&self.crate_path, self.release, envs, &self.extra_options)?;
         info!("Finished running tests in node.");
         Ok(())
     }
@@ -408,6 +441,18 @@ impl Test {
         ];
         if !self.headless {
             envs.push(("NO_HEADLESS", "1"));
+        }
+        if self.coverage {
+            envs.push(("WASM_BINDGEN_UNSTABLE_TEST_COVERAGE", "1"));
+        }
+        if let Some(profraw_out) = self.profraw_out.as_ref() {
+            envs.push((
+                "WASM_BINDGEN_UNSTABLE_TEST_PROFRAW_OUT",
+                profraw_out.to_str().unwrap(),
+            ))
+        }
+        if let Some(profraw_prefix) = &self.profraw_prefix {
+            envs.push(("WASM_BINDGEN_UNSTABLE_TEST_PROFRAW_PREFIX", profraw_prefix))
         }
         envs
     }
