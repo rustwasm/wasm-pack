@@ -6,7 +6,7 @@
 1. `cd hello-wasm`
 1. Run `wasm-pack build --target web`.
 1. This tool generates files in a `pkg` dir
-1. Import it: `import init, { greet } from "./pkg/hello_wasm.js"`, initialize it: `await init()`, and then use it: `greet("WebAssembly")`
+1. Import it: `import init, { greet } from "./pkg/hello_wasm.js"`, initialize it: `await init()`, and then use it: `greet()`
 1. To publish to npm, run `wasm-pack publish`. You may need to login to the
    registry you want to publish to. You can login using `wasm-pack login`.
 
