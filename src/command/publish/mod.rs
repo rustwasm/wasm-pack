@@ -19,13 +19,14 @@ pub fn publish(
     path: Option<PathBuf>,
     access: Option<Access>,
     tag: Option<String>,
+    pkg_directory: PathBuf,
 ) -> Result<()> {
     let crate_path = get_crate_path(path)?;
 
     info!("Publishing the npm package...");
     info!("npm info located in the npm debug log");
 
-    let pkg_directory = match find_pkg_directory(&crate_path) {
+    let pkg_directory = match find_pkg_directory(&crate_path, &pkg_directory) {
         Some(path) => Ok(path),
         None => {
             // while `wasm-pack publish`, if the pkg directory cannot be found,

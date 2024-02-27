@@ -31,6 +31,10 @@ pub enum Command {
     #[clap(name = "pack")]
     /// 🍱  create a tar of your npm package but don't publish!
     Pack {
+        #[clap(long = "pkg-dir", short = 'd', default_value = "pkg")]
+        /// The name of the output directory where the npm package is stored
+        pkg_directory: PathBuf,
+
         /// The path to the Rust crate. If not set, searches up the path from the current directory.
         #[clap()]
         path: Option<PathBuf>,
@@ -67,6 +71,10 @@ pub enum Command {
         /// See https://docs.npmjs.com/cli/dist-tag
         #[clap(long = "tag")]
         tag: Option<String>,
+
+        #[clap(long = "pkg-dir", short = 'd', default_value = "pkg")]
+        /// The name of the output directory where the npm package is stored
+        pkg_directory: PathBuf,
 
         /// The path to the Rust crate. If not set, searches up the path from the current directory.
         #[clap()]
@@ -113,10 +121,13 @@ pub fn run_wasm_pack(command: Command) -> Result<()> {
             info!("Running build command...");
             Build::try_from_opts(build_opts).and_then(|mut b| b.run())
         }
-        Command::Pack { path } => {
+        Command::Pack {
+            path,
+            pkg_directory,
+        } => {
             info!("Running pack command...");
             info!("Path: {:?}", &path);
-            pack(path)
+            pack(path, pkg_directory)
         }
         Command::Generate {
             template,
@@ -133,10 +144,11 @@ pub fn run_wasm_pack(command: Command) -> Result<()> {
             path,
             access,
             tag,
+            pkg_directory,
         } => {
             info!("Running publish command...");
             info!("Path: {:?}", &path);
-            publish(&target, path, access, tag)
+            publish(&target, path, access, tag, pkg_directory)
         }
         Command::Login {
             registry,
