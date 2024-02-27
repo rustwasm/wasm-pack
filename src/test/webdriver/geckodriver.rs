@@ -40,6 +40,8 @@ pub fn install_geckodriver(cache: &Cache, installation_allowed: bool) -> Result<
         ("linux32", "tar.gz")
     } else if target::LINUX && target::x86_64 {
         ("linux64", "tar.gz")
+    } else if target::LINUX && target::aarch64 {
+        ("linux-aarch64", "tar.gz")
     } else if target::MACOS {
         ("macos", "tar.gz")
     } else if target::WINDOWS && target::x86 {
