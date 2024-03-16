@@ -45,19 +45,19 @@ pub fn create_pkg_dir(out_dir: &Path) -> Result<()> {
 
 /// Locates the pkg directory from a specific path
 /// Returns None if unable to find the 'pkg' directory
-pub fn find_pkg_directory(path: &Path) -> Option<PathBuf> {
-    if is_pkg_directory(path) {
+pub fn find_pkg_directory(path: &Path, pkg_directory: &Path) -> Option<PathBuf> {
+    if is_pkg_directory(path, pkg_directory) {
         return Some(path.to_owned());
     }
 
     WalkDir::new(path)
         .into_iter()
         .filter_map(|x| x.ok().map(|e| e.into_path()))
-        .find(|x| is_pkg_directory(&x))
+        .find(|x| is_pkg_directory(&x, pkg_directory))
 }
 
-fn is_pkg_directory(path: &Path) -> bool {
-    path.exists() && path.is_dir() && path.ends_with("pkg")
+fn is_pkg_directory(path: &Path, pkg_directory: &Path) -> bool {
+    path.exists() && path.is_dir() && path.ends_with(pkg_directory)
 }
 
 /// Render a `Duration` to a form suitable for display on a console
