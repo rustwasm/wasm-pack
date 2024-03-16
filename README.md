@@ -41,7 +41,7 @@ visiting that repo!
 
 ![demo](demo.gif)
 
-## 🔮 Prerequisities
+## 🔮 Prerequisites
 
 This project requires Rust 1.30.0 or later.
 
