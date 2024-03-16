@@ -32,6 +32,7 @@ pub struct Build {
     pub reference_types: bool,
     pub target: Target,
     pub no_pack: bool,
+    pub no_opt: bool,
     pub profile: BuildProfile,
     pub mode: InstallMode,
     pub out_dir: PathBuf,
@@ -170,6 +171,10 @@ pub struct BuildOptions {
     /// Option to not generate a package.json
     pub no_pack: bool,
 
+    #[clap(long = "no-opt", alias = "no-optimization")]
+    /// Option to skip optimization with wasm-opt
+    pub no_opt: bool,
+
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
 }
@@ -187,6 +192,7 @@ impl Default for BuildOptions {
             debug: false,
             dev: false,
             no_pack: false,
+            no_opt: false,
             release: false,
             profiling: false,
             out_dir: String::new(),
@@ -232,6 +238,7 @@ impl Build {
             reference_types: build_opts.reference_types,
             target: build_opts.target,
             no_pack: build_opts.no_pack,
+            no_opt: build_opts.no_opt,
             profile,
             mode: build_opts.mode,
             out_dir,
@@ -249,7 +256,7 @@ impl Build {
 
     /// Execute this `Build` command.
     pub fn run(&mut self) -> Result<()> {
-        let process_steps = Build::get_process_steps(self.mode, self.no_pack);
+        let process_steps = Build::get_process_steps(self.mode, self.no_pack, self.no_opt);
 
         let started = Instant::now();
 
@@ -274,7 +281,11 @@ impl Build {
         Ok(())
     }
 
-    fn get_process_steps(mode: InstallMode, no_pack: bool) -> Vec<(&'static str, BuildStep)> {
+    fn get_process_steps(
+        mode: InstallMode,
+        no_pack: bool,
+        no_opt: bool,
+    ) -> Vec<(&'static str, BuildStep)> {
         macro_rules! steps {
             ($($name:ident),+) => {
                 {
@@ -302,8 +313,11 @@ impl Build {
             step_create_dir,
             step_install_wasm_bindgen,
             step_run_wasm_bindgen,
-            step_run_wasm_opt,
         ]);
+
+        if !no_opt {
+            steps.extend(steps![step_run_wasm_opt]);
+        }
 
         if !no_pack {
             steps.extend(steps![
