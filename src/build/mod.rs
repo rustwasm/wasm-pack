@@ -5,7 +5,7 @@ use crate::command::build::BuildProfile;
 use crate::emoji;
 use crate::manifest::Crate;
 use crate::PBAR;
-use anyhow::{bail, Context, Result};
+use anyhow::{anyhow, bail, Context, Result};
 use std::path::Path;
 use std::process::Command;
 use std::str;
@@ -107,7 +107,28 @@ pub fn cargo_build_wasm(
     }
 
     cmd.arg("--target").arg("wasm32-unknown-unknown");
-    cmd.args(extra_options);
+
+    // The `cargo` command is executed inside the directory at `path`, so relative paths set via extra options won't work.
+    // To remedy the situation, all detected paths are converted to absolute paths.
+    let mut handle_path = false;
+    let extra_options_with_absolute_paths = extra_options
+        .iter()
+        .map(|option| -> Result<String> {
+            let value = if handle_path && Path::new(option).is_relative() {
+                std::env::current_dir()?
+                    .join(option)
+                    .to_str()
+                    .ok_or_else(|| anyhow!("path contains non-UTF-8 characters"))?
+                    .to_string()
+            } else {
+                option.to_string()
+            };
+            handle_path = matches!(&**option, "--target-dir" | "--out-dir" | "--manifest-path");
+            Ok(value)
+        })
+        .collect::<Result<Vec<_>>>()?;
+    cmd.args(extra_options_with_absolute_paths);
+
     child::run(cmd, "cargo build").context("Compiling your crate to WebAssembly failed")?;
     Ok(())
 }
