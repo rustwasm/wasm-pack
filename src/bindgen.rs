@@ -21,6 +21,7 @@ pub fn wasm_bindgen_build(
     reference_types: bool,
     target: Target,
     profile: BuildProfile,
+    keep_debug: bool,
     extra_options: &Vec<String>,
 ) -> Result<()> {
     let release_or_debug = match profile {
@@ -90,6 +91,10 @@ pub fn wasm_bindgen_build(
     }
     if profile.wasm_bindgen_omit_default_module_path() {
         cmd.arg("--omit-default-module-path");
+    }
+
+    if keep_debug {
+        cmd.arg("--keep-debug");
     }
 
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;

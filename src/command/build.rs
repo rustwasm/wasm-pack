@@ -34,6 +34,7 @@ pub struct Build {
     pub no_pack: bool,
     pub no_opt: bool,
     pub profile: BuildProfile,
+    pub keep_debug: bool,
     pub mode: InstallMode,
     pub out_dir: PathBuf,
     pub out_name: Option<String>,
@@ -175,6 +176,10 @@ pub struct BuildOptions {
     /// Option to skip optimization with wasm-opt
     pub no_opt: bool,
 
+    #[clap(long = "keep-debug")]
+    /// When post-processing the .wasm binary, do not strip DWARF debug info custom sections.
+    pub keep_debug: bool,
+
     /// List of extra options to pass to `cargo build`
     pub extra_options: Vec<String>,
 }
@@ -197,6 +202,7 @@ impl Default for BuildOptions {
             profiling: false,
             out_dir: String::new(),
             out_name: None,
+            keep_debug: false,
             extra_options: Vec::new(),
         }
     }
@@ -243,6 +249,7 @@ impl Build {
             mode: build_opts.mode,
             out_dir,
             out_name: build_opts.out_name,
+            keep_debug: build_opts.keep_debug,
             bindgen: None,
             cache: cache::get_wasm_pack_cache()?,
             extra_options: build_opts.extra_options,
@@ -430,6 +437,7 @@ impl Build {
             self.reference_types,
             self.target,
             self.profile,
+            self.keep_debug,
             &self.extra_options,
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
