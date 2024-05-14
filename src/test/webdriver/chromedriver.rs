@@ -156,7 +156,7 @@ fn fetch_chromedriver_version() -> Result<String> {
 
 fn assemble_chromedriver_url(chromedriver_version: &str, target: &str) -> String {
     format!(
-        "https://edgedl.me.gvt1.com/edgedl/chrome/chrome-for-testing/{version}/{target}/chromedriver-{target}.zip",
+        "https://storage.googleapis.com/chrome-for-testing-public/{version}/{target}/chromedriver-{target}.zip",
         version = chromedriver_version,
         target = target,
     )
