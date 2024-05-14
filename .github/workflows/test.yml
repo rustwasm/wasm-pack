@@ -21,7 +21,7 @@ jobs:
             os: ubuntu-latest
             rust: stable
           - build: macos-stable
-            os: macos-latest
+            os: macos-13
             rust: stable
           - build: windows-stable
             os: windows-latest
