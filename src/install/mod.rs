@@ -173,6 +173,7 @@ fn prebuilt_url(tool: &Tool, version: &str) -> Result<String> {
 /// Get the download URL for some tool at some version, architecture and operating system
 pub fn prebuilt_url_for(tool: &Tool, version: &str, arch: &Arch, os: &Os) -> Result<String> {
     let target = match (os, arch, tool) {
+        (Os::Linux, Arch:AArch64, Tool::WasmOpt) => "aarch64-linux",
         (Os::Linux, Arch::X86_64, Tool::WasmOpt) => "x86_64-linux",
         (Os::Linux, Arch::X86_64, _) => "x86_64-unknown-linux-musl",
         (Os::MacOS, Arch::X86_64, Tool::WasmOpt) => "x86_64-macos",
@@ -201,7 +202,7 @@ pub fn prebuilt_url_for(tool: &Tool, version: &str, arch: &Arch, os: &Os) -> Res
         Tool::WasmOpt => {
             Ok(format!(
         "https://github.com/WebAssembly/binaryen/releases/download/{vers}/binaryen-{vers}-{target}.tar.gz",
-        vers = "version_111",
+        vers = "version_117",
         target = target,
             ))
         }
