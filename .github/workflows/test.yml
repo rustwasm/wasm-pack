@@ -41,7 +41,7 @@ jobs:
       - name: Cache dependencies
         uses: actions/cache@v3
         env:
-          cache-name: cache-dependencies-bust
+          cache-name: cache-dependencies
         with:
           path: |
             ~/.cargo/.crates.toml
