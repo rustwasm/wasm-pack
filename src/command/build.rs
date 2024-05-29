@@ -16,6 +16,7 @@ use anyhow::{anyhow, bail, Error, Result};
 use binary_install::Cache;
 use clap::Args;
 use log::info;
+use path_clean::PathClean;
 use std::fmt;
 use std::path::PathBuf;
 use std::str::FromStr;
@@ -217,7 +218,7 @@ impl Build {
         }
         let crate_path = get_crate_path(build_opts.path)?;
         let crate_data = manifest::CrateData::new(&crate_path, build_opts.out_name.clone())?;
-        let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir));
+        let out_dir = crate_path.join(PathBuf::from(build_opts.out_dir)).clean();
 
         let dev = build_opts.dev || build_opts.debug;
         let profile = match (dev, build_opts.release, build_opts.profiling) {
