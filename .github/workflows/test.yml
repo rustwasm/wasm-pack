@@ -30,6 +30,8 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: nanasess/setup-chromedriver@master
+      - if: matrix.os == 'macos-latest'
+        run: brew install --cask firefox
       - uses: dtolnay/rust-toolchain@stable
         with:
           toolchain: ${{ matrix.rust }}

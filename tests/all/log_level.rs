@@ -16,7 +16,9 @@ fn matches_info() -> impl Predicate<str> + PredicateReflection {
 }
 
 fn matches_cargo() -> impl Predicate<str> + PredicateReflection {
-    contains("Finished release [optimized] target(s) in ")
+    contains("Finished release [optimized] target(s) in ").or(contains(
+        "Finished `release` profile [optimized] target(s) in ",
+    ))
 }
 
 #[test]
