@@ -1000,6 +1000,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "path-clean"
+version = "1.0.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17359afc20d7ab31fdb42bb844c8b3bb1dabd7dcf7e68428492da7f16966fcef"
+
+[[package]]
 name = "pbkdf2"
 version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1729,6 +1735,7 @@ dependencies = [
  "lazy_static",
  "log",
  "parking_lot",
+ "path-clean",
  "predicates",
  "semver",
  "serde",
