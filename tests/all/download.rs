@@ -83,7 +83,7 @@ fn all_latest_tool_download_urls_valid() {
             for os in [Os::Linux, Os::MacOS, Os::Windows] {
                 // For all valid tool, arch & os combinations,
                 // error out when any of them is a 404 or similar
-                if let Ok(url) = install::prebuilt_url_for(&tool, "0.2.82", &arch, &os) {
+                if let Ok(url) = install::prebuilt_url_for(&tool, "0.2.92", &arch, &os) {
                     // Use HTTP HEAD instead of GET to avoid fetching lots of stuff
                     let res = ureq::head(&url).call().unwrap();
                     let status = res.status();
