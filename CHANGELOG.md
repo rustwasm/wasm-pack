@@ -2,6 +2,18 @@
 
 ## 🤍 Unreleased
 
+- ### 🤕 Fixes
+
+  - **Fix passing relative paths to cargo - [dfaust], [issue/704], [issue/1156], [issue/1252], [pull/1331]**
+
+    When building a crate located in a sub-directory, relative paths, passed as extra options to cargo (like `--target-dir`), are now handled correctly.
+
+    [issue/704]: https://github.com/rustwasm/wasm-pack/issues/704
+    [issue/1156]: https://github.com/rustwasm/wasm-pack/issues/1156
+    [issue/1252]: https://github.com/rustwasm/wasm-pack/issues/1252
+    [pull/1331]: https://github.com/rustwasm/wasm-pack/pull/1331
+    [dfaust]: https://github.com/dfaust
+
 ## ☀️ 0.12.1
 
 - ### 🤕 Fixes
