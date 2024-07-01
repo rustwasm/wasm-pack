@@ -55,10 +55,7 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt-get update -y
-          sudo apt-get install clang gcc-aarch64-linux-gnu -y
-          echo "TARGET_CC=clang" >> $GITHUB_ENV
-          echo "CFLAGS_aarch64_unknown_linux_musl=--sysroot=/usr/aarch64-linux-gnu" >> $GITHUB_ENV
-          echo "CARGO_TARGET_AARCH64_UNKNOWN_LINUX_MUSL_LINKER=/usr/aarch64-linux-gnu/bin/ld" >> $GITHUB_ENV
+          sudo apt-get install clang gcc-aarch64-linux-gnu musl-tools -y
 
       - name: Install p7zip (MacOS)
         if: matrix.os == 'macos-latest'
@@ -67,8 +64,12 @@ jobs:
       - name: Add rustup target
         run: rustup target add ${{ matrix.target }}
 
+      - uses: taiki-e/install-action@v2
+        with:
+          tool: cross
+
       - name: Build
-        run: cargo build --release --target ${{ matrix.target }}
+        run: cross build --release --target ${{ matrix.target }}
 
       - name: Set RUSTFLAGS (Windows)
         if: matrix.os == 'windows-latest'
