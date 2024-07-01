@@ -1,7 +1,7 @@
 [package]
 name = "wasm-pack"
 description = "📦✨ your favorite rust -> wasm workflow tool!"
-version = "0.12.1"
+version = "0.13.0"
 authors = ["Ashley Williams <ashley666ashley@gmail.com>", "Jesper Håkansson <jesper@jesperh.se>"]
 repository = "https://github.com/rustwasm/wasm-pack.git"
 license = "MIT OR Apache-2.0"
@@ -13,7 +13,7 @@ documentation = "https://rustwasm.github.io/wasm-pack/"
 [dependencies]
 anyhow = "1.0.68"
 atty = "0.2.14"
-binary-install = "0.3.0"
+binary-install = "0.4.0"
 cargo_metadata = "0.15.2"
 chrono = "0.4.23"
 console = "0.15.5"

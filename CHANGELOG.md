@@ -2,6 +2,32 @@
 
 ## 🤍 Unreleased
 
+## ☀️ 0.13.0
+
+- ### ✨ Features
+
+  - **Add option to skip optimization with wasm-opt - [sisou], [pull/1321]**
+
+    This feature introduces the `--no-opt` option to wasm-pack, providing a significant improvement in build efficiency for projects requiring multiple wasm-pack executions.
+
+    [pull/1321]: https://github.com/rustwasm/wasm-pack/pull/1321
+    [sisou]: https://github.com/sisou
+
+  - **Add support geckodriver for linux-aarch64 - [EstebanBorai], [pull/1371]**
+
+    Introduces support to download Geckodriver in Linux aarch64.
+
+    [pull/1371]: https://github.com/rustwasm/wasm-pack/pull/1371
+    [EstebanBorai]: https://github.com/EstebanBorai
+
+  - **Add wasm-opt linux aarch64 condition - [dkristia], [issue/1392], [pull/1393]**
+
+    A linux aarch64 build for wasm-opt exists in the newest binaryen versions.
+
+    [issue/1392]: https://github.com/rustwasm/wasm-pack/issues/1392
+    [pull/1393]: https://github.com/rustwasm/wasm-pack/pull/1393
+    [dkristia]: https://github.com/dkristia
+
 - ### 🤕 Fixes
 
   - **Fix passing relative paths to cargo - [dfaust], [issue/704], [issue/1156], [issue/1252], [pull/1331]**
@@ -13,6 +39,129 @@
     [issue/1252]: https://github.com/rustwasm/wasm-pack/issues/1252
     [pull/1331]: https://github.com/rustwasm/wasm-pack/pull/1331
     [dfaust]: https://github.com/dfaust
+
+  - **Rewrite wasm_target to use target-libdir - [daidoji], [issue/1342], [pull/1343]**
+
+    Rewritten wasm_target to use target libdir from the rustc tool rather than looking through sysroot. This is to accomodate non-rustup installations.
+
+    [issue/1342]: https://github.com/rustwasm/wasm-pack/issues/1342
+    [pull/1343]: https://github.com/rustwasm/wasm-pack/pull/1343
+    [daidoji]: https://github.com/daidoji
+
+  - **Declare ES module in package.json - [gthb], [issue/1039], [pull/1061]**
+
+    In bundler mode, generate package.json with "type": "module" and use the "main" attribute instead of the "module" attribute.
+
+    This change makes the built ES module palatable to Node.js (when run with --experimental-vm-modules --experimental-wasm-modules),
+    while it remains also palatable to webpack as illustrated in webpack/webpack#14313
+    (where the pkg subfolder is generated with wasm-pack built with this change).
+    This resolves the headache of using a wasm-pack-built package in a library that one needs to both run directly in Node and include in a webpack build.
+
+    [issue/1039]: https://github.com/rustwasm/wasm-pack/issues/1039
+    [pull/1061]: https://github.com/rustwasm/wasm-pack/pull/1061
+    [gthb]: https://github.com/gthb
+
+  - **Use new chromdriver endpoint and fix CI - [Myriad-Dreamin], [kade-robertson], [issue/1315], [issue/1390], [pull/1325], [pull/1391]**
+
+    [issue/1315]: https://github.com/rustwasm/wasm-pack/issues/1315
+    [issue/1390]: https://github.com/rustwasm/wasm-pack/issues/1390
+    [pull/1325]: https://github.com/rustwasm/wasm-pack/pull/1325
+    [pull/1391]: https://github.com/rustwasm/wasm-pack/pull/1391
+    [Myriad-Dreamin]: https://github.com/Myriad-Dreamin
+    [kade-robertson]: https://github.com/kade-robertson
+
+  - **Add mingw support to npm package - [nathaniel-daniel], [issue/1354], [issue/1359], [pull/1363]**
+
+     Fixes the NPM package's platform detection for mingw.
+
+    [issue/1354]: https://github.com/rustwasm/wasm-pack/issues/1354
+    [issue/1359]: https://github.com/rustwasm/wasm-pack/issues/1359
+    [pull/1363]: https://github.com/rustwasm/wasm-pack/pull/1363
+    [nathaniel-daniel]: https://github.com/nathaniel-daniel
+
+  - **pkg-dir option for pack and publish commands - [danielronnkvist], [issue/1369], [pull/1370]**
+
+    To be able to use these commands when the output directory option to the build command isn't the default pkg.
+
+    [issue/1369]: https://github.com/rustwasm/wasm-pack/issues/1369
+    [pull/1370]: https://github.com/rustwasm/wasm-pack/pull/1370
+    [danielronnkvist]: https://github.com/danielronnkvist
+
+  - **Optimize out-dir display - [ahaoboy], [issue/1395], [pull/1396]**
+
+    Optimize out-dir display.
+
+    from:
+
+    `[INFO]: 📦 Your wasm pkg is ready to publish at /root/code/fib-wasm/fib-rs/../fib-wasm/wasm.`
+
+    to:
+
+    `[INFO]: 📦 Your wasm pkg is ready to publish at /root/code/fib-wasm/fib-wasm/wasm.`
+
+
+    [issue/1395]: https://github.com/rustwasm/wasm-pack/issues/1395
+    [pull/1396]: https://github.com/rustwasm/wasm-pack/pull/1396
+    [ahaoboy]: https://github.com/ahaoboy
+
+- ### 🛠️ Maintenance
+  - **Fix error and warnings in install script - [lucashorward], [issue/1159], [issue/1217], [issue/1283], [pull/1320]**
+
+    [issue/1159]: https://github.com/rustwasm/wasm-pack/issues/1159
+    [issue/1217]: https://github.com/rustwasm/wasm-pack/issues/1217
+    [issue/1283]: https://github.com/rustwasm/wasm-pack/issues/1283
+    [pull/1320]: https://github.com/rustwasm/wasm-pack/pull/1320
+    [lucashorward]: https://github.com/lucashorward
+
+  - **Bump follow-redirects from 1.14.9 to 1.15.6 in /npm - [dependabot], [pull/1375]**
+
+    [pull/1375]: https://github.com/rustwasm/wasm-pack/pull/1375
+
+  - **Bump rustls-webpki from 0.100.1 to 0.100.2 - [dependabot], [pull/1323]**
+
+    [pull/1341]: https://github.com/rustwasm/wasm-pack/pull/1341
+
+  - **Bump rustix from 0.37.20 to 0.37.25 - [dependabot], [pull/1341]**
+
+    [pull/1323]: https://github.com/rustwasm/wasm-pack/pull/1323
+    [dependabot]: https://github.com/apps/dependabot
+
+  - **Bump rustls from 0.21.9 to 0.21.11 - [dependabot], [pull/1385]**
+
+    [pull/1385]: https://github.com/rustwasm/wasm-pack/pull/1385
+    [dependabot]: https://github.com/apps/dependabot
+
+  - **Bump tar from 6.1.11 to 6.2.1 in /npm - [dependabot], [pull/1379]**
+
+    [pull/1379]: https://github.com/rustwasm/wasm-pack/pull/1379
+    [dependabot]: https://github.com/apps/dependabot
+
+- ### 📖 Documentation
+
+  - **Fix typo in README - [Lionelf329], [pull/1368]**
+
+    [pull/1268]: https://github.com/rustwasm/wasm-pack/pull/1368
+    [Lionelf329]: https://github.com/Lionelf329
+
+  - **Add a description of build --target deno - [puxiao], [pull/1344]**
+
+    [pull/1344]: https://github.com/rustwasm/wasm-pack/pull/1344
+    [puxiao]: https://github.com/puxiao
+
+  - **Document deno in build target - [sigmaSd], [pull/1348]**
+
+    [pull/1348]: https://github.com/rustwasm/wasm-pack/pull/1348
+    [sigmaSd]: https://github.com/sigmaSd
+
+  - **Fix local navigation backing one step too far in docs - [SamuSoft], [pull/1387]**
+
+    [pull/1387]: https://github.com/rustwasm/wasm-pack/pull/1387
+    [SamuSoft]: https://github.com/SamuSoft
+
+  - **Add --target web to quick start build command - [josephrocca], [pull/1367]**
+
+    [pull/1367]: https://github.com/rustwasm/wasm-pack/pull/1367
+    [josephrocca]: https://github.com/josephrocca
 
 ## ☀️ 0.12.1
 
