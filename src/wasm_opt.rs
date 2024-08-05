@@ -54,7 +54,7 @@ pub fn find_wasm_opt(cache: &Cache, install_permitted: bool) -> Result<Option<Pa
     match install::download_prebuilt_or_cargo_install(
         install::Tool::WasmOpt,
         cache,
-        "latest",
+        "0.116.1",
         install_permitted,
     )? {
         install::Status::Found(download) => Ok(Some(download.binary("wasm-opt")?)),
