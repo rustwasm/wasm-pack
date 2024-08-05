@@ -51,8 +51,13 @@ pub fn find_wasm_opt(cache: &Cache, install_permitted: bool) -> Result<Option<Pa
         return Ok(Some(path));
     }
 
-    match install::download_prebuilt(&install::Tool::WasmOpt, cache, "latest", install_permitted)? {
-        install::Status::Found(download) => Ok(Some(download.binary("bin/wasm-opt")?)),
+    match install::download_prebuilt_or_cargo_install(
+        install::Tool::WasmOpt,
+        cache,
+        "0.116.1",
+        install_permitted,
+    )? {
+        install::Status::Found(download) => Ok(Some(download.binary("wasm-opt")?)),
         install::Status::CannotInstall => {
             PBAR.info("Skipping wasm-opt as no downloading was requested");
             Ok(None)
