@@ -213,6 +213,21 @@ fn build_different_profiles() {
 }
 
 #[test]
+fn build_custom_profile() {
+    let profile_name = "my-custom-profile";
+    let fixture = utils::fixture::js_hello_world_with_custom_profile(profile_name);
+    fixture.install_local_wasm_bindgen();
+
+    fixture
+        .wasm_pack()
+        .arg("build")
+        .arg("--profile")
+        .arg(profile_name)
+        .assert()
+        .success();
+}
+
+#[test]
 fn build_with_and_without_wasm_bindgen_debug() {
     for debug in [true, false].iter().cloned() {
         let fixture = utils::fixture::Fixture::new();
