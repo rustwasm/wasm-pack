@@ -127,22 +127,22 @@ jobs:
           release_name: ${{ steps.get_version.outputs.VERSION }}
 
       - name: Download Linux amd64 tarball
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ${{ env.LINUX_AMD64_TARGET }}
 
       - name: Download Linux arm64 tarball
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ${{ env.LINUX_ARM64_TARGET }}
 
       - name: Download Windows tarball
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ${{ env.WINDOWS_TARGET }}
 
       - name: Download MacOS tarball
-        uses: actions/download-artifact@v2
+        uses: actions/download-artifact@v4.1.7
         with:
           name: ${{ env.MACOS_TARGET }}
 
