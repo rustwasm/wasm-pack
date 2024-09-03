@@ -148,9 +148,6 @@ impl Fixture {
 
                     [dev-dependencies]
                     wasm-bindgen-test = "0.3"
-
-                    [profile.my-custom-profile]
-                    inherits = "release"
                 "#,
                 name
             ),
