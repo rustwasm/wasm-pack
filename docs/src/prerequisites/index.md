@@ -6,7 +6,7 @@ First you'll want to [install the `wasm-pack` CLI][wasm-pack], and `wasm-pack
 [wasm-pack]: https://rustwasm.github.io/wasm-pack/installer/
 
 Next, since `wasm-pack` is a build tool, you'll want to make sure you have
-[Rust][rust] installed. Make sure `rustc -V` prints out at least 1.30.0.
+[Rust][rust] installed. Make sure `rustc -V` prints out at least 1.70.0.
 
 [rust]: https://www.rust-lang.org/tools/install
 

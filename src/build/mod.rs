@@ -22,21 +22,21 @@ pub struct WasmPackVersion {
     pub latest: String,
 }
 
-/// Ensure that `rustc` is present and that it is >= 1.30.0
+/// Ensure that `rustc` is present and that it is >= 1.70.0
 pub fn check_rustc_version() -> Result<String> {
     let local_minor_version = rustc_minor_version();
     match local_minor_version {
         Some(mv) => {
-            if mv < 30 {
+            if mv < 70 {
                 bail!(
-                    "Your version of Rust, '1.{}', is not supported. Please install Rust version 1.30.0 or higher.",
+                    "Your version of Rust, '1.{}', is not supported. Please install Rust version 1.70.0 or higher.",
                     mv.to_string()
                 )
             } else {
                 Ok(mv.to_string())
             }
         }
-        None => bail!("We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.30.0 or higher."),
+        None => bail!("We can't figure out what your Rust version is- which means you might not have Rust installed. Please install Rust version 1.70.0 or higher."),
     }
 }
 
