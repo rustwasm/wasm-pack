@@ -112,9 +112,7 @@ fn confirm_can_overwrite(dst: &Path) -> Result<()> {
     );
     eprint!("info: would you like to overwrite this file? [y/N]: ");
     let mut line = String::new();
-    stdin
-        .read_line(&mut line)
-        .context("failed to read stdin")?;
+    stdin.read_line(&mut line).context("failed to read stdin")?;
 
     if line.starts_with('y') || line.starts_with('Y') {
         return Ok(());
