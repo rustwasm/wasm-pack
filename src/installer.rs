@@ -19,11 +19,10 @@
 use std::env;
 use std::fs;
 use std::io;
-use std::path::Path;
 use std::process;
+use std::{io::IsTerminal, path::Path};
 
 use anyhow::{anyhow, bail, Context, Result};
-use atty;
 use which;
 
 pub fn install() -> ! {
@@ -93,7 +92,7 @@ fn confirm_can_overwrite(dst: &Path) -> Result<()> {
 
     // If we're not attached to a TTY then we can't get user input, so there's
     // nothing to do except inform the user about the `-f` flag.
-    if !atty::is(atty::Stream::Stdin) {
+    if !io::stdin().is_terminal() {
         bail!(
             "existing wasm-pack installation found at `{}`, pass `-f` to \
              force installation over this file, otherwise aborting \
