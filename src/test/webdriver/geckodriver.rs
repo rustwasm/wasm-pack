@@ -141,12 +141,14 @@ fn should_load_geckodriver_version_from_stamp(json: &serde_json::Value) -> bool 
 }
 
 fn fetch_latest_geckodriver_tag_json() -> Result<String> {
-    let content: serde_json::Value =
-        ureq::get("https://github.com/mozilla/geckodriver/releases/latest")
-            .set("Accept", "application/json")
-            .call()
-            .context("fetching of geckodriver's latest release data failed")?
-            .into_json()?;
+    let content: serde_json::Value = ureq::builder()
+        .try_proxy_from_env(true)
+        .build()
+        .get("https://github.com/mozilla/geckodriver/releases/latest")
+        .set("Accept", "application/json")
+        .call()
+        .context("fetching of geckodriver's latest release data failed")?
+        .into_json()?;
 
     get_version_from_json(content)
 }
