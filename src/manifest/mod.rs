@@ -227,6 +227,7 @@ impl Crate {
     fn check_wasm_pack_latest_version() -> Result<Crate> {
         let url = "https://crates.io/api/v1/crates/wasm-pack";
         let agent = ureq::builder()
+            .try_proxy_from_env(true)
             .user_agent(&format!(
                 "wasm-pack/{} ({})",
                 WASM_PACK_VERSION.unwrap_or_else(|| "unknown"),

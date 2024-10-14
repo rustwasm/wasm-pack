@@ -17,7 +17,10 @@ pub struct KrateResponse {
 impl Krate {
     pub fn new(name: &Tool) -> Result<Krate> {
         let krate_address = format!("https://crates.io/api/v1/crates/{}", name);
-        let res = ureq::get(&krate_address)
+        let res = ureq::builder()
+            .try_proxy_from_env(true)
+            .build()
+            .get(&krate_address)
             .set(
                 "user-agent",
                 &format!("wasm-pack/{}", VERSION.unwrap_or("unknown")),

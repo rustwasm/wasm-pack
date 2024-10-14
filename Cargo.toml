@@ -32,7 +32,7 @@ siphasher = "0.3.10"
 strsim = "0.10.0"
 clap = { version = "4.2.5", features = ["derive"] }
 toml = "0.7.3"
-ureq = { version = "2.6.2", features = ["json"] }
+ureq = { version = "2.6.2", features = ["json", "socks-proxy"] }
 walkdir = "2.3.2"
 which = "4.4.0"
 path-clean = "1.0.1"

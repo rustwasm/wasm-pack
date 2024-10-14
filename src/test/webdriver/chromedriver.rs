@@ -134,13 +134,14 @@ struct GoodLatestVersions {
 /// Retrieve the latest version of chromedriver from the json endpoints.
 /// See: <https://github.com/GoogleChromeLabs/chrome-for-testing#json-api-endpoints>
 fn fetch_chromedriver_version() -> Result<String> {
-    let info: GoodLatestVersions = ureq::get(
-        "https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json",
-    )
-    .call()
-    .context("fetching of chromedriver's LATEST_RELEASE failed")?
-    .into_json()
-    .context("converting chromedriver version response to GoodLatestVersions failed")?;
+    let info: GoodLatestVersions = ureq::builder()
+        .try_proxy_from_env(true)
+        .build()
+        .get("https://googlechromelabs.github.io/chrome-for-testing/last-known-good-versions.json")
+        .call()
+        .context("fetching of chromedriver's LATEST_RELEASE failed")?
+        .into_json()
+        .context("converting chromedriver version response to GoodLatestVersions failed")?;
 
     let version = info
         .channels
