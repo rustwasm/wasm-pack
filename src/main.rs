@@ -1,7 +1,6 @@
 #![allow(clippy::redundant_closure, clippy::redundant_pattern_matching)]
 
 extern crate anyhow;
-extern crate atty;
 extern crate clap;
 extern crate env_logger;
 extern crate human_panic;
