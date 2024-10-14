@@ -203,7 +203,13 @@ impl Default for BuildOptions {
     }
 }
 
-type BuildStep = fn(&mut Build) -> Result<()>;
+type BuildStep = fn(&mut Build, _state: &mut State) -> Result<()>;
+
+#[derive(Default)]
+struct State {
+    // step state
+    cargo_artifact: Option<PathBuf>,
+}
 
 impl Build {
     /// Construct a build command from the given options.
@@ -260,9 +266,10 @@ impl Build {
         let process_steps = Build::get_process_steps(self.mode, self.no_pack, self.no_opt);
 
         let started = Instant::now();
+        let mut state = State::default();
 
         for (_, process_step) in process_steps {
-            process_step(self)?;
+            process_step(self, &mut state)?;
         }
 
         let duration = crate::command::utils::elapsed(started.elapsed());
@@ -331,7 +338,7 @@ impl Build {
         steps
     }
 
-    fn step_check_rustc_version(&mut self) -> Result<()> {
+    fn step_check_rustc_version(&mut self, _state: &mut State) -> Result<()> {
         info!("Checking rustc version...");
         let version = build::check_rustc_version()?;
         let msg = format!("rustc version is {}.", version);
@@ -339,43 +346,40 @@ impl Build {
         Ok(())
     }
 
-    fn step_check_crate_config(&mut self) -> Result<()> {
+    fn step_check_crate_config(&mut self, _state: &mut State) -> Result<()> {
         info!("Checking crate configuration...");
         self.crate_data.check_crate_config()?;
         info!("Crate is correctly configured.");
         Ok(())
     }
 
-    fn step_check_for_wasm_target(&mut self) -> Result<()> {
+    fn step_check_for_wasm_target(&mut self, _state: &mut State) -> Result<()> {
         info!("Checking for wasm-target...");
         build::wasm_target::check_for_wasm32_target()?;
         info!("Checking for wasm-target was successful.");
         Ok(())
     }
 
-    fn step_build_wasm(&mut self) -> Result<()> {
+    fn step_build_wasm(&mut self, state: &mut State) -> Result<()> {
         info!("Building wasm...");
-        build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
+        let cargo_artifact =
+            build::cargo_build_wasm(&self.crate_path, self.profile, &self.extra_options)?;
 
-        info!(
-            "wasm built at {:#?}.",
-            &self
-                .crate_path
-                .join("target")
-                .join("wasm32-unknown-unknown")
-                .join("release")
-        );
+        info!("wasm built at {:#?}.", cargo_artifact);
+
+        state.cargo_artifact = Some(cargo_artifact);
+
         Ok(())
     }
 
-    fn step_create_dir(&mut self) -> Result<()> {
+    fn step_create_dir(&mut self, _state: &mut State) -> Result<()> {
         info!("Creating a pkg directory...");
         create_pkg_dir(&self.out_dir)?;
         info!("Created a pkg directory at {:#?}.", &self.crate_path);
         Ok(())
     }
 
-    fn step_create_json(&mut self) -> Result<()> {
+    fn step_create_json(&mut self, _state: &mut State) -> Result<()> {
         self.crate_data.write_package_json(
             &self.out_dir,
             &self.scope,
@@ -389,21 +393,21 @@ impl Build {
         Ok(())
     }
 
-    fn step_copy_readme(&mut self) -> Result<()> {
+    fn step_copy_readme(&mut self, _state: &mut State) -> Result<()> {
         info!("Copying readme from crate...");
         readme::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir)?;
         info!("Copied readme from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_copy_license(&mut self) -> Result<()> {
+    fn step_copy_license(&mut self, _state: &mut State) -> Result<()> {
         info!("Copying license from crate...");
         license::copy_from_crate(&self.crate_data, &self.crate_path, &self.out_dir)?;
         info!("Copied license from crate to {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_install_wasm_bindgen(&mut self) -> Result<()> {
+    fn step_install_wasm_bindgen(&mut self, _state: &mut State) -> Result<()> {
         info!("Identifying wasm-bindgen dependency...");
         let lockfile = Lockfile::new(&self.crate_data)?;
         let bindgen_version = lockfile.require_wasm_bindgen()?;
@@ -419,7 +423,7 @@ impl Build {
         Ok(())
     }
 
-    fn step_run_wasm_bindgen(&mut self) -> Result<()> {
+    fn step_run_wasm_bindgen(&mut self, state: &mut State) -> Result<()> {
         info!("Building the wasm bindings...");
         bindgen::wasm_bindgen_build(
             &self.crate_data,
@@ -431,13 +435,16 @@ impl Build {
             self.reference_types,
             self.target,
             self.profile,
-            &self.extra_options,
+            state
+                .cargo_artifact
+                .as_ref()
+                .expect("bindgen ran before cargo build"),
         )?;
         info!("wasm bindings were built at {:#?}.", &self.out_dir);
         Ok(())
     }
 
-    fn step_run_wasm_opt(&mut self) -> Result<()> {
+    fn step_run_wasm_opt(&mut self, _state: &mut State) -> Result<()> {
         let mut args = match self
             .crate_data
             .configured_profile(self.profile)

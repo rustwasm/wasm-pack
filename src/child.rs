@@ -6,7 +6,7 @@
 use crate::install::Tool;
 use anyhow::{bail, Result};
 use log::info;
-use std::process::{Command, Stdio};
+use std::process::{Child, Command, Stdio};
 
 /// Return a new Command object
 pub fn new_command(program: &str) -> Command {
@@ -58,6 +58,32 @@ pub fn run_capture_stdout(mut command: Command, command_name: &Tool) -> Result<S
             "failed to execute `{}`: exited with {}\n  full command: {:?}",
             command_name,
             output.status,
+            command,
+        )
+    }
+}
+
+/// Run the command and handle child, return on success.
+pub fn run_with_handler<T>(
+    mut command: Command,
+    command_name: &str,
+    handle: impl FnOnce(&mut Child) -> Result<T>,
+) -> Result<T> {
+    info!("Running {:?}", command);
+
+    let mut child = command.spawn()?;
+
+    let ret = handle(&mut child)?;
+
+    let status = child.wait()?;
+
+    if status.success() {
+        Ok(ret)
+    } else {
+        bail!(
+            "failed to execute `{}`: exited with {}\n  full command: {:?}",
+            command_name,
+            status,
             command,
         )
     }
