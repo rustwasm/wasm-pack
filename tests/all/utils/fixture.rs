@@ -159,6 +159,49 @@ impl Fixture {
     /// ["cdylib"]`.
     ///
     /// `name` is the crate's name.
+    /// `profile` is the custom profile name.
+    pub fn cargo_toml_with_custom_profile(&self, name: &str, profile_name: &str) -> &Self {
+        self.file(
+            "Cargo.toml",
+            &format!(
+                r#"
+                    [package]
+                    authors = ["The wasm-pack developers"]
+                    description = "so awesome rust+wasm package"
+                    license = "WTFPL"
+                    name = "{}"
+                    repository = "https://github.com/rustwasm/wasm-pack.git"
+                    version = "0.1.0"
+
+                    [lib]
+                    crate-type = ["cdylib"]
+
+                    [dependencies]
+                    # Note that this uses and `=` dependency because there are
+                    # various tests which assert that the version of wasm
+                    # bindgen downloaded is what we expect, and if `=` is
+                    # removed then it will download whatever the newest version
+                    # of wasm-bindgen is which may not be what's listed here.
+                    wasm-bindgen = "=0.2.74"
+
+                    [dev-dependencies]
+                    wasm-bindgen-test = "0.3"
+
+                    [profile.{}]
+                    inherits = "release"
+                    opt-level = 'z'
+                    lto = true
+                "#,
+                name, profile_name
+            ),
+        )
+    }
+
+    /// Add a `Cargo.toml` with a correctly configured `wasm-bindgen`
+    /// dependency, `wasm-bindgen-test` dev-dependency, and `crate-type =
+    /// ["cdylib"]`.
+    ///
+    /// `name` is the crate's name.
     /// `license_file` is license file path
     pub fn cargo_toml_with_license_file(&self, name: &str, license_file: &str) -> &Self {
         self.file(
@@ -400,6 +443,15 @@ pub fn js_hello_world() -> Fixture {
     fixture
         .readme()
         .cargo_toml("js-hello-world")
+        .hello_world_src_lib();
+    fixture
+}
+
+pub fn js_hello_world_with_custom_profile(profile_name: &str) -> Fixture {
+    let fixture = Fixture::new();
+    fixture
+        .readme()
+        .cargo_toml_with_custom_profile("js-hello-world", profile_name)
         .hello_world_src_lib();
     fixture
 }
