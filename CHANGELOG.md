@@ -2,6 +2,44 @@
 
 ## 🤍 Unreleased
 
+## ☀️ 0.13.1
+
+- ### ✨ Features
+
+  - **Requests using proxy settings from env - [jjyr], [pull/1438]**
+
+    This enables ureq to use proxy settings from env, it solves lots of pain in network restricted environments.
+
+    [pull/1438]: https://github.com/rustwasm/wasm-pack/pull/1438
+    [jjyr]: https://github.com/jjyr
+
+- ### 🤕 Fixes
+
+  - **Update binary-install to v0.4.1 - [drager], [pull/1407]**
+
+    Release v0.4.0 of binary-install introduced a regression that caused failures on some platforms. This release fixes that regression.
+
+    [pull/1407]: https://github.com/rustwasm/wasm-pack/pull/1407
+    [drager]: https://github.com/drager
+
+  - ** Allow npm binary upgrades - [net], [pull/1439]**
+
+    Fixes an issue where upgrading `wasm-pack` via NPM would not update the underlying binary.
+    Previously, the binary was stored in the `binary-install` package's directory without versioning, causing version upgrades to silently fail as the old binary continued to be used.
+    The binary is now stored in `node_modules/wasm-pack/binary/`, ensuring proper version updates when upgrading the package.
+
+    **Before:** Upgrading from `0.12.1` to `0.13.0` would continue using the `0.12.1` binary
+    **After:** Each `wasm-pack` version manages its own binary, enabling proper version upgrades
+
+    [pull/1439]: https://github.com/rustwasm/wasm-pack/pull/1439
+    [net]: https://github.com/net
+
+- ### 🛠️ Maintenance
+  - ** Remove unmaintained dependency atty in favor of stdlib - [mariusvniekerk], [pull/1436]**
+
+    [pull/1436]: https://github.com/rustwasm/wasm-pack/pull/1436
+    [mariusvniekerk]: https://github.com/mariusvniekerk
+
 ## ☀️ 0.13.0
 
 - ### ✨ Features
