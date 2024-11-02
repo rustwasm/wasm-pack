@@ -29,6 +29,8 @@ demangle-name-section = true
 dwarf-debug-info = false
 # Should we omit the default import path?
 omit-default-module-path = false
+# Controls whether wasm-bindgen will split linked modules out into their own files. Enabling this is recommended, because it allows lazy-loading the linked modules and setting a stricter Content Security Policy. Only available in wasm-bindgen 0.2.95 and later.
+split-linked-modules = false
 
 [package.metadata.wasm-pack.profile.profiling]
 wasm-opt = ['-O']

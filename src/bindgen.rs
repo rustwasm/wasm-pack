@@ -92,6 +92,9 @@ pub fn wasm_bindgen_build(
     if profile.wasm_bindgen_omit_default_module_path() {
         cmd.arg("--omit-default-module-path");
     }
+    if profile.wasm_bindgen_split_linked_modules() {
+        cmd.arg("--split-linked-modules");
+    }
 
     child::run(cmd, "wasm-bindgen").context("Running the wasm-bindgen CLI")?;
     Ok(())
