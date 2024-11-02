@@ -127,6 +127,9 @@ struct CargoWasmPackProfileWasmBindgen {
 
     #[serde(default, rename = "omit-default-module-path")]
     omit_default_module_path: Option<bool>,
+
+    #[serde(default, rename = "split-linked-modules")]
+    split_linked_modules: Option<bool>,
 }
 
 /// Struct for storing information received from crates.io
@@ -283,6 +286,7 @@ impl CargoWasmPackProfile {
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
                 omit_default_module_path: Some(false),
+                split_linked_modules: Some(false),
             },
             wasm_opt: None,
         }
@@ -295,6 +299,7 @@ impl CargoWasmPackProfile {
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
                 omit_default_module_path: Some(false),
+                split_linked_modules: Some(false),
             },
             wasm_opt: Some(CargoWasmPackProfileWasmOpt::Enabled(true)),
         }
@@ -307,6 +312,7 @@ impl CargoWasmPackProfile {
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
                 omit_default_module_path: Some(false),
+                split_linked_modules: Some(false),
             },
             wasm_opt: Some(CargoWasmPackProfileWasmOpt::Enabled(true)),
         }
@@ -319,6 +325,7 @@ impl CargoWasmPackProfile {
                 demangle_name_section: Some(true),
                 dwarf_debug_info: Some(false),
                 omit_default_module_path: Some(false),
+                split_linked_modules: Some(false),
             },
             wasm_opt: Some(CargoWasmPackProfileWasmOpt::Enabled(true)),
         }
@@ -370,6 +377,7 @@ impl CargoWasmPackProfile {
         d!(wasm_bindgen.demangle_name_section);
         d!(wasm_bindgen.dwarf_debug_info);
         d!(wasm_bindgen.omit_default_module_path);
+        d!(wasm_bindgen.split_linked_modules);
 
         if self.wasm_opt.is_none() {
             self.wasm_opt = defaults.wasm_opt.clone();
@@ -394,6 +402,11 @@ impl CargoWasmPackProfile {
     /// Get this profile's configured `[wasm-bindgen.omit-default-module-path]` value.
     pub fn wasm_bindgen_omit_default_module_path(&self) -> bool {
         self.wasm_bindgen.omit_default_module_path.unwrap()
+    }
+
+    /// Get this profile's configured `[wasm-bindgen.split-linked-modules]` value.
+    pub fn wasm_bindgen_split_linked_modules(&self) -> bool {
+        self.wasm_bindgen.split_linked_modules.unwrap()
     }
 
     /// Get this profile's configured arguments for `wasm-opt`, if enabled.
