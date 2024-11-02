@@ -1,0 +1,5 @@
+[book]
+authors = ["Ashley Williams"]
+multilingual = false
+src = "src"
+title = "Hello wasm-pack!"
