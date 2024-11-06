@@ -94,3 +94,48 @@ wasm-pack test --node
 # Run all tests which are intended to be executed in a browser
 wasm-pack test --firefox --headless
 ```
+
+## Coverage (Experimental)
+
+<div class="warning">
+    This feature is still highly experimental. You may experience some issues and it could break at any time.
+</div>
+
+### Enable the wasm-bindgen-test feature
+
+```text
+cargo add --dev wasm-bindgen-test --features unstable-coverage
+```
+
+### Usage
+
+The easiest way to use the feature is to use it through [`cargo llvm-cov`](github.com/taiki-e/cargo-llvm-cov).
+
+```text
+cargo llvm-cov wasm-pack --chrome --headless --all
+```
+
+#### Getting the coverage data manually
+
+You need to use `RUSTFLAGS="-Cinstrument-coverage -Zno-profiler-runtime` to build the project with profiling information.
+Currently, `llvm-cov` is not able to get the debug information back out from a `.wasm` file, so until then, we can [get the debug info from LLVM-IR][wasmcov].
+
+[wasmcov]: https://github.com/hknio/code-coverage-for-webassembly
+
+##### Options
+
+The following options are supported for coverage data:
+
+- `--coverage` to generate a single `.profraw` in your current working directory.
+- `--profraw-out` to control the file name of the profraw or the directory in which it is placed
+- `--profraw-prefix` to add a custom prefix to the profraw files. This can be useful if you're running the tests automatically in succession.
+
+##### Example workflow
+
+```text
+RUSTFLAGS="-Cinstrument-coverage -Zno-profiler-runtime --emit=llvm-ir" wasm-pack test --coverage --profraw-out cov_data/
+# Generate the debug info on the host
+clang target/wasm32-unknown-unknown/debug/deps/{your-dot-wasm-without-extension}.ll -Wno-override-module -c -o wasm.o
+llvm-profdata merge --sparse cov_data/*.profraw -o cov_data/coverage.profdata
+llvm-cov --instr-profile=cov_data/coverage.profdata wasm.o --format=html --output-dir=coverage/ --sources .
+```
