@@ -19,6 +19,7 @@ pub fn wasm_bindgen_build(
     disable_dts: bool,
     weak_refs: bool,
     reference_types: bool,
+    browser_only: bool,
     target: Target,
     profile: BuildProfile,
     extra_options: &Vec<String>,
@@ -71,6 +72,13 @@ pub fn wasm_bindgen_build(
     let target_arg = build_target_arg(target, &bindgen_path)?;
     if supports_dash_dash_target(&bindgen_path)? {
         cmd.arg("--target").arg(target_arg);
+        if browser_only {
+            if let Target::Bundler = target {
+                cmd.arg("--browser");
+            } else {
+                bail!("You can only specify `--browser` when building for the 'bundler' target.")
+            }
+        }
     } else {
         cmd.arg(target_arg);
     }
