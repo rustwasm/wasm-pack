@@ -52,7 +52,8 @@ This project requires Rust 1.30.0 or later.
 
 Visit the [quickstart guide] in our documentation.
 
-[quickstart guide]: https://rustwasm.github.io/wasm-pack/book/quickstart.html
+[quickstart guide]: https://rustwasm.github.io/docs/wasm-pack/quickstart.html
+
 
 ## 🎙️ Commands
 
