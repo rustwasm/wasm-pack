@@ -644,7 +644,7 @@ impl CrateData {
             Target::Deno => return Ok(()),
         };
 
-        let npm_json = serde_json::to_string_pretty(&npm_data)?;
+        let npm_json = format!("{}\n", serde_json::to_string_pretty(&npm_data)?);
 
         fs::write(&pkg_file_path, npm_json)
             .with_context(|| anyhow!("failed to write: {}", pkg_file_path.display()))?;
